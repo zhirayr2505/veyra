@@ -50,3 +50,12 @@ test('Storage setup errors identify HTTP status without logging response bodies'
  t.mock.method(globalThis,'fetch',async()=>new Response('{"message":"private-sensitive-detail"}',{status:403}));
  await assert.rejects(storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure(),/STORAGE_BUCKET_READ_FAILED_403/);
 });
+
+test('Storage 400 diagnostics classify auth failures without exposing response text',async(t)=>{
+ t.mock.method(globalThis,'fetch',async()=>new Response('{"code":"AccessDenied","message":"Invalid JWT signature"}',{status:400}));
+ await assert.rejects(storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure(),error=>{
+  assert.equal(error.message,'STORAGE_BUCKET_READ_FAILED_400_AUTH');
+  assert.doesNotMatch(error.message,/Invalid JWT signature/);
+  return true;
+ });
+});

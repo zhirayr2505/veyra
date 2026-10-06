@@ -1,10 +1,11 @@
 import {fail} from './core.js';
 import sharp from 'sharp';
 export async function telegram(botToken,method,body){const r=await fetch(`https://api.telegram.org/bot${botToken}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});const j=await r.json();if(!j.ok)throw Error('TELEGRAM_'+method+'_FAILED');return j.result;}
+async function storageError(response,prefix){let category='';if(response.status===400){try{const body=await response.clone().json();const detail=JSON.stringify([body.code,body.error,body.message,body.statusCode]).toLowerCase();category=/jwt|signature|authorization|unauthor|api.?key|token/.test(detail)?'_AUTH':/permission|row.level|rls/.test(detail)?'_PERMISSION':'_REQUEST';}catch{category='_UNKNOWN';}}throw Error(prefix+response.status+category);}
 export function storage(env){const base=env.SUPABASE_URL+'/storage/v1';const key=env.SUPABASE_SECRET_KEY;const headers={apikey:key};const newSecret=key.startsWith('sb_secret_');const legacyJwt=/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(key);if(!newSecret&&!legacyJwt)throw Error('SUPABASE_SECRET_KEY_INVALID_FORMAT');if(legacyJwt)headers.Authorization=`Bearer ${key}`;const bucket='veyra-media';return {
  async ensure(){
   const endpoint=base+'/bucket/'+bucket;
-  const read=async()=>{const response=await fetch(endpoint,{headers});if(response.status!==404&&!response.ok)throw Error('STORAGE_BUCKET_READ_FAILED_'+response.status);return response;};
+  const read=async()=>{const response=await fetch(endpoint,{headers});if(response.status!==404&&!response.ok)await storageError(response,'STORAGE_BUCKET_READ_FAILED_');return response;};
   let response=await read();
   if(response.status===404){
    response=await fetch(base+'/bucket',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({id:bucket,name:bucket,public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']})});
