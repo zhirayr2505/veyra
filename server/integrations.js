@@ -1,7 +1,7 @@
 import {fail} from './core.js';
 import sharp from 'sharp';
 export async function telegram(botToken,method,body){const r=await fetch(`https://api.telegram.org/bot${botToken}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});const j=await r.json();if(!j.ok)throw Error('TELEGRAM_'+method+'_FAILED');return j.result;}
-export function storage(env){const base=env.SUPABASE_URL+'/storage/v1';const headers={apikey:env.SUPABASE_SECRET_KEY};if(!env.SUPABASE_SECRET_KEY.startsWith('sb_secret_'))headers.Authorization=`Bearer ${env.SUPABASE_SECRET_KEY}`;const bucket='veyra-media';return {
+export function storage(env){const base=env.SUPABASE_URL+'/storage/v1';const key=env.SUPABASE_SECRET_KEY;const headers={apikey:key};const newSecret=key.startsWith('sb_secret_');const legacyJwt=/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(key);if(!newSecret&&!legacyJwt)throw Error('SUPABASE_SECRET_KEY_INVALID_FORMAT');if(legacyJwt)headers.Authorization=`Bearer ${key}`;const bucket='veyra-media';return {
  async ensure(){
   const endpoint=base+'/bucket/'+bucket;
   const read=async()=>{const response=await fetch(endpoint,{headers});if(response.status!==404&&!response.ok)throw Error('STORAGE_BUCKET_READ_FAILED_'+response.status);return response;};

@@ -11,8 +11,15 @@ test('Storage uses apikey for new secret keys and retains Bearer for legacy JWTs
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.equal(calls[0].apikey,'sb_secret_test_only');
  assert.equal(calls[0].Authorization,undefined);
- await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'legacy-test-jwt'}).ensure();
- assert.equal(calls[1].Authorization,'Bearer legacy-test-jwt');
+ await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature'}).ensure();
+ assert.equal(calls[1].Authorization,'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature');
+});
+
+test('rejects malformed Supabase secrets before making a request',async(t)=>{
+ let requested=false;
+ t.mock.method(globalThis,'fetch',async()=>{requested=true;return new Response('{}',{status:200});});
+ assert.throws(()=>storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'opaque-test-key'}),/SUPABASE_SECRET_KEY_INVALID_FORMAT/);
+ assert.equal(requested,false);
 });
 
 test('existing public media bucket is changed to private then re-verified',async(t)=>{
