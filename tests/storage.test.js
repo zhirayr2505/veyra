@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {storage} from '../server/integrations.js';
 
-test('Storage uses apikey for new secret keys and retains Bearer for legacy JWTs',async(t)=>{
+test('Storage sends both apikey and Authorization for server secret keys',async(t)=>{
  const calls=[];
  t.mock.method(globalThis,'fetch',async(url,options)=>{
   calls.push(options.headers);
@@ -10,7 +10,7 @@ test('Storage uses apikey for new secret keys and retains Bearer for legacy JWTs
  });
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.equal(calls[0].apikey,'sb_secret_test_only');
- assert.equal(calls[0].Authorization,undefined);
+ assert.equal(calls[0].Authorization,'Bearer sb_secret_test_only');
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature'}).ensure();
  assert.equal(calls[1].Authorization,'Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature');
 });
