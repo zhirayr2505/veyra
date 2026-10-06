@@ -1,11 +1,14 @@
 import {fail} from './core.js';
 import sharp from 'sharp';
 export async function telegram(botToken,method,body){
- let payload=JSON.stringify(body),headers={'content-type':'application/json'};
+ let payload,headers={'content-type':'application/json'};
  if(Buffer.isBuffer(body.photo)){
   payload=new FormData();headers={};
-  for(const[k,v]of Object.entries(body))payload.append(k,k==='photo'?new Blob([v],{type:'image/webp'}):typeof v==='object'?JSON.stringify(v):String(v));
- }
+  for(const[k,v]of Object.entries(body)){
+   if(k==='photo')payload.append(k,new Blob([await sharp(v).jpeg({quality:88}).toBuffer()],{type:'image/jpeg'}),'profile.jpg');
+   else payload.append(k,typeof v==='object'?JSON.stringify(v):String(v));
+  }
+ }else payload=JSON.stringify(body);
  const r=await fetch(`https://api.telegram.org/bot${botToken}/${method}`,{method:'POST',headers,body:payload,signal:AbortSignal.timeout(12000)});
  const j=await r.json();if(!j.ok)throw Error('TELEGRAM_'+method+'_FAILED');return j.result;
 }

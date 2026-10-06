@@ -28,7 +28,7 @@ function App(){const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_c
  {toast&&<div className="toast" role="status">{toast}<button aria-label="Close" onClick={()=>setToast('')}><X size={17}/></button></div>}
  </div></Context.Provider>;
 }
-function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
+function Field({label,children}){return <label className="field"><span>{label}</span>{React.cloneElement(children,{'aria-label':children.props['aria-label']||label})}</label>}
 const genders=[['man','Мужчина'],['woman','Женщина'],['other','Другое']];
 function ProfileForm(){const{t,me,refresh,run,busy,setPage,alert}=useApp();const p=me?.profile;const[f,setF]=useState(p?{...p,birth_date:String(p.birth_date).slice(0,10),consent:true}:{name:me?.user.first_name||'',birth_date:'',gender:'man',looking_for:['woman'],bio:'',interests:[],goal:'relationship',city:'',country:'',lat:null,lon:null,min_age:18,max_age:45,radius_km:100,consent:false});const[q,setQ]=useState('');const[places,setPlaces]=useState([]);const upd=(k,v)=>setF(x=>({...x,[k]:v}));
  const locate=()=>{navigator.geolocation?navigator.geolocation.getCurrentPosition(pos=>run(async()=>{const r=await api(`/geo?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);if(r[0]){setF(x=>({...x,...r[0]}));setPlaces([]);}}),()=>alert(t('Найти город')),{timeout:15000,maximumAge:300000}):alert(t('Найти город'));};

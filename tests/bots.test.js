@@ -4,6 +4,7 @@ import {testDB,user,env,deps} from './helpers.js';
 import {notifyReview} from '../server/domain.js';
 import {drainOutbox} from '../server/bots.js';
 import {telegram} from '../server/integrations.js';
+import sharp from 'sharp';
 let db;
 before(async()=>{db=await testDB();await user(db,51,{moderation:'pending'});});
 after(()=>db.close());
@@ -19,8 +20,10 @@ test('moderation card delivers private photo as binary to owner, with revision-b
 test('Telegram photo upload uses multipart data without publishing a storage URL',async(t)=>{
  let options;
  t.mock.method(globalThis,'fetch',async(url,o)=>{options=o;return Response.json({ok:true,result:{message_id:1}});});
- await telegram('local-test','sendPhoto',{chat_id:1,photo:Buffer.from('private image'),caption:'Profile',reply_markup:{inline_keyboard:[]}});
+ const source=await sharp({create:{width:20,height:30,channels:3,background:'#713da0'}}).webp().toBuffer();
+ await telegram('local-test','sendPhoto',{chat_id:1,photo:source,caption:'Profile',reply_markup:{inline_keyboard:[]}});
  assert.ok(options.body instanceof FormData);assert.equal(options.headers['content-type'],undefined);
- assert.equal(await options.body.get('photo').text(),'private image');
+ const file=options.body.get('photo');assert.equal(file.name,'profile.jpg');assert.equal(file.type,'image/jpeg');
+ assert.equal((await sharp(Buffer.from(await file.arrayBuffer())).metadata()).format,'jpeg');
  assert.deepEqual(JSON.parse(options.body.get('reply_markup')),{inline_keyboard:[]});
 });
