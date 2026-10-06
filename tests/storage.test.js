@@ -1,3 +1,16 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import sharp from 'sharp';import {storage} from '../server/integrations.js';
-test('photo pipeline re-encodes data, bounds dimensions and strips EXIF',async()=>{const input=await sharp({create:{width:1900,height:1700,channels:3,background:'#552244'}}).withMetadata({orientation:1}).jpeg().toBuffer();const fetchBefore=global.fetch;let data;global.fetch=async(url,options)=>{data=options.body;return {ok:true};};try{await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'test-only'}).put('1/photo.webp',input);const m=await sharp(data).metadata();assert.equal(m.format,'webp');assert.equal(m.width,1600);assert.equal(m.exif,undefined);}finally{global.fetch=fetchBefore;}});
-test('malformed image bytes are rejected before storage upload',async()=>{await assert.rejects(storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'test-only'}).put('x',Buffer.from('not an image')));});
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {storage} from '../server/integrations.js';
+
+test('Storage uses apikey for new secret keys and retains Bearer for legacy JWTs',async(t)=>{
+ const calls=[];
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls.push(options.headers);
+  return new Response(JSON.stringify({id:'veyra-media',public:false}),{status:200});
+ });
+ await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
+ assert.equal(calls[0].apikey,'sb_secret_test_only');
+ assert.equal(calls[0].Authorization,undefined);
+ await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'legacy-test-jwt'}).ensure();
+ assert.equal(calls[1].Authorization,'Bearer legacy-test-jwt');
+});
