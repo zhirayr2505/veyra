@@ -2,6 +2,55 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {storage} from '../server/integrations.js';
 
+for(const [label,status,body] of [
+ ['legacy Render failure',400,{statusCode:'404',error:'Bucket not found',message:'Bucket not found'}],
+ ['modern missing bucket',404,{code:'NoSuchBucket',message:'The specified bucket does not exist'}],
+ ['modern code wrapped in HTTP 400',400,{code:'NoSuchBucket'}],
+ ['plain 404',404,{}],
+])test('creates and verifies a private bucket: '+label,async(t)=>{
+ const calls=[];
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls.push({url,...options});
+  if(calls.length===1)return Response.json(body,{status});
+  if(options.method==='POST')return Response.json({name:'veyra-media'});
+  return Response.json({id:'veyra-media',public:false});
+ });
+ await storage({SUPABASE_URL:'https://storage.example/',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
+ assert.deepEqual(calls.map(x=>x.method||'GET'),['GET','POST','GET']);
+ assert.equal(calls[0].url,'https://storage.example/storage/v1/bucket/veyra-media');
+ assert.deepEqual(JSON.parse(calls[1].body),{id:'veyra-media',name:'veyra-media',public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']});
+ assert.ok(calls.every(x=>x.signal instanceof AbortSignal));
+});
+
+test('legacy HTTP 400 creation collision is reread, not treated as startup failure',async(t)=>{
+ let calls=0;
+ t.mock.method(globalThis,'fetch',async()=>{
+  calls++;
+  if(calls===1)return Response.json({message:'Bucket not found'},{status:400});
+  if(calls===2)return Response.json({statusCode:'409',error:'Duplicate',message:'The resource already exists'},{status:400});
+  return Response.json({id:'veyra-media',public:false});
+ });
+ await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
+ assert.equal(calls,3);
+});
+
+for(const [status,body] of [[400,{code:'InvalidJWT',message:'Invalid JWT signature'}],[403,{code:'AccessDenied'}],[404,{code:'TenantNotFound'}],[500,{message:'Bucket not found'}]])test('does not create bucket on unrelated error '+status+' '+(body.code||'server'),async(t)=>{
+ const calls=[];
+ t.mock.method(globalThis,'fetch',async(url,options)=>{calls.push(options.method||'GET');return Response.json(body,{status});});
+ await assert.rejects(storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure(),/STORAGE_BUCKET_READ_FAILED_/);
+ assert.deepEqual(calls,['GET']);
+});
+
+test('successful create response cannot bypass private metadata verification',async(t)=>{
+ let calls=0;
+ t.mock.method(globalThis,'fetch',async()=>{
+  if(++calls===1)return Response.json({message:'Bucket not found'},{status:400});
+  return Response.json({name:'veyra-media'});
+ });
+ await assert.rejects(storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure(),/STORAGE_BUCKET_PRIVACY_UNCONFIRMED/);
+ assert.equal(calls,3);
+});
+
 test('Storage sends new secret keys only as apikey and legacy JWT keys as both headers',async(t)=>{
  const calls=[];
  t.mock.method(globalThis,'fetch',async(url,options)=>{
