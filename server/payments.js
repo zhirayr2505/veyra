@@ -16,10 +16,14 @@ export async function validateCheckout(q,pc){
  if(!pc.id)return false;
  await q.query('UPDATE orders SET precheckout_id=$2,precheckout_at=now() WHERE id=$1',[o.id,pc.id]);return true;
 }
-export async function settle(q,from,p){const initial=await one(q,'SELECT * FROM orders WHERE id=$1',[p.invoice_payload]);if(!initial)fail(400,'UNKNOWN_ORDER');await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[initial.user_id]);const o=await one(q,'SELECT * FROM orders WHERE id=$1 FOR UPDATE',[initial.id]);if(String(o.user_id)!==String(from)||p.currency!=='XTR'||p.total_amount!==o.total||!p.telegram_payment_charge_id)fail(400,'PAYMENT_MISMATCH');if(o.status==='paid'){if(o.telegram_charge!==p.telegram_payment_charge_id)fail(409,'DUPLICATE_CHARGE');return;}
+export async function settle(q,from,p){const initial=await one(q,'SELECT * FROM orders WHERE id=$1',[p.invoice_payload]);if(!initial)fail(400,'UNKNOWN_ORDER');await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[initial.user_id]);const o=await one(q,'SELECT * FROM orders WHERE id=$1 FOR UPDATE',[initial.id]);if(String(o.user_id)!==String(from)||p.currency!=='XTR'||p.total_amount!==o.total||!p.telegram_payment_charge_id)fail(400,'PAYMENT_MISMATCH');if(o.status==='paid'||o.status==='refunded'){if(o.telegram_charge!==p.telegram_payment_charge_id)fail(409,'DUPLICATE_CHARGE');return;}
  await q.query("UPDATE orders SET status='paid',telegram_charge=$2,paid_at=now() WHERE id=$1",[o.id,p.telegram_payment_charge_id]);await grant(q,o.user_id,o.kind,o.amount);await audit(q,o.user_id,'payment.settled',o.id,{stars:o.total});await notify(q,o.user_id,'✨ Оплата получена. Покупка активирована в VEYRA.');}
 
 export async function finalizeRefund(q,orderId,actor){
+ const initial=await one(q,'SELECT user_id FROM orders WHERE id=$1',[orderId]);
+ if(!initial)return;
+ // Keep the same lock order as settlement: user, then order.
+ await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[initial.user_id]);
  const o=await one(q,'SELECT * FROM orders WHERE id=$1 FOR UPDATE',[orderId]);
  if(!o||o.status==='refunded')return;
  if(o.status!=='paid')fail(409,'ORDER_NOT_PAID');

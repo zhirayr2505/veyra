@@ -1,6 +1,14 @@
 import {fail} from './core.js';
 import sharp from 'sharp';
-export async function telegram(botToken,method,body){const r=await fetch(`https://api.telegram.org/bot${botToken}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});const j=await r.json();if(!j.ok)throw Error('TELEGRAM_'+method+'_FAILED');return j.result;}
+export async function telegram(botToken,method,body){
+ let payload=JSON.stringify(body),headers={'content-type':'application/json'};
+ if(Buffer.isBuffer(body.photo)){
+  payload=new FormData();headers={};
+  for(const[k,v]of Object.entries(body))payload.append(k,k==='photo'?new Blob([v],{type:'image/webp'}):typeof v==='object'?JSON.stringify(v):String(v));
+ }
+ const r=await fetch(`https://api.telegram.org/bot${botToken}/${method}`,{method:'POST',headers,body:payload,signal:AbortSignal.timeout(12000)});
+ const j=await r.json();if(!j.ok)throw Error('TELEGRAM_'+method+'_FAILED');return j.result;
+}
 async function storageError(response,prefix){let category='';if(response.status===400){try{const body=await response.clone().json();const detail=JSON.stringify([body.code,body.error,body.message,body.statusCode]).toLowerCase();const markers=[['invalid jwt','INVALID_JWT'],['signature','SIGNATURE'],['unauthorized','UNAUTHORIZED'],['api key','API_KEY'],['invalid key','INVALID_KEY'],['permission denied','PERMISSION_DENIED'],['row level','ROW_LEVEL_SECURITY'],['invalid bucket','INVALID_BUCKET'],['bucket not found','BUCKET_NOT_FOUND'],['not found','NOT_FOUND'],['invalid request','INVALID_REQUEST'],['bad request','BAD_REQUEST']];const match=markers.find(([needle])=>detail.includes(needle));category=/jwt|signature|authorization|unauthor|api.?key|token|invalid key/.test(detail)?'_AUTH':/permission|row.level|rls/.test(detail)?'_PERMISSION':'_REQUEST';if(match)category+='_'+match[1];}catch{category='_UNKNOWN';}}throw Error(prefix+response.status+category);}
 // Supabase's legacy Storage API can wrap a 404/409 error in HTTP 400.
 // Match only bucket-specific errors: auth failures must still stop startup.

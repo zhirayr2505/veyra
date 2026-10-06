@@ -49,7 +49,7 @@ Automated server tests use PGlite (actual PostgreSQL engine compiled to WASM), n
 - Today plans with activities, time slots and expiry. Internal persistent chat, read receipts, pagination, idempotent message submission; block/report/unmatch; mutual Telegram-handle exchange.
 - Premium, Boost inventory/activation, one Premium weekly Boost, Stars invoice/precheckout/successful-payment processing, refund request and refund-update reconciliation, inactive unregistered Robokassa boundary.
 - Referral attribution and moderation-triggered rewards, promo redemption with limits/expiry, support tickets and replies, user data export/deletion, user settings.
-- User bot commands, admin bot statistics/review/approval/rejection, owner Web Admin, CSV exports compatible with Excel, feature toggles, audit log, persistent Telegram outbox and media deletion queue.
+- User bot commands, admin bot photo cards/statistics/review/approval/rejection, owner Web Admin with user dossiers, CSV exports compatible with Excel, streamed ZIP exports of all or one user's photos and chats, feature toggles, audit log, persistent Telegram outbox and media deletion queue.
 
 The fee/limit decisions restored from prior context and explicit assumptions are recorded separately in [requirements](docs/REQUIREMENTS.md). Payment features start **disabled** to avoid unreviewed purchases before live checkout verification. An owner can enable them from the Web Admin.
 

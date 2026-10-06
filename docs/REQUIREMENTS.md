@@ -47,6 +47,6 @@ Retrieved sources: earlier conversation extracts, `VEYRA_DEPLOY_INPUTS_TEMPLATE.
 
 - No phone/selfie/identity verification, automatic face matching, machine-learning moderation, voice/video messages, translations beyond RU/EN, subscription renewals, card checkout, scheduled mass messaging, partner commission payout system, or claims of guaranteed Boost impressions.
 - Discovery currently evaluates up to 200 eligible candidates; a large global deployment should move distance filtering/indexing to PostGIS and add cursor-based candidate retrieval.
-- Owner queue lists are bounded (100 profiles/users, 200 administrative records), export is capped at 10,000 users. These are test-launch bounds, not an enterprise-scale implementation.
+- Owner queue lists are bounded (100 profiles/users, 200 administrative records). CSV/ZIP exports stream all users in batches. ZIP includes photos and complete transcripts attached to both participants. Owner-only dossiers/per-user archives are available. Exports are audited and limited to three starts per hour per owner.
 - Billing refund mechanics are present but live Stars acceptance/refund verification is pending.
 - Main Mini App BotFather configuration and operator/legal details are external setup items.

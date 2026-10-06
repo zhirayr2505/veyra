@@ -20,6 +20,7 @@
     "test:browser": "playwright test"
   },
   "dependencies": {
+    "archiver": "7.0.1",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "lucide-react": "^0.577.0",
@@ -35,6 +36,7 @@
     "@electric-sql/pglite": "^0.3.14",
     "@playwright/test": "^1.58.2",
     "@vitejs/plugin-react": "^5.1.4",
+    "fflate": "0.8.2",
     "supertest": "^7.2.2",
     "vite": "^7.3.1"
   }

@@ -4,6 +4,14 @@ import {fail,premium} from './core.js';
 export const flag=async(q,k)=>{const f=await one(q,'SELECT * FROM feature_flags WHERE key=$1',[k]);return f?.enabled;};
 export const audit=(q,actor,action,subject,metadata={})=>q.query('INSERT INTO audit_log(actor,action,subject,metadata) VALUES($1,$2,$3,$4)',[actor,action,String(subject),JSON.stringify(metadata)]);
 export async function notify(q,recipient,text,bot='user',markup){await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),bot,recipient,JSON.stringify({text,...(markup?{reply_markup:markup}:{})})]);}
+export async function notifyReview(q,env,userId){
+ const p=await one(q,`SELECT p.*,u.username,extract(year FROM age(p.birth_date))::int AS age FROM profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=$1`,[userId]);
+ if(!p)return;
+ const photo=await one(q,'SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at LIMIT 1',[userId]);
+ const text=`Анкета ${p.user_id} · ревизия ${p.revision}\n${p.name}, ${p.age}\n@${p.username||'—'}\n${p.city}, ${p.country}\nПол: ${p.gender} · Ищет: ${p.looking_for.join(', ')}\nЦель: ${p.goal}\n${p.bio.slice(0,250)}\nИнтересы: ${p.interests.join(', ').slice(0,100)}`.slice(0,1000);
+ const reply_markup={inline_keyboard:[[{text:'Все фото и анкета',web_app:{url:env.APP_URL+'/admin'}}],[{text:'Одобрить',callback_data:`approve:${p.user_id}:${p.revision}`}]]};
+ await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify({text,photo_id:photo?.id,reply_markup})]);
+}
 export async function approved(q,id){const p=await one(q,"SELECT p.* FROM profiles p JOIN users u ON u.id=p.user_id WHERE user_id=$1 AND u.status='active'",[id]);if(p?.moderation!=='approved')fail(403,'PROFILE_NOT_APPROVED');return p;}
 export async function pairLock(q,a,b){const ids=[BigInt(a),BigInt(b)].sort((x,y)=>x<y?-1:1);await q.query('SELECT id FROM users WHERE id=$1 OR id=$2 ORDER BY id FOR UPDATE',[...ids.map(String)]);}
 export const blocked=async(q,a,b)=>!!await one(q,'SELECT 1 FROM blocks WHERE (actor=$1 AND target=$2) OR (actor=$2 AND target=$1)',[a,b]);
