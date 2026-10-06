@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: veyra
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /readyz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: USER_BOT_USERNAME
+        value: VeyraAppBot
+      - key: ADMIN_BOT_USERNAME
+        value: VeyraAdminBot
+      - key: OFFICIAL_CHANNEL_USERNAME
+        value: VeyraDating
+      - key: AUTO_SETUP_BOTS
+        value: "true"
+      - key: USER_BOT_TOKEN
+        sync: false
+      - key: ADMIN_BOT_TOKEN
+        sync: false
+      - key: OWNER_TELEGRAM_ID
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEOAPIFY_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false

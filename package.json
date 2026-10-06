@@ -1,0 +1,41 @@
+{
+  "name": "veyra",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "dev:api": "node --env-file-if-exists=.env --watch server/index.js",
+    "build": "vite build",
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "migrate": "node --env-file-if-exists=.env scripts/migrate.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "check": "npm test && npm run build",
+    "doctor": "node --env-file-if-exists=.env scripts/doctor.js",
+    "setup:bots": "node --env-file-if-exists=.env scripts/setup-bots.js",
+    "secrets:check": "node scripts/secrets-check.js",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "lucide-react": "^0.577.0",
+    "multer": "^2.0.2",
+    "pg": "^8.16.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "redis": "^5.11.0",
+    "sharp": "0.35.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "@playwright/test": "^1.58.2",
+    "@vitejs/plugin-react": "^5.1.4",
+    "supertest": "^7.2.2",
+    "vite": "^7.3.1"
+  }
+}

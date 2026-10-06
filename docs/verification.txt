@@ -1,0 +1,21 @@
+Local verification, 2026-10-05
+
+npm run check
+  Node test runner: 19 passed, 0 failed, 0 skipped.
+  PostgreSQL engine: @electric-sql/pglite; external integration boundaries mocked.
+  Vite 7.3.6 production build: successful, 1743 modules transformed.
+  Client JS: 286.32 kB (89.27 kB gzip); CSS: 21.54 kB (5.89 kB gzip).
+
+npm run secrets:check
+  No production credentials detected in tracked/candidate files.
+
+npm audit --omit=dev --audit-level=high
+  found 0 vulnerabilities (after sharp upgrade to 0.35.5).
+
+Not run successfully here:
+  Browser UI tests: Chromium download unavailable/invalid archive.
+  Docker image: Docker engine unavailable.
+  Real service credentials: outbound DNS unavailable for relevant hosts.
+  Live Telegram, Stars, Supabase, Redis, Geoapify and Render acceptance.
+
+There is no verified deployment URL. See STATUS.md.
