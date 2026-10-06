@@ -2,7 +2,26 @@ import {fail} from './core.js';
 import sharp from 'sharp';
 export async function telegram(botToken,method,body){const r=await fetch(`https://api.telegram.org/bot${botToken}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});const j=await r.json();if(!j.ok)throw Error('TELEGRAM_'+method+'_FAILED');return j.result;}
 export function storage(env){const base=env.SUPABASE_URL+'/storage/v1';const headers={apikey:env.SUPABASE_SECRET_KEY};if(!env.SUPABASE_SECRET_KEY.startsWith('sb_secret_'))headers.Authorization=`Bearer ${env.SUPABASE_SECRET_KEY}`;const bucket='veyra-media';return {
- async ensure(){let r=await fetch(base+'/bucket/'+bucket,{headers});if(r.status===404){r=await fetch(base+'/bucket',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({id:bucket,name:bucket,public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']})});}if(!r.ok)throw Error('STORAGE_SETUP_FAILED');const j=await r.json();if(j.public===true)throw Error('STORAGE_BUCKET_MUST_BE_PRIVATE');},
+ async ensure(){
+  const endpoint=base+'/bucket/'+bucket;
+  const read=async()=>{const response=await fetch(endpoint,{headers});if(response.status!==404&&!response.ok)throw Error('STORAGE_BUCKET_READ_FAILED_'+response.status);return response;};
+  let response=await read();
+  if(response.status===404){
+   response=await fetch(base+'/bucket',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({id:bucket,name:bucket,public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']})});
+   // Another startup may have created the bucket between GET and POST.
+   if(response.status===409)response=await read();
+   else if(!response.ok)throw Error('STORAGE_BUCKET_CREATE_FAILED_'+response.status);
+  }
+  let info=await response.json();
+  if(info.public===true){
+   const updated=await fetch(endpoint,{method:'PUT',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({public:false})});
+   if(!updated.ok)throw Error('STORAGE_BUCKET_PRIVACY_UPDATE_FAILED_'+updated.status);
+   response=await read();
+   if(!response.ok)throw Error('STORAGE_BUCKET_VERIFY_FAILED_'+response.status);
+   info=await response.json();
+  }
+  if(info.public!==false)throw Error('STORAGE_BUCKET_PRIVACY_UNCONFIRMED');
+ },
  async put(key,buffer){const clean=await sharp(buffer,{limitInputPixels:20000000,animated:false}).rotate().resize(1600,1600,{fit:'inside',withoutEnlargement:true}).webp({quality:85}).toBuffer();const r=await fetch(base+'/object/'+bucket+'/'+key,{method:'POST',headers:{...headers,'content-type':'image/webp'},body:clean,signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('UPLOAD_FAILED');},
  async get(key){const r=await fetch(base+'/object/authenticated/'+bucket+'/'+key,{headers,signal:AbortSignal.timeout(15000)});if(!r.ok)fail(404,'PHOTO_NOT_FOUND');return Buffer.from(await r.arrayBuffer());},
  async remove(key){const r=await fetch(base+'/object/'+bucket,{method:'DELETE',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({prefixes:[key]})});if(!r.ok)throw Error('STORAGE_DELETE_FAILED');}
