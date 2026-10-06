@@ -55,7 +55,8 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  const notice=a.locator('.toast');if(await notice.count())await notice.getByRole('button',{name:'Close',exact:true}).click();
  await a.screenshot({path:testInfo.outputPath('chat-mobile.png'),fullPage:true});
  await owner.getByRole('button',{name:'Пользователи',exact:true}).click();await owner.getByPlaceholder('ID, username или имя').fill('101');
- await owner.getByRole('button',{name:'Открыть',exact:true}).click();await expect(owner.getByRole('dialog')).toContainText('Тест Анна');
+ await expect(owner.locator('.table-wrap tbody tr')).toHaveCount(1);const userRow=owner.getByRole('row').filter({has:owner.getByRole('cell',{name:'101',exact:true})});
+ await userRow.getByRole('button',{name:'Открыть',exact:true}).click();await expect(owner.getByRole('dialog')).toContainText('Тест Анна');
  const downloaded=owner.waitForEvent('download');await owner.getByRole('button',{name:'Скачать анкету, фото и чаты',exact:true}).click();
  expect((await downloaded).suggestedFilename()).toBe('veyra-user-101.zip');
  await owner.screenshot({path:testInfo.outputPath('admin-user.png'),fullPage:true});
