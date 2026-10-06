@@ -31,6 +31,15 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  }
  for(const page of [a,b]){await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.getByRole('heading',{name:'Знакомства ближе',exact:true})).toBeVisible();}
  await expect(a.locator('.dating-card')).toContainText('Тест Анна');
+ for(const viewport of [{width:390,height:844},{width:320,height:568}]){
+  await a.setViewportSize(viewport);
+  await a.evaluate(()=>document.documentElement.style.setProperty('--safe','34px'));
+  const bounds=await a.evaluate(()=>({nav:document.querySelector('.bottom-nav').getBoundingClientRect().top,buttons:[...document.querySelectorAll('.reaction-bar button')].map(x=>x.getBoundingClientRect().bottom),overflow:document.documentElement.scrollWidth>innerWidth}));
+  expect(bounds.overflow).toBe(false);
+  for(const bottom of bounds.buttons)expect(bottom).toBeLessThan(bounds.nav);
+ }
+ await a.screenshot({path:testInfo.outputPath('feed-small-safe-area.png'),fullPage:true});
+ await a.setViewportSize({width:390,height:844});await a.evaluate(()=>document.documentElement.style.removeProperty('--safe'));
  await a.screenshot({path:testInfo.outputPath('feed-mobile.png'),fullPage:true});
  const card=a.locator('.dating-card');const box=await card.boundingBox();
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
@@ -43,6 +52,7 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await expect(a.locator('.bubble')).toContainText('Привет из тестового чата');
  for(const page of [a,b]){await page.locator('.chat-header').getByRole('button',{name:'Настройки',exact:true}).click();await page.getByRole('button',{name:'Обменяться Telegram',exact:true}).click();}
  await expect(b.locator('.exchange-link')).toHaveAttribute('href','https://t.me/tester101');await expect(a.locator('.exchange-link')).toHaveAttribute('href','https://t.me/tester102');
+ const notice=a.locator('.toast');if(await notice.count())await notice.getByRole('button',{name:'Close',exact:true}).click();
  await a.screenshot({path:testInfo.outputPath('chat-mobile.png'),fullPage:true});
  await owner.getByRole('button',{name:'Пользователи',exact:true}).click();await owner.getByPlaceholder('ID, username или имя').fill('101');
  await owner.getByRole('button',{name:'Открыть',exact:true}).click();await expect(owner.getByRole('dialog')).toContainText('Тест Анна');

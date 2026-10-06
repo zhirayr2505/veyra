@@ -4,3 +4,20 @@
 .swipe-label{position:absolute;z-index:8;top:72px;left:22px;padding:9px 15px;border:3px solid;border-radius:12px;font-weight:800;transform:rotate(-12deg);background:#0c0b14cc}
 .swipe-label.yes{color:#72efd0;border-color:#72efd0}
 .swipe-label.no{color:#ff86ac;border-color:#ff86ac}
+
+/* Keep reaction targets fully above the fixed navigation at every phone height. */
+.feed-app{height:100dvh;display:flex;flex-direction:column}
+.feed-app>.topbar{flex-shrink:0}
+.feed-app>main{flex:1;min-height:0;padding-bottom:calc(80px + var(--safe))}
+.feed-app .feed-surface{height:100%;display:flex;flex-direction:column}
+.feed-app .section-head,.feed-app .reaction-bar{flex-shrink:0}
+.feed-app .dating-card{height:auto;min-height:200px;flex:1}
+.feed-app .card-info{max-height:calc(100% - 85px);overflow:auto;pointer-events:auto}
+@media(max-height:700px){
+ .feed-app>.topbar{padding-top:12px;padding-bottom:12px}
+ .feed-app .section-head{margin:6px 0 12px}
+ .feed-app .section-head h1{font-size:24px}
+ .feed-app .reaction-bar{padding:12px 0 5px}
+ .feed-app .reaction-bar .like{width:60px;height:60px}
+ .feed-app .card-info{bottom:16px}
+}
