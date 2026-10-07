@@ -1,21 +1,49 @@
-Local verification, 2026-10-05
+Verification record — checked 2026-10-07; CI executed 2026-10-06
 
-npm run check
-  Node test runner: 19 passed, 0 failed, 0 skipped.
-  PostgreSQL engine: @electric-sql/pglite; external integration boundaries mocked.
-  Vite 7.3.6 production build: successful, 1743 modules transformed.
-  Client JS: 286.32 kB (89.27 kB gzip); CSS: 21.54 kB (5.89 kB gzip).
+Verified application commit: 9da9609f3e6b15b63063d880487a7f9f443460c5
+CI: https://github.com/zhirayr2505/veyra/actions/runs/37507915144
+Conclusion: SUCCESS
+
+npm run check (Node 22 in CI)
+  Node test runner: 43 passed, 0 failed, 0 skipped.
+  Database engine: @electric-sql/pglite; external providers mocked.
+  Coverage includes auth/scope, moderation, feed quotas, matching/chat,
+  payments/replay/refunds, private Storage initialization, bots and ZIP export.
+  The large archive test verifies all 503 messages across an identical
+  microsecond timestamp boundary and correct participant association.
+  Vite 7.3.6 production build: successful; 1743 modules transformed.
+
+npm run test:browser (Chromium in GitHub Actions)
+  5 passed, 0 failed.
+  Public Telegram entry; authenticated feed and filters; onboarding/location;
+  separate admin login/moderation; full two-adult acceptance flow.
+  Full flow: register, upload private photos, approve from owner Web Admin,
+  swipe/like, match, send/receive chat, mutually exchange Telegram usernames,
+  open owner dossier and download the participant ZIP archive.
+  Real HMAC-signed fixture identities; isolated database and stubbed providers.
+  No real Telegram messages, users or purchases are created by these tests.
 
 npm run secrets:check
-  No production credentials detected in tracked/candidate files.
+  Passed: no production credentials detected in scanned source files.
 
-npm audit --omit=dev --audit-level=high
-  found 0 vulnerabilities (after sharp upgrade to 0.35.5).
+npm audit --omit=dev
+  Zero reported vulnerabilities on 2026-10-06.
 
-Not run successfully here:
-  Browser UI tests: Chromium download unavailable/invalid archive.
-  Docker image: Docker engine unavailable.
-  Real service credentials: outbound DNS unavailable for relevant hosts.
-  Live Telegram, Stars, Supabase, Redis, Geoapify and Render acceptance.
+node scripts/smoke.js LOCAL_TEST_ORIGIN
+  All 6 passed against the isolated local server:
+  /healthz 200, /readyz 200, / 200,
+  /api/me 401, /api/admin/export.zip 401, /api/admin/users/1 401.
+  This is not a live Render result.
 
-There is no verified deployment URL. See STATUS.md.
+Screenshot review
+  Feed, chat and owner dossier reviewed from the successful CI artifacts.
+  Found feed actions partially behind fixed navigation; fixed in e0d0884.
+  Layout regression at 390x844 and 320x568 with a 34px bottom safe area:
+  PASSED in the successful CI run linked above.
+
+Not verified
+  Current live Render URL/commit/health and Docker image deployment.
+  Actual Telegram WebViews, webhooks and live Supabase/Redis/Geoapify services.
+  Real Stars purchase/refund. Payments stay disabled by default.
+
+The public Render URL is the next missing input. See STATUS.md and NEXT_TASK.md.
