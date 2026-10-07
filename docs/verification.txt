@@ -41,9 +41,23 @@ Screenshot review
   Layout regression at 390x844 and 320x568 with a 34px bottom safe area:
   PASSED in the successful CI run linked above.
 
-Not verified
-  Current live Render URL/commit/health and Docker image deployment.
-  Actual Telegram WebViews, webhooks and live Supabase/Redis/Geoapify services.
-  Real Stars purchase/refund. Payments stay disabled by default.
+Live Render — 2026-10-07, 05:41 UTC
+  Origin: https://veyra-3806.onrender.com
+  Deployed revision: e726df09da870c4fb6ee3043b70a9e49e358d9f7
+  All 6 smoke checks PASSED against the actual public service:
+  /healthz 200 (ok=true, service=veyra, expected revision),
+  /readyz 200 (PostgreSQL SELECT 1 and Redis PING), / 200,
+  /api/me 401, /api/admin/export.zip 401, /api/admin/users/1 401.
+  /assets/index-Dx5wt-1E.js 200, text/javascript, 289657 bytes.
+  /assets/index-kAozj6VR.css 200, text/css, 22711 bytes.
+  /api/config 200, correct brand, bots and channel.
+  Flags: registrations/today/referrals on; payments/maintenance off.
+  Actual server startup completes migration and private Storage ensure before
+  opening the listener. No real accounts, messages or payments created by probes.
 
-The public Render URL is the next missing input. See STATUS.md and NEXT_TASK.md.
+Not verified
+  Actual Telegram WebViews, bot menu/webhooks, live photo upload/moderation,
+  Geoapify location lookup and real Stars purchase/refund.
+  Payments remain disabled in the live config.
+
+Next: owner opens VEYRA from @VeyraAppBot. See STATUS.md and NEXT_TASK.md.

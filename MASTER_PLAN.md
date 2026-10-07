@@ -7,7 +7,8 @@
 - [x] Docker/Render configuration, migrations, backup tools, server tests, production build, credential check.
 - [x] Expanded browser acceptance in CI: 5 scenarios pass.
 - [x] Verify final mobile layout fix and review new screenshots in CI.
-- [ ] Existing Render service healthy on current source, actual webhooks verified.
+- [x] Existing Render service healthy on current source; six public smoke checks and frontend assets verified.
+- [ ] Actual Telegram bot menus/webhooks and WebView login verified.
 - [ ] Actual Android Telegram acceptance, then live payment/refund validation.
 
 Decisions/defaults: `docs/REQUIREMENTS.md`. Evidence/access boundary: `STATUS.md`.
