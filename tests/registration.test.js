@@ -53,6 +53,9 @@ test('launch reset is scoped, deletes all old accounts and sessions, queues medi
  const target={...env,APP_URL:'https://veyra-3806.onrender.com',RENDER_EXTERNAL_URL:'https://veyra-3806.onrender.com'};
  await db.query("UPDATE feature_flags SET enabled=true WHERE key='payments'");assert.equal((await applyRegistrationReset(db,target)).status,'blocked_payment_history');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
  await db.query("UPDATE feature_flags SET enabled=false WHERE key='payments'");
+ const paidId=randomUUID();await db.query("INSERT INTO orders(id,user_id,total,kind,amount,status,telegram_charge) VALUES($1,200,9,'superlikes',1,'paid','reset-protection-fixture')",[paidId]);
+ assert.equal((await applyRegistrationReset(db,target)).status,'blocked_payment_history');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
+ await db.query('DELETE FROM orders WHERE id=$1',[paidId]);
  assert.equal((await applyRegistrationReset(db,target)).status,'completed');
  for(const table of ['users','profiles','photos','sessions','outbox','matches','reactions','registration_drafts'])assert.equal((await one(db,`SELECT count(*)::int AS n FROM ${table}`)).n,0,table);
  assert.ok((await one(db,'SELECT count(*)::int AS n FROM storage_gc')).n>=9);
