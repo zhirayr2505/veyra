@@ -1,11 +1,7 @@
 # Next concrete work
 
-Existing test service: https://veyra-3806.onrender.com. The owner already confirmed the pre-refresh version works; do not ask them to repeat setup.
+The registration/graphics/reset stage is complete. Deployed source c294745f6f0c9e494eb014d8c978ddba96e7d8a7 was confirmed at 2026-10-07T21:42:46Z. The main implementation passed 50 server tests and 6 browser scenarios; the final server-only reset fix passed four focused tests.
 
-The refresh is deployed and verified on source `5210eb0`; live evidence is in `docs/verification.txt`.
+Live /healthz reports registrationVersion 2 and registrationReset.status completed (completed_at 2026-10-07T21:42:19.050Z). /readyz and frontend assets passed verification. All old profiles/sessions were cleared while retaining purchase history and paid entitlements. The owner can reopen @VeyraAppBot and register again. Do not create another reset operation or repeat the completed rollout checks.
 
-1. Ask the owner to reopen VEYRA from @VeyraAppBot to view the new interface. Give only this one action.
-2. Respond to concrete visual feedback from the owner's Android Telegram WebView. Do not silently alter prices, discovery geography, working flows or stored data.
-3. Real Stars purchase/refund remains a separate acceptance item. Payments are currently disabled; never label mock-provider tests as real purchase evidence.
-
-Do not create a second hosting project, change providers or request secret values in chat. Full functionality, test limits and visual decisions are recorded in `STATUS.md` and `docs/REQUIREMENTS.md`.
+Continue from this source and the owner's next priority. Keep gifts as placeholders and the actual payment flag unchanged (currently enabled). Remaining broad-release limits are in docs/REQUIREMENTS.md, including live Stars purchase/refund verification and external operator/BotFather setup. Do not restart repo analysis, repeat entire test suites/browser screenshots for minor changes, or reconvert existing graphics.

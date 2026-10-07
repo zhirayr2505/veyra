@@ -68,5 +68,31 @@ Prior verified service
 
 Acceptance limits
   Actual Stars purchase/refund is not verified by these automated tests.
-  Payments remain disabled for the test service; no paid transaction was tried.
+  At that earlier verification payments were disabled; no paid transaction was tried.
+  The current payment flag is recorded in the later registration-v2 release below.
   General owner acceptance does not prove every WebView/webhook/provider case.
+
+Registration v2 / original graphics / deferred gifts — 2026-10-07
+  Main implementation: 47c30711a43ff485097d87c6b6a7df7ada0bdc78.
+  CI: https://github.com/zhirayr2505/veyra/actions/runs/37687839818
+  50 server tests, all 6 Chromium scenarios, production build and secret scan passed.
+  Covers five steps, 3–6 photos, touch/keyboard reorder and persistence,
+  resumed server drafts, moderation, match/chat/exchange/export and mobile layouts.
+  The original logo, sprite and optimized package illustrations are integrated.
+  Gifts remain Coming soon placeholders without transaction side effects.
+
+  Final server-only reset fix: c294745f6f0c9e494eb014d8c978ddba96e7d8a7.
+  Four focused registration tests passed; node --check server/app.js passed.
+  Covers preserved purchases/accepted precheckouts, cancelled unused invoices,
+  removed profiles/sessions, rejected old tokens, fresh login and one-time execution.
+  No additional full/browser suite was run for this isolated server fix.
+
+  Live verified at 2026-10-07T21:42:46.220Z (00:42 Moscow, October 8).
+  /healthz revision c294745f6f0c9e494eb014d8c978ddba96e7d8a7, registrationVersion 2.
+  registration-v2-2026-10-07 reset completed at 2026-10-07T21:42:19.050Z.
+  /readyz and / return 200. Protected me/export/gifts endpoints return 401.
+  Approved 512px logo and icon sprite return 200 and match source bytes exactly.
+  Existing live payments flag is ENABLED and was not changed by this release.
+  All old profiles and sessions are cleared; everyone must register again.
+  Billing records, accepted checkouts and paid entitlements are preserved.
+  Actual live Stars purchases/refunds remain unverified; no paid transaction was tried.
