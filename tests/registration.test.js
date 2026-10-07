@@ -1,0 +1,64 @@
+import {test,before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import request from 'supertest';
+import {randomUUID} from 'node:crypto';
+import {testDB,user,initData,deps,env} from './helpers.js';
+import {createApp} from '../server/app.js';
+import {one} from '../server/db.js';
+import {moderate,react} from '../server/domain.js';
+import {applyRegistrationReset,RESET_ID} from '../server/launch-reset.js';
+let db,app,token;const f={name:'New Adult',birth_date:'1998-05-12',gender:'man',looking_for:['woman'],bio:'',interests:[],goal:'unsure',smoking:'',leisure:'',city:'Paris',country:'France',lat:48.85,lon:2.35,min_age:18,max_age:45,radius_km:100};
+const auth=r=>r.set('Authorization','Bearer '+token);
+before(async()=>{db=await testDB();app=createApp(deps(db));token=(await request(app).post('/api/auth').send({initData:initData(200)})).body.token;});after(()=>db.close());
+test('registration advances only for adults, persists private draft across sessions and allows skipped interests',async()=>{
+ const minor=await auth(request(app).put('/api/registration')).send({step:2,data:{...f,birth_date:'2015-01-01'}});assert.equal(minor.status,400);assert.equal(minor.body.error,'AGE_18_REQUIRED');
+ assert.equal((await auth(request(app).put('/api/registration')).send({step:3,data:{...f,lat:null}})).status,400);
+ assert.equal((await auth(request(app).put('/api/registration')).send({step:4,data:f})).status,200);
+ token=(await request(app).post('/api/auth').send({initData:initData(200)})).body.token;
+ const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.registration.step,4);assert.equal(me.registration.data.name,f.name);assert.equal(me.profile,undefined);
+ assert.equal((await auth(request(app).put('/api/registration/profile')).send({...f,max_age:17})).status,400);
+ assert.equal((await auth(request(app).put('/api/registration/profile')).send(f)).status,200);
+ assert.equal((await one(db,'SELECT accepted_terms_at FROM profiles WHERE user_id=200')).accepted_terms_at,null);
+ assert.equal((await one(db,'SELECT step FROM registration_drafts WHERE user_id=200')).step,5);
+});
+test('three photos and explicit consent are enforced server-side; foreign and duplicate reorder attempts fail',async()=>{
+ const own=[];for(let i=0;i<2;i++){const id=randomUUID();own.push(id);await db.query('INSERT INTO photos(id,user_id,object_key,position) VALUES($1,200,$2,$3)',[id,'200/'+id,i]);}
+ assert.equal((await auth(request(app).post('/api/profile/submit')).send({consent:true})).body.error,'THREE_PHOTOS_REQUIRED');
+ const third=randomUUID();own.push(third);await db.query('INSERT INTO photos(id,user_id,object_key,position) VALUES($1,200,$2,2)',[third,'200/'+third]);
+ assert.equal((await auth(request(app).post('/api/profile/submit')).send({})).status,400);
+ assert.equal((await auth(request(app).put('/api/photos/order')).send({ids:[own[0],own[0],own[2]]})).status,409);
+ assert.equal((await auth(request(app).put('/api/photos/order')).send({ids:[own[0],own[1],randomUUID()]})).status,409);
+ assert.equal((await auth(request(app).put('/api/photos/order')).send({ids:[own[2],own[0],own[1]]})).status,200);
+ assert.deepEqual((await auth(request(app).get('/api/me'))).body.photos.map(p=>p.id),[own[2],own[0],own[1]]);
+ const replaced=await auth(request(app).put('/api/photos/'+own[2])).attach('photo',Buffer.from('fixture'),'replacement.png');assert.equal(replaced.status,200);
+ const photos=(await auth(request(app).get('/api/me'))).body.photos;assert.equal(photos.length,3);assert.equal(photos[0].id,replaced.body.id);assert.equal((await one(db,'SELECT object_key FROM storage_gc WHERE object_key=$1',['200/'+own[2]])).object_key,'200/'+own[2]);
+ assert.equal((await auth(request(app).post('/api/profile/submit')).send({consent:true})).status,200);
+ assert.ok((await one(db,'SELECT accepted_terms_at FROM profiles WHERE user_id=200')).accepted_terms_at);
+ assert.equal(await one(db,'SELECT * FROM registration_drafts WHERE user_id=200'),undefined);
+ const p=await one(db,'SELECT * FROM profiles WHERE user_id=200');await db.tx(q=>moderate(q,'1','200','approved','',p.revision));
+ assert.equal((await one(db,'SELECT moderation FROM profiles WHERE user_id=200')).moderation,'approved');
+});
+test('gift placeholder cannot create a charge, reaction, notification or purchase',async()=>{
+ const before=(await one(db,'SELECT count(*)::int AS n FROM outbox')).n;
+ assert.deepEqual((await auth(request(app).get('/api/gifts'))).body,{enabled:false,status:'coming_soon',gifts:[]});
+ assert.equal((await auth(request(app).post('/api/gifts')).send({target:'1',sku:'rose'})).body.error,'GIFTS_COMING_SOON');
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM orders')).n,0);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM reactions')).n,0);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM outbox')).n,before);
+});
+test('launch reset is scoped, deletes all old accounts and sessions, queues media deletion and runs only once',async()=>{
+ await user(db,201);await user(db,202);await db.tx(q=>react(q,'201','202','like'));await db.tx(q=>react(q,'202','201','like'));
+ const before=(await one(db,'SELECT count(*)::int AS n FROM users')).n;
+ assert.equal((await applyRegistrationReset(db,env)).status,'not_applicable');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
+ const target={...env,APP_URL:'https://veyra-3806.onrender.com',RENDER_EXTERNAL_URL:'https://veyra-3806.onrender.com'};
+ await db.query("UPDATE feature_flags SET enabled=true WHERE key='payments'");assert.equal((await applyRegistrationReset(db,target)).status,'blocked_payment_history');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
+ await db.query("UPDATE feature_flags SET enabled=false WHERE key='payments'");
+ assert.equal((await applyRegistrationReset(db,target)).status,'completed');
+ for(const table of ['users','profiles','photos','sessions','outbox','matches','reactions','registration_drafts'])assert.equal((await one(db,`SELECT count(*)::int AS n FROM ${table}`)).n,0,table);
+ assert.ok((await one(db,'SELECT count(*)::int AS n FROM storage_gc')).n>=9);
+ assert.equal((await auth(request(app).get('/api/me'))).status,401);
+ token=(await request(app).post('/api/auth').send({initData:initData(200)})).body.token;
+ const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.profile,undefined);assert.equal(me.registration,undefined);
+ assert.equal((await applyRegistrationReset(db,target)).status,'completed');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,1);
+ assert.equal((await one(db,"SELECT count(*)::int AS n FROM audit_log WHERE action='registration.reset' AND subject=$1",[RESET_ID])).n,1);
+});

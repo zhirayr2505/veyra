@@ -7,7 +7,15 @@ async function screenshot(page,path){
 async function telegram(page,id,admin=false){await page.route('https://telegram.org/**',route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));await page.addInitScript(({data})=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},{data:initData(id,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN)});}
 test('mobile public landing has Telegram CTA and no horizontal overflow',async({page})=>{await page.route('https://telegram.org/**',route=>route.fulfill({body:''}));await page.goto('/');await expect(page.getByRole('link',{name:'Open in Telegram'})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);});
 test('real signed login opens feed, filters persist without restarting moderation',async({page})=>{await telegram(page,10);await page.goto('/');await expect(page.getByRole('heading',{name:'Лента'})).toBeVisible();await page.getByRole('button',{name:'Фильтры',exact:true}).click();await page.getByLabel('Расстояние, км').fill('250');await page.getByRole('button',{name:'Сохранить',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('heading',{name:'Лента'})).toBeVisible();});
-test('new user sees full onboarding, accepts consent, geo search fills location',async({page})=>{await telegram(page,20);await page.goto('/');await expect(page.getByRole('heading',{name:'Сначала — немного о тебе'})).toBeVisible();await page.getByLabel('Имя',{exact:true}).fill('Test Adult');await page.getByLabel('Дата рождения').fill('1995-05-12');await page.getByRole('textbox',{name:'Город',exact:true}).fill('Paris');await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris'}).click();await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Сохранить анкету'}).click();await expect(page.getByRole('heading',{name:'Добавь свои фотографии'})).toBeVisible();});
+test('five-step registration resumes, blocks underage users, skips interests and enforces three photos',async({page},testInfo)=>{
+ await telegram(page,20);await page.goto('/');await expect(page.getByRole('heading',{name:'Знакомство с тобой'})).toBeVisible();
+ await page.getByLabel('Имя',{exact:true}).fill('Test Adult');await page.getByLabel('Дата рождения').fill('2015-05-12');await page.getByRole('button',{name:'Мужчина',exact:true}).click();await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('alert')).toContainText('VEYRA доступна с 18 лет');
+ await page.getByLabel('Дата рождения').fill('1995-05-12');await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('heading',{name:'Люди рядом',exact:true})).toBeVisible();
+ await page.getByLabel('Город и страна',{exact:true}).fill('Paris');await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris',exact:true}).click();await page.getByRole('checkbox',{name:'Без ограничения',exact:true}).check();
+ await page.getByRole('button',{name:'Продолжить',exact:true}).click();await page.reload();await expect(page.getByRole('heading',{name:'Кого хочешь встретить?',exact:true})).toBeVisible();await page.getByRole('button',{name:'Всех',exact:true}).click();await page.getByLabel('Возраст от',{exact:true}).fill('23');await page.getByLabel('Возраст до',{exact:true}).fill('32');await screenshot(page,testInfo.outputPath('registration-search.png'));
+ await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('heading',{name:'Что тебе близко?',exact:true})).toBeVisible();await screenshot(page,testInfo.outputPath('registration-interests.png'));await page.getByRole('button',{name:'Заполнить позже',exact:true}).click();await expect(page.getByRole('heading',{name:'Покажи себя',exact:true})).toBeVisible();
+ await page.getByRole('checkbox').check();await expect(page.getByRole('button',{name:'Отправить анкету на проверку',exact:true})).toBeDisabled();await page.reload();await expect(page.getByRole('heading',{name:'Покажи себя',exact:true})).toBeVisible();await expect(page.locator('.photo-tile')).toHaveCount(0);
+});
 test('admin login uses separate bot signature and opens moderation',async({page})=>{await telegram(page,1,true);await page.goto('/admin');await expect(page.getByRole('heading',{name:'Обзор',exact:true})).toBeVisible();await page.getByRole('button',{name:'Модерация',exact:true}).click();await expect(page.getByRole('heading',{name:'Очередь модерации'})).toBeVisible();await expect(page.getByRole('button',{name:'Одобрить',exact:true})).toBeVisible();});
 
 test('two adults register, upload photos, receive approval, swipe to match, chat, exchange and export',async({browser},testInfo)=>{
@@ -17,21 +25,32 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  async function register(page,id,name,gender){
   await telegram(page,id);await page.goto('/');
   await page.getByLabel('Имя',{exact:true}).fill(name);await page.getByLabel('Дата рождения').fill('1995-05-12');
-  await page.getByLabel('Я',{exact:true}).selectOption(gender);
-  await page.getByRole('textbox',{name:'Город',exact:true}).fill('Paris');
-  await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris',exact:true}).click();
-  await page.getByRole('checkbox').check();if(id===101)await screenshot(page,testInfo.outputPath('design-onboarding.png'));await page.getByRole('button',{name:'Сохранить анкету',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Добавь свои фотографии',exact:true})).toBeVisible();
-  await page.locator('input[type=file]').setInputFiles({name:'fixture.png',mimeType:'image/png',buffer:photo});
-  await expect(page.locator('.photo-tile img')).toBeVisible();if(id===101)await screenshot(page,testInfo.outputPath('design-photos.png'));
-  await page.getByRole('button',{name:'Отправить на проверку',exact:true}).click();
+  await page.getByRole('button',{name:gender==='man'?'Мужчина':'Женщина',exact:true}).click();if(id===101)await screenshot(page,testInfo.outputPath('registration-identity.png'));
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();await page.getByLabel('Город и страна',{exact:true}).fill('Paris');
+  await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris',exact:true}).click();if(id===101)await screenshot(page,testInfo.outputPath('registration-location.png'));
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  if(id===101){await page.getByRole('button',{name:'Кофе',exact:true}).click();await page.getByRole('button',{name:'Не курю',exact:true}).click();}
+  await page.getByRole('button',{name:'Заполнить позже',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Покажи себя',exact:true})).toBeVisible();
+  await page.getByLabel('Добавить фотографии',{exact:true}).setInputFiles([1,2,3].map(n=>({name:'fixture'+n+'.png',mimeType:'image/png',buffer:photo})));
+  await expect(page.locator('.photo-tile img')).toHaveCount(3);await expect(page.getByRole('button',{name:'Переместить фото 3',exact:true})).toBeEnabled();
+  const previous=await page.locator('.photo-tile').evaluateAll(nodes=>nodes.map(n=>n.dataset.photoId));
+  if(id===101){
+   const grip=await page.getByRole('button',{name:'Переместить фото 3',exact:true}).boundingBox(),target=await page.locator('.photo-tile').first().boundingBox();
+   await page.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2);await page.mouse.down();await page.mouse.move(target.x+target.width/2,target.y+target.height/2,{steps:8});await page.mouse.up();
+   await expect(page.locator('.photo-tile').first()).toHaveAttribute('data-photo-id',previous[2]);await expect(page.getByRole('button',{name:'Переместить фото 1',exact:true})).toBeEnabled();
+   await page.reload();await expect(page.locator('.photo-tile').first()).toHaveAttribute('data-photo-id',previous[2]);
+   for(const width of [320,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+   await screenshot(page,testInfo.outputPath('registration-photos.png'));
+  }
+  await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Отправить анкету на проверку',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Анкета на проверке',exact:true})).toBeVisible();
  }
  await register(a,101,'Тест Алекс','man');await register(b,102,'Тест Анна','woman');
  await telegram(owner,1,true);await owner.goto('/admin');await owner.getByRole('button',{name:'Модерация',exact:true}).click();
  for(const name of ['Тест Алекс','Тест Анна']){
   const card=owner.locator('.review-card').filter({has:owner.getByRole('heading',{name:new RegExp(name)})});
-  await expect(card.locator('img')).toBeVisible();await card.getByRole('button',{name:'Одобрить',exact:true}).click();await expect(card).toHaveCount(0);
+  await expect(card.locator('img').first()).toBeVisible();await card.getByRole('button',{name:'Одобрить',exact:true}).click();await expect(card).toHaveCount(0);
  }
  for(const page of [a,b]){await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.getByRole('heading',{name:'Лента',exact:true})).toBeVisible();}
  await expect(a.locator('.dating-card')).toContainText('Тест Анна');
@@ -71,6 +90,9 @@ test('redesigned screens use real data, chat search, profile pause and usable mo
  test.setTimeout(90000);await telegram(page,10);await page.goto('/');await expect(page.locator('.dating-card')).toBeVisible();
  await expect(page.locator('.dating-card .photo-image')).toHaveClass(/is-loaded/);
  await screenshot(page,testInfo.outputPath('design-feed.png'));
+ const giftsRequests=[];page.on('request',r=>{if(r.method()==='POST'&&/gifts|payments/.test(r.url()))giftsRequests.push(r.url());});
+ await page.getByRole('button',{name:'Подарки — скоро',exact:true}).click();await expect(page.getByRole('dialog',{name:'Подарки',exact:true})).toContainText('Скоро');await screenshot(page,testInfo.outputPath('gifts-placeholder.png'));await page.getByRole('button',{name:'Понятно',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect(giftsRequests).toHaveLength(0);
+
  await page.getByRole('button',{name:'Сегодня',exact:true}).click();await expect(page.locator('.today-person').first()).toBeVisible();
  expect(await page.locator('.today-person').count()).toBeGreaterThan(1);
  await screenshot(page,testInfo.outputPath('design-today.png'));

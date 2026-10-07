@@ -83,3 +83,31 @@ Object.assign(en,{
 
 Object.assign(en,{'Выбрать занятие':'Choose an activity','Узнай, кому ты понравился':'See who already likes you'});
 Object.assign(en,{'24 часа':'24 hours'});
+
+Object.assign(errors,{THREE_PHOTOS_REQUIRED:"Добавь минимум три фотографии",PHOTO_ORDER_CHANGED:"Список фото изменился. Обнови страницу и попробуй ещё раз.",GIFTS_COMING_SOON:"Подарки появятся в следующем обновлении.",AGE_18_REQUIRED:"VEYRA доступна с 18 лет"});
+Object.assign(en,{
+ 'Шаг':'Step','из':'of','Твоя история начинается здесь':'Your story starts here',
+ 'Привет, это VEYRA':'Hi, this is VEYRA','Знакомство с тобой':'Let’s get to know you','Люди рядом':'People nearby','Кого хочешь встретить?':'Who would you like to meet?','Что тебе близко?':'What makes you, you?','Покажи себя':'Show the real you',
+ 'Новые знакомства начинаются здесь. Расскажи немного о себе.':'New connections start here. Tell us a little about yourself.',
+ 'Настрой расстояние для новых знакомств.':'Choose how far you want to explore.','Найди тех, с кем вам по пути.':'Find people on your wavelength.',
+ 'Маленькие детали помогают найти близких по духу.':'Small details help you find your kind of people.','Три фотографии — начало твоей истории.':'Your story starts with three photos.',
+ 'Как тебя зовут?':'What’s your name?','VEYRA доступна с 18 лет':'VEYRA is for adults aged 18 and over','Выбери свой пол':'Choose your gender',
+ 'Твой пол':'Your gender','Показываем только возраст. Дата рождения останется личной.':'Only your age is shown. Your date of birth stays private.',
+ 'Знакомства только для совершеннолетних — 18+':'Dating for adults only — 18+',
+ 'Город и страна':'City and country','Город, страна':'City, country','или выбери город вручную':'or choose your city manually','Выбери город из списка':'Choose a city from the results',
+ 'Город не найден. Уточни название и страну.':'City not found. Try adding the country.','Не удалось найти город. Попробуй ещё раз.':'Couldn’t find the city. Please try again.',
+ 'Выбери город вручную':'Please choose your city manually','Доступ к геолокации не получен. Выбери город вручную.':'Location unavailable. Please choose your city manually.',
+ 'Радиус поиска':'Search radius','Без ограничения':'Anywhere','Другие видят город и примерное расстояние, не точный адрес.':'Others see your city and approximate distance, never your precise location.',
+ 'Женщин':'Women','Мужчин':'Men','Всех':'Everyone','Предпочитаемый возраст':'Preferred age','Минимальный возраст':'Minimum age','Максимальный возраст':'Maximum age',
+ 'Выбери, кого ищешь, и допустимый возраст':'Choose who you want to meet and a valid age range',
+ 'Твои интересы':'Your interests','Путешествия':'Travel','Музыка':'Music','Животные':'Pets','Прогулки':'Walks','Спорт':'Fitness','Книги':'Books','Готовка':'Cooking','Игры':'Gaming','Искусство':'Art','Танцы':'Dancing','Фотография':'Photography','Природа':'Nature','Технологии':'Technology','Йога':'Yoga',
+ 'Общение':'Conversation','Курение':'Smoking','Не курю':'I don’t smoke','Иногда':'Sometimes','Курю':'I smoke','Как отдыхаешь?':'How do you unwind?','Активно':'Stay active','Спокойно':'Take it easy','По настроению':'Depends on my mood','Не указано':'Not specified',
+ 'О себе — по желанию':'About you — optional','Что о тебе стоит знать?':'What should people know about you?','Заполнить позже':'Fill in later',
+ 'Добавь свои чёткие фотографии, на которых хорошо видно лицо. На фото должен быть только ты — без других людей.':'Add clear photos of yourself with your face visible. Each photo should show only you, with no other people.',
+ 'Главное':'Main','Удалить фото':'Remove photo','Переместить фото':'Move photo','Заменить фото':'Replace photo','Добавить фото':'Add photo','Добавить фотографии':'Add photos','Загрузка фото':'Uploading photos',
+ 'Добавлено':'Added','Нужно ещё':'Still needed:','Минимум три фото загружены':'Three-photo minimum reached','Потяни за ручку фото, чтобы поменять порядок. Первое — главное.':'Drag a photo by its handle to change the order. The first photo is your main photo.',
+ 'Фото должно быть не больше 5 МБ':'Each photo must be no larger than 5 MB','Можно добавить не больше шести фото':'You can add up to six photos','Добавь минимум три фотографии':'Add at least three photos',
+ 'Отправить анкету на проверку':'Submit profile for review','Прочитать':'Read','Проверь заполненные поля':'Please check your details','Не удалось сохранить. Попробуй ещё раз.':'Couldn’t save. Please try again.',
+ 'От 3 до 6 фотографий. Первое фото — главное.':'Add 3–6 photos. The first is your main photo.',
+ 'Подарки':'Gifts','Скоро':'Coming soon','Подарки — скоро':'Gifts — coming soon','Красивый способ сказать: ты мне нравишься':'A beautiful way to say I like you','Подарки и коллекции появятся в следующем обновлении.':'Gifts and collections are coming in a future update.','Понятно':'Got it','Коллекция подарков':'Gift collection','Здесь будут полученные подарки':'Received gifts will appear here'
+});

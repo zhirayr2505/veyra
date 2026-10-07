@@ -1,0 +1,145 @@
+{
+  "source": "VEYRA-Graphics-v1.zip corrected v1.1",
+  "files": {
+    "brand/veyra-approved-512.webp": {
+      "source": "01-brand/logo/veyra-approved-512.webp",
+      "sha256": "2f0ce7bc9751ffd30cc7be0ae60a19a9d20f5d5962d3fc15f0f8a8f2373066a7"
+    },
+    "brand/veyra-approved-256.webp": {
+      "source": "01-brand/logo/veyra-approved-256.webp",
+      "sha256": "cf71f5fa0a086ec0b5d3d1105e035a156295bc85cfbf36ba22cd33ab72ace4bb"
+    },
+    "brand/favicon.ico": {
+      "source": "01-brand/app-icons/favicon.ico",
+      "sha256": "cc23d3deac1652448bbe16c3239da429dd0afaebe542675ae9377df00c5a27d2"
+    },
+    "brand/veyra-app-180.png": {
+      "source": "01-brand/app-icons/veyra-app-180.png",
+      "sha256": "bdec8d04c45ba83ffc6e75f5a62928f6682e54ed05db7133ff11b24e30a4f996"
+    },
+    "brand/veyra-app-192.png": {
+      "source": "01-brand/app-icons/veyra-app-192.png",
+      "sha256": "c587456bc6b1cfa455d79f4e2cac63ca87170dc5793eec07d1e6623f021c3d0a"
+    },
+    "brand/veyra-app-512.png": {
+      "source": "01-brand/app-icons/veyra-app-512.png",
+      "sha256": "d067b1e675735d031386ce0cf144237f7254379e71bf0141a62e5ac2eaad79f3"
+    },
+    "bots/veyra-user-bot-512.png": {
+      "source": "01-brand/bots/veyra-user-bot-512.png",
+      "sha256": "d067b1e675735d031386ce0cf144237f7254379e71bf0141a62e5ac2eaad79f3"
+    },
+    "bots/veyra-admin-bot-512.png": {
+      "source": "01-brand/bots/veyra-admin-bot-512.png",
+      "sha256": "d067b1e675735d031386ce0cf144237f7254379e71bf0141a62e5ac2eaad79f3"
+    },
+    "illustrations/review-shield-512.webp": {
+      "source": "04-illustrations/webp/review-shield-512.webp",
+      "sha256": "3649bb1a5ca8679f98bb088fdec7b9d44a11d810e61a7d3eab57f97b098beb1b"
+    },
+    "illustrations/referral-gift-512.webp": {
+      "source": "04-illustrations/webp/referral-gift-512.webp",
+      "sha256": "e4e9a84d49fa5bc77545c2243f74da5dd2cf2b9fe4b84bdd41b39ef1f3b3a35f"
+    },
+    "illustrations/discover-cards-512.webp": {
+      "source": "04-illustrations/webp/discover-cards-512.webp",
+      "sha256": "f75b323bb05e376ef1cd269003593478340a009d84c64233f432109e1c157ac9"
+    },
+    "illustrations/boost-rocket-512.webp": {
+      "source": "04-illustrations/webp/boost-rocket-512.webp",
+      "sha256": "264e7da2ab052724eb727ca1fbcc86c553293d9705e2e38aa1dd4a9df8d41305"
+    },
+    "illustrations/chat-bubbles-512.webp": {
+      "source": "04-illustrations/webp/chat-bubbles-512.webp",
+      "sha256": "79b2be8e47acaa80255c2a2c5b7eb4b6d4e1be5a9c206ef2c5b93350f269fa87"
+    },
+    "illustrations/today-coffee-512.webp": {
+      "source": "04-illustrations/webp/today-coffee-512.webp",
+      "sha256": "168a1940190ae14e8f98d3520cf58b8163a5e756c1eacf5cb800fea4bf08523c"
+    },
+    "illustrations/match-hearts-512.webp": {
+      "source": "04-illustrations/webp/match-hearts-512.webp",
+      "sha256": "cf64343c982482df49a23e1559b9955e97a9105c90689c699f50bb8d67624a81"
+    },
+    "illustrations/premium-crown-512.webp": {
+      "source": "04-illustrations/webp/premium-crown-512.webp",
+      "sha256": "59ea71675bd72466e922ae2b24a07d2019ee1715c5aa9df089e82db174db893d"
+    },
+    "backgrounds/midnight-rose.svg": {
+      "source": "05-backgrounds/midnight-rose.svg",
+      "sha256": "c6efe6cc59cdd48671b635aa9a984c101d993c76130b436731f22d471dea6a44"
+    },
+    "backgrounds/rose-halo.svg": {
+      "source": "05-backgrounds/rose-halo.svg",
+      "sha256": "2c5c60af60ba48c881b020a2a4a4978a491c7223a7aa5fa7a0699e1e2afefad8"
+    },
+    "backgrounds/match-glow.svg": {
+      "source": "05-backgrounds/match-glow.svg",
+      "sha256": "46d651f71d1ecddb3d10cd09fdb177b84123e725cd4cb6420dee953541f89875"
+    },
+    "backgrounds/premium-aurora.svg": {
+      "source": "05-backgrounds/premium-aurora.svg",
+      "sha256": "dae16dd219ed42450d6ae733676c50b52d8bbedf926626d98c0c1e958f5a686b"
+    },
+    "status/profile-reviewed.svg": {
+      "source": "03-status/profile-reviewed.svg",
+      "sha256": "d02604d3eb678baa08dce6c82cdf2d0300e6763dbe3edb0a96567c1d84454d8c"
+    },
+    "status/status-offline.svg": {
+      "source": "03-status/status-offline.svg",
+      "sha256": "8bfa8c8ab6d783a49ee3bfdd769ff70bf4588728fc9f1e65ceb029f0979c93d6"
+    },
+    "status/status-new.svg": {
+      "source": "03-status/status-new.svg",
+      "sha256": "823f04ee2b96f7dbda807c4be94fd95f9db24ca367d6391a9e0efa2ab508be59"
+    },
+    "status/status-pending.svg": {
+      "source": "03-status/status-pending.svg",
+      "sha256": "50cdbbaa543687e52d6b7cb1c3dee5a96150100ea5af63c590102e0f7631d73a"
+    },
+    "status/status-online.svg": {
+      "source": "03-status/status-online.svg",
+      "sha256": "2d9475f0410aa505b9ea23dc9ba3149493004f1a56ed23c06d75f4104328df67"
+    },
+    "placeholders/state-loading.svg": {
+      "source": "06-placeholders/state-loading.svg",
+      "sha256": "96af67a5e9727c8a57ee3659b2ad8ba41c24041e33062a830dcd664a81ad8421"
+    },
+    "placeholders/avatar-neutral.svg": {
+      "source": "06-placeholders/avatar-neutral.svg",
+      "sha256": "f4ad85b7f67300332e46cfd32435fcab032c418d5d58f2a169a842803d0818ec"
+    },
+    "placeholders/state-offline.svg": {
+      "source": "06-placeholders/state-offline.svg",
+      "sha256": "3fddfa4639bab17701bf8d2f9d70a2740c3eddec36edcb23d4e6a63cf236fdf8"
+    },
+    "placeholders/state-error.svg": {
+      "source": "06-placeholders/state-error.svg",
+      "sha256": "fe6552d2ec5b9e262e4e032afb03e360b607c339e9b031e6979de40e132774a5"
+    },
+    "placeholders/photo-neutral.svg": {
+      "source": "06-placeholders/photo-neutral.svg",
+      "sha256": "a910bc09ab264ac75374897bd7b17ad74ecb52dcd78a3085c138a46662818eb5"
+    },
+    "placeholders/state-paused.svg": {
+      "source": "06-placeholders/state-paused.svg",
+      "sha256": "2a695a7c197aed30f75458b68605b9dea3151eb77c09d1dafebb4bc0fb39f30b"
+    },
+    "placeholders/state-locked.svg": {
+      "source": "06-placeholders/state-locked.svg",
+      "sha256": "ef5211ea4b0bee2b11c7db6ee03b68417d48209fc5f7a1e2be3adf57ef74d26b"
+    },
+    "icons/veyra-icons.sprite.svg": {
+      "source": "02-ui-icons/veyra-icons.sprite.svg",
+      "sha256": "add72b5fad6b0d7ae472e1522e6847d5fa42b14ef22c04919d4ddc7325538096"
+    },
+    "licenses/ASSET-ORIGINS-RU.md": {
+      "source": "09-licenses/ASSET-ORIGINS-RU.md",
+      "sha256": "e5b77c48fe5016da85eb36286995e25462a10855f59f04155c9953f67e18e608"
+    },
+    "licenses/LUCIDE.txt": {
+      "source": "09-licenses/LUCIDE.txt",
+      "sha256": "668dcc52803480e0a026b31140a4cae668772663cd764e5991d252eef03f98db"
+    }
+  }
+}
