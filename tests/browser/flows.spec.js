@@ -20,10 +20,10 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
   await page.getByLabel('Я',{exact:true}).selectOption(gender);
   await page.getByRole('textbox',{name:'Город',exact:true}).fill('Paris');
   await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris',exact:true}).click();
-  await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Сохранить анкету',exact:true}).click();
+  await page.getByRole('checkbox').check();if(id===101)await screenshot(page,testInfo.outputPath('design-onboarding.png'));await page.getByRole('button',{name:'Сохранить анкету',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Добавь свои фотографии',exact:true})).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({name:'fixture.png',mimeType:'image/png',buffer:photo});
-  await expect(page.locator('.photo-tile img')).toBeVisible();
+  await expect(page.locator('.photo-tile img')).toBeVisible();if(id===101)await screenshot(page,testInfo.outputPath('design-photos.png'));
   await page.getByRole('button',{name:'Отправить на проверку',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Анкета на проверке',exact:true})).toBeVisible();
  }
@@ -77,6 +77,7 @@ test('redesigned screens use real data, chat search, profile pause and usable mo
  const planSaved=page.waitForResponse(r=>r.url().endsWith('/api/today')&&r.request().method()==='PUT'&&r.status()===200);await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).check();await planSaved;await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeEnabled();await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeChecked();
  await page.getByRole('button',{name:'Лайки',exact:true}).click();await expect(page.locator('.like-tile').first()).toBeVisible();
  await screenshot(page,testInfo.outputPath('design-likes.png'));
+ await page.locator('.like-tile').first().click();const preview=page.getByRole('dialog');await expect(preview).toBeVisible();const likeAction=preview.getByRole('button',{name:'Нравится',exact:true});await expect(likeAction).toBeVisible();await screenshot(page,testInfo.outputPath('design-profile-preview.png'));expect(await likeAction.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})).toBe(true);await page.keyboard.press('Escape');await expect(preview).toHaveCount(0);
  await page.getByRole('button',{name:'Чаты',exact:true}).click();await expect(page.locator('.chat-row').filter({hasText:'Диана'})).toBeVisible();
  await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Несуществующий собеседник');await expect(page.locator('.chat-row')).toHaveCount(0);
  await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Диана');await expect(page.locator('.chat-row')).toHaveCount(1);
@@ -86,6 +87,8 @@ test('redesigned screens use real data, chat search, profile pause and usable mo
  await page.getByRole('button',{name:'Назад',exact:true}).click();await page.getByRole('button',{name:'Профиль',exact:true}).click();
  const pauseSaved=page.waitForResponse(r=>r.url().endsWith('/api/profile/visibility')&&r.request().method()==='PATCH'&&r.status()===200);await page.getByRole('switch',{name:/Пауза анкеты/}).check();await pauseSaved;await page.reload();await expect(page.getByRole('heading',{name:'Лента',exact:true})).toBeVisible();await expect(page.locator('.pause-note')).toBeVisible();
  await page.getByRole('button',{name:'Профиль',exact:true}).click();await expect(page.getByRole('switch',{name:/Пауза анкеты/})).toBeChecked();const resumed=page.waitForResponse(r=>r.url().endsWith('/api/profile/visibility')&&r.request().method()==='PATCH'&&r.status()===200);await page.getByRole('switch',{name:/Пауза анкеты/}).uncheck();await resumed;await expect(page.getByRole('switch',{name:/Пауза анкеты/})).toBeEnabled();
+ await page.route('**/api/profile/visibility',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'TEMPORARY_UNAVAILABLE'})}),{times:1});
+ await page.getByRole('switch',{name:/Пауза анкеты/}).click();await expect(page.getByRole('status')).toContainText('TEMPORARY_UNAVAILABLE');await expect(page.getByRole('switch',{name:/Пауза анкеты/})).not.toBeChecked();await page.getByRole('status').getByRole('button',{name:'Close'}).click();
  await screenshot(page,testInfo.outputPath('design-profile.png'));
  await page.locator('.premium-banner').click();await expect(page.getByRole('radiogroup')).toBeVisible();
  await expect(page.locator('.product-price').filter({hasText:'65'})).toBeVisible();

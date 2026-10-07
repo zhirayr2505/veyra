@@ -80,3 +80,6 @@ Object.assign(en,{
   "Получить Premium": "Get Premium",
   "Оплата в Telegram Stars. Без автопродления.": "Pay with Telegram Stars. No automatic renewal."
 });
+
+Object.assign(en,{'Выбрать занятие':'Choose an activity','Узнай, кому ты понравился':'See who already likes you'});
+Object.assign(en,{'24 часа':'24 hours'});
