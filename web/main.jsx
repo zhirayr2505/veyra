@@ -28,11 +28,12 @@ function Photo({id,className='',alt=''}){
  return url?<img src={url} onLoad={()=>setLoaded(true)} className={`${className} photo-image ${loaded?'is-loaded':''}`} alt={alt} draggable={false}/>:<div className={'photo-placeholder '+className} aria-label={alt}><UserRound/></div>;
 }
 
+const sheetScrollLock={count:0,overflow:''};
 function Sheet({title,children,onClose,className=''}){
  const[closing,setClosing]=useState(false);const panel=useRef(null);const closeTimer=useRef(null);
  const close=()=>{if(closing)return;setClosing(true);closeTimer.current=setTimeout(onClose,160);};
- useEffect(()=>{const previous=document.activeElement;panel.current?.focus();const before=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{clearTimeout(closeTimer.current);document.body.style.overflow=before;previous?.focus?.();};},[]);
- return createPortal(<div className={'scrim '+(closing?'closing ':'')+className} onClick={close}><section ref={panel} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={e=>e.stopPropagation()} onKeyDown={e=>{if(e.key==='Escape')close();if(e.key==='Tab'){const nodes=[...panel.current.querySelectorAll('button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]')];const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel.current)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}><span className="sheet-handle"/><header><h2>{title}</h2><IconButton icon={X} label="Close" onClick={close}/></header>{children}</section></div>,document.body);
+ useEffect(()=>{const previous=document.activeElement;panel.current?.focus();if(sheetScrollLock.count++===0){sheetScrollLock.overflow=document.body.style.overflow;document.body.style.overflow='hidden';}return()=>{clearTimeout(closeTimer.current);if(--sheetScrollLock.count===0)document.body.style.overflow=sheetScrollLock.overflow;if(previous?.isConnected)previous.focus?.();};},[]);
+ return createPortal(<div className={'scrim '+(closing?'closing ':'')+className} onClick={close}><section ref={panel} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={e=>e.stopPropagation()} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}if(e.key==='Tab'){e.stopPropagation();const nodes=[...panel.current.querySelectorAll('button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]')];const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel.current)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}><span className="sheet-handle"/><header><h2>{title}</h2><IconButton icon={X} label="Close" onClick={close}/></header>{children}</section></div>,document.body);
 }
 
 function App(){
