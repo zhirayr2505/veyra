@@ -19,13 +19,13 @@ export async function ensurePair(q,a,b){if(String(a)===String(b))fail(400,'SELF_
 export async function activeMatch(q,id,user,lock=false){const m=await one(q,`SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2) AND active=true ${lock?'FOR UPDATE':''}`,[id,user]);if(!m)fail(404,'MATCH_NOT_FOUND');const other=String(m.a)===String(user)?m.b:m.a;await ensurePair(q,user,other);return {...m,other};}
 export async function usage(q,id){await q.query('INSERT INTO daily_usage(user_id) VALUES($1) ON CONFLICT DO NOTHING',[id]);return one(q,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE FOR UPDATE',[id]);}
 export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.city,p.country,u.boost_until,t.activity,t.time_slot,t.expires_at AS today_until FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1`,[id]);if(!p)return null;p.photos=(await q.query('SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at',[id])).rows.map(x=>x.id);return p;}
-export async function recommendations(q,user,todayOnly=false){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
+export async function recommendations(q,user,todayOnly=false,limit=1){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
   u.boost_until>now() AS boosted, u.last_seen
  FROM profiles p JOIN users u ON u.id=p.user_id
- WHERE p.user_id<>$1 AND p.moderation='approved' AND u.status='active' AND (NOT u.invisible OR u.premium_until IS NULL OR u.premium_until<=now())
+ WHERE p.user_id<>$1 AND p.moderation='approved' AND u.status='active' AND NOT u.paused AND (NOT u.invisible OR u.premium_until IS NULL OR u.premium_until<=now())
  AND p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for)
  AND extract(year FROM age(p.birth_date)) BETWEEN $6 AND $7
  AND extract(year FROM age($8::date)) BETWEEN p.min_age AND p.max_age
@@ -35,9 +35,14 @@ export async function recommendations(q,user,todayOnly=false){const p=await appr
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
  ORDER BY boosted DESC NULLS LAST,shared DESC,distance ASC,u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests])).rows;
- const candidate=rows.find(x=>x.distance<=p.radius_km);if(!candidate)return {profiles:[],limited:false};
- const seen=await q.query('INSERT INTO impressions(viewer,target) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING viewer',[user.id,candidate.user_id]);if(seen.rowCount)await q.query('UPDATE daily_usage SET views=views+1 WHERE user_id=$1 AND day=CURRENT_DATE',[user.id]);
- const card=await publicProfile(q,candidate.user_id);card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);return {profiles:[card],limited:false};
+ const candidates=rows.filter(x=>x.distance<=p.radius_km).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
+ const profiles=[];
+ for(const candidate of candidates){
+  const seen=await q.query('INSERT INTO impressions(viewer,target) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING viewer',[user.id,candidate.user_id]);
+  if(seen.rowCount)await q.query('UPDATE daily_usage SET views=views+1 WHERE user_id=$1 AND day=CURRENT_DATE',[user.id]);
+  const card=await publicProfile(q,candidate.user_id);card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);profiles.push(card);
+ }
+ return {profiles,limited:false};
 }
 export async function react(q,actor,target,kind,message){await pairLock(q,actor,target);await ensurePair(q,actor,target);const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);if(await one(q,'SELECT 1 FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND NOT active',[actor,target]))fail(409,'MATCH_ENDED');if(old&&old.kind!=='pass')return {matched:!!await one(q,'SELECT 1 FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND active',[actor,target])};
  if(await one(q,'SELECT 1 FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND NOT active',[actor,target]))fail(409,'MATCH_ENDED');

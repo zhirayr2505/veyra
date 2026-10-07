@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';import {initData,env} from '../help
 import sharp from 'sharp';
 async function telegram(page,id,admin=false){await page.route('https://telegram.org/**',route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));await page.addInitScript(({data})=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},{data:initData(id,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN)});}
 test('mobile public landing has Telegram CTA and no horizontal overflow',async({page})=>{await page.route('https://telegram.org/**',route=>route.fulfill({body:''}));await page.goto('/');await expect(page.getByRole('link',{name:'Open in Telegram'})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);});
-test('real signed login opens feed, filters persist without restarting moderation',async({page})=>{await telegram(page,10);await page.goto('/');await expect(page.getByRole('heading',{name:'Знакомства ближе'})).toBeVisible();await page.getByRole('button',{name:'Фильтры',exact:true}).click();await page.getByLabel('Расстояние, км').fill('250');await page.getByRole('button',{name:'Сохранить',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('heading',{name:'Знакомства ближе'})).toBeVisible();});
+test('real signed login opens feed, filters persist without restarting moderation',async({page})=>{await telegram(page,10);await page.goto('/');await expect(page.getByRole('heading',{name:'Лента'})).toBeVisible();await page.getByRole('button',{name:'Фильтры',exact:true}).click();await page.getByLabel('Расстояние, км').fill('250');await page.getByRole('button',{name:'Сохранить',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('heading',{name:'Лента'})).toBeVisible();});
 test('new user sees full onboarding, accepts consent, geo search fills location',async({page})=>{await telegram(page,20);await page.goto('/');await expect(page.getByRole('heading',{name:'Сначала — немного о тебе'})).toBeVisible();await page.getByLabel('Имя',{exact:true}).fill('Test Adult');await page.getByLabel('Дата рождения').fill('1995-05-12');await page.getByRole('textbox',{name:'Город',exact:true}).fill('Paris');await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris'}).click();await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Сохранить анкету'}).click();await expect(page.getByRole('heading',{name:'Добавь свои фотографии'})).toBeVisible();});
 test('admin login uses separate bot signature and opens moderation',async({page})=>{await telegram(page,1,true);await page.goto('/admin');await expect(page.getByRole('heading',{name:'Обзор',exact:true})).toBeVisible();await page.getByRole('button',{name:'Модерация',exact:true}).click();await expect(page.getByRole('heading',{name:'Очередь модерации'})).toBeVisible();await expect(page.getByRole('button',{name:'Одобрить',exact:true})).toBeVisible();});
 
@@ -29,7 +29,7 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
   const card=owner.locator('.review-card').filter({has:owner.getByRole('heading',{name:new RegExp(name)})});
   await expect(card.locator('img')).toBeVisible();await card.getByRole('button',{name:'Одобрить',exact:true}).click();await expect(card).toHaveCount(0);
  }
- for(const page of [a,b]){await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.getByRole('heading',{name:'Знакомства ближе',exact:true})).toBeVisible();}
+ for(const page of [a,b]){await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.getByRole('heading',{name:'Лента',exact:true})).toBeVisible();}
  await expect(a.locator('.dating-card')).toContainText('Тест Анна');
  for(const viewport of [{width:390,height:844},{width:320,height:568}]){
   await a.setViewportSize(viewport);
@@ -44,8 +44,8 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  const card=a.locator('.dating-card');const box=await card.boundingBox();
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
  await expect(card).toHaveCount(0);
- await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();
- await b.getByRole('button',{name:'Перейти в чаты',exact:true}).click();await b.locator('.chat-row').filter({hasText:'Тест Алекс'}).click();
+ await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();await b.screenshot({path:testInfo.outputPath('match-mobile.png'),fullPage:true});
+ await b.getByRole('button',{name:'Перейти в чаты',exact:true}).click();await expect(b.locator('.chat-header')).toContainText('Тест Алекс');
  await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('Привет из тестового чата');await b.getByRole('button',{name:'Отправить',exact:true}).click();
  await expect(b.locator('.bubble')).toContainText('Привет из тестового чата');
  await a.getByRole('button',{name:'Чаты',exact:true}).click();await a.locator('.chat-row').filter({hasText:'Тест Анна'}).click();
@@ -61,4 +61,32 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  expect((await downloaded).suggestedFilename()).toBe('veyra-user-101.zip');
  await owner.screenshot({path:testInfo.outputPath('admin-user.png'),fullPage:true});
  await a.close();await b.close();await owner.close();
+});
+
+test('redesigned screens use real data, chat search, profile pause and usable mobile layouts',async({page,browser},testInfo)=>{
+ test.setTimeout(90000);await telegram(page,10);await page.goto('/');await expect(page.locator('.dating-card')).toBeVisible();
+ await expect(page.locator('.dating-card .photo-image')).toHaveClass(/is-loaded/);
+ await page.screenshot({path:testInfo.outputPath('design-feed.png'),fullPage:true});
+ await page.getByRole('button',{name:'Сегодня',exact:true}).click();await expect(page.locator('.today-person').first()).toBeVisible();
+ expect(await page.locator('.today-person').count()).toBeGreaterThan(1);
+ await page.screenshot({path:testInfo.outputPath('design-today.png'),fullPage:true});
+ await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).check();await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeChecked();
+ await page.getByRole('button',{name:'Лайки',exact:true}).click();await expect(page.locator('.like-tile').first()).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('design-likes.png'),fullPage:true});
+ await page.getByRole('button',{name:'Чаты',exact:true}).click();await expect(page.locator('.chat-row').filter({hasText:'Диана'})).toBeVisible();
+ await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Несуществующий собеседник');await expect(page.locator('.chat-row')).toHaveCount(0);
+ await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Диана');await expect(page.locator('.chat-row')).toHaveCount(1);
+ await page.screenshot({path:testInfo.outputPath('design-chats.png'),fullPage:true});
+ await page.locator('.chat-row').click();await expect(page.locator('.bubble')).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('design-conversation.png'),fullPage:true});
+ await page.getByRole('button',{name:'Назад',exact:true}).click();await page.getByRole('button',{name:'Профиль',exact:true}).click();
+ const pauseSaved=page.waitForResponse(r=>r.url().endsWith('/api/profile/visibility')&&r.request().method()==='PATCH'&&r.status()===200);await page.getByRole('switch',{name:/Пауза анкеты/}).check();await pauseSaved;await page.reload();await expect(page.getByRole('heading',{name:'Лента',exact:true})).toBeVisible();await expect(page.locator('.pause-note')).toBeVisible();
+ await page.getByRole('button',{name:'Профиль',exact:true}).click();await expect(page.getByRole('switch',{name:/Пауза анкеты/})).toBeChecked();await page.getByRole('switch',{name:/Пауза анкеты/}).uncheck();
+ await page.screenshot({path:testInfo.outputPath('design-profile.png'),fullPage:true});
+ await page.locator('.premium-banner').click();await expect(page.getByRole('radiogroup')).toBeVisible();
+ await expect(page.locator('.product-price').filter({hasText:'65'})).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('design-premium.png'),fullPage:true});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ const locked=await browser.newPage({viewport:{width:390,height:844}});await telegram(locked,30);await locked.goto('/');await locked.getByRole('button',{name:'Лайки',exact:true}).click();await expect(locked.locator('.likes-paywall')).toBeVisible();await expect(locked.locator('.locked-tile img')).toHaveCount(0);await locked.screenshot({path:testInfo.outputPath('design-likes-locked.png'),fullPage:true});await locked.close();
+ const guest=await browser.newPage({viewport:{width:390,height:844}});await guest.route('https://telegram.org/**',route=>route.fulfill({body:''}));await guest.goto('/');await expect(guest.getByRole('link',{name:'Open in Telegram'})).toBeVisible();await guest.screenshot({path:testInfo.outputPath('design-welcome.png'),fullPage:true});await guest.close();
 });
