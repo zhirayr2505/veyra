@@ -1,63 +1,72 @@
-Verification record — checked 2026-10-07; CI executed 2026-10-06
+Verification record — design refresh, 2026-10-07
 
-Verified application commit: 9da9609f3e6b15b63063d880487a7f9f443460c5
-CI: https://github.com/zhirayr2505/veyra/actions/runs/37507915144
+Verified application commit: 5210eb010ffd85998cf892b15d271a0c1dff918b
+CI: https://github.com/zhirayr2505/veyra/actions/runs/37609850415
 Conclusion: SUCCESS
 
-npm run check (Node 22 in CI)
-  Node test runner: 43 passed, 0 failed, 0 skipped.
-  Database engine: @electric-sql/pglite; external providers mocked.
-  Coverage includes auth/scope, moderation, feed quotas, matching/chat,
-  payments/replay/refunds, private Storage initialization, bots and ZIP export.
-  The large archive test verifies all 503 messages across an identical
-  microsecond timestamp boundary and correct participant association.
-  Vite 7.3.6 production build: successful; 1743 modules transformed.
+npm run check (Node 22 in GitHub Actions)
+  46 passed, 0 failed, 0 skipped.
+  PGlite database; external providers are isolated stubs.
+  Existing coverage: auth/scope, 18+, moderation, quotas, matching/chat,
+  payment replay/refunds, private Storage setup, bots and large ZIP exports.
+  New coverage: authorized profile pause/resume, discovery and incoming-like
+  visibility, preservation of existing chats, Today batch validation and quota
+  accounting, including repeated impressions and remaining allowance.
+  Vite 7.3.6: build succeeds, 1746 modules transformed.
 
-npm run test:browser (Chromium in GitHub Actions)
-  5 passed, 0 failed.
-  Public Telegram entry; authenticated feed and filters; onboarding/location;
-  separate admin login/moderation; full two-adult acceptance flow.
-  Full flow: register, upload private photos, approve from owner Web Admin,
-  swipe/like, match, send/receive chat, mutually exchange Telegram usernames,
-  open owner dossier and download the participant ZIP archive.
-  Real HMAC-signed fixture identities; isolated database and stubbed providers.
-  No real Telegram messages, users or purchases are created by these tests.
+npm run test:browser (Chromium)
+  6 passed, 0 failed; 25.5 seconds including fixture startup.
+  Public entry, signed feed/filter preferences, onboarding/location,
+  separate admin scope/moderation, full two-adult flow and design acceptance.
+  Two-adult flow: registration, private photo upload, owner approval, swipe,
+  match, send/receive chat, mutual Telegram exchange and owner ZIP download.
+  Design acceptance: real list/grid data, chat search, persisted pause,
+  rollback after failed save, real catalog prices and locked-photo privacy.
+  Modal checks: profile actions remain above navigation; Escape closes the
+  nested pre-match dialog first, preserving the parent, then restores scrolling.
+  Safe-area checks: 390x844 and 320x568 with 34px bottom inset.
+  No real accounts, Telegram messages or purchases are created by these tests.
 
 npm run secrets:check
-  Passed: no production credentials detected in scanned source files.
+  Passed: no production credentials detected in tracked/candidate files.
 
-npm audit --omit=dev
-  Zero reported vulnerabilities on 2026-10-06.
+Visual review
+  Stable screenshots reviewed from successful design CI run 37609578329.
+  Welcome, onboarding, private-photo step, feed, Today, likes, locked paywall,
+  chat list, conversation, profile, profile preview, Premium and match.
+  Screenshots finish finite animations before capture; production animations
+  remain enabled and honor prefers-reduced-motion.
+  Corrected switch feedback, chat text width, Russian plan/count labels,
+  oversized Today controls and sheet layers over navigation.
+  Welcome artwork is a 50,410-byte WebP; test portraits are isolated fixtures.
 
-node scripts/smoke.js LOCAL_TEST_ORIGIN
-  All 6 passed against the isolated local server:
-  /healthz 200, /readyz 200, / 200,
-  /api/me 401, /api/admin/export.zip 401, /api/admin/users/1 401.
-  This is not a live Render result.
-
-Screenshot review
-  Feed, chat and owner dossier reviewed from the successful CI artifacts.
-  Found feed actions partially behind fixed navigation; fixed in e0d0884.
-  Layout regression at 390x844 and 320x568 with a 34px bottom safe area:
-  PASSED in the successful CI run linked above.
-
-Live Render — 2026-10-07, 05:41 UTC
+Live deployment
   Origin: https://veyra-3806.onrender.com
-  Deployed revision: e726df09da870c4fb6ee3043b70a9e49e358d9f7
-  All 6 smoke checks PASSED against the actual public service:
-  /healthz 200 (ok=true, service=veyra, expected revision),
-  /readyz 200 (PostgreSQL SELECT 1 and Redis PING), / 200,
-  /api/me 401, /api/admin/export.zip 401, /api/admin/users/1 401.
-  /assets/index-Dx5wt-1E.js 200, text/javascript, 289657 bytes.
-  /assets/index-kAozj6VR.css 200, text/css, 22711 bytes.
-  /api/config 200, correct brand, bots and channel.
-  Flags: registrations/today/referrals on; payments/maintenance off.
-  Actual server startup completes migration and private Storage ensure before
-  opening the listener. No real accounts, messages or payments created by probes.
+  Verified at: 2026-10-07T10:53:07.025Z (13:53 Moscow)
+  Deployed revision: 5210eb010ffd85998cf892b15d271a0c1dff918b
+  All 6 public smoke probes passed against the actual service.
+  /readyz confirms PostgreSQL SELECT 1 and Redis PING.
+  Startup completes migrations and private Storage checks before listening.
+  /assets/index-DTjjy1Eo.js: HTTP 200, text/javascript; charset=utf-8, 321746 bytes.
+    SHA256 e77ee469948aef6e2ab7904b6049cb1cecb105a4b0e7576b88641e9578653dca
+    Byte-identical to the verified application build.
+  /assets/index-CQm4onNK.css: HTTP 200, text/css; charset=utf-8, 65247 bytes.
+    SHA256 df3e7b66b1ea79535e3f76ccfe93f7fe822a396f78216dc1daa2296e8e2761ac
+    Byte-identical to the verified application build.
+  /assets/welcome-couple-CVLvd-4l.webp: HTTP 200, image/webp, 50410 bytes.
+    SHA256 f9ba33bcc03e0a0ba8815f5e6afb5123d80522b27578d202ef5b0eb891667906
+    Byte-identical to the verified application build.
+  Live config: registrations/today/referrals enabled; payments/maintenance disabled.
+  Brand VEYRA; @VeyraAppBot, @VeyraAdminBot and @VeyraDating preserved.
+  Public probes never authenticate, create accounts, send messages or purchase.
 
-Not verified
-  Actual Telegram WebViews, bot menu/webhooks, live photo upload/moderation,
-  Geoapify location lookup and real Stars purchase/refund.
-  Payments remain disabled in the live config.
+Prior verified service
+  2026-10-07 before the refresh: revision 866e0e9eb3b6c7dee2fda233904ecc1b264a9653.
+  All six public probes pass: /healthz, /readyz and / return 200;
+  /api/me, /api/admin/export.zip and /api/admin/users/1 return 401 without auth.
+  The owner separately reported that the deployed app works.
 
-Next: owner opens VEYRA from @VeyraAppBot. See STATUS.md and NEXT_TASK.md.
+Acceptance limits
+  Actual Stars purchase/refund is not verified by these automated tests.
+  Payments remain disabled for the test service; no paid transaction was tried.
+  General owner acceptance does not prove every WebView/webhook/provider case.

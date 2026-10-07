@@ -41,3 +41,5 @@ Generation brief: photorealistic natural portrait, 2:3 composition for a full-bl
 Server/API checks cover pause authorization/persistence, hiding and resuming discovery/likes, preserving chats, and Today batch limits/accounting. Browser checks cover all redesigned main screens, chat search, persisted pause, actual product prices, locked-photo privacy, onboarding/moderation/match/chat/exchange/export and small-screen safe areas.
 
 Exact CI run, results and live deployment revision are recorded in `verification.txt` and `../STATUS.md` after verification. Tests use isolated signed fixture identities and stubbed providers; they do not substitute for actual Telegram/Stars acceptance.
+
+Release evidence: 46 server/API tests and 6 Chromium scenarios passed on application commit `5210eb010ffd85998cf892b15d271a0c1dff918b` ([CI run](https://github.com/zhirayr2505/veyra/actions/runs/37609850415)). The live Render deployment was verified at 13:53 Moscow on 2026-10-07: all six public checks passed, and the served JavaScript, CSS and welcome artwork matched the tested build byte for byte. Real Stars purchases remain disabled in the test service.
