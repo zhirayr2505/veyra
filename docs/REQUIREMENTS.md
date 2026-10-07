@@ -4,7 +4,9 @@
 
 The current user request overrides the prior VPS/MinIO deployment template: Render Free, Supabase PostgreSQL + Storage, Upstash Redis, Geoapify; bots @VeyraAppBot and @VeyraAdminBot; channel **@VeyraDating**. Brand is VEYRA, not NUVEL. Robokassa must not be active. Source must contain no credentials.
 
-Retrieved sources: earlier conversation extracts, `VEYRA_DEPLOY_INPUTS_TEMPLATE.txt`, saved VEYRA logo image and the saved Premium screen reference. The retrieval did not expose a complete verbatim approved spec or all ten original screens. Therefore visual/behavioral choices below must not be presented as verbatim approved requirements.
+Retrieved sources: earlier conversation extracts, `VEYRA_DEPLOY_INPUTS_TEMPLATE.txt`, saved VEYRA logo image and the saved Premium screen reference. On 2026-10-07 the owner supplied all ten design references directly in the conversation and requested a smoother visual refresh while preserving working behavior and adding missing agreed functions. The restored material does not include a complete verbatim specification; implementation defaults below remain explicitly identified.
+
+The ten screens guide layout, colors and interaction polish. Their decorative Newell branding, Krasnodar-only geography, sample people/counts and 99/199/399 prices do not override VEYRA, global discovery, real application data or the confirmed price table. See `DESIGN_REFRESH.md`.
 
 ## Confirmed from prior decisions
 
@@ -31,14 +33,16 @@ Retrieved sources: earlier conversation extracts, `VEYRA_DEPLOY_INPUTS_TEMPLATE.
 - Gender choices man/woman/other; relationship/dating/friends/unsure; up to ten interest labels. Interests currently use exact shared labels for scoring, not embeddings.
 - Age range 18–110. Age gate is self-declaration and validation, **not identity/age verification**.
 - Typical discovery radius 100 km, configurable 1–20,000 km. Approximate distances rounded to 5km buckets; exact coordinates never returned in public profile cards.
-- One candidate returned/reserved per feed request. Ordering: active Boost, shared interests, distance, last activity. Today requires a nonexpired plan; specific activity/time-slot preferences are displayed, not separately weighted.
+- Regular feed returns/reserves one candidate per request. Today can request up to six candidates for its list; each new impression consumes the same daily allowance, and the response cannot exceed the remaining allowance. Ordering: active Boost, shared interests, distance, last activity. Today requires a nonexpired plan; specific activity/time-slot preferences are displayed, not separately weighted.
 - Free incoming likes show only a count; Premium reveals profiles. No reusable unauthenticated image URL is exposed.
 - Premium incognito hides a profile from recommendation discovery; it does not hide it from existing matches or someone the user has liked.
+- Profile pause is available independently of Premium. It hides the profile from regular/Today discovery and incoming-like lists while preserving existing matches and chats. The authenticated user can resume it at any time; moderation status is unchanged.
 - Referrer reward: one Super Like after the referred person's first approved profile. Value is stored in `feature_flags.referrals.config`; speculative revenue-share arrangements are not implemented as accepted requirements.
 - Premium first-offer eligibility: no previous paid order. Premium periods are one-time purchases, not recurring billing.
 - Weekly Boost uses a rolling seven-day interval. Paid inventory persists. Purchased consumables are spent before no free allowance only when allowance exhausted.
 - Today expiry is selected as device-local midnight, validated server-side as no more than 24h ahead. Server stores UTC timestamps.
 - Chats poll while visible (4s), match list every 12s. No claim of WebSocket transport.
+- Chat search filters the current user's matches by name and last message. Navigation badges use actual incoming likes and unread counts; no fictional online status is shown. Manual moderation badges do not claim identity verification.
 - Owner is the only administrator in v1. Moderator/support role columns are reserved but no role delegation UI is exposed.
 - Photo and substantive profile edits hide the profile until re-review. Preference changes do not reset review status.
 - The runtime SVG brand mark interprets the described geometric V/heart/star identity. Retrieved older logo file has a different ribbon-heart mark; it was not silently treated as the exact final approved artwork. Exact final asset should replace the SVG when recovered.

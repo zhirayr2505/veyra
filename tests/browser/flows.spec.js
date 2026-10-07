@@ -1,5 +1,9 @@
 import {test,expect} from '@playwright/test';import {initData,env} from '../helpers.js';
 import sharp from 'sharp';
+async function screenshot(page,path){
+ await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));});
+ await page.screenshot({path,fullPage:true,animations:'disabled'});
+}
 async function telegram(page,id,admin=false){await page.route('https://telegram.org/**',route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));await page.addInitScript(({data})=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},{data:initData(id,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN)});}
 test('mobile public landing has Telegram CTA and no horizontal overflow',async({page})=>{await page.route('https://telegram.org/**',route=>route.fulfill({body:''}));await page.goto('/');await expect(page.getByRole('link',{name:'Open in Telegram'})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);});
 test('real signed login opens feed, filters persist without restarting moderation',async({page})=>{await telegram(page,10);await page.goto('/');await expect(page.getByRole('heading',{name:'Лента'})).toBeVisible();await page.getByRole('button',{name:'Фильтры',exact:true}).click();await page.getByLabel('Расстояние, км').fill('250');await page.getByRole('button',{name:'Сохранить',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('heading',{name:'Лента'})).toBeVisible();});
@@ -38,13 +42,13 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
   expect(bounds.overflow).toBe(false);
   for(const bottom of bounds.buttons)expect(bottom).toBeLessThan(bounds.nav);
  }
- await a.screenshot({path:testInfo.outputPath('feed-small-safe-area.png'),fullPage:true});
+ await screenshot(a,testInfo.outputPath('feed-small-safe-area.png'));
  await a.setViewportSize({width:390,height:844});await a.evaluate(()=>document.documentElement.style.removeProperty('--safe'));
- await a.screenshot({path:testInfo.outputPath('feed-mobile.png'),fullPage:true});
+ await screenshot(a,testInfo.outputPath('feed-mobile.png'));
  const card=a.locator('.dating-card');const box=await card.boundingBox();
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
  await expect(card).toHaveCount(0);
- await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();await b.screenshot({path:testInfo.outputPath('match-mobile.png'),fullPage:true});
+ await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();await screenshot(b,testInfo.outputPath('match-mobile.png'));
  await b.getByRole('button',{name:'Перейти в чаты',exact:true}).click();await expect(b.locator('.chat-header')).toContainText('Тест Алекс');
  await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('Привет из тестового чата');await b.getByRole('button',{name:'Отправить',exact:true}).click();
  await expect(b.locator('.bubble')).toContainText('Привет из тестового чата');
@@ -53,40 +57,40 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  for(const page of [a,b]){await page.locator('.chat-header').getByRole('button',{name:'Настройки',exact:true}).click();await page.getByRole('button',{name:'Обменяться Telegram',exact:true}).click();}
  await expect(b.locator('.exchange-link')).toHaveAttribute('href','https://t.me/tester101');await expect(a.locator('.exchange-link')).toHaveAttribute('href','https://t.me/tester102');
  const notice=a.locator('.toast');if(await notice.count())await notice.getByRole('button',{name:'Close',exact:true}).click();
- await a.screenshot({path:testInfo.outputPath('chat-mobile.png'),fullPage:true});
+ await screenshot(a,testInfo.outputPath('chat-mobile.png'));
  await owner.getByRole('button',{name:'Пользователи',exact:true}).click();await owner.getByPlaceholder('ID, username или имя').fill('101');
  await expect(owner.locator('.table-wrap tbody tr')).toHaveCount(1);const userRow=owner.getByRole('row').filter({has:owner.getByRole('cell',{name:'101',exact:true})});
  await userRow.getByRole('button',{name:'Открыть',exact:true}).click();await expect(owner.getByRole('dialog')).toContainText('Тест Анна');
  const downloaded=owner.waitForEvent('download');await owner.getByRole('button',{name:'Скачать анкету, фото и чаты',exact:true}).click();
  expect((await downloaded).suggestedFilename()).toBe('veyra-user-101.zip');
- await owner.screenshot({path:testInfo.outputPath('admin-user.png'),fullPage:true});
+ await screenshot(owner,testInfo.outputPath('admin-user.png'));
  await a.close();await b.close();await owner.close();
 });
 
 test('redesigned screens use real data, chat search, profile pause and usable mobile layouts',async({page,browser},testInfo)=>{
  test.setTimeout(90000);await telegram(page,10);await page.goto('/');await expect(page.locator('.dating-card')).toBeVisible();
  await expect(page.locator('.dating-card .photo-image')).toHaveClass(/is-loaded/);
- await page.screenshot({path:testInfo.outputPath('design-feed.png'),fullPage:true});
+ await screenshot(page,testInfo.outputPath('design-feed.png'));
  await page.getByRole('button',{name:'Сегодня',exact:true}).click();await expect(page.locator('.today-person').first()).toBeVisible();
  expect(await page.locator('.today-person').count()).toBeGreaterThan(1);
- await page.screenshot({path:testInfo.outputPath('design-today.png'),fullPage:true});
- await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).check();await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeChecked();
+ await screenshot(page,testInfo.outputPath('design-today.png'));
+ const planSaved=page.waitForResponse(r=>r.url().endsWith('/api/today')&&r.request().method()==='PUT'&&r.status()===200);await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).check();await planSaved;await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeEnabled();await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeChecked();
  await page.getByRole('button',{name:'Лайки',exact:true}).click();await expect(page.locator('.like-tile').first()).toBeVisible();
- await page.screenshot({path:testInfo.outputPath('design-likes.png'),fullPage:true});
+ await screenshot(page,testInfo.outputPath('design-likes.png'));
  await page.getByRole('button',{name:'Чаты',exact:true}).click();await expect(page.locator('.chat-row').filter({hasText:'Диана'})).toBeVisible();
  await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Несуществующий собеседник');await expect(page.locator('.chat-row')).toHaveCount(0);
  await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Диана');await expect(page.locator('.chat-row')).toHaveCount(1);
- await page.screenshot({path:testInfo.outputPath('design-chats.png'),fullPage:true});
+ await screenshot(page,testInfo.outputPath('design-chats.png'));
  await page.locator('.chat-row').click();await expect(page.locator('.bubble')).toBeVisible();
- await page.screenshot({path:testInfo.outputPath('design-conversation.png'),fullPage:true});
+ await screenshot(page,testInfo.outputPath('design-conversation.png'));
  await page.getByRole('button',{name:'Назад',exact:true}).click();await page.getByRole('button',{name:'Профиль',exact:true}).click();
  const pauseSaved=page.waitForResponse(r=>r.url().endsWith('/api/profile/visibility')&&r.request().method()==='PATCH'&&r.status()===200);await page.getByRole('switch',{name:/Пауза анкеты/}).check();await pauseSaved;await page.reload();await expect(page.getByRole('heading',{name:'Лента',exact:true})).toBeVisible();await expect(page.locator('.pause-note')).toBeVisible();
- await page.getByRole('button',{name:'Профиль',exact:true}).click();await expect(page.getByRole('switch',{name:/Пауза анкеты/})).toBeChecked();await page.getByRole('switch',{name:/Пауза анкеты/}).uncheck();
- await page.screenshot({path:testInfo.outputPath('design-profile.png'),fullPage:true});
+ await page.getByRole('button',{name:'Профиль',exact:true}).click();await expect(page.getByRole('switch',{name:/Пауза анкеты/})).toBeChecked();const resumed=page.waitForResponse(r=>r.url().endsWith('/api/profile/visibility')&&r.request().method()==='PATCH'&&r.status()===200);await page.getByRole('switch',{name:/Пауза анкеты/}).uncheck();await resumed;await expect(page.getByRole('switch',{name:/Пауза анкеты/})).toBeEnabled();
+ await screenshot(page,testInfo.outputPath('design-profile.png'));
  await page.locator('.premium-banner').click();await expect(page.getByRole('radiogroup')).toBeVisible();
  await expect(page.locator('.product-price').filter({hasText:'65'})).toBeVisible();
- await page.screenshot({path:testInfo.outputPath('design-premium.png'),fullPage:true});
+ await screenshot(page,testInfo.outputPath('design-premium.png'));
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- const locked=await browser.newPage({viewport:{width:390,height:844}});await telegram(locked,30);await locked.goto('/');await locked.getByRole('button',{name:'Лайки',exact:true}).click();await expect(locked.locator('.likes-paywall')).toBeVisible();await expect(locked.locator('.locked-tile img')).toHaveCount(0);await locked.screenshot({path:testInfo.outputPath('design-likes-locked.png'),fullPage:true});await locked.close();
- const guest=await browser.newPage({viewport:{width:390,height:844}});await guest.route('https://telegram.org/**',route=>route.fulfill({body:''}));await guest.goto('/');await expect(guest.getByRole('link',{name:'Open in Telegram'})).toBeVisible();await guest.screenshot({path:testInfo.outputPath('design-welcome.png'),fullPage:true});await guest.close();
+ const locked=await browser.newPage({viewport:{width:390,height:844}});await telegram(locked,30);await locked.goto('/');await locked.getByRole('button',{name:'Лайки',exact:true}).click();await expect(locked.locator('.likes-paywall')).toBeVisible();await expect(locked.locator('.locked-tile img')).toHaveCount(0);await screenshot(locked,testInfo.outputPath('design-likes-locked.png'));await locked.close();
+ const guest=await browser.newPage({viewport:{width:390,height:844}});await guest.route('https://telegram.org/**',route=>route.fulfill({body:''}));await guest.goto('/');await expect(guest.getByRole('link',{name:'Open in Telegram'})).toBeVisible();await screenshot(guest,testInfo.outputPath('design-welcome.png'));await guest.close();
 });
