@@ -43,3 +43,9 @@ Owner then requested a more beautiful, modern Profile tab. `web/profile.jsx` and
 Production build passes. Focused browser scenario passes: photo selection/viewer, moderation explanation, edit/Premium/settings/support navigation, pause persistence and resume, gifts placeholder, and viewport checks at 320, 390 and 560 px. Two mobile screens visually reviewed. No full tests/CI/Actions. Code is ready for the normal Render rollout; this profile update has not yet been verified live.
 
 The preceding media release 607b42b was verified live before this task: /healthz reports that revision, /readyz passes, served JS/sticker match source, protected media APIs reject unauthenticated requests. Physical Telegram hardware verification remains separate.
+
+## Two test profiles — 2026-10-08
+
+Owner requested two female test profiles, then explicitly requested finishing and restarting the project. `server/test-profiles.js` creates Alina (24) and Sofia (26), clearly marked synthetic in names/bios and original illustrated avatars. Three private-storage image variants per profile; no real people's photos. Location follows the owner's existing profile, with Krasnodar fallback. Normal discovery filters remain in force. No automatic likes, matches, messages or fake conversation replies.
+
+One-time seed is scoped to the existing Render service and audit marker `two-test-women-2026-10-08`. Reserved IDs are in `server/test-profile-ids.js`; Telegram notifications to those IDs are suppressed. Existing users are not overwritten. The focused seed test passed, including discovery, six images, repeat safety and no outgoing notifications. No database migration, frontend rebuild, full suite or CI is needed. Startup reports the seed outcome through healthz; completion of the live rollout must be verified separately. The previous profile release 43fc0b5 is confirmed live as of this task.

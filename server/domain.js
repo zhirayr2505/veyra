@@ -1,9 +1,10 @@
+import {isTestProfile} from './test-profile-ids.js';
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
 import {fail,premium} from './core.js';
 export const flag=async(q,k)=>{const f=await one(q,'SELECT * FROM feature_flags WHERE key=$1',[k]);return f?.enabled;};
 export const audit=(q,actor,action,subject,metadata={})=>q.query('INSERT INTO audit_log(actor,action,subject,metadata) VALUES($1,$2,$3,$4)',[actor,action,String(subject),JSON.stringify(metadata)]);
-export async function notify(q,recipient,text,bot='user',markup){await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),bot,recipient,JSON.stringify({text,...(markup?{reply_markup:markup}:{})})]);}
+export async function notify(q,recipient,text,bot='user',markup){if(isTestProfile(recipient))return;await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),bot,recipient,JSON.stringify({text,...(markup?{reply_markup:markup}:{})})]);}
 export async function notifyReview(q,env,userId){
  const p=await one(q,`SELECT p.*,u.username,extract(year FROM age(p.birth_date))::int AS age FROM profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=$1`,[userId]);
  if(!p)return;
