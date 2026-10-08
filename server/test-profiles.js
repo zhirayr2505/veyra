@@ -9,7 +9,7 @@ export async function seedTestProfiles(db,storage,env){
  const uploaded=[];
  try{return await db.tx(async q=>{
   await q.query("SELECT key FROM feature_flags WHERE key='registrations' FOR UPDATE");
-  if(await one(q,"SELECT 1 FROM audit_log WHERE action='test_profiles.seed' AND subject=$1",[SEED]))return {status:'completed',count:2};
+  if(await one(q,"SELECT 1 FROM audit_log WHERE action='test_profiles.seed' AND subject=$1",[SEED])){await q.query('UPDATE users SET last_seen=now() WHERE id=ANY($1::bigint[])',[TEST_PROFILE_IDS]);return {status:'completed',count:2};}
   const owner=await one(q,'SELECT city,country,lat,lon FROM profiles WHERE user_id=$1',[env.OWNER_TELEGRAM_ID]);
   const place=owner||{city:'Краснодар',country:'Россия',lat:45.0355,lon:38.9753};
   for(const [i,name,age,interests] of [[0,'Алина',24,['Кофе','Кино','Прогулки']],[1,'София',26,['Путешествия','Музыка','Фотография']]]){

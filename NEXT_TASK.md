@@ -1,7 +1,7 @@
-# Current handoff — app-wide premium visual refresh
+# Current handoff — discovery reference + synthetic match demo
 
-Owner requested a full visual redesign across VEYRA. Implemented in web/premium-ui.css, web/account-pages.jsx, web/graphics.jsx and the existing main.jsx wiring. Original approved logo/illustrations reused; premium dark surfaces, floating navigation, redesigned discovery/Today/likes/profile/Premium, account/support/referrals, forms, confirmations and micro-transitions. Messages Core and Media behavior retained. Gifts remain placeholders. No backend/migration/payment changes.
+Owner supplied a discovery reference and requested a close visual direction. Implemented the centered horizontal VEYRA feed header, Super Like counter, filter placement, large premium portrait card, online indicator, interest chips, photo bars and four-button action footer in the existing visual layer. Synthetic test profiles now auto-like back and open a real chat with a greeting. Messages Core/Media and account pages remain intact; gifts are still placeholders.
 
-Production build and focused mobile design browser scenario passed. Seven representative screens reviewed; 320/390/560 px and short chat viewport verified. See STATUS.md. No full suite/CI/Actions. Publish with [skip ci], confirm normal Render rollout via healthz revision + readyz, then stop. Do not restart repository analysis, repeat tests without a concrete failure or start another feature.
+Production build, focused synthetic-match server test and mobile design browser scenario passed. Publish with [skip ci], confirm normal Render rollout via healthz revision + readyz, then stop. Do not restart repository analysis, repeat tests without a concrete failure or start another feature.
 
 Preceding remote revision af325f313544549c9fd273dd40b79b82660d48a7 is confirmed live/ready and reports testProfiles completed, count 2. Alina and Sofia are explicitly synthetic; notifications to their reserved IDs are suppressed. Do not repeat seeding, delete users or reset registration. Earlier profile and Messages Media releases are also live.
