@@ -1,0 +1,184 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "hearts",
+      "name": "Симпатия",
+      "name_en": "Hearts"
+    },
+    {
+      "id": "cosmic",
+      "name": "Настроение",
+      "name_en": "Cosmic mood"
+    },
+    {
+      "id": "coffee",
+      "name": "Кофе вдвоём",
+      "name_en": "Coffee date"
+    }
+  ],
+  "stickers": [
+    {
+      "id": "hearts-1",
+      "pack": "hearts",
+      "label": "Ты мне нравишься",
+      "format": "static",
+      "src": "/graphics/stickers/hearts-1.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "hearts-2",
+      "pack": "hearts",
+      "label": "Обнимаю",
+      "format": "static",
+      "src": "/graphics/stickers/hearts-2.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "hearts-3",
+      "pack": "hearts",
+      "label": "Скучаю",
+      "format": "static",
+      "src": "/graphics/stickers/hearts-3.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "hearts-4",
+      "pack": "hearts",
+      "label": "Это мэтч",
+      "format": "static",
+      "src": "/graphics/stickers/hearts-4.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "hearts-5",
+      "pack": "hearts",
+      "label": "Моё сердце",
+      "format": "static",
+      "src": "/graphics/stickers/hearts-5.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "hearts-6",
+      "pack": "hearts",
+      "label": "Поцелуй",
+      "format": "static",
+      "src": "/graphics/stickers/hearts-6.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "cosmic-1",
+      "pack": "cosmic",
+      "label": "Привет!",
+      "format": "static",
+      "src": "/graphics/stickers/cosmic-1.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "cosmic-2",
+      "pack": "cosmic",
+      "label": "Вау!",
+      "format": "static",
+      "src": "/graphics/stickers/cosmic-2.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "cosmic-3",
+      "pack": "cosmic",
+      "label": "Ты космос",
+      "format": "static",
+      "src": "/graphics/stickers/cosmic-3.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "cosmic-4",
+      "pack": "cosmic",
+      "label": "Ну всё…",
+      "format": "static",
+      "src": "/graphics/stickers/cosmic-4.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "cosmic-5",
+      "pack": "cosmic",
+      "label": "Огонь!",
+      "format": "static",
+      "src": "/graphics/stickers/cosmic-5.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "cosmic-6",
+      "pack": "cosmic",
+      "label": "Спокойной ночи",
+      "format": "static",
+      "src": "/graphics/stickers/cosmic-6.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "coffee-1",
+      "pack": "coffee",
+      "label": "Пойдём на кофе?",
+      "format": "static",
+      "src": "/graphics/stickers/coffee-1.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "coffee-2",
+      "pack": "coffee",
+      "label": "Доброе утро",
+      "format": "static",
+      "src": "/graphics/stickers/coffee-2.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "coffee-3",
+      "pack": "coffee",
+      "label": "Жду тебя",
+      "format": "static",
+      "src": "/graphics/stickers/coffee-3.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "coffee-4",
+      "pack": "coffee",
+      "label": "Сладкая жизнь",
+      "format": "static",
+      "src": "/graphics/stickers/coffee-4.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "coffee-5",
+      "pack": "coffee",
+      "label": "На свидание?",
+      "format": "static",
+      "src": "/graphics/stickers/coffee-5.svg",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "coffee-6",
+      "pack": "coffee",
+      "label": "Договорились",
+      "format": "static",
+      "src": "/graphics/stickers/coffee-6.svg",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

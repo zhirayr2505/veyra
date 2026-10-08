@@ -75,3 +75,12 @@ test('owner transcript retains original text and edit history after chat soft-de
  assert.equal(archived.original_body,message.body);assert.equal(archived.body,'Edited for moderation test');
  assert.ok(archived.deleted_at);assert.equal(archived.edit_history[0].body,message.body);
 });
+
+test('soft-deleted media files remain downloadable by owner and included in moderation archive',async()=>{
+ const id=randomUUID();await db.query("INSERT INTO messages(id,match_id,sender,body,kind,client_id,deleted_at) VALUES($1,$2,31,'','voice',$3,now())",[id,matchId,randomUUID()]);
+ await db.query("INSERT INTO message_media(message_id,object_key,mime,size_bytes,duration,waveform) VALUES($1,'chat/test/voice.m4a','audio/mp4',20,2,'[0.2,0.8]')",[id]);
+ assert.equal((await auth(request(app).get(`/api/matches/${matchId}/messages/${id}/media`))).status,200);
+ const r=await auth(request(app).get('/api/admin/users/31/export.zip')).buffer(true).parse(binary);assert.equal(r.status,200);const files=unzipSync(r.body);
+ assert.ok(files[`users/31/chats/${matchId}/${id}.m4a`]);
+ const row=strFromU8(files[`users/31/chats/${matchId}.jsonl`]).trim().split('\n').map(JSON.parse).find(m=>m.id===id);assert.equal(row.media.object_key,'chat/test/voice.m4a');assert.ok(row.deleted_at);
+});

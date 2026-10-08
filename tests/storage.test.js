@@ -13,12 +13,12 @@ for(const [label,status,body] of [
   calls.push({url,...options});
   if(calls.length===1)return Response.json(body,{status});
   if(options.method==='POST')return Response.json({name:'veyra-media'});
-  return Response.json({id:'veyra-media',public:false});
+  return Response.json({id:'veyra-media',public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']});
  });
  await storage({SUPABASE_URL:'https://storage.example/',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.deepEqual(calls.map(x=>x.method||'GET'),['GET','POST','GET']);
  assert.equal(calls[0].url,'https://storage.example/storage/v1/bucket/veyra-media');
- assert.deepEqual(JSON.parse(calls[1].body),{id:'veyra-media',name:'veyra-media',public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']});
+ assert.deepEqual(JSON.parse(calls[1].body),{id:'veyra-media',name:'veyra-media',public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']});
  assert.ok(calls.every(x=>x.signal instanceof AbortSignal));
 });
 
@@ -28,7 +28,7 @@ test('legacy HTTP 400 creation collision is reread, not treated as startup failu
   calls++;
   if(calls===1)return Response.json({message:'Bucket not found'},{status:400});
   if(calls===2)return Response.json({statusCode:'409',error:'Duplicate',message:'The resource already exists'},{status:400});
-  return Response.json({id:'veyra-media',public:false});
+  return Response.json({id:'veyra-media',public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']});
  });
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.equal(calls,3);
@@ -55,7 +55,7 @@ test('Storage sends new secret keys only as apikey and legacy JWT keys as both h
  const calls=[];
  t.mock.method(globalThis,'fetch',async(url,options)=>{
   calls.push(options.headers);
-  return new Response(JSON.stringify({id:'veyra-media',public:false}),{status:200});
+  return new Response(JSON.stringify({id:'veyra-media',public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']}),{status:200});
  });
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.equal(calls[0].apikey,'sb_secret_test_only');
@@ -76,7 +76,7 @@ test('existing public media bucket is changed to private then re-verified',async
  t.mock.method(globalThis,'fetch',async(url,options)=>{
   calls.push({url,method:options.method||'GET',body:options.body});
   if((options.method||'GET')==='PUT'){publicBucket=JSON.parse(options.body).public;return new Response('{}',{status:200});}
-  return new Response(JSON.stringify({id:'veyra-media',public:publicBucket}),{status:200});
+  return new Response(JSON.stringify({id:'veyra-media',public:publicBucket,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']}),{status:200});
  });
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.deepEqual(calls.map(x=>x.method),['GET','PUT','GET']);
@@ -89,7 +89,7 @@ test('bucket creation collision rereads bucket metadata and checks privacy',asyn
   const method=options.method||'GET';calls.push(method);
   if(calls.length===1)return new Response('{}',{status:404});
   if(method==='POST')return new Response('{}',{status:409});
-  return new Response(JSON.stringify({id:'veyra-media',public:false}),{status:200});
+  return new Response(JSON.stringify({id:'veyra-media',public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']}),{status:200});
  });
  await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
  assert.deepEqual(calls,['GET','POST','GET']);
@@ -116,4 +116,11 @@ test('Storage diagnostics report allowlisted failure reasons without the respons
   assert.doesNotMatch(error.message,/private-sensitive-detail|InvalidBucketName/);
   return true;
  });
+});
+
+test('private image-only bucket is upgraded for voice without changing privacy',async t=>{
+ let info={public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']},updates=0;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{if(options.method==='PUT'){updates++;info=JSON.parse(options.body);}return Response.json(info);});
+ await storage({SUPABASE_URL:'https://storage.example',SUPABASE_SECRET_KEY:'sb_secret_test_only'}).ensure();
+ assert.equal(updates,1);assert.equal(info.public,false);assert.equal(info.file_size_limit,12582912);assert.ok(info.allowed_mime_types.includes('audio/mp4'));
 });

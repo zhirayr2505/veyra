@@ -36,20 +36,23 @@ export function storage(env){const base=env.SUPABASE_URL.replace(/\/$/,'')+'/sto
   };
   let info=await read();
   if(!info){
-   const response=await fetch(base+'/bucket',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({id:bucket,name:bucket,public:false,file_size_limit:5242880,allowed_mime_types:['image/webp']}),signal:AbortSignal.timeout(15000)});
+   const response=await fetch(base+'/bucket',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({id:bucket,name:bucket,public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']}),signal:AbortSignal.timeout(15000)});
    if(!response.ok&&!await bucketCondition(response,'exists'))await storageError(response,'STORAGE_BUCKET_CREATE_FAILED_');
    // Creation returns only {name}; GET metadata after creation or a racing startup.
    info=await read();
    if(!info)throw Error('STORAGE_BUCKET_VERIFY_FAILED_NOT_FOUND');
   }
-  if(info.public===true){
-   const updated=await fetch(endpoint,{method:'PUT',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({public:false}),signal:AbortSignal.timeout(15000)});
+  if(typeof info?.public!=='boolean')throw Error('STORAGE_BUCKET_PRIVACY_UNCONFIRMED');
+  if(info.public===true||Number(info.file_size_limit)<12582912||!info.allowed_mime_types?.includes('audio/mp4')){
+   const updated=await fetch(endpoint,{method:'PUT',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({public:false,file_size_limit:12582912,allowed_mime_types:['image/webp','audio/mp4']}),signal:AbortSignal.timeout(15000)});
    if(!updated.ok)throw Error('STORAGE_BUCKET_PRIVACY_UPDATE_FAILED_'+updated.status);
    info=await read();
   }
   if(info?.public!==false)throw Error('STORAGE_BUCKET_PRIVACY_UNCONFIRMED');
+  if(!(Number(info.file_size_limit)>=12582912)||!['image/webp','audio/mp4'].every(mime=>info.allowed_mime_types?.includes(mime)))throw Error('STORAGE_BUCKET_MEDIA_UNCONFIRMED');
  },
  async put(key,buffer){const clean=await sharp(buffer,{limitInputPixels:20000000,animated:false}).rotate().resize(1600,1600,{fit:'inside',withoutEnlargement:true}).webp({quality:85}).toBuffer();const r=await fetch(base+'/object/'+bucket+'/'+key,{method:'POST',headers:{...headers,'content-type':'image/webp'},body:clean,signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('UPLOAD_FAILED');},
+ async putMedia(key,buffer,mime){if(!['image/webp','audio/mp4'].includes(mime)||buffer.length>12582912)throw Error('MEDIA_TYPE');const r=await fetch(base+'/object/'+bucket+'/'+key,{method:'POST',headers:{...headers,'content-type':mime},body:buffer,signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('UPLOAD_FAILED');},
  async get(key){const r=await fetch(base+'/object/authenticated/'+bucket+'/'+key,{headers,signal:AbortSignal.timeout(15000)});if(!r.ok)fail(404,'PHOTO_NOT_FOUND');return Buffer.from(await r.arrayBuffer());},
  async remove(key){const r=await fetch(base+'/object/'+bucket,{method:'DELETE',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({prefixes:[key]})});if(!r.ok)throw Error('STORAGE_DELETE_FAILED');}
  };}

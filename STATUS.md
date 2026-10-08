@@ -27,3 +27,11 @@ The first rollout revealed payments are currently enabled in the live database. 
 ## Messages Core stage 1 — 2026-10-08
 
 Completed the isolated chat upgrade. See docs/MESSAGES_CORE.md for implementation, transport behavior and exact checks. Twenty focused server/archive checks and the two-member mobile chat scenario pass; production build passes. GitHub Actions/full CI were not run. Voice/media/stickers remain out of scope. Do not repeat registration reset or restart repository analysis.
+
+## Messages Media stage 2 — 2026-10-08
+
+Stage 2 is implemented and verified locally, extending the existing core. Voice recording/locked pause-resume/cancel/send, waveform player/seek/speeds, optimized photos/captions/full-screen viewer and three original static sticker packs are complete. Single composer/model, durable IndexedDB media outbox, private storage, server validation, idempotent retry and moderation retention. See docs/MESSAGES_MEDIA.md.
+
+Validation: 39 distinct focused server checks passed across chat, media, storage and exports (one report-context failure fixed and retested). Production build passes. The two-member mobile Messages Media browser scenario passed in 1.1 minutes after correcting a test selector; actual MediaRecorder with Chromium synthetic microphone, normalized receiver playback, recording gestures/pause/resume, seek/speeds/exclusive playback, photo preview/upload/viewer, sticker favorites/recent/send, reply/reactions/delete/report, failed upload persisted through reload and retried without duplication. Layout checks: 320×568, 390×440 and 390×844; three representative screens visually reviewed. The interrupted environment left a truncated Chromium executable; it was restored from the already-downloaded package before browser testing. No GitHub Actions/full CI run. No physical Telegram device, camera or haptic test. Animated stickers are deferred; this release has static SVG stickers only.
+
+Runtime adds ffmpeg through Docker. Migration 007_chat_media.sql applies at normal server startup; the existing private bucket policy is upgraded in place. This entry confirms local implementation/checks, not a verified Render rollout. Do not repeat the registration reset.

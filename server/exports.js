@@ -45,7 +45,8 @@ async function* transcript(db,matchId){
  let cursorTime='1970-01-01T00:00:00Z',cursorId='00000000-0000-0000-0000-000000000000';
  while(true){
   // Return a PostgreSQL timestamp string: JS Date would discard microseconds.
-  const rows=(await db.query(`SELECT id,sender,body,original_body,reply_to,edited_at,deleted_at,delivered_at,created_at::text AS created_at,read_at::text AS read_at,
+  const rows=(await db.query(`SELECT id,sender,body,kind,sticker_id,original_body,reply_to,edited_at,deleted_at,delivered_at,
+   (SELECT row_to_json(mm) FROM message_media mm WHERE mm.message_id=messages.id) AS media,created_at::text AS created_at,read_at::text AS read_at,
    (SELECT json_agg(e ORDER BY e.id) FROM message_edits e WHERE e.message_id=messages.id) AS edit_history
    FROM messages WHERE match_id=$1 AND (created_at,id)>($2::timestamptz,$3::uuid)
    ORDER BY created_at,id LIMIT 500`,[matchId,cursorTime,cursorId])).rows;
@@ -82,7 +83,7 @@ export async function streamArchive({db,storage,actor,userId,res}){
    const photos=(await db.query('SELECT id,object_key FROM photos WHERE user_id=$1 ORDER BY position,created_at',[row.id])).rows;
    for(const photo of photos)await append(await storage.get(photo.object_key),root+'photos/'+photo.id+'.webp');
    await append(JSON.stringify(detail.chats,null,2),root+'chats/index.json');
-   for(const chat of detail.chats)await append(Readable.from(transcript(db,chat.id)),root+'chats/'+chat.id+'.jsonl');
+   for(const chat of detail.chats){await append(Readable.from(transcript(db,chat.id)),root+'chats/'+chat.id+'.jsonl');let mediaCursor='00000000-0000-0000-0000-000000000000';while(true){const media=(await db.query('SELECT mm.* FROM message_media mm JOIN messages m ON m.id=mm.message_id WHERE m.match_id=$1 AND mm.message_id>$2::uuid ORDER BY mm.message_id LIMIT 50',[chat.id,mediaCursor])).rows;for(const file of media)await append(await storage.get(file.object_key),root+'chats/'+chat.id+'/'+file.message_id+(file.mime==='audio/mp4'?'.m4a':'.webp'));if(media.length<50)break;mediaCursor=media.at(-1).message_id;}}
    count++;
   }
   await zip.finalize();await piped;

@@ -1,5 +1,5 @@
-# Current handoff — Messages Core stage 1
+# Current handoff — Messages Media stage 2
 
-The requested stage is complete and verified. See docs/MESSAGES_CORE.md. Changes are confined to chat, necessary API/database/export support and focused tests. The previous registration/graphics release and completed registration reset remain unchanged.
+The authorized Messages stage is complete and locally verified. See docs/MESSAGES_MEDIA.md and the final section of STATUS.md. Voice/photo/static stickers extend the existing Messages Core; no other product section was redesigned.
 
-Stop here until the owner supplies the next task. Do not start voice messages, media, GIFs or stickers. Do not rerun full tests, browser checks, CI, GitHub Actions or the registration reset without a concrete reason. Use the existing stage results and current code.
+Stop after saving this stage. Do not autonomously begin video, GIF, documents, calls, animated stickers, gifts or another stage. Do not repeat the registration reset, repository analysis, full test suite or GitHub Actions. Physical Telegram/iOS/Android permission/camera/haptic verification and live Render rollout were not performed; do not describe them as verified.
