@@ -23,3 +23,7 @@ Do not restart repository analysis. Reuse this verified source and current resul
 Details: docs/REGISTRATION_V2.md and docs/REQUIREMENTS.md.
 
 The first rollout revealed payments are currently enabled in the live database. This was not changed. The initial protective reset did not run; server-only fix c294745 preserves paid orders and accepted checkouts instead of blocking all resets. Its four focused registration/reset tests pass. Do not claim live payments are disabled.
+
+## Messages Core stage 1 — 2026-10-08
+
+Completed the isolated chat upgrade. See docs/MESSAGES_CORE.md for implementation, transport behavior and exact checks. Twenty focused server/archive checks and the two-member mobile chat scenario pass; production build passes. GitHub Actions/full CI were not run. Voice/media/stickers remain out of scope. Do not repeat registration reset or restart repository analysis.

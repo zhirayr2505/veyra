@@ -62,3 +62,16 @@ test('single-user archive excludes unrelated profiles and photos but retains the
  assert.ok(files['users/31/profile.json']);assert.equal(files['users/32/profile.json'],undefined);
  assert.equal(strFromU8(files['users/31/chats/'+matchId+'.jsonl']).trim().split('\n').length,503);
 });
+
+test('owner transcript retains original text and edit history after chat soft-delete',async()=>{
+ const sent=await auth(request(app).post('/api/matches/'+matchId+'/messages'),normal).send({body:'Original for moderation test',client_id:randomUUID()});assert.equal(sent.status,200);const message=sent.body;
+ const path='/api/matches/'+matchId+'/messages/'+message.id;
+ assert.equal((await auth(request(app).patch(path),normal).send({body:'Edited for moderation test'})).status,200);
+ assert.equal((await auth(request(app).delete(path),normal).send({scope:'everyone'})).status,200);
+ const r=await auth(request(app).get('/api/admin/users/31/export.zip')).buffer(true).parse(binary);
+ assert.equal(r.status,200);const files=unzipSync(r.body);
+ const messages=strFromU8(files['users/31/chats/'+matchId+'.jsonl']).trim().split('\n').map(JSON.parse);
+ const archived=messages.find(x=>x.id===message.id);
+ assert.equal(archived.original_body,message.body);assert.equal(archived.body,'Edited for moderation test');
+ assert.ok(archived.deleted_at);assert.equal(archived.edit_history[0].body,message.body);
+});

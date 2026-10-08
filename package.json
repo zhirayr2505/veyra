@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "archiver": "7.0.1",
+    "emoji-picker-react": "4.22.3",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "lucide-react": "^0.577.0",

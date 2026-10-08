@@ -45,7 +45,8 @@ async function* transcript(db,matchId){
  let cursorTime='1970-01-01T00:00:00Z',cursorId='00000000-0000-0000-0000-000000000000';
  while(true){
   // Return a PostgreSQL timestamp string: JS Date would discard microseconds.
-  const rows=(await db.query(`SELECT id,sender,body,created_at::text AS created_at,read_at::text AS read_at
+  const rows=(await db.query(`SELECT id,sender,body,original_body,reply_to,edited_at,deleted_at,delivered_at,created_at::text AS created_at,read_at::text AS read_at,
+   (SELECT json_agg(e ORDER BY e.id) FROM message_edits e WHERE e.message_id=messages.id) AS edit_history
    FROM messages WHERE match_id=$1 AND (created_at,id)>($2::timestamptz,$3::uuid)
    ORDER BY created_at,id LIMIT 500`,[matchId,cursorTime,cursorId])).rows;
   for(const row of rows)yield JSON.stringify(row)+'\n';

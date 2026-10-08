@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./browser',testMatch:'messages-core.spec.js',workers:1,timeout:120000,use:{baseURL:'http://127.0.0.1:3100',actionTimeout:10000,viewport:{width:390,height:844},launchOptions:{executablePath:process.env.CHAT_CHROMIUM_PATH||undefined,args:['--no-sandbox','--disable-dev-shm-usage']},screenshot:'off'},webServer:{command:'node chat-browser-server.js',port:3100,reuseExistingServer:true}});
