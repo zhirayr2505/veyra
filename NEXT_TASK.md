@@ -1,5 +1,5 @@
-# Current handoff — Messages Media stage 2
+# Current handoff — personal profile refresh
 
-The authorized Messages stage is complete and locally verified. See docs/MESSAGES_MEDIA.md and the final section of STATUS.md. Voice/photo/static stickers extend the existing Messages Core; no other product section was redesigned.
+Owner requested a more beautiful, modern Profile tab after completing Messages Media. The new screen is in web/profile.jsx and web/profile.css; web/main.jsx only wires the existing components/context. Existing editor/APIs/settings/pause/gallery/gift placeholders are preserved. Build and focused mobile profile browser checks pass; see STATUS.md.
 
-Stop after saving this stage. Do not autonomously begin video, GIF, documents, calls, animated stickers, gifts or another stage. Do not repeat the registration reset, repository analysis, full test suite or GitHub Actions. Physical Telegram/iOS/Android permission/camera/haptic verification and live Render rollout were not performed; do not describe them as verified.
+Stop after saving this authorized visual update. No next feature is authorized. Do not rerun the registration reset or reanalyze the repository. No full CI/GitHub Actions needed. Media stage 2 is completed and its 607b42b rollout was verified live. The profile rollout itself has not yet been verified.
