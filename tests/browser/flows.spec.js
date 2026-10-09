@@ -92,7 +92,7 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('Черновик сохраняется');
  await b.locator('.chat-header .mc-person').click();
  await expect(b.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
- await b.locator('.member-profile-footer').getByRole('button',{name:'Перейти в чат'}).click();
+ await b.locator('.member-profile-inline-actions').getByRole('button',{name:'Перейти в чат'}).click();
  await expect(b.getByRole('textbox',{name:'Сообщение…',exact:true})).toHaveValue('Черновик сохраняется');
  await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('');
  await b.locator('.chat-header').getByRole('button',{name:'Настройки',exact:true}).click();
