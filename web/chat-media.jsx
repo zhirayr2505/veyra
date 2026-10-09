@@ -1,5 +1,5 @@
 import React,{useState,useEffect,useRef,lazy,Suspense} from 'react';
-import {ArrowUp,Smile,Sticker,Clock,Star,X,LoaderCircle,RotateCw,ZoomIn,ZoomOut} from 'lucide-react';
+import {ArrowUp,Smile,Sticker,Clock,Star,X,LoaderCircle,RotateCw,ZoomIn,ZoomOut,Image as ImageIcon} from 'lucide-react';
 import {api} from './api';
 import catalog from '../shared/chat-stickers.json';
 import './chat-media.css';
