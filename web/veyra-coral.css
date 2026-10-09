@@ -990,3 +990,34 @@ body{color-scheme:light}
 .app:not(.admin-app) .moderation-page>.text-button{color:#9970a9;margin:3px auto 0}
 .app:not(.admin-app) .moderation-page>.check{color:#807287;font-size:12px;line-height:1.6}
 .app:not(.admin-app) .moderation-page>.check a{color:#ec728c;text-decoration:underline}
+
+/* Main moderation console shares the new brand without narrowing desktop screens. */
+.app.admin-app{
+ max-width:none;width:100%;min-height:100dvh;background:#fffdfd;color:#40344b;
+}
+.app.admin-app .topbar{
+ background:#fff;border-bottom:1px solid #f0e7f0;
+ justify-content:space-between;min-height:68px;padding:14px clamp(16px,2vw,31px);
+}
+.app.admin-app .topbar .brand.approved-brand{margin:0;width:136px;height:47px}
+.app.admin-app .admin-label{color:#876d9e;background:#f5effa;border:0;border-radius:20px;padding:9px 13px}
+.app.admin-app .admin-shell{max-width:1400px;margin:0 auto;gap:18px;color:#473b50}
+.app.admin-app .admin-shell aside{background:#fff;border:1px solid #eee7f1;border-radius:20px;box-shadow:0 6px 22px #6b427410}
+.app.admin-app .admin-shell aside button{color:#796988;background:#f9f6fc;border-radius:14px;padding:11px 13px}
+.app.admin-app .admin-shell aside button.active{color:#e97791;background:#fff0f4;box-shadow:inset 0 0 0 1px #ffe0e7}
+.app.admin-app .section-head h1,.app.admin-app h2,.app.admin-app h3{color:#43324d}
+.app.admin-app .metric,.app.admin-app .review-card,.app.admin-app .account-panel{
+ color:#41354b;background:#fff;border:1px solid #eee7f1;border-radius:21px;
+ box-shadow:0 6px 18px #70527d0b;
+}
+.app.admin-app .metric strong{color:#ec788f}
+.app.admin-app .review-card p,.app.admin-app .metric span{color:#8c7b97}
+.app.admin-app :is(input:not([type=checkbox]),textarea,select){
+ color:#42364d;background:#fbf9fd;border:1px solid #eee5f1;border-radius:15px;
+}
+.app.admin-app .button.primary{
+ background:linear-gradient(115deg,#ff8b9c,#f4788e);color:#fff;border:0;
+}
+.app.admin-app .button.secondary{background:#f5effb;color:#8a6cac;border:0}
+.app.admin-app .sheet{background:#fff;color:#473b50}
+.app.admin-app .scrim{background:rgba(54,32,65,.36);backdrop-filter:blur(6px)}

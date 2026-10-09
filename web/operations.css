@@ -2,3 +2,90 @@
 @media(max-width:1100px){.ops-metrics{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.ops-header{padding:18px 16px}.ops-header .text-button{font-size:11px}.ops-header>svg{display:none}.ops-layout{display:block}.ops-sidebar{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #ffffff0b;padding:12px;scrollbar-width:none}.ops-sidebar button{flex-shrink:0;white-space:nowrap}.ops-main{padding:22px 16px}.ops-title h1{font-size:25px}.ops-metrics{grid-template-columns:repeat(2,1fr);gap:10px}.ops-metrics article{padding:16px}.ops-search{flex-wrap:wrap}.ops-search input{flex-basis:60%}.ops-search select{margin-left:26px}.ops-console .setting-row{align-items:flex-start;gap:14px}.ops-console .setting-row b{text-align:right;font-size:12px;max-width:50%}}
 .ops-console button{font:inherit;color:inherit;cursor:pointer;border:0;background:transparent;-webkit-tap-highlight-color:transparent}.ops-console button:focus-visible{outline:2px solid #eb80c0;outline-offset:3px}.ops-console button:disabled{cursor:default;opacity:.45}.ops-console .button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:12px 18px;border-radius:15px;font-size:13px}.ops-console .button.primary{background:linear-gradient(115deg,#e64a9e,#b555c4);color:white}.ops-console .button.secondary{background:#ffffff0a;border:1px solid #ffffff12}.ops-console input:not([type=checkbox]),.ops-console select,.ops-console textarea{font:inherit;color:#f1eaf8;background:#111522;border:1px solid #ffffff17;border-radius:12px;padding:12px;max-width:100%;box-sizing:border-box}.ops-console .segmented-scroll button{font-size:12px}.ops-console .segmented-scroll button.active{background:linear-gradient(135deg,#e743a02e,#9368e629)}.ops-console .ops-sidebar button.active{background:linear-gradient(120deg,#e851a225,#7355b221)}
+
+/* VEYRA Coral administrative workspace — light, functional, consistent. */
+.ops-console{
+ background:#fffdfd;color:#3e324a;min-height:100dvh;font-family:inherit;
+}
+.ops-header{
+ background:#fff;border-bottom:1px solid #f1e8f1;gap:12px;
+ padding:14px clamp(14px,3vw,29px);
+ box-shadow:0 5px 18px rgba(74,54,85,.035);
+}
+.ops-header .ops-brand{
+ display:flex;align-items:center;justify-content:center;gap:9px;min-width:0;
+}
+.ops-header .ops-brand .brand.approved-brand{
+ width:118px;height:45px;min-width:0;border:0;background:none;overflow:visible;box-shadow:none;
+}
+.ops-header .ops-brand .brand-wordmark-img{width:100%;height:100%;object-fit:contain}
+.ops-header .ops-brand small{font-size:9px;color:#9784a5;letter-spacing:1.6px;font-weight:800;white-space:nowrap}
+.ops-header .text-button{color:#947caa;font-size:12px}
+.ops-header>svg{color:#ef7e96}
+.ops-layout{grid-template-columns:217px minmax(0,1fr);max-width:1500px}
+.ops-sidebar{background:#fff;border-right:1px solid #f1e9f1;gap:4px}
+.ops-sidebar button{color:#82768d;font-weight:630;font-size:12px;border-radius:15px}
+.ops-sidebar button.active{
+ background:#fff0f4;color:#e7728b;box-shadow:inset 0 0 0 1px #ffe1e9;
+}
+.ops-sidebar button:hover:not(.active){background:#f7f1fc;color:#8a6aac}
+.ops-main{padding:clamp(16px,3vw,34px)}
+.ops-title h1{color:#372b44;font-weight:780;letter-spacing:-.045em}
+.ops-title .section-eyebrow{color:#e67a94}
+.ops-title .icon-button{background:#f5eefb;color:#886bb0;border:0;border-radius:50%}
+.ops-search{
+ background:#fff;border:1px solid #ede5ef;
+ box-shadow:0 5px 18px #5a3c6f09;border-radius:19px;
+}
+.ops-search :is(input,select){background:#f9f5fc!important;border:1px solid #eee5f1!important;color:#5b4a68!important}
+.ops-metrics{gap:12px}
+.ops-metrics article{
+ border:1px solid #eee6f0;border-radius:22px;
+ background:linear-gradient(140deg,#fff,#fff8fb);
+ box-shadow:0 6px 19px #7450800b;
+}
+.ops-metrics small,.ops-chart small,.ops-chart b{color:#8c8195}
+.ops-metrics strong{color:#3e304c;font-weight:760}
+.ops-chart{padding:12px 8px;border-radius:20px;background:#fff;border:1px solid #f0e7f1}
+.ops-chart i{background:linear-gradient(#ff9aad,#a18be0);border-radius:8px 8px 2px 2px}
+.ops-table{
+ background:#fff;border:1px solid #eee6f1;color:#443748;
+ border-radius:20px;overflow-x:auto;
+ box-shadow:0 4px 13px rgba(67,38,76,.04);
+}
+.ops-table th{color:#887994;border-bottom:1px solid #f1e8f3;background:#fcf9fd}
+.ops-table td{border-color:#f3ebf4}
+.ops-table tr:hover{background:#fffbfd}
+.ops-console .account-panel{
+ background:#fff;border:1px solid #efe7f2;
+ color:#413348;box-shadow:0 4px 17px #633f700a;
+}
+.ops-console .account-panel h2{color:#3e3049}
+.ops-console .button.primary{
+ background:linear-gradient(120deg,#ff879a,#f7778e);color:#fff;border:0;
+ box-shadow:0 5px 17px #ee7a952c;
+}
+.ops-console .button.secondary{background:#f5effa;border:0;color:#9071a8}
+.ops-console input:not([type=checkbox]),.ops-console select,.ops-console textarea{
+ background:#fbf9fd;color:#46364f;border:1px solid #eee4f1;
+ border-radius:15px;font-size:13px;
+}
+.ops-console input:focus-visible,.ops-console button:focus-visible,.ops-console select:focus-visible,.ops-console textarea:focus-visible{outline:2px solid #f3a4bd;outline-offset:2px}
+.ops-console .segmented-scroll{background:#f7f1fc;border:0}
+.ops-console .segmented-scroll button{color:#896f9d}
+.ops-console .segmented-scroll button.active{background:#fff;color:#ed7893;box-shadow:0 2px 12px #694e7911}
+.ops-results-head,.ops-console .pagination button{color:#7f708d}
+.ops-console .pagination button{background:#f5eefb;border:0;border-radius:15px}
+@media(max-width:700px){
+ .ops-layout{display:block}
+ .ops-header{padding:11px 13px}
+ .ops-header .ops-brand{gap:4px}
+ .ops-header .ops-brand .brand.approved-brand{width:108px;height:39px}
+ .ops-header .ops-brand small{font-size:8px;letter-spacing:.5px}
+ .ops-sidebar{gap:5px;padding:9px 12px;background:#fff;border:0;border-bottom:1px solid #f1e8f0}
+ .ops-sidebar button{background:#fbf9fd;min-height:43px;border-radius:13px}
+ .ops-main{padding:20px 13px}
+ .ops-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .ops-metrics article{padding:16px}
+ .ops-table{overflow-x:auto}
+}
