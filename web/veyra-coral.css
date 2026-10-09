@@ -1,0 +1,418 @@
+
+/* VEYRA Coral v4 — single source of truth for the approved 2026 light visual identity.
+ * Scoped consumer styling. The admin UI keeps its functional density.
+ * No gold, black/glow dating chrome or stock neon. Interactions remain accessible.
+ */
+:root{
+ color-scheme:light;
+ --v-bg:#fffdfd;--v-surface:#ffffff;--v-raised:#f8f4fc;
+ --v-text:#302a3e;--v-muted:#837a93;--v-border:#ede8f2;
+ --v-rose:#ff7789;--v-orchid:#9672c4;--v-ice:#f3ecfc;
+ --v-focus:#a77adc;--v-accent:linear-gradient(130deg,#ff8a9a,#fb697f);
+ --pink:#fa7085;--violet:#9275c9;--surface:#fff;--line:#eee7f3;
+ --muted:#837a93;--accent:linear-gradient(130deg,#ff8a9a,#fb697f);
+ --ease:cubic-bezier(.22,1,.36,1);
+ font-family:Inter,'Nunito','Arial Rounded MT Bold',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+ color:#302a3e;background:#fffdfd;
+}
+html,body{background:#fffdfd;color:#302a3e}
+body{color-scheme:light}
+:where(.app:not(.admin-app),.member-profile-screen){
+ --glass-fill:linear-gradient(135deg,rgba(255,255,255,.96),rgba(250,247,253,.94));
+ --glass-border:#efe7f2;
+ --shadow-elevated:0 8px 30px rgba(88,55,102,.07);
+ color:#302a3e!important;
+}
+:where(.app:not(.admin-app),.member-profile-screen) :is(button,a,input,textarea,select):focus-visible{outline:2px solid #ab77dd;outline-offset:2px}
+.app:not(.admin-app){
+ background:linear-gradient(180deg,#fff 0%,#fffbfd 58%,#fff 100%);
+ border-color:#f1eaf1;color:#302a3e;
+}
+.app:not(.admin-app) :is(h1,h2,h3,strong){color:#302a3e;letter-spacing:-.035em}
+.app:not(.admin-app) :is(p,small,.muted,.page-subtitle,.section-heading p){color:#7e748c}
+.app:not(.admin-app)>main{padding-left:16px;padding-right:16px}
+.app:not(.admin-app) .view-enter{animation:veyra-coral-enter .22s ease-out both}
+@keyframes veyra-coral-enter{from{opacity:.82;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* True approved text-only brand SVG, not the obsolete ribbon symbol. */
+.brand.approved-brand,.brand.approved-brand.brand-horizontal,.brand.approved-brand.large,
+.topbar .brand.approved-brand,.welcome header .brand.approved-brand,.legal .brand.approved-brand{
+ display:inline-flex;align-items:center;justify-content:center;
+ background:none!important;border:0!important;border-radius:0!important;overflow:visible!important;
+ width:clamp(110px,34vw,178px);height:48px;box-shadow:none!important;gap:0;
+}
+.brand.approved-brand.large{width:min(270px,65vw);height:96px}
+.brand.approved-brand .brand-wordmark-img{display:block!important;width:100%;height:100%;object-fit:contain;max-width:100%;filter:none}
+.brand.approved-brand .brand-symbol,.brand.approved-brand .brand-wordmark{display:none!important}
+.topbar{min-height:72px;padding:12px 16px 10px;justify-content:center;position:relative;background:#fff!important;border:none!important}
+.topbar .brand.approved-brand{height:47px;width:155px;margin:auto}
+.topbar .topbar-left{position:absolute;left:16px;top:calc(50% - 20px);display:flex;align-items:center}
+.topbar .top-actions{position:absolute;right:16px;top:calc(50% - 20px);display:flex;align-items:center}
+.topbar :is(.icon-button,.topbar-left button){
+ width:40px;height:40px;border-radius:50%;border:0;
+ background:#f5f0fd;color:#746886;box-shadow:none;
+}
+.topbar .premium-pill,.feed-counter{display:none!important}
+.topbar .notification-dot{position:absolute;width:8px;height:8px;background:#ff6f86;border:2px solid #fff;border-radius:50%;right:0;top:0}
+.app:not(.admin-app) .topbar .veyra-icon{stroke-width:1.9}
+.app:not(.admin-app) :is(.field>span,.section-eyebrow,.section-label){color:#9886ae}
+.app:not(.admin-app) :is(.section-heading,.page-heading){margin-block:7px 16px;min-height:0}
+.app:not(.admin-app) .section-heading h1{font-size:27px;letter-spacing:-.04em}
+.app:not(.admin-app) .section-heading>.artwork{opacity:.7;filter:none}
+
+/* Bottom dock: flush white like the approved Discover design, not the old dark floating glass. */
+.app:not(.admin-app) .bottom-nav{
+ position:fixed;left:50%;transform:translateX(-50%);right:auto;
+ bottom:0;width:100%;max-width:560px;min-height:73px;
+ display:flex;justify-content:space-around;align-items:center;
+ padding:6px 10px max(8px,env(safe-area-inset-bottom,0px));
+ border:0;border-top:1px solid #f3eaf2;border-radius:0;
+ background:rgba(255,255,255,.97);box-shadow:0 -7px 24px rgba(113,88,132,.035);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:20;
+}
+.app:not(.admin-app) .bottom-nav button{
+ min-width:0;flex:1;color:#8b8299;border-radius:14px;padding:5px 2px;
+ min-height:54px;font-weight:600;font-size:11px;letter-spacing:0;
+ background:transparent;gap:3px;
+}
+.app:not(.admin-app) .bottom-nav button.selected{background:transparent;color:#fa7187}
+.app:not(.admin-app) .bottom-nav button.selected:before{display:none}
+.app:not(.admin-app) .bottom-nav .nav-icon svg{width:25px;height:25px;stroke-width:1.7}
+.app:not(.admin-app) .bottom-nav .selected .nav-icon svg{stroke:#fa7187;fill:#fa718714}
+.app:not(.admin-app) .nav-count{background:#fa7085;color:white;border:2px solid #fff;box-shadow:none;font-weight:700}
+
+/* Discover header uses three consistent Badoo-influenced pastel segments. */
+.app:not(.admin-app) .feed-surface{gap:0}
+.app:not(.admin-app) .discovery-modes{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;margin:0 0 10px;width:100%;
+}
+.app:not(.admin-app) .discovery-modes button{
+ display:flex;align-items:center;justify-content:center;gap:7px;
+ min-width:0;white-space:nowrap;padding:11px 2px;border-radius:19px;
+ background:#f4f0fd;color:#746a82;border:0;font-size:12px;font-weight:650;
+ box-shadow:inset 0 1px rgba(255,255,255,.9);
+}
+.app:not(.admin-app) .discovery-modes button.active{
+ color:#f35c78;background:linear-gradient(115deg,#ffe8ed,#ffedf2);
+}
+.app:not(.admin-app) .discovery-modes svg{width:17px;height:17px}
+.app:not(.admin-app) .discovery-heading{padding:0 3px 7px;min-height:0;opacity:.95}
+.app:not(.admin-app) .discovery-heading .location-line{color:#8d8596;font-size:11px}
+.app:not(.admin-app) .discovery-heading .feed-allowance{color:#8d8596;font-size:10px}
+
+/* A photograph fills the card, but the overlay never hides faces or actions. */
+.app:not(.admin-app) .dating-card{
+ isolation:isolate;position:relative;overflow:hidden;min-height:260px;
+ border-radius:29px;background:#f1e7ec;border:0!important;
+ box-shadow:0 12px 30px rgba(94,72,118,.13);
+ touch-action:pan-y;
+}
+.app:not(.admin-app) .dating-card>.cover{height:100%;width:100%;object-fit:cover;object-position:center 32%}
+.app:not(.admin-app) .dating-card:after{
+ content:'';pointer-events:none;position:absolute;z-index:1;inset:0;
+ background:linear-gradient(180deg,rgba(18,16,34,.16) 0%,transparent 24%,transparent 44%,rgba(30,17,35,.22) 58%,rgba(28,16,34,.83) 100%)!important;
+}
+.app:not(.admin-app) .dating-card:before{display:none}
+.app:not(.admin-app) .card-top{position:absolute;z-index:4;top:28px;right:14px;left:14px}
+.app:not(.admin-app) .photo-dots{
+ position:absolute;left:12px;right:12px;top:11px;z-index:8;
+ display:flex;align-items:center;gap:5px;margin:0;
+}
+.app:not(.admin-app) .photo-dots button{
+ display:block;flex:1;min-width:0;height:4px;padding:0;border:0;border-radius:99px;
+ background:#fff6;box-shadow:0 1px 2px #0001;
+}
+.app:not(.admin-app) .photo-dots button.on{background:#fff;box-shadow:0 1px 3px #0002}
+.app:not(.admin-app) .photo-counter{display:none!important}
+.app:not(.admin-app) .card-top .card-status{color:#fff;background:#4b435a55;border:1px solid #ffffff4a;backdrop-filter:blur(9px);border-radius:20px;font-size:10px}
+.app:not(.admin-app) .card-top .icon-button{border:1px solid #ffffff5a;background:#372b415c;color:#fff;backdrop-filter:blur(8px)}
+.app:not(.admin-app) .photo-controls button{border:0;background:transparent}
+.app:not(.admin-app) .card-info{
+ position:absolute;z-index:3;left:18px;right:18px;bottom:14px;
+ color:#fff;max-height:min(50%,360px);overflow:hidden;
+ pointer-events:auto;scrollbar-width:none;
+}
+.app:not(.admin-app) .card-info h2{font-size:31px;line-height:1.08;color:#fff;margin:0 0 5px}
+.app:not(.admin-app) .card-name-button{font-size:inherit;line-height:inherit;color:white;font-weight:800;letter-spacing:-.045em;text-shadow:0 2px 8px #0003}
+.app:not(.admin-app) .card-name-button svg{color:#ac91eb;fill:#a47ce8}
+.app:not(.admin-app) .card-info :is(.card-location,.card-online,.bio){color:#fff;font-size:12px;line-height:1.35;text-shadow:0 1px 4px #0003}
+.app:not(.admin-app) .card-info .bio{
+ display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+ margin:8px 0 8px;line-height:1.45;max-height:2.9em;font-size:12px;
+}
+.app:not(.admin-app) .card-info .goal-tags{display:none}
+.app:not(.admin-app) .card-info .card-online{display:none}
+.app:not(.admin-app) .card-info .tags{display:flex;flex-wrap:nowrap;gap:5px;min-width:0;margin:5px 0}
+.app:not(.admin-app) .card-info .interest-tags>span{
+ min-width:0;border:0;border-radius:999px;background:rgba(255,239,244,.94);
+ color:#d4547b;padding:6px 9px;font-size:10px;font-weight:700;
+ white-space:nowrap;text-overflow:ellipsis;overflow:hidden;flex-shrink:1;
+ box-shadow:0 2px 10px #0001;
+}
+.app:not(.admin-app) .card-info .interest-tags>span:nth-child(even){background:rgba(245,240,255,.95);color:#8769bd}
+.app:not(.admin-app) .card-info .card-open-profile{
+ display:inline-flex;align-items:center;gap:4px;color:#ffffffda;background:transparent;
+ border:0;padding:6px 0 0;margin:0;font-size:11px;
+}
+.app:not(.admin-app) .card-info .card-gift-link{display:none}
+.app:not(.admin-app) .reaction-bar{
+ position:absolute;z-index:6;left:14px;right:14px;bottom:12px;
+ display:flex;align-items:center;justify-content:space-evenly;gap:10px;
+ pointer-events:none;margin:0;padding:0;
+}
+.app:not(.admin-app) .reaction-bar button{pointer-events:auto}
+.app:not(.admin-app) .dating-card .card-info{bottom:95px}
+.app:not(.admin-app) .reaction-bar .icon-button{
+ background:rgba(255,255,255,.97);color:#966dc9;border:0;
+ border-radius:50%;width:59px;height:59px;box-shadow:0 5px 18px #1d133127;
+}
+.app:not(.admin-app) .reaction-bar .like{
+ width:71px;height:71px;color:#fff;background:var(--v-accent);
+ box-shadow:0 6px 23px rgba(247,100,130,.35);
+}
+.app:not(.admin-app) .reaction-bar .like svg{fill:#fff;stroke:#fff}
+.app:not(.admin-app) .reaction-bar .rewind{width:43px;height:43px;color:#82718e;background:#f8f5fe}
+.app:not(.admin-app) .reaction-bar .super{color:#9c65d1}
+.app:not(.admin-app) .reaction-bar .super svg{width:27px;height:27px}
+.app:not(.admin-app) .reaction-bar button:disabled{opacity:.4}
+.app:not(.admin-app) .feed-app .reaction-bar{position:absolute}
+.app:not(.admin-app) .feed-app .dating-card{min-height:250px}
+.app:not(.admin-app) .feed-app .card-info{max-height:calc(100% - 100px)}
+
+/* Profiles: warm white cards, photo-led hero, natural spacing. */
+.member-profile-screen,.member-profile-screen .member-profile-page{
+ background:#fffdfd!important;color:#342d40!important;
+}
+.member-profile-screen .member-profile-header{
+ border-color:#eee6f0;background:#fff!important;backdrop-filter:blur(12px);
+}
+.member-profile-screen .member-profile-back{color:#77658e}
+.member-profile-screen .member-profile-content{background:#fffdfd}
+.member-profile-screen .member-profile-hero{
+ background:#f0e9f1;border:0;border-radius:26px;box-shadow:0 7px 25px #3c204514;
+}
+.member-profile-screen .member-profile-shade{
+ background:linear-gradient(180deg,#0002,transparent 40%,#24172ebb 100%);
+}
+.member-profile-screen .member-profile-identity h1{color:white}
+.member-profile-screen .member-profile-identity p{color:#fff}
+.member-profile-screen .member-profile-hero-top span{
+ background:#ffffffbd;border:0;color:#716482;backdrop-filter:blur(12px);
+}
+.member-profile-screen .member-profile-hero-top span:has(.veyra-icon){font-size:10px}
+.member-profile-screen .member-profile-thumbs button{background:#f2e9f3;border-color:#eee4ef}
+.member-profile-screen .member-profile-thumbs button.active{border-color:#fc788c}
+.member-profile-screen .member-profile-inline-actions{background:transparent}
+.member-profile-screen .member-profile-icon-action,
+.member-profile-screen .member-profile-icon-action.is-gift,
+.member-profile-screen .member-profile-icon-action.is-chat{
+ background:#f5effb;color:#956fc5;border:0;box-shadow:0 3px 13px #6c456318;
+}
+.member-profile-screen .member-profile-icon-action.is-chat{background:#ffedf1;color:#ee6984}
+.member-profile-screen :is(.member-profile-section,.vc-courtship-public,.vc-inbox,.vg-collection){
+ background:#fff!important;border:1px solid #eee7f1;border-radius:22px;color:#383044;
+ box-shadow:0 6px 22px #36203a09;
+}
+.member-profile-screen :is(.member-profile-section h2,.member-profile-bio){color:#393045}
+.member-profile-screen .member-profile-interests>span,
+.member-profile-screen .vg-profile-tabs>button{background:#f7f1fd;border:1px solid #f0e9f7;color:#8764ac;border-radius:22px}
+.member-profile-screen .vg-profile-tabs>button.active{background:#ffebef;border-color:#ffdce5;color:#f06781}
+.member-profile-screen .member-profile-mutual{
+ background:linear-gradient(110deg,#fff0f3,#f4effe);border:1px solid #ffe2eb;color:#ef6b84;
+}
+.member-profile-screen .member-profile-mutual :is(strong,span){color:#756080}
+.member-profile-screen .member-profile-safety button{color:#84738f}
+.member-profile-screen .member-profile-footer{background:#fff;border-color:#eee7f2}
+.member-profile-screen .member-profile-super{background:#f3effc;border-color:#f1e7f5;color:#8966ba}
+
+/* Own profile, permissions, editorial copy, gifts, ratings, account pages. */
+.app:not(.admin-app) .vp-profile{color:#302a3e;--vp-muted:#8a8094;--vp-border:#efe6f1}
+.app:not(.admin-app) .vp-heading h1{font-size:27px;color:#302a3e}
+.app:not(.admin-app) .vp-visibility{background:#f5f0fd;color:#786494;border-color:#ede6f3}
+.app:not(.admin-app) .vp-hero{border-radius:27px;border:0;background:#eee8ee;box-shadow:0 8px 26px #33233f16}
+.app:not(.admin-app) .vp-hero-shade{background:linear-gradient(180deg,#1e15273b,transparent 36%,#201528dc)}
+.app:not(.admin-app) .vp-name h2,.app:not(.admin-app) .vp-hero .vp-identity p{color:white}
+.app:not(.admin-app) .vp-hero-top button{background:#fff9;color:#584867;border:1px solid #fff9;backdrop-filter:blur(10px)}
+.app:not(.admin-app) .vp-goal{background:#fff2;color:#fff;border-color:#fff6}
+.app:not(.admin-app) .vp-edit{
+ border:0;background:var(--v-accent);color:#fff;border-radius:19px;
+ box-shadow:0 6px 18px #fa718732;
+}
+.app:not(.admin-app) :is(.vp-panel,.vp-premium,.vp-balance>button,.vp-gifts .gift-collection,
+ .profile-statistics,.support-faq details,.account-panel){
+ background:#fff;border:1px solid #eee7f1;border-radius:22px;
+ box-shadow:0 6px 20px #50305109;color:#302a3e;
+}
+.app:not(.admin-app) .vp-premium{
+ background:linear-gradient(118deg,#fff0f3,#f3ecfe);
+ border-color:#fce2eb;
+}
+.app:not(.admin-app) .vp-premium :is(strong,small){color:#624f70}
+.app:not(.admin-app) .vp-premium .vp-kicker{color:#f26e84}
+.app:not(.admin-app) .vp-row strong,.app:not(.admin-app) .vp-balance strong{color:#393145}
+.app:not(.admin-app) .vp-row small,.app:not(.admin-app) .vp-balance span{color:#8b8297}
+.app:not(.admin-app) .vp-row-icon{background:#f7f1ff;color:#9270be;border:0}
+.app:not(.admin-app) .vp-section-label{color:#a29aaf}
+.app:not(.admin-app) .vp-interests>span{background:#f4effc;border:0;color:#8b6db5}
+.app:not(.admin-app) .stats-grid strong{color:#31283b}
+.app:not(.admin-app) .stats-grid svg{color:#f27990}
+.app:not(.admin-app) .profile-statistics progress{accent-color:#f9788e}
+.app:not(.admin-app) .segmented-scroll,
+.app:not(.admin-app) .product-tabs{background:#f6f0fc;border:0;border-radius:19px;padding:4px}
+.app:not(.admin-app) :is(.segmented-scroll button,.product-tabs button){background:transparent;color:#8c799f;border:0;border-radius:15px}
+.app:not(.admin-app) :is(.segmented-scroll button.active,.product-tabs button.active){
+ background:#fff;color:#f37185;box-shadow:0 3px 12px #744a7d14;
+}
+.app:not(.admin-app) .like-tile,.app:not(.admin-app) .chat-row{
+ background:#fff;border:1px solid #f0eaf4;border-radius:22px;color:#383244;
+ box-shadow:0 5px 17px rgba(86,61,103,.045);
+}
+.app:not(.admin-app) .chat-row :is(strong,h3),.app:not(.admin-app) .likes-grid h3{color:#362e45}
+.app:not(.admin-app) .chat-row :is(p,small),.app:not(.admin-app) .likes-grid p{color:#83788f}
+.app:not(.admin-app) .chat-search{background:#f5f0fc;color:#90829d;border:0;border-radius:18px}
+.app:not(.admin-app) .chat-search input{background:transparent;border:0;color:#392f46;box-shadow:none}
+.app:not(.admin-app) .likes-meta{color:#f2778c}
+.app:not(.admin-app) .likes-meta>span:first-child{color:#f2778c}
+.app:not(.admin-app) :is(.likes-paywall,.locked-cards,.locked-tile){background:#fcf7fd;border-color:#efe8f3;color:#4b3b58}
+.app:not(.admin-app) .locked-tile::after{background:linear-gradient(0deg,#fffbffdb,transparent)}
+.app:not(.admin-app) .nav-icon>svg{stroke-linecap:round}
+.app:not(.admin-app) .vc-courtship-start{background:linear-gradient(115deg,#fff0f4,#f0eafc);color:#9165ad;border:1px solid #f6dce9}
+.app:not(.admin-app) .vg-picker,.app:not(.admin-app) .vg-collection,
+.app:not(.admin-app) .vg-choice,.app:not(.admin-app) .vc-inbox{
+ background:#fff;color:#40344a;border-color:#eee6f2;
+}
+.app:not(.admin-app) :is(.vg-art,.vg-catalog-grid button){box-shadow:0 4px 17px #86567b0f}
+
+/* Composer and conversation: light lilac incoming, coral outgoing, beautiful without media regressions. */
+.app:not(.admin-app) .mc-chat{
+ background:linear-gradient(165deg,#fff 0%,#fdfafe 52%,#f9f5fc 100%)!important;
+ color:#332b42;--mc-pink:#f4788e;--mc-muted:#92869d;--mc-line:#eee4f1;
+}
+.app:not(.admin-app) .mc-header.chat-header{
+ background:rgba(255,255,255,.96);border-bottom:1px solid #f0e8f2;
+ box-shadow:0 3px 15px #55376408;backdrop-filter:blur(16px);
+}
+.app:not(.admin-app) .mc-person{color:#302a3e}
+.app:not(.admin-app) .mc-person strong{color:#302a3e}
+.app:not(.admin-app) .mc-person small{color:#8d8494!important}
+.app:not(.admin-app) .mc-person small.live{color:#39af82!important}
+.app:not(.admin-app) .mc-tool{color:#8b7b9c;background:#f6f1fb;border-radius:50%}
+.app:not(.admin-app) .mc-day{
+ color:#8d8298;background:#f5f0fa;border:0;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.bubble:not(.mine){
+ background:#f1ecf9!important;color:#392e48;border:0;
+ box-shadow:0 2px 9px #6c46730a;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.bubble.mine{
+ background:linear-gradient(130deg,#ff8c9d,#f5758b)!important;color:#fff;border:0;
+ box-shadow:0 3px 13px #ef6e8831;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.mine :is(p,span,a){color:inherit}
+.app:not(.admin-app) .mc-message-meta{color:#968a9f}
+.app:not(.admin-app) .mc-bubble.mine .mc-message-meta{color:#fffcef}
+.app:not(.admin-app) .mc-status.read{color:#d7f6fd}
+.app:not(.admin-app) .mc-compose-zone,.app:not(.admin-app) .mc-composer{
+ background:rgba(255,255,255,.97);border-top:1px solid #f1e9f3;
+ backdrop-filter:blur(12px);
+}
+.app:not(.admin-app) .mc-compose-field{
+ background:#f6f1fb;border:1px solid #f0e7f3;border-radius:24px;
+}
+.app:not(.admin-app) .mc-compose-field textarea,
+.app:not(.admin-app) .mc-compose-field input{color:#332a42}
+.app:not(.admin-app) .mc-send{
+ background:var(--v-accent);color:#fff;border:0;border-radius:50%;box-shadow:0 4px 14px #fa718733;
+}
+.app:not(.admin-app) .mc-overlay{background:#2016268a!important}
+.app:not(.admin-app) .mc-overlay .sheet{background:#fff;color:#342b42;border:0}
+.app:not(.admin-app) .mc-emoji-dock,
+.app:not(.admin-app) .mm-attachment-menu{background:#fff;color:#3b3048;border-color:#eee5f0}
+.app:not(.admin-app) .mc-chat .EmojiPickerReact{--epr-bg-color:#fff;--epr-category-label-bg-color:#fff;--epr-text-color:#34283f;--epr-search-input-bg-color:#f7f2fb}
+
+/* Forms, onboarding, sheets, premium storefront. */
+.app:not(.admin-app) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select){
+ background:#fbf9fd;color:#3b3047;border:1px solid #ece4f0;border-radius:16px;
+ box-shadow:none;
+}
+.app:not(.admin-app) :is(input,textarea)::placeholder{color:#aaa0b2}
+.app:not(.admin-app) input:focus,.app:not(.admin-app) textarea:focus{border-color:#e4a6c4}
+.app:not(.admin-app) input[type=checkbox]{accent-color:#fa778e}
+.app:not(.admin-app) .field>span{color:#7f718e}
+.app:not(.admin-app) .button,.app:not(.admin-app) button.primary{
+ border-radius:18px;transition:transform .15s ease,box-shadow .18s ease,background .18s ease;
+}
+.app:not(.admin-app) :is(.button.primary,.primary:not(.mc-send):not(.purchase-button)){
+ color:#fff;background:var(--v-accent);border:0;box-shadow:0 6px 19px #fc76852d;
+}
+.app:not(.admin-app) .button.secondary,
+.app:not(.admin-app) .button.ghost{color:#886c9d;background:#f6f0fd;border:0}
+.app:not(.admin-app) .choice,
+.app:not(.admin-app) .interest-choices button,
+.app:not(.admin-app) .registration-step,
+.app:not(.admin-app) .selected-city,
+.app:not(.admin-app) .range-card{
+ background:#fff;color:#64566e;border:1px solid #f0e8f1;border-radius:20px;box-shadow:0 3px 12px #44325808;
+}
+.app:not(.admin-app) .choice.active,.app:not(.admin-app) .interest-choices button.active{
+ color:#ee6f86;border-color:#ffbbca;background:#fff0f4;
+}
+.app:not(.admin-app) .registration-progress .complete{background:#f57990}
+.app:not(.admin-app) .registration-body{color:#3a3046}
+.app:not(.admin-app) .photo-upload,.app:not(.admin-app) .photo-empty{
+ background:#fff5f8;border:2px dashed #f3becb;color:#dd7d99;
+}
+.app:not(.admin-app) .welcome-photo:after{
+ background:linear-gradient(180deg,#ffffff14,#fff6fa69 32%,#fffdfd 100%);
+}
+.app:not(.admin-app) .welcome h1{color:#362943}
+.app:not(.admin-app) :is(.welcome-links,.how-steps>div){background:white;color:#6f607c;border:1px solid #f0e8f2}
+.app:not(.admin-app) .sheet{background:#fff;border:1px solid #f2e8f3;color:#312a3c;box-shadow:0 -12px 50px #55346022}
+.app:not(.admin-app) .scrim{background:rgba(46,23,54,.43);backdrop-filter:blur(4px)}
+.app:not(.admin-app) .toast{background:#fff;color:#644f77;border:1px solid #f1e0f0;box-shadow:0 5px 22px #4e345322}
+.app:not(.admin-app) .premium-hero{
+ background:linear-gradient(135deg,#ffebf1,#f0eafe)!important;
+ border-radius:28px;margin:0;min-height:180px;color:#694e72;
+}
+.app:not(.admin-app) .premium-hero :is(h1,p){color:#5a425e!important;-webkit-text-fill-color:inherit!important}
+.app:not(.admin-app) :is(.premium-page .perks>div,.premium-page .product,.premium-page .boost-box){
+ background:#fff;border:1px solid #eee6f1;border-radius:21px;color:#3b3046;
+}
+.app:not(.admin-app) .premium-page .product.selected{
+ border-color:#ffaec0;box-shadow:0 0 0 2px #ffedf2;
+ background:linear-gradient(130deg,#fff1f5,#fbf6ff);
+}
+.app:not(.admin-app) .product-price,.app:not(.admin-app) .plan-check{color:#fa778e}
+.app:not(.admin-app) .purchase-button{background:var(--v-accent);color:#fff;border:0}
+.app:not(.admin-app) .fineprint{color:#8c8395}
+
+/* Low cost GPU effects, accessibility and narrow-screen constraints */
+@media(hover:hover){
+ .app:not(.admin-app) :is(.button,.icon-button,.like-tile,.chat-row,.vp-row):not(:disabled):hover{
+  box-shadow:0 7px 21px #9f6f9f14;
+ }
+}
+@media(max-width:390px){
+ .app:not(.admin-app) .discovery-modes{gap:5px}
+ .app:not(.admin-app) .discovery-modes button{font-size:11px}
+ .app:not(.admin-app) .dating-card{border-radius:25px}
+ .app:not(.admin-app) .card-info{left:14px;right:14px}
+ .app:not(.admin-app) .card-info h2{font-size:26px}
+ .app:not(.admin-app) .card-info .interest-tags>span{font-size:9px;padding:5px 8px}
+ .app:not(.admin-app) .reaction-bar{gap:5px}
+ .app:not(.admin-app) .reaction-bar .icon-button{width:49px;height:49px}
+ .app:not(.admin-app) .reaction-bar .like{width:62px;height:62px}
+ .app:not(.admin-app) .reaction-bar .rewind{width:37px;height:37px}
+}
+@media(max-height:740px){
+ .app:not(.admin-app) .feed-surface .card-info .interest-tags>span:nth-child(n+4){display:none}
+ .app:not(.admin-app) .card-info{bottom:75px}
+ .app:not(.admin-app) .reaction-bar .like{width:60px;height:60px}
+}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) *, .member-profile-screen *{
+  animation-duration:.01ms!important;animation-iteration-count:1!important;
+  transition-duration:.01ms!important;scroll-behavior:auto!important;
+ }
+}
