@@ -7,10 +7,10 @@ import {GiftCollection,GiftPicker} from './gifts';
 import './member-profile.css';
 
 const profileCache=new Map(),profileInflight=new Map();
-export function prefetchMemberProfile(id){
+export function prefetchMemberProfile(id,force=false){
  if(!id)return Promise.resolve(null);
  const key=String(id);
- if(profileCache.has(key))return Promise.resolve(profileCache.get(key));
+ if(!force&&profileCache.has(key))return Promise.resolve(profileCache.get(key));
  if(profileInflight.has(key))return profileInflight.get(key);
  const request=api('/profiles/'+id).then(profile=>{
   profileCache.set(key,profile);
@@ -35,7 +35,7 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
  const load=()=>{
   let cancelled=false;
   setError(false);if(!profileCache.has(String(profile.id)))setLoading(true);
-  prefetchMemberProfile(profile.id).then(p=>{if(!cancelled){setData(p);setPhotoIndex(0);}}).catch(()=>{if(!cancelled)setError(true);}).finally(()=>{if(!cancelled)setLoading(false);});
+  prefetchMemberProfile(profile.id,true).then(p=>{if(!cancelled){setData(p);setPhotoIndex(0);}}).catch(()=>{if(!cancelled)setError(true);}).finally(()=>{if(!cancelled)setLoading(false);});
   return ()=>{cancelled=true;};
  };
  useEffect(load,[profile.id]);
@@ -50,8 +50,8 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
  const photos=p?.photos||[];
  useEffect(()=>{prefetchPhotos?.(photos.slice(0,3),3);},[profile.id,data?.photos?.join(',')]);
  const photoCount=photos.length;
- const mutual=!!data?.match_id;
- const matchId=data?.match_id;
+ const matchId=data?.match_id||entry.matchId||null;
+ const mutual=!!matchId;
  const goal=({relationship:L('Серьёзные отношения','A relationship'),dating:L('Свидания','Dating'),friends:L('Дружба и общение','Friends & connection'),unsure:L('Пока не знаю','Still exploring')})[p.goal];
  const nextPhoto=delta=>setPhotoIndex(i=>(i+delta+photoCount)%photoCount);
  function chat(){
