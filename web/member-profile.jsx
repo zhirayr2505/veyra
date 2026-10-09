@@ -4,6 +4,7 @@ import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Star,MessageCircle,MapPin,Shiel
 import {api,post} from './api';
 import {Brand,VeyraIcon} from './graphics';
 import {GiftCollection,GiftPicker} from './gifts';
+import {CourtshipPanel} from './courtship';
 import './member-profile.css';
 
 const profileCache=new Map(),profileInflight=new Map(),profileFetchedAt=new Map();
@@ -123,6 +124,7 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
       {mutual&&<button className="member-profile-icon-action is-chat" type="button" aria-label={L('Перейти в чат','Open chat')} title={L('Перейти в чат','Open chat')} onClick={chat}><VeyraIcon icon={MessageCircle} size={23}/></button>}
       <button className="member-profile-icon-action is-gift" type="button" aria-label={L('Подарить подарок','Send a gift')} title={L('Подарить подарок','Send a gift')} onClick={()=>setGiftOpen(true)}><VeyraIcon icon={Gift} size={23}/></button>
      </div>
+     <CourtshipPanel targetId={profile.id} lang={app.lang} showAction={mutual}/>
      <div className="vg-profile-tabs" role="tablist" aria-label={L('Разделы профиля','Profile sections')}>
       <button type="button" role="tab" aria-selected={profileTab==='about'} className={profileTab==='about'?'active':''} onClick={()=>setProfileTab('about')}><VeyraIcon icon={Heart} size={16}/>{L('Анкета','Profile')}</button>
       <button type="button" role="tab" aria-selected={profileTab==='gifts'} className={profileTab==='gifts'?'active':''} onClick={()=>setProfileTab('gifts')}><VeyraIcon icon={Gift} size={16}/>{L('Коллекция подарков','Gift collection')}</button>
