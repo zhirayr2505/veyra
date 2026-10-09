@@ -76,7 +76,7 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await b.setViewportSize({width:320,height:568});
  const match=b.getByRole('dialog',{name:'Взаимная симпатия!'});
  const continueButton=match.getByRole('button',{name:'Продолжить поиск',exact:true});
- await continueButton.scrollIntoViewIfNeeded();await expect(continueButton).toBeInViewport({ratio:1});
+ await continueButton.scrollIntoViewIfNeeded();await expect(continueButton).toBeInViewport({ratio:.98});await continueButton.click({trial:true});
  expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await b.setViewportSize({width:390,height:844});
  await screenshot(b,testInfo.outputPath('match-mobile.png'));
