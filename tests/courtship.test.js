@@ -39,6 +39,11 @@ test('courtship: only matched members, recipient consent, Stars activation, publ
   assert.equal(order.kind,'courtship');
   assert.equal(order.total,COURTSHIP_STARS);
   assert.equal((await get(103,'/courtships/profile/102')).body.suitors.length,0);
+  await db.query('INSERT INTO blocks(actor,target) VALUES(102,101)');
+  assert.equal(await db.tx(q=>validateCheckout(q,{
+   invoice_payload:order.id,from:{id:101},currency:'XTR',total_amount:COURTSHIP_STARS,id:'pc-blocked-test'
+  })),false);
+  await db.query('DELETE FROM blocks WHERE actor=102 AND target=101');
   assert.equal(await db.tx(q=>validateCheckout(q,{
    invoice_payload:order.id,from:{id:101},currency:'XTR',total_amount:COURTSHIP_STARS,id:'pc-courtship-test'
   })),true);
