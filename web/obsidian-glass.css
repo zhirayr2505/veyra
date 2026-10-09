@@ -485,3 +485,29 @@ body{background:#080d15;color:var(--v-text)}
   .app:not(.admin-app) .bottom-nav button{min-width:0}
   .member-profile-screen .member-profile-content{padding-left:13px;padding-right:13px}
 }
+
+/* Narrow mobile safety: legacy Premium hero used negative 20px margins, which
+   can exceed the new glass layout's horizontal insets at 320px. Keep it contained. */
+.app:not(.admin-app) .premium-page .premium-hero{
+ margin-inline:0;max-width:100%;border-radius:26px;
+}
+.app:not(.admin-app) .premium-page .product.selected{
+ border-color:rgba(166,204,255,.54);
+ background:linear-gradient(145deg,rgba(103,142,197,.25),rgba(104,104,176,.18));
+ box-shadow:inset 0 1px rgba(245,249,255,.16),0 12px 25px rgba(0,0,0,.12);
+}
+.app:not(.admin-app) .premium-page .product.selected::after{
+ background:linear-gradient(90deg,transparent,rgba(205,230,255,.57),transparent);
+}
+.app:not(.admin-app) .premium-page .product .product-price{color:#c7ddff}
+.app:not(.admin-app) .premium-page .product-tabs button.active{
+ color:#edf5ff;background:rgba(123,168,230,.19);
+ box-shadow:inset 0 0 0 1px rgba(158,201,251,.25);
+}
+.app:not(.admin-app) .premium-page .perks>div>span{
+ color:#c0d9fb;background:rgba(97,146,207,.1);border-color:rgba(159,199,245,.2);
+}
+@media(max-width:360px){
+ .app:not(.admin-app) .premium-page{min-width:0;max-width:100%}
+ .app:not(.admin-app) .premium-page .premium-hero{margin-inline:0}
+}
