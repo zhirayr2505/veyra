@@ -14,12 +14,13 @@ function safeSave(key,value){try{localStorage.setItem(key,JSON.stringify(value))
 
 export function useVoiceRecording({onSend,onPermission,onError}){
  const[state,setState]=useState({phase:'idle',locked:false,elapsed:0,levels:[]});
- const live=useRef({phase:'idle',locked:false}),rec=useRef(null),stream=useRef(null),audioContext=useRef(null),chunks=useRef([]),timer=useRef(null),gesture=useRef(null),samples=useRef([]),since=useRef(0),elapsed=useRef(0),result=useRef(null),intent=useRef(''),generation=useRef(0),callbacks=useRef({onSend,onPermission,onError}),mounted=useRef(true),cancelTimer=useRef(null);
+ const live=useRef({phase:'idle',locked:false}),rec=useRef(null),stream=useRef(null),audioContext=useRef(null),chunks=useRef([]),timer=useRef(null),gesture=useRef(null),samples=useRef([]),since=useRef(0),elapsed=useRef(0),result=useRef(null),intent=useRef(''),generation=useRef(0),gestureListeners=useRef(null),callbacks=useRef({onSend,onPermission,onError}),mounted=useRef(true),cancelTimer=useRef(null);
  callbacks.current={onSend,onPermission,onError};
  const update=patch=>{live.current={...live.current,...patch};if(mounted.current)setState(x=>({...x,...patch}));};
  const duration=()=>elapsed.current+(live.current.phase==='recording'?(performance.now()-since.current)/1000:0);
+ const detachGesture=()=>{gestureListeners.current?.();gestureListeners.current=null;};
  const cleanup=()=>{clearInterval(timer.current);stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;audioContext.current?.close().catch(()=>{});audioContext.current=null;};
- const reset=()=>{result.current=null;chunks.current=[];samples.current=[];elapsed.current=0;update({phase:'idle',locked:false,elapsed:0,levels:[]});};
+ const reset=()=>{detachGesture();gesture.current=null;result.current=null;chunks.current=[];samples.current=[];elapsed.current=0;update({phase:'idle',locked:false,elapsed:0,levels:[]});};
  function stop(mode){
   if(live.current.phase==='idle'||live.current.phase==='cancelled')return;
   intent.current=mode;
@@ -29,7 +30,23 @@ export function useVoiceRecording({onSend,onPermission,onError}){
   elapsed.current=duration();update({phase:'processing',elapsed:elapsed.current});if(rec.current?.state!=='inactive')rec.current.stop();else cleanup();
  }
  async function start(e){
-  if(live.current.phase!=='idle')return;clearTimeout(cancelTimer.current);gesture.current={x:e.clientX,y:e.clientY,down:true,locked:false};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}
+  if(live.current.phase!=='idle')return;clearTimeout(cancelTimer.current);gesture.current={x:e.clientX,y:e.clientY,down:true,locked:false,ended:false};
+  detachGesture();
+  if(Number.isInteger(e.pointerId)){
+   const id=e.pointerId;
+   const onMove=event=>{if(event.pointerId===id)move(event);};
+   const onUp=event=>{if(event.pointerId===id)release(event);};
+   const onCancel=event=>{if(event.pointerId===id){detachGesture();if(!live.current.locked)stop('cancel');}};
+   window.addEventListener('pointermove',onMove,true);
+   window.addEventListener('pointerup',onUp,true);
+   window.addEventListener('pointercancel',onCancel,true);
+   gestureListeners.current=()=>{
+    window.removeEventListener('pointermove',onMove,true);
+    window.removeEventListener('pointerup',onUp,true);
+    window.removeEventListener('pointercancel',onCancel,true);
+   };
+  }
+  try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}
   if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){callbacks.current.onPermission('unsupported');return;}
   const gen=++generation.current;update({phase:'requesting',locked:false,elapsed:0,levels:[]});
   try{
@@ -54,9 +71,9 @@ export function useVoiceRecording({onSend,onPermission,onError}){
   }catch(error){cleanup();reset();if(gen===generation.current)callbacks.current.onPermission(['NotAllowedError','SecurityError'].includes(error.name)?'denied':error.name==='NotFoundError'?'missing':'unavailable');}
  }
  function move(e){const g=gesture.current;if(!g||live.current.locked)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;if(dx<-85){g.down=false;stop('cancel');}else if(dy<-65){g.locked=true;update({locked:true});buzz('medium');}}
- function release(e){const g=gesture.current;if(g){const dx=(e?.clientX??g.x)-g.x,dy=(e?.clientY??g.y)-g.y;if(dy<-65&&Math.abs(dy)>Math.abs(dx)){g.locked=true;update({locked:true});}g.down=false;}if(live.current.locked)return;if(live.current.phase==='requesting'){if(g)g.locked=true;update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){if(g)g.locked=true;update({locked:true});buzz();}else stop('send');}}
+ function release(e){const g=gesture.current;if(g?.ended)return;if(g)g.ended=true;detachGesture();if(g){const dx=(e?.clientX??g.x)-g.x,dy=(e?.clientY??g.y)-g.y;if(dy<-65&&Math.abs(dy)>Math.abs(dx)){g.locked=true;update({locked:true});}g.down=false;}if(live.current.locked)return;if(live.current.phase==='requesting'){if(g)g.locked=true;update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){if(g)g.locked=true;update({locked:true});buzz();}else stop('send');}}
  function pause(){if(live.current.phase==='recording'){elapsed.current=duration();rec.current?.pause();update({phase:'paused',elapsed:elapsed.current});}else if(live.current.phase==='paused'){since.current=performance.now();rec.current?.resume();update({phase:'recording'});}buzz();}
- useEffect(()=>()=>{mounted.current=false;generation.current++;clearTimeout(cancelTimer.current);if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}cleanup();},[]);
+ useEffect(()=>()=>{mounted.current=false;generation.current++;detachGesture();clearTimeout(cancelTimer.current);if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}cleanup();},[]);
  return {...state,active:state.phase!=='idle',handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
 }
 export function RecordingPanel({voice,L}){return <div className={'mm-recording '+(voice.phase==='cancelled'?'cancelled':'')} role="region" aria-label={L('Запись голосового','Voice recording')}>
