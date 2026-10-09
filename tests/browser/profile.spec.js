@@ -4,7 +4,7 @@ test('personal profile: mobile layout, gallery, edit, privacy and existing desti
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://telegram.org/**',r=>r.fulfill({body:''}));await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},initData(402));await page.goto('/');const profile=()=>page.getByRole('button',{name:'Профиль',exact:true}).click();await profile();await expect(page.getByRole('heading',{name:'Мой профиль',exact:true})).toBeVisible();await expect(page.locator('.vp-cover img.is-loaded')).toBeVisible();await expect(page.locator('.vp-bio')).toContainText('Люблю');await page.screenshot({path:info.outputPath('profile-mobile.png')});
  // Returning to a previously visited profile retains the same decoded photo.
  const coverBefore=await page.locator('.vp-cover img.is-loaded').getAttribute('src');
- await page.getByRole('button',{name:'Лента',exact:true}).click();
+ await page.getByRole('button',{name:'Discover',exact:true}).click();
  await profile();
  await expect(page.locator('.vp-cover img.is-loaded')).toHaveAttribute('src',coverBefore);
  await expect(page.locator('.vp-cover .photo-placeholder')).toHaveCount(0);
