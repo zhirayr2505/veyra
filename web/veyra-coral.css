@@ -517,3 +517,47 @@ body{color-scheme:light}
 }
 .member-profile-screen .member-profile-compose small{color:#94899d;align-self:flex-end}
 .member-profile-screen .member-profile-page{scrollbar-color:#e8dff1 transparent}
+
+/* Visual QA: remove dark islands still inherited from the pre-rebrand themes. */
+.app:not(.admin-app) .vg-profile-tabs,
+.member-profile-screen .vg-profile-tabs{
+ background:#f7f1fb;border:1px solid #f0e7f5;border-radius:17px;
+ padding:5px;box-shadow:none;gap:5px;
+}
+.app:not(.admin-app) .vg-profile-tabs button,
+.member-profile-screen .vg-profile-tabs button{
+ color:#8e7c9e;background:transparent;border:0;border-radius:13px;
+ min-height:40px;font-weight:700;
+}
+.app:not(.admin-app) .vg-profile-tabs button.active,
+.member-profile-screen .vg-profile-tabs button.active{
+ color:#f66e86;background:#fff;border-color:transparent;
+ box-shadow:0 3px 12px rgba(100,71,112,.08);
+}
+.app:not(.admin-app) .premium-page .perks{
+ background:transparent;border:0;box-shadow:none;
+ grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 0 3px;gap:10px;
+}
+.app:not(.admin-app) .premium-page .perks>div{
+ display:flex;align-items:flex-start;gap:8px;min-width:0;padding:12px 10px;
+ background:#fff;border:1px solid #efe7f1;border-radius:20px;
+ box-shadow:0 4px 12px rgba(98,69,108,.05);
+}
+.app:not(.admin-app) .premium-page .perks>div>span{
+ background:#fff0f5;border:0;color:#ef7891;
+}
+.app:not(.admin-app) .premium-page .perks h3{color:#41364b;font-weight:750}
+.app:not(.admin-app) .premium-page .perks p{color:#8e8297}
+.app:not(.admin-app) .premium-page .boost-box{
+ background:#fff;border:1px solid #eee5f2;color:#3a3046;box-shadow:0 4px 14px #9a70900d;
+}
+.app:not(.admin-app) .premium-page .boost-box :is(h3,p,small){color:#625269}
+.app:not(.admin-app) .premium-page .boost-box .icon-button{background:#f8f2fd;color:#9165af}
+.app:not(.admin-app) .premium-page .notice{
+ background:#fff9fb;border:1px solid #f6e8ef;color:#896d91;border-radius:19px;
+}
+.app:not(.admin-app) .premium-page .product-tabs button.active{color:#ef748e}
+.app:not(.admin-app) .premium-page .product-price{color:#f1768b}
+.app:not(.admin-app) .card-info .card-online{display:none}
+.app:not(.admin-app) .card-info .today-badge{display:none}
+.app:not(.admin-app) .card-info .bio{font-weight:500;opacity:.97;line-height:1.35}
