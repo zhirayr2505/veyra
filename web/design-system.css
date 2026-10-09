@@ -412,3 +412,35 @@ body{background:var(--v-bg);color:var(--v-text)}
 }
 /* A microphone permission dialog may cause pointercancel in Telegram's Android WebView.
    The recording hook latches pending requests instead of treating this as rejection. */
+
+
+/* Single-pass native-feeling tab motion. The earlier .view-enter vertical
+   entrance MUST NOT play underneath (or after) a tab View Transition. */
+.app.tab-ready:not(.conversation-app)>main>.view-enter{
+ animation:none;
+}
+@media(prefers-reduced-motion:no-preference){
+ :root:not([data-veyra-tab-native]) .app.tab-ready.tab-slide-left>main>.view-enter{
+  animation:veyra-tab-enter-left 260ms var(--v-ease) both;
+ }
+ :root:not([data-veyra-tab-native]) .app.tab-ready.tab-slide-right>main>.view-enter{
+  animation:veyra-tab-enter-right 260ms var(--v-ease) both;
+ }
+}
+/* Reduce expensive layered blur on touch devices without losing the glass look.
+   These are steady composited surfaces, never continuously animated. */
+@media(pointer:coarse){
+ .app:not(.admin-app) .bottom-nav{
+  background:linear-gradient(135deg,rgba(29,25,41,.985),rgba(18,19,29,.985));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+ }
+ .app:not(.admin-app) .mc-header.chat-header,
+ .app:not(.admin-app) .mc-compose-zone{
+  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+ }
+ .app:not(.admin-app) .card-top .icon-button,
+ .app:not(.admin-app) .card-status,
+ .app:not(.admin-app) .photo-counter{
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+ }
+}

@@ -4,7 +4,7 @@ import {initData} from '../helpers.js';
 test('premium visual system: real flows, mobile layouts, chat and account pages',async({page,browser},info)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://telegram.org/**',r=>r.fulfill({body:''}));
- await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},initData(10));
+ await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};const original=document.startViewTransition?.bind(document);if(original){window.__veyraViewTransitions=0;document.startViewTransition=callback=>{window.__veyraViewTransitions++;return original(callback);};}},initData(10));
  const button=name=>page.getByRole('button',{name,exact:true});
  const orphanBraces=()=>page.evaluate(()=>{
   const found=[],walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
@@ -30,8 +30,20 @@ test('premium visual system: real flows, mobile layouts, chat and account pages'
  }
  await page.setViewportSize({width:390,height:844});await page.getByRole('banner').getByRole('button',{name:'Фильтры',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('Найди тех');await button('Close').click();
  await button('Пожаловаться').click();await page.getByRole('radio',{name:'Спам',exact:true}).click();await expect(page.getByRole('radio',{name:'Спам',exact:true})).toHaveAttribute('aria-checked','true');await button('Заблокировать').click();await expect(page.getByRole('dialog')).toContainText('закрыть чат');await button('Close').click();
- await tab('Сегодня');await expect(page.locator('.app')).toHaveClass(/tab-slide-left/);await expect(page.locator('.today-person').first()).toBeVisible();await capture('design-today');
- await tab('Лента');await expect(page.locator('.app')).toHaveClass(/tab-slide-right/);await tab('Сегодня');
+ await tab('Сегодня');await expect(page.locator('.today-person').first()).toBeVisible();
+ // Exactly one horizontal animation per tab change: no underlying vertical
+ // .view-enter and no delayed CSS fallback after native transition finishes.
+ await expect(page.locator('.view-enter')).toHaveCSS('animation-name','none');
+ if(await page.evaluate(()=>typeof document.startViewTransition==='function')){
+  expect(await page.evaluate(()=>window.__veyraViewTransitions)).toBe(1);
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.dataset.veyraTabNative||'')).toBe('');
+  await expect(page.locator('.view-enter')).toHaveCSS('animation-name','none');
+  await page.waitForTimeout(350);
+  await expect(page.locator('.view-enter')).toHaveCSS('animation-name','none');
+ }
+ await capture('design-today');
+ await tab('Лента');await expect(page.locator('.view-enter')).toHaveCSS('animation-name','none');await tab('Сегодня');
+ await expect(page.locator('.view-enter')).toHaveCSS('animation-name','none');
  await page.getByRole('switch',{name:'Я свободен сегодня'}).check();await expect(page.getByRole('switch',{name:'Я свободен сегодня'})).toBeEnabled();await button('Сейчас').click();await button('Сохранить').click();await expect(button('Сохранить')).toHaveCount(0);
  await tab('Лайки');await expect(page.locator('.like-tile').first()).toBeVisible();await fits();await page.locator('.like-tile').first().click();await expect(page.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();await page.locator('.member-profile-back').click();
  await tab('Чаты');await expect(page.locator('.chat-row')).toBeVisible();await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Несуществующий');await expect(page.locator('.empty')).toContainText('Ничего не найдено');await button('Очистить поиск').click();await page.locator('.chat-row').click();await expect(page.locator('.mc-bubble')).toBeVisible();
@@ -49,7 +61,7 @@ test('premium visual system: real flows, mobile layouts, chat and account pages'
  await page.locator('.vp-controls .vp-row').click();await expect(page.locator('.account-panel').first()).toBeVisible();await expect(page.getByRole('heading',{name:'Версия и состояние приложения'})).toBeVisible();await expect(page.locator('.veyra-runtime-panel').getByRole('status')).toContainText('Сервер отвечает');await page.getByRole('button',{name:'Проверить снова'}).click();await expect(page.locator('.veyra-runtime-panel').getByRole('status')).toContainText('Сервер отвечает');await page.setViewportSize({width:320,height:568});await fits();await page.setViewportSize({width:390,height:844});await capture('design-settings');await button('Удалить аккаунт').click();await expect(page.getByRole('dialog')).toContainText('нельзя отменить');await button('Оставить аккаунт').click();await expect(page.getByRole('dialog')).toHaveCount(0);
  await page.getByRole('combobox',{name:'Язык'}).selectOption('en');await expect(page.getByRole('heading',{name:'Settings',exact:true})).toBeVisible();await page.getByRole('combobox',{name:'Language'}).selectOption('ru');await button('Сохранить').click();await expect(page.locator('.toast[role="status"]')).toContainText('Сохранено');await back();
  for(const width of [320,560]){await page.setViewportSize({width,height:844});for(const name of ['Лента','Сегодня','Лайки','Чаты','Профиль']){await tab(name);await fits();await expect(page.locator('.bottom-nav')).toBeInViewport({ratio:1});}}
- await page.emulateMedia({reducedMotion:'reduce'});await tab('Чаты');expect(await page.locator('.view-enter').evaluate(e=>getComputedStyle(e).animationDuration)).toBe('1e-05s');
+ await page.emulateMedia({reducedMotion:'reduce'});await tab('Чаты');await expect(page.locator('.view-enter')).toHaveCSS('animation-name','none');
  // A second account in the same browser checks the actual locked-likes response.
  const locked=await browser.newPage({viewport:{width:390,height:844}});locked.on('pageerror',e=>errors.push(e.message));await locked.route('https://telegram.org/**',r=>r.fulfill({body:''}));await locked.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},initData(30));await locked.goto('/');await locked.getByRole('button',{name:'Лайки',exact:true}).click();await expect(locked.locator('.likes-paywall')).toBeVisible();await locked.screenshot({path:info.outputPath('design-likes.png')});await locked.setViewportSize({width:320,height:568});expect(await locked.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await locked.close();
  expect(errors).toEqual([]);
