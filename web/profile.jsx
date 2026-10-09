@@ -6,7 +6,7 @@ import {VeyraIcon} from './graphics';
 const interestIcons={'Кофе':Coffee,'Кино':Film,'Путешествия':Plane,'Музыка':Music,'Животные':PawPrint,'Спорт':Dumbbell,'Книги':BookOpen,'Прогулки':Footprints,'Готовка':Utensils,'Игры':Gamepad2,'Искусство':Palette,'Танцы':Music,'Фотография':Camera,'Природа':Leaf,'Технологии':Code,'Йога':Flower2};
 export function PersonalProfile({app,Photo,Sheet,Artwork,PauseToggle,GiftCollection}){
  const{t,lang,me,setPage}=app,p=me.profile,photos=me.photos||[];
- const[cover,setCover]=useState(0),[viewer,setViewer]=useState(null),[info,setInfo]=useState(false);
+ const[cover,setCover]=useState(0),[viewer,setViewer]=useState(null),[info,setInfo]=useState(false),[profileTab,setProfileTab]=useState('about');
  const L=(ru,en)=>lang==='en'?en:ru;
  const birth=new Date(p.birth_date),now=new Date();let age=now.getFullYear()-birth.getUTCFullYear();if(now.getMonth()<birth.getUTCMonth()||(now.getMonth()===birth.getUTCMonth()&&now.getDate()<birth.getUTCDate()))age--;
  const premium=new Date(me.user.premium_until)>now;
@@ -14,6 +14,11 @@ export function PersonalProfile({app,Photo,Sheet,Artwork,PauseToggle,GiftCollect
  const goal={relationship:L('Серьёзные отношения','A relationship'),dating:L('Свидания','Dating'),friends:L('Дружба и общение','Friends & connection'),unsure:L('Пока присматриваюсь','Still exploring')}[p.goal];
  return <section className="vp-profile" aria-label={L('Мой профиль','My profile')}>
   <header className="vp-heading"><div><span>{L('ТВОЁ ПРОСТРАНСТВО','YOUR SPACE')}</span><h1>{L('Мой профиль','My profile')}</h1></div><span className={'vp-visibility '+(me.user.paused?'paused':'')} title={me.user.paused?L('Анкета скрыта из поиска','Hidden from discovery'):L('Анкета видна в поиске','Visible in discovery')}>{me.user.paused?<VeyraIcon icon={EyeOff} size={14}/>:<VeyraIcon icon={Eye} size={14}/>} {me.user.paused?L('На паузе','Paused'):L('В поиске','Discoverable')}</span></header>
+  <div className="vg-profile-tabs" role="tablist" aria-label={L('Разделы моего профиля','My profile sections')}>
+   <button type="button" role="tab" aria-selected={profileTab==='about'} className={profileTab==='about'?'active':''} onClick={()=>setProfileTab('about')}><VeyraIcon icon={Heart} size={17}/>{L('Анкета','Profile')}</button>
+   <button type="button" role="tab" aria-selected={profileTab==='gifts'} className={profileTab==='gifts'?'active':''} onClick={()=>setProfileTab('gifts')}><VeyraIcon icon={Gift} size={17}/>{L('Коллекция подарков','Gift collection')}</button>
+  </div>
+  {profileTab==='gifts'?<GiftCollection ownerId="me" lang={lang}/>:<>
   <div className="vp-hero">
    <button type="button" className="vp-cover" onClick={()=>photos.length?setViewer(cover):edit()} aria-label={t('Мои фотографии')}><Photo id={photos[cover]?.id} alt={p.name}/></button>
    <div className="vp-hero-shade"/>
@@ -27,8 +32,9 @@ export function PersonalProfile({app,Photo,Sheet,Artwork,PauseToggle,GiftCollect
   <div className="vp-balance" aria-label={L('Мои возможности','My extras')}>{[[Star,me.user.superlikes,'Super Likes'],[Zap,me.user.boosts,'Boost'],[MessageCircle,me.user.prematches,L('До мэтча','Before matching')]].map(([Icon,n,label])=><button key={label} type="button" onClick={()=>setPage(label==='Boost'?'boost':'premium')} aria-label={label+': '+(n||0)}><VeyraIcon icon={Icon} size={19}/><strong>{n||0}</strong><span>{label}</span></button>)}</div>
   <div className="vp-section-label">{L('КОМФОРТ И ПРИВАТНОСТЬ','COMFORT & PRIVACY')}</div><div className="vp-panel vp-controls"><PauseToggle/><button className="vp-row" onClick={()=>setPage('settings')}><span className="vp-row-icon"><VeyraIcon icon={Settings} size={20}/></span><span><strong>{t('Настройки')}</strong><small>{L('Всё под твоим контролем','Everything under your control')}</small></span><VeyraIcon icon={ChevronRight} size={17}/></button></div>
   <div className="vp-panel vp-links">{[['referrals',Gift,t('Пригласи друзей'),L('Хорошие знакомства начинаются с тебя','Good connections start with you')],['support',MessageCircle,t('Поддержка'),L('Мы рядом, если нужна помощь','Here when you need us')]].map(([page,Icon,title,description])=><button key={page} className="vp-row" onClick={()=>setPage(page)}><span className="vp-row-icon"><VeyraIcon icon={Icon} size={20}/></span><span><strong>{title}</strong><small>{description}</small></span><VeyraIcon icon={ChevronRight} size={17}/></button>)}</div>
-  <div className="vp-gifts"><GiftCollection/></div><footer className="vp-signature"><VeyraIcon icon={Heart} size={12}/><span>{L('Твоя история только начинается','Your story is just beginning')}</span></footer>
+  <div className="vp-gifts"><button type="button" className="gift-collection" onClick={()=>setProfileTab('gifts')}><VeyraIcon icon={Gift} size={27}/><span><strong>{L('Коллекция подарков','Gift collection')}</strong><small>{L('Открыть полученные подарки','View your received gifts')}</small></span><VeyraIcon icon={ChevronRight} size={18}/></button></div><footer className="vp-signature"><VeyraIcon icon={Heart} size={12}/><span>{L('Твоя история только начинается','Your story is just beginning')}</span></footer>
   {viewer!==null&&<Sheet title={t('Мои фотографии')} className="gallery-sheet vp-gallery-sheet" onClose={()=>setViewer(null)}><Photo id={photos[viewer]?.id} className="gallery-full" alt={p.name}/><div className="gallery-controls"><button type="button" className="vp-gallery-arrow" aria-label={t('Предыдущее фото')} disabled={photos.length<2} onClick={()=>setViewer((viewer+photos.length-1)%photos.length)}><VeyraIcon icon={ChevronLeft} size={22}/></button><span>{viewer+1} / {photos.length}</span><button type="button" className="vp-gallery-arrow" aria-label={t('Следующее фото')} disabled={photos.length<2} onClick={()=>setViewer((viewer+1)%photos.length)}><VeyraIcon icon={ChevronRight} size={22}/></button></div></Sheet>}
   {info&&<Sheet title={t('Анкета проверена')} onClose={()=>setInfo(false)}><div className="vp-review"><VeyraIcon icon={ShieldCheck} size={37}/><h3>{L('Здесь знакомятся настоящие люди','A place for real connections')}</h3><p>{t('Анкета и фотографии прошли ручную проверку. Это не подтверждение личности. Изменения профиля проходят повторную модерацию.')}</p></div></Sheet>}
+ </>}
  </section>;
 }
