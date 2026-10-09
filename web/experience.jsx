@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import {Heart,Eye,MessageCircle,MapPin,ShieldCheck,Star,Zap,ArrowUpRight,EyeOff,Clock,RotateCcw,ChevronRight} from 'lucide-react';
+import {Heart,Eye,MessageCircle,Star,Zap,ArrowUpRight,Clock,ChevronRight} from 'lucide-react';
 import {api,post} from './api';
 import {Artwork} from './graphics';
 import './experience.css';
@@ -11,28 +11,11 @@ export function ProfileStats({app}){
  return <section className="profile-statistics" aria-label="Статистика профиля"><div className="stats-grid">{[[Eye,'views','Просмотры'],[Heart,'likes','Лайки'],[MessageCircle,'matches','Мэтчи']].map(([Icon,key,label])=><div key={key}><Icon size={17}/><strong>{data?.[key]??'—'}</strong><small>{app.t(label)}</small></div>)}</div><button className="completion-row" onClick={()=>app.setPage('edit')}><span>{app.t('Заполненность профиля')}<b>{data?.completion??0}%</b></span><progress max={100} value={data?.completion||0}/></button></section>;
 }
 
-export function FullProfile({profile,app,Photo,Sheet,onClose,onReact,onReport,onPrematch}){
- const[data,setData]=useState(null),[error,setError]=useState(false),[confirm,setConfirm]=useState(false);
- const load=()=>{setError(false);api('/profiles/'+profile.id).then(setData).catch(()=>setError(true));};useEffect(load,[profile.id]);
- return <Sheet title={profile.name} className="full-profile-sheet" onClose={onClose}>{error?<button className="button secondary full" onClick={load}>Повторить загрузку</button>:!data?<div className="skeleton full-profile-skeleton"/>:<>
-  {data.test_profile&&<p className="notice">Тестовая анкета · вымышленный персонаж</p>}
-  <div className="full-profile-gallery">{data.photos.map((id,i)=><Photo key={id} id={id} alt={data.name+' · '+(i+1)}/>)}</div>
-  <h2>{data.name}, {data.age}<ShieldCheck size={20}/></h2><p className="muted"><MapPin size={15}/> {data.city}</p>
-  <div className="tags">{data.interests.map(x=><span className={data.shared_interests.includes(x)?'shared-interest':''} key={x}>{x}</span>)}</div>
-  {data.shared_interests.length>0&&<p className="fineprint">Подсвечены ваши общие интересы</p>}<p className="profile-biography">{data.bio}</p>
-  <p className="fineprint">Ручная проверка анкеты не является подтверждением личности.</p>
-  {data.match_id?<button className="button primary full" onClick={()=>{app.setTab('chats');app.setOpenChatId(data.match_id);onClose();}}><MessageCircle size={19}/>Написать</button>:<div className="profile-actions"><button className="button primary" disabled={app.busy} onClick={()=>onReact('like')}><Heart size={19}/>Нравится</button><button className="button secondary" disabled={app.busy} onClick={()=>onReact('super')}><Star size={18}/>Super Like</button></div>}
-  {!data.match_id&&<button className="button secondary full" onClick={onPrematch}><MessageCircle size={18}/>Сказать привет до мэтча</button>}
-  <div className="profile-actions"><button className="text-button" onClick={onReport}><ShieldCheck size={17}/>Пожаловаться / блокировать</button><button className="text-button" onClick={()=>setConfirm(true)}><EyeOff size={17}/>Скрыть</button></div>
-  {confirm&&<div className="notice"><p>Больше не показывать эту анкету в рекомендациях?</p><button className="button secondary" onClick={()=>setConfirm(false)}>Отмена</button><button className="button danger" disabled={app.busy} onClick={()=>app.run(async()=>{await post('/profiles/'+profile.id+'/hide');onClose();await onReact('hidden');})}>Скрыть анкету</button></div>}
- </>}</Sheet>;
-}
-
-export function LikesHistory({app,Photo,Sheet,Card}){
- const[kind,setKind]=useState(''),[data,setData]=useState(null),[page,setPage]=useState(0),[selected,setSelected]=useState(null),[error,setError]=useState(false);
+export function LikesHistory({app,Photo}){
+ const[kind,setKind]=useState(''),[data,setData]=useState(null),[page,setPage]=useState(0),[error,setError]=useState(false);
  const load=async()=>{if(!kind)return;setError(false);try{setData(await api('/likes/history?kind='+kind+'&page='+page));}catch(e){setError(true);throw e;}};
  useEffect(()=>{setData(null);if(kind)app.run(load);},[kind,page]);
- return <section className="likes-history"><div className="segmented-scroll">{[['','Входящие'],['outgoing','Мои лайки'],['super','Super Likes'],['matches','Мэтчи']].map(([key,label])=><button key={key} aria-pressed={kind===key} className={kind===key?'active':''} onClick={()=>{setKind(key);setPage(0);}}>{label}</button>)}</div>{kind&&<div className="history-results">{error?<button className="button secondary" onClick={()=>app.run(load)}>Повторить</button>:!data?<div className="skeleton history-loading"/>:data.profiles.length?<div className="likes-grid">{data.profiles.map(p=><button key={p.id} className="like-tile" onClick={()=>p.match_id?(app.setTab('chats'),app.setOpenChatId(p.match_id)):setSelected(p)}><Photo id={p.photos[0]} alt={p.name}/><div><h3>{p.name}, {p.age}</h3><p>{p.city}</p></div></button>)}</div>:<p className="account-empty">Здесь появятся твои новые знакомства.</p>}<div className="pagination">{page>0&&<button onClick={()=>setPage(page-1)}>Назад</button>}{data?.more&&<button onClick={()=>setPage(page+1)}>Ещё <ChevronRight size={15}/></button>}</div></div>}{selected&&<Sheet title={selected.name} onClose={()=>setSelected(null)}><Card p={selected} onReact={async()=>{setSelected(null);await load();}}/></Sheet>}</section>;
+ return <section className="likes-history"><div className="segmented-scroll">{[['','Входящие'],['outgoing','Мои лайки'],['super','Super Likes'],['matches','Мэтчи']].map(([key,label])=><button key={key} aria-pressed={kind===key} className={kind===key?'active':''} onClick={()=>{setKind(key);setPage(0);}}>{label}</button>)}</div>{kind&&<div className="history-results">{error?<button className="button secondary" onClick={()=>app.run(load)}>Повторить</button>:!data?<div className="skeleton history-loading"/>:data.profiles.length?<div className="likes-grid">{data.profiles.map(p=><button key={p.id} className="like-tile" onClick={()=>app.openProfile(p,{matchId:p.match_id,onHandled:load})}><Photo id={p.photos[0]} alt={p.name}/><div><h3>{p.name}, {p.age}</h3><p>{p.city}</p></div></button>)}</div>:<p className="account-empty">Здесь появятся твои новые знакомства.</p>}<div className="pagination">{page>0&&<button onClick={()=>setPage(page-1)}>Назад</button>}{data?.more&&<button onClick={()=>setPage(page+1)}>Ещё <ChevronRight size={15}/></button>}</div></div>}}</section>;
 }
 
 export function BoostPage({app}){

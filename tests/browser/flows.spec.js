@@ -54,6 +54,11 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  }
  for(const page of [a,b]){await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('.feed-surface')).toBeVisible();}
  await expect(a.locator('.dating-card')).toContainText('Тест Анна');
+ await a.getByRole('button',{name:'Открыть профиль Тест Анна'}).click();
+ await expect(a.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
+ await expect(a.locator('.member-profile-identity')).toContainText('Тест Анна');
+ await a.locator('.member-profile-back').click();
+ await expect(a.locator('.dating-card')).toBeVisible();
  for(const viewport of [{width:390,height:844},{width:320,height:568}]){
   await a.setViewportSize(viewport);
   await a.evaluate(()=>document.documentElement.style.setProperty('--safe','34px'));
@@ -68,9 +73,25 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
  await expect(card).toHaveCount(0);
  await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();await screenshot(b,testInfo.outputPath('match-mobile.png'));
+ await b.getByRole('button',{name:'Посмотреть профиль',exact:true}).click();
+ await expect(b.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
+ await expect(b.locator('.member-profile-mutual')).toBeVisible();
+ await expect(b.locator('.member-profile-footer').getByRole('button',{name:'Перейти в чат'})).toBeVisible();
+ await b.locator('.member-profile-back').click();
+ await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();
  await b.getByRole('button',{name:'Перейти в чаты',exact:true}).click();await expect(b.locator('.chat-header')).toContainText('Тест Алекс');
  await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('Привет из тестового чата');await b.getByRole('button',{name:'Отправить',exact:true}).click();
  await expect(b.locator('.mc-bubble')).toContainText('Привет из тестового чата');
+ await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('Черновик сохраняется');
+ await b.locator('.chat-header .mc-person').click();
+ await expect(b.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
+ await b.locator('.member-profile-footer').getByRole('button',{name:'Перейти в чат'}).click();
+ await expect(b.getByRole('textbox',{name:'Сообщение…',exact:true})).toHaveValue('Черновик сохраняется');
+ await b.getByRole('textbox',{name:'Сообщение…',exact:true}).fill('');
+ await b.locator('.chat-header').getByRole('button',{name:'Настройки',exact:true}).click();
+ await b.getByRole('button',{name:'Открыть профиль',exact:true}).click();
+ await expect(b.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
+ await b.locator('.member-profile-back').click();
  await a.getByRole('button',{name:'Чаты',exact:true}).click();await a.locator('.chat-row').filter({hasText:'Тест Анна'}).click();
  await expect(a.locator('.mc-bubble')).toContainText('Привет из тестового чата');
  for(const page of [a,b]){await page.locator('.chat-header').getByRole('button',{name:'Настройки',exact:true}).click();await page.getByRole('button',{name:'Обменяться Telegram',exact:true}).click();}
