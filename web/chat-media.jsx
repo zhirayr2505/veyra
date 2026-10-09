@@ -14,12 +14,23 @@ function safeSave(key,value){try{localStorage.setItem(key,JSON.stringify(value))
 
 export function useVoiceRecording({onSend,onPermission,onError}){
  const[state,setState]=useState({phase:'idle',locked:false,elapsed:0,levels:[]});
+ const[keepReady,setKeepReady]=useState(false),keepReadyRef=useRef(false);
  const live=useRef({phase:'idle',locked:false}),rec=useRef(null),stream=useRef(null),audioContext=useRef(null),chunks=useRef([]),timer=useRef(null),gesture=useRef(null),samples=useRef([]),since=useRef(0),elapsed=useRef(0),result=useRef(null),intent=useRef(''),generation=useRef(0),gestureListeners=useRef(null),callbacks=useRef({onSend,onPermission,onError}),mounted=useRef(true),cancelTimer=useRef(null);
  callbacks.current={onSend,onPermission,onError};
  const update=patch=>{live.current={...live.current,...patch};if(mounted.current)setState(x=>({...x,...patch}));};
  const duration=()=>elapsed.current+(live.current.phase==='recording'?(performance.now()-since.current)/1000:0);
  const detachGesture=()=>{gestureListeners.current?.();gestureListeners.current=null;};
- const cleanup=()=>{clearInterval(timer.current);stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;audioContext.current?.close().catch(()=>{});audioContext.current=null;};
+ const cleanup=(force=false)=>{
+  clearInterval(timer.current);
+  const reusable=!force&&keepReadyRef.current&&!document.hidden&&stream.current?.getAudioTracks().some(t=>t.readyState==='live');
+  if(reusable)stream.current.getAudioTracks().forEach(t=>{t.enabled=false;});
+  else{stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;}
+  audioContext.current?.close().catch(()=>{});audioContext.current=null;
+ };
+ const toggleKeepReady=()=>{
+  const next=!keepReadyRef.current;keepReadyRef.current=next;setKeepReady(next);
+  if(!next&&live.current.phase==='idle')cleanup(true);
+ };
  const reset=()=>{detachGesture();gesture.current=null;result.current=null;chunks.current=[];samples.current=[];elapsed.current=0;update({phase:'idle',locked:false,elapsed:0,levels:[]});};
  function stop(mode){
   if(live.current.phase==='idle'||live.current.phase==='cancelled')return;
@@ -50,12 +61,16 @@ export function useVoiceRecording({onSend,onPermission,onError}){
   if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){detachGesture();gesture.current=null;callbacks.current.onPermission('unsupported');return;}
   const gen=++generation.current;update({phase:'requesting',locked:false,elapsed:0,levels:[]});
   try{
-   const source=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+   // Reuse a live, explicitly consented chat-session stream. A new getUserMedia
+   // call can reopen Telegram's Android permission sheet every single time.
+   const cached=keepReadyRef.current&&stream.current?.getAudioTracks().some(t=>t.readyState==='live')?stream.current:null;
+   const source=cached||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+   source.getAudioTracks().forEach(t=>{t.enabled=true;});
    if(gen!==generation.current||!mounted.current){source.getTracks().forEach(t=>t.stop());return;}
    stream.current=source;const mime=['audio/webm;codecs=opus','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
    const recorder=new MediaRecorder(source,{...(mime?{mimeType:mime}:{}),audioBitsPerSecond:64000});rec.current=recorder;chunks.current=[];samples.current=[];elapsed.current=0;let bytes=0;
    recorder.ondataavailable=event=>{if(gen!==generation.current)return;if(event.data.size){chunks.current.push(event.data);bytes+=event.data.size;if(bytes>11*1024*1024&&recorder.state!=='inactive')stop('ready');}};
-   recorder.onerror=()=>{cleanup();reset();callbacks.current.onError('recording');};
+   recorder.onerror=()=>{cleanup(true);reset();callbacks.current.onError('recording');};
    recorder.onstop=()=>{
     cleanup();if(gen!==generation.current||!mounted.current)return;
     const blob=new Blob(chunks.current,{type:recorder.mimeType||mime||'audio/webm'});const total=elapsed.current;
@@ -71,13 +86,28 @@ export function useVoiceRecording({onSend,onPermission,onError}){
    update({phase:'recording',locked:!!gesture.current?.locked||!gesture.current?.down});buzz('medium');
    let analyser=null;try{const Context=window.AudioContext||window.webkitAudioContext;if(Context){const context=new Context();audioContext.current=context;analyser=context.createAnalyser();analyser.fftSize=256;context.createMediaStreamSource(source).connect(analyser);context.resume().catch(()=>{});}}catch{}
    const values=new Uint8Array(256);timer.current=setInterval(()=>{if(live.current.phase!=='recording')return;let level=.08;if(analyser){analyser.getByteTimeDomainData(values);level=Math.min(1,Math.sqrt(values.reduce((n,v)=>n+Math.pow((v-128)/128,2),0)/values.length)*4+.04);}samples.current.push(level);if(samples.current.length>64)samples.current.shift();const total=duration();update({elapsed:total,levels:[...samples.current]});if(total>=599.8)stop('ready');},90);
-  }catch(error){cleanup();reset();if(gen===generation.current)callbacks.current.onPermission(['NotAllowedError','SecurityError'].includes(error.name)?'denied':error.name==='NotFoundError'?'missing':'unavailable');}
+  }catch(error){cleanup(true);reset();if(gen===generation.current)callbacks.current.onPermission(['NotAllowedError','SecurityError'].includes(error.name)?'denied':error.name==='NotFoundError'?'missing':'unavailable');}
  }
  function move(e){const g=gesture.current;if(!g||live.current.locked)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;if(dx<-85){g.down=false;stop('cancel');}else if(dy<-65){g.locked=true;update({locked:true});buzz('medium');}}
  function release(e){const g=gesture.current;if(g?.ended)return;if(g)g.ended=true;detachGesture();if(g){const dx=(e?.clientX??g.x)-g.x,dy=(e?.clientY??g.y)-g.y;if(dy<-65&&Math.abs(dy)>Math.abs(dx)){g.locked=true;update({locked:true});}g.down=false;}if(live.current.locked)return;if(live.current.phase==='requesting'){if(g)g.locked=true;update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){if(g)g.locked=true;update({locked:true});buzz();}else stop('send');}}
  function pause(){if(live.current.phase==='recording'){elapsed.current=duration();rec.current?.pause();update({phase:'paused',elapsed:elapsed.current});}else if(live.current.phase==='paused'){since.current=performance.now();rec.current?.resume();update({phase:'recording'});}buzz();}
- useEffect(()=>()=>{mounted.current=false;generation.current++;detachGesture();clearTimeout(cancelTimer.current);if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}cleanup();},[]);
- return {...state,active:state.phase!=='idle',handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(live.current.phase==='requesting'){if(gesture.current){gesture.current.down=false;gesture.current.locked=true;}update({locked:true});return;}if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
+ useEffect(()=>{
+  const onBackground=()=>{
+   if(document.hidden){
+    keepReadyRef.current=false;setKeepReady(false);
+    if(live.current.phase==='idle')cleanup(true);
+    else stop('cancel');
+   }
+  };
+  document.addEventListener('visibilitychange',onBackground);
+  return()=>{
+   document.removeEventListener('visibilitychange',onBackground);
+   mounted.current=false;generation.current++;detachGesture();clearTimeout(cancelTimer.current);
+   if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}
+   cleanup(true);
+  };
+ },[]);
+ return {...state,keepReady,active:state.phase!=='idle',toggleKeepReady,handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(live.current.phase==='requesting'){if(gesture.current){gesture.current.down=false;gesture.current.locked=true;}update({locked:true});return;}if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
 }
 export function RecordingPanel({voice,L}){return <div className={'mm-recording '+(voice.phase==='cancelled'?'cancelled':'')} role="region" aria-label={L('Запись голосового','Voice recording')}>
  {voice.phase==='cancelled'?<span className="mm-cancelled"><VeyraIcon icon={Trash2} size={19}/>{L('Запись отменена','Recording cancelled')}</span>:<><div className="mm-record-top"><span className={'mm-record-dot '+(voice.phase==='paused'?'paused':'')}/><strong>{voice.phase==='requesting'?L('Доступ к микрофону…','Microphone access…'):clock(voice.elapsed)}</strong><div className="mm-live-wave" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{height:Math.max(3,(voice.levels.slice(-28)[i]||.06)*26)+'px'}}/>)}</div>{voice.locked?<VeyraIcon icon={Lock} size={14}/>:<span className="mm-lock-hint"><VeyraIcon icon={ArrowUp} size={13}/><VeyraIcon icon={Lock} size={13}/></span>}</div>
