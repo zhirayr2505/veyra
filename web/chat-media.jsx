@@ -66,7 +66,11 @@ export function useVoiceRecording({onSend,onPermission,onError}){
    const cached=keepReadyRef.current&&stream.current?.getAudioTracks().some(t=>t.readyState==='live')?stream.current:null;
    const source=cached||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
    source.getAudioTracks().forEach(t=>{t.enabled=true;});
-   if(gen!==generation.current||!mounted.current){source.getTracks().forEach(t=>t.stop());return;}
+   if(gen!==generation.current||!mounted.current||document.hidden){
+    source.getTracks().forEach(t=>t.stop());
+    if(document.hidden&&mounted.current){keepReadyRef.current=false;setKeepReady(false);reset();}
+    return;
+   }
    stream.current=source;const mime=['audio/webm;codecs=opus','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
    const recorder=new MediaRecorder(source,{...(mime?{mimeType:mime}:{}),audioBitsPerSecond:64000});rec.current=recorder;chunks.current=[];samples.current=[];elapsed.current=0;let bytes=0;
    recorder.ondataavailable=event=>{if(gen!==generation.current)return;if(event.data.size){chunks.current.push(event.data);bytes+=event.data.size;if(bytes>11*1024*1024&&recorder.state!=='inactive')stop('ready');}};
@@ -94,6 +98,9 @@ export function useVoiceRecording({onSend,onPermission,onError}){
  useEffect(()=>{
   const onBackground=()=>{
    if(document.hidden){
+    // A Telegram/Android permission sheet can temporarily hide the WebView.
+    // Do not cancel its pending getUserMedia request or revoke quick mode.
+    if(live.current.phase==='requesting')return;
     keepReadyRef.current=false;setKeepReady(false);
     if(live.current.phase==='idle')cleanup(true);
     else stop('cancel');
