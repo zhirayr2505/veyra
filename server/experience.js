@@ -15,7 +15,10 @@ export async function profileStats(q,uid){
 }
 export async function undoReaction(q,uid,target){
  await pairLock(q,uid,target);await ensurePair(q,uid,target);
- if(!premium(await one(q,'SELECT * FROM users WHERE id=$1',[uid])))fail(402,'PREMIUM_REQUIRED');
+ // Serialize undo requests per account to prevent double-spending the daily allowance.
+ const u=await one(q,'SELECT * FROM users WHERE id=$1 FOR UPDATE',[uid]);
+ const used=await one(q,"SELECT count(*)::int AS n FROM audit_log WHERE actor=$1 AND action='reaction.undo' AND created_at>=CURRENT_DATE AND created_at<CURRENT_DATE+interval '1 day'",[uid]);
+ if(!premium(u)&&used.n>=1)fail(402,'PREMIUM_REQUIRED');
  const last=await one(q,'SELECT * FROM reactions WHERE actor=$1 ORDER BY created_at DESC,target DESC LIMIT 1',[uid]);
  if(!last||String(last.target)!==String(target))fail(409,'UNDO_CHANGED');
  if(await one(q,'SELECT 1 FROM matches WHERE (a=$1 AND b=$2) OR (a=$2 AND b=$1)',[uid,target]))fail(409,'UNDO_MATCH_EXISTS');
@@ -29,7 +32,8 @@ export function experienceRoutes(app,{db,rate,env}){
  app.get('/api/reactions/last',async(req,res)=>{
   const row=await one(db,'SELECT target,kind FROM reactions WHERE actor=$1 ORDER BY created_at DESC,target DESC LIMIT 1',[req.user.id]);
   const matched=row&&await one(db,'SELECT 1 FROM matches WHERE (a=$1 AND b=$2) OR (a=$2 AND b=$1)',[req.user.id,row.target]);
-  res.json({action:row||null,can_undo:!!row&&!matched,premium:premium(req.user)});
+  const used=await one(db,"SELECT count(*)::int AS n FROM audit_log WHERE actor=$1 AND action='reaction.undo' AND created_at>=CURRENT_DATE AND created_at<CURRENT_DATE+interval '1 day'",[req.user.id]);
+  res.json({action:row||null,can_undo:!!row&&!matched,premium:premium(req.user),free_undo_left:Math.max(0,1-used.n)});
  });
  app.post('/api/reactions/undo',async(req,res)=>{
   await rate('undo:'+req.user.id,15);const target=parse(id,req.body.target);
