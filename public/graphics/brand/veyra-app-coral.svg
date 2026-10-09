@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="veyra">
+ <defs><linearGradient id="coral" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFB3C1"/><stop offset="1" stop-color="#F66E85"/></linearGradient></defs>
+ <rect width="512" height="512" rx="124" fill="#FFF5F8"/>
+ <path fill="url(#coral)" transform="translate(-14 21) scale(1.8)" d="M58,34 L47,45 L46,64 L120,210 L127,219 L144,228 L163,226 L172,220 L181,209 L254,63 L253,46 L246,37 L236,32 L222,33 L210,42 L161,141 L155,150 L149,153 L139,140 L90,42 L75,32Z"/>
+</svg>

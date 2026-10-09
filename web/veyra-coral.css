@@ -1,0 +1,1254 @@
+
+/* VEYRA Coral v4 — single source of truth for the approved 2026 light visual identity.
+ * Scoped consumer styling. The admin UI keeps its functional density.
+ * No gold, black/glow dating chrome or stock neon. Interactions remain accessible.
+ */
+:root{
+ color-scheme:light;
+ --v-bg:#fffdfd;--v-surface:#ffffff;--v-raised:#f8f4fc;
+ --v-text:#302a3e;--v-muted:#837a93;--v-border:#ede8f2;
+ --v-rose:#ff7789;--v-orchid:#9672c4;--v-ice:#f3ecfc;
+ --v-focus:#a77adc;--v-accent:linear-gradient(130deg,#ff8a9a,#fb697f);
+ --pink:#fa7085;--violet:#9275c9;--surface:#fff;--line:#eee7f3;
+ --muted:#837a93;--accent:linear-gradient(130deg,#ff8a9a,#fb697f);
+ --ease:cubic-bezier(.22,1,.36,1);
+ font-family:Inter,'Nunito','Arial Rounded MT Bold',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+ color:#302a3e;background:#fffdfd;
+}
+html,body{background:#fffdfd;color:#302a3e}
+body{color-scheme:light}
+:where(.app:not(.admin-app),.member-profile-screen){
+ --glass-fill:linear-gradient(135deg,rgba(255,255,255,.96),rgba(250,247,253,.94));
+ --glass-border:#efe7f2;
+ --shadow-elevated:0 8px 30px rgba(88,55,102,.07);
+ color:#302a3e!important;
+}
+:where(.app:not(.admin-app),.member-profile-screen) :is(button,a,input,textarea,select):focus-visible{outline:2px solid #ab77dd;outline-offset:2px}
+.app:not(.admin-app){
+ background:linear-gradient(180deg,#fff 0%,#fffbfd 58%,#fff 100%);
+ border-color:#f1eaf1;color:#302a3e;
+}
+.app:not(.admin-app) :is(h1,h2,h3,strong){color:#302a3e;letter-spacing:-.035em}
+.app:not(.admin-app) :is(p,small,.muted,.page-subtitle,.section-heading p){color:#7e748c}
+.app:not(.admin-app)>main{padding-left:16px;padding-right:16px}
+.app:not(.admin-app) .view-enter{animation:veyra-coral-enter .22s ease-out both}
+@keyframes veyra-coral-enter{from{opacity:.82;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* True approved text-only brand SVG, not the obsolete ribbon symbol. */
+.brand.approved-brand,.brand.approved-brand.brand-horizontal,.brand.approved-brand.large,
+.topbar .brand.approved-brand,.welcome header .brand.approved-brand,.legal .brand.approved-brand{
+ display:inline-flex;align-items:center;justify-content:center;
+ background:none!important;border:0!important;border-radius:0!important;overflow:visible!important;
+ width:clamp(110px,34vw,178px);height:48px;box-shadow:none!important;gap:0;
+}
+.brand.approved-brand.large{width:min(270px,65vw);height:96px}
+.brand.approved-brand .brand-wordmark-img{display:block!important;width:100%;height:100%;object-fit:contain;max-width:100%;filter:none}
+.brand.approved-brand .brand-symbol,.brand.approved-brand .brand-wordmark{display:none!important}
+.topbar{min-height:72px;padding:12px 16px 10px;justify-content:center;position:relative;background:#fff!important;border:none!important}
+.topbar .brand.approved-brand{height:47px;width:155px;margin:auto}
+.topbar .topbar-left{position:absolute;left:16px;top:calc(50% - 20px);display:flex;align-items:center}
+.topbar .top-actions{position:absolute;right:16px;top:calc(50% - 20px);display:flex;align-items:center}
+.topbar :is(.icon-button,.topbar-left button){
+ width:40px;height:40px;border-radius:50%;border:0;
+ background:#f5f0fd;color:#746886;box-shadow:none;
+}
+.topbar .premium-pill,.feed-counter{display:none!important}
+.topbar .notification-dot{position:absolute;width:8px;height:8px;background:#ff6f86;border:2px solid #fff;border-radius:50%;right:0;top:0}
+.app:not(.admin-app) .topbar .veyra-icon{stroke-width:1.9}
+.app:not(.admin-app) :is(.field>span,.section-eyebrow,.section-label){color:#9886ae}
+.app:not(.admin-app) :is(.section-heading,.page-heading){margin-block:7px 16px;min-height:0}
+.app:not(.admin-app) .section-heading h1{font-size:27px;letter-spacing:-.04em}
+.app:not(.admin-app) .section-heading>.artwork{opacity:.7;filter:none}
+
+/* Bottom dock: flush white like the approved Discover design, not the old dark floating glass. */
+.app:not(.admin-app) .bottom-nav{
+ position:fixed;left:50%;transform:translateX(-50%);right:auto;
+ bottom:0;width:100%;max-width:560px;min-height:73px;
+ display:flex;justify-content:space-around;align-items:center;
+ padding:6px 10px max(8px,env(safe-area-inset-bottom,0px));
+ border:0;border-top:1px solid #f3eaf2;border-radius:0;
+ background:rgba(255,255,255,.97);box-shadow:0 -7px 24px rgba(113,88,132,.035);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:20;
+}
+.app:not(.admin-app) .bottom-nav button{
+ min-width:0;flex:1;color:#8b8299;border-radius:14px;padding:5px 2px;
+ min-height:54px;font-weight:600;font-size:11px;letter-spacing:0;
+ background:transparent;gap:3px;
+}
+.app:not(.admin-app) .bottom-nav button.selected{background:transparent;color:#fa7187}
+.app:not(.admin-app) .bottom-nav button.selected:before{display:none}
+.app:not(.admin-app) .bottom-nav .nav-icon svg{width:25px;height:25px;stroke-width:1.7}
+.app:not(.admin-app) .bottom-nav .selected .nav-icon svg{stroke:#fa7187;fill:#fa718714}
+.app:not(.admin-app) .nav-count{background:#fa7085;color:white;border:2px solid #fff;box-shadow:none;font-weight:700}
+
+/* Discover header uses three consistent Badoo-influenced pastel segments. */
+.app:not(.admin-app) .feed-surface{gap:0}
+.app:not(.admin-app) .discovery-modes{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;margin:0 0 10px;width:100%;
+}
+.app:not(.admin-app) .discovery-modes button{
+ display:flex;align-items:center;justify-content:center;gap:7px;
+ min-width:0;white-space:nowrap;padding:11px 2px;border-radius:19px;
+ background:#f4f0fd;color:#746a82;border:0;font-size:12px;font-weight:650;
+ box-shadow:inset 0 1px rgba(255,255,255,.9);
+}
+.app:not(.admin-app) .discovery-modes button.active{
+ color:#f35c78;background:linear-gradient(115deg,#ffe8ed,#ffedf2);
+}
+.app:not(.admin-app) .discovery-modes svg{width:17px;height:17px}
+.app:not(.admin-app) .discovery-heading{padding:0 3px 7px;min-height:0;opacity:.95}
+.app:not(.admin-app) .discovery-heading .location-line{color:#8d8596;font-size:11px}
+.app:not(.admin-app) .discovery-heading .feed-allowance{color:#8d8596;font-size:10px}
+
+/* A photograph fills the card, but the overlay never hides faces or actions. */
+.app:not(.admin-app) .dating-card{
+ isolation:isolate;position:relative;overflow:hidden;min-height:260px;
+ border-radius:29px;background:#f1e7ec;border:0!important;
+ box-shadow:0 12px 30px rgba(94,72,118,.13);
+ touch-action:pan-y;
+}
+.app:not(.admin-app) .dating-card>.cover{height:100%;width:100%;object-fit:cover;object-position:center 32%}
+.app:not(.admin-app) .dating-card:after{
+ content:'';pointer-events:none;position:absolute;z-index:1;inset:0;
+ background:linear-gradient(180deg,rgba(18,16,34,.16) 0%,transparent 24%,transparent 44%,rgba(30,17,35,.22) 58%,rgba(28,16,34,.83) 100%)!important;
+}
+.app:not(.admin-app) .dating-card:before{display:none}
+.app:not(.admin-app) .card-top{position:absolute;z-index:4;top:28px;right:14px;left:14px}
+.app:not(.admin-app) .photo-dots{
+ position:absolute;left:12px;right:12px;top:11px;z-index:8;
+ display:flex;align-items:center;gap:5px;margin:0;
+}
+.app:not(.admin-app) .photo-dots button{
+ display:block;flex:1;min-width:0;height:4px;padding:0;border:0;border-radius:99px;
+ background:#fff6;box-shadow:0 1px 2px #0001;
+}
+.app:not(.admin-app) .photo-dots button.on{background:#fff;box-shadow:0 1px 3px #0002}
+.app:not(.admin-app) .photo-counter{display:none!important}
+.app:not(.admin-app) .card-top .card-status{color:#fff;background:#4b435a55;border:1px solid #ffffff4a;backdrop-filter:blur(9px);border-radius:20px;font-size:10px}
+.app:not(.admin-app) .card-top .icon-button{border:1px solid #ffffff5a;background:#372b415c;color:#fff;backdrop-filter:blur(8px)}
+.app:not(.admin-app) .photo-controls button{border:0;background:transparent}
+.app:not(.admin-app) .card-info{
+ position:absolute;z-index:3;left:18px;right:18px;bottom:14px;
+ color:#fff;max-height:min(50%,360px);overflow:hidden;
+ pointer-events:auto;scrollbar-width:none;
+}
+.app:not(.admin-app) .card-info h2{font-size:31px;line-height:1.08;color:#fff;margin:0 0 5px}
+.app:not(.admin-app) .card-name-button{font-size:inherit;line-height:inherit;color:white;font-weight:800;letter-spacing:-.045em;text-shadow:0 2px 8px #0003}
+.app:not(.admin-app) .card-name-button svg{color:#ac91eb;fill:#a47ce8}
+.app:not(.admin-app) .card-info :is(.card-location,.card-online,.bio){color:#fff;font-size:12px;line-height:1.35;text-shadow:0 1px 4px #0003}
+.app:not(.admin-app) .card-info .bio{
+ display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+ margin:8px 0 8px;line-height:1.45;max-height:2.9em;font-size:12px;
+}
+.app:not(.admin-app) .card-info .goal-tags{display:none}
+.app:not(.admin-app) .card-info .card-online{display:none}
+.app:not(.admin-app) .card-info .tags{display:flex;flex-wrap:nowrap;gap:5px;min-width:0;margin:5px 0}
+.app:not(.admin-app) .card-info .interest-tags>span{
+ min-width:0;border:0;border-radius:999px;background:rgba(255,239,244,.94);
+ color:#d4547b;padding:6px 9px;font-size:10px;font-weight:700;
+ white-space:nowrap;text-overflow:ellipsis;overflow:hidden;flex-shrink:1;
+ box-shadow:0 2px 10px #0001;
+}
+.app:not(.admin-app) .card-info .interest-tags>span:nth-child(even){background:rgba(245,240,255,.95);color:#8769bd}
+.app:not(.admin-app) .card-info .card-open-profile{
+ display:inline-flex;align-items:center;gap:4px;color:#ffffffda;background:transparent;
+ border:0;padding:6px 0 0;margin:0;font-size:11px;
+}
+.app:not(.admin-app) .card-info .card-gift-link{display:none}
+.app:not(.admin-app) .reaction-bar{
+ position:absolute;z-index:6;left:14px;right:14px;bottom:12px;
+ display:flex;align-items:center;justify-content:space-evenly;gap:10px;
+ pointer-events:none;margin:0;padding:0;
+}
+.app:not(.admin-app) .reaction-bar button{pointer-events:auto}
+.app:not(.admin-app) .dating-card .card-info{bottom:95px}
+.app:not(.admin-app) .reaction-bar .icon-button{
+ background:rgba(255,255,255,.97);color:#966dc9;border:0;
+ border-radius:50%;width:59px;height:59px;box-shadow:0 5px 18px #1d133127;
+}
+.app:not(.admin-app) .reaction-bar .like{
+ width:71px;height:71px;color:#fff;background:var(--v-accent);
+ box-shadow:0 6px 23px rgba(247,100,130,.35);
+}
+.app:not(.admin-app) .reaction-bar .like svg{fill:#fff;stroke:#fff}
+.app:not(.admin-app) .reaction-bar .rewind{width:43px;height:43px;color:#82718e;background:#f8f5fe}
+.app:not(.admin-app) .reaction-bar .super{color:#9c65d1}
+.app:not(.admin-app) .reaction-bar .super svg{width:27px;height:27px}
+.app:not(.admin-app) .reaction-bar button:disabled{opacity:.4}
+.app:not(.admin-app) .feed-app .reaction-bar{position:absolute}
+.app:not(.admin-app) .feed-app .dating-card{min-height:250px}
+.app:not(.admin-app) .feed-app .card-info{max-height:calc(100% - 100px)}
+
+/* Profiles: warm white cards, photo-led hero, natural spacing. */
+.member-profile-screen,.member-profile-screen .member-profile-page{
+ background:#fffdfd!important;color:#342d40!important;
+}
+.member-profile-screen .member-profile-header{
+ border-color:#eee6f0;background:#fff!important;backdrop-filter:blur(12px);
+}
+.member-profile-screen .member-profile-back{color:#77658e}
+.member-profile-screen .member-profile-content{background:#fffdfd}
+.member-profile-screen .member-profile-hero{
+ background:#f0e9f1;border:0;border-radius:26px;box-shadow:0 7px 25px #3c204514;
+}
+.member-profile-screen .member-profile-shade{
+ background:linear-gradient(180deg,#0002,transparent 40%,#24172ebb 100%);
+}
+.member-profile-screen .member-profile-identity h1{color:white}
+.member-profile-screen .member-profile-identity p{color:#fff}
+.member-profile-screen .member-profile-hero-top span{
+ background:#ffffffbd;border:0;color:#716482;backdrop-filter:blur(12px);
+}
+.member-profile-screen .member-profile-hero-top span:has(.veyra-icon){font-size:10px}
+.member-profile-screen .member-profile-thumbs button{background:#f2e9f3;border-color:#eee4ef}
+.member-profile-screen .member-profile-thumbs button.active{border-color:#fc788c}
+.member-profile-screen .member-profile-inline-actions{background:transparent}
+.member-profile-screen .member-profile-icon-action,
+.member-profile-screen .member-profile-icon-action.is-gift,
+.member-profile-screen .member-profile-icon-action.is-chat{
+ background:#f5effb;color:#956fc5;border:0;box-shadow:0 3px 13px #6c456318;
+}
+.member-profile-screen .member-profile-icon-action.is-chat{background:#ffedf1;color:#ee6984}
+.member-profile-screen :is(.member-profile-section,.vc-courtship-public,.vc-inbox,.vg-collection){
+ background:#fff!important;border:1px solid #eee7f1;border-radius:22px;color:#383044;
+ box-shadow:0 6px 22px #36203a09;
+}
+.member-profile-screen :is(.member-profile-section h2,.member-profile-bio){color:#393045}
+.member-profile-screen .member-profile-interests>span,
+.member-profile-screen .vg-profile-tabs>button{background:#f7f1fd;border:1px solid #f0e9f7;color:#8764ac;border-radius:22px}
+.member-profile-screen .vg-profile-tabs>button.active{background:#ffebef;border-color:#ffdce5;color:#f06781}
+.member-profile-screen .member-profile-mutual{
+ background:linear-gradient(110deg,#fff0f3,#f4effe);border:1px solid #ffe2eb;color:#ef6b84;
+}
+.member-profile-screen .member-profile-mutual :is(strong,span){color:#756080}
+.member-profile-screen .member-profile-safety button{color:#84738f}
+.member-profile-screen .member-profile-footer{background:#fff;border-color:#eee7f2}
+.member-profile-screen .member-profile-super{background:#f3effc;border-color:#f1e7f5;color:#8966ba}
+
+/* Own profile, permissions, editorial copy, gifts, ratings, account pages. */
+.app:not(.admin-app) .vp-profile{color:#302a3e;--vp-muted:#8a8094;--vp-border:#efe6f1}
+.app:not(.admin-app) .vp-heading h1{font-size:27px;color:#302a3e}
+.app:not(.admin-app) .vp-visibility{background:#f5f0fd;color:#786494;border-color:#ede6f3}
+.app:not(.admin-app) .vp-hero{border-radius:27px;border:0;background:#eee8ee;box-shadow:0 8px 26px #33233f16}
+.app:not(.admin-app) .vp-hero-shade{background:linear-gradient(180deg,#1e15273b,transparent 36%,#201528dc)}
+.app:not(.admin-app) .vp-name h2,.app:not(.admin-app) .vp-hero .vp-identity p{color:white}
+.app:not(.admin-app) .vp-hero-top button{background:#fff9;color:#584867;border:1px solid #fff9;backdrop-filter:blur(10px)}
+.app:not(.admin-app) .vp-goal{background:#fff2;color:#fff;border-color:#fff6}
+.app:not(.admin-app) .vp-edit{
+ border:0;background:var(--v-accent);color:#fff;border-radius:19px;
+ box-shadow:0 6px 18px #fa718732;
+}
+.app:not(.admin-app) :is(.vp-panel,.vp-premium,.vp-balance>button,.vp-gifts .gift-collection,
+ .profile-statistics,.support-faq details,.account-panel){
+ background:#fff;border:1px solid #eee7f1;border-radius:22px;
+ box-shadow:0 6px 20px #50305109;color:#302a3e;
+}
+.app:not(.admin-app) .vp-premium{
+ background:linear-gradient(118deg,#fff0f3,#f3ecfe);
+ border-color:#fce2eb;
+}
+.app:not(.admin-app) .vp-premium :is(strong,small){color:#624f70}
+.app:not(.admin-app) .vp-premium .vp-kicker{color:#f26e84}
+.app:not(.admin-app) .vp-row strong,.app:not(.admin-app) .vp-balance strong{color:#393145}
+.app:not(.admin-app) .vp-row small,.app:not(.admin-app) .vp-balance span{color:#8b8297}
+.app:not(.admin-app) .vp-row-icon{background:#f7f1ff;color:#9270be;border:0}
+.app:not(.admin-app) .vp-section-label{color:#a29aaf}
+.app:not(.admin-app) .vp-interests>span{background:#f4effc;border:0;color:#8b6db5}
+.app:not(.admin-app) .stats-grid strong{color:#31283b}
+.app:not(.admin-app) .stats-grid svg{color:#f27990}
+.app:not(.admin-app) .profile-statistics progress{accent-color:#f9788e}
+.app:not(.admin-app) .segmented-scroll,
+.app:not(.admin-app) .product-tabs{background:#f6f0fc;border:0;border-radius:19px;padding:4px}
+.app:not(.admin-app) :is(.segmented-scroll button,.product-tabs button){background:transparent;color:#8c799f;border:0;border-radius:15px}
+.app:not(.admin-app) :is(.segmented-scroll button.active,.product-tabs button.active){
+ background:#fff;color:#f37185;box-shadow:0 3px 12px #744a7d14;
+}
+.app:not(.admin-app) .like-tile,.app:not(.admin-app) .chat-row{
+ background:#fff;border:1px solid #f0eaf4;border-radius:22px;color:#383244;
+ box-shadow:0 5px 17px rgba(86,61,103,.045);
+}
+.app:not(.admin-app) .chat-row :is(strong,h3),.app:not(.admin-app) .likes-grid h3{color:#362e45}
+.app:not(.admin-app) .chat-row :is(p,small),.app:not(.admin-app) .likes-grid p{color:#83788f}
+.app:not(.admin-app) .chat-search{background:#f5f0fc;color:#90829d;border:0;border-radius:18px}
+.app:not(.admin-app) .chat-search input{background:transparent;border:0;color:#392f46;box-shadow:none}
+.app:not(.admin-app) .likes-meta{color:#f2778c}
+.app:not(.admin-app) .likes-meta>span:first-child{color:#f2778c}
+.app:not(.admin-app) :is(.likes-paywall,.locked-cards,.locked-tile){background:#fcf7fd;border-color:#efe8f3;color:#4b3b58}
+.app:not(.admin-app) .locked-tile::after{background:linear-gradient(0deg,#fffbffdb,transparent)}
+.app:not(.admin-app) .nav-icon>svg{stroke-linecap:round}
+.app:not(.admin-app) .vc-courtship-start{background:linear-gradient(115deg,#fff0f4,#f0eafc);color:#9165ad;border:1px solid #f6dce9}
+.app:not(.admin-app) .vg-picker,.app:not(.admin-app) .vg-collection,
+.app:not(.admin-app) .vg-choice,.app:not(.admin-app) .vc-inbox{
+ background:#fff;color:#40344a;border-color:#eee6f2;
+}
+.app:not(.admin-app) :is(.vg-art,.vg-catalog-grid button){box-shadow:0 4px 17px #86567b0f}
+
+/* Composer and conversation: light lilac incoming, coral outgoing, beautiful without media regressions. */
+.app:not(.admin-app) .mc-chat{
+ background:linear-gradient(165deg,#fff 0%,#fdfafe 52%,#f9f5fc 100%)!important;
+ color:#332b42;--mc-pink:#f4788e;--mc-muted:#92869d;--mc-line:#eee4f1;
+}
+.app:not(.admin-app) .mc-header.chat-header{
+ background:rgba(255,255,255,.96);border-bottom:1px solid #f0e8f2;
+ box-shadow:0 3px 15px #55376408;backdrop-filter:blur(16px);
+}
+.app:not(.admin-app) .mc-person{color:#302a3e}
+.app:not(.admin-app) .mc-person strong{color:#302a3e}
+.app:not(.admin-app) .mc-person small{color:#8d8494!important}
+.app:not(.admin-app) .mc-person small.live{color:#39af82!important}
+.app:not(.admin-app) .mc-tool{color:#8b7b9c;background:#f6f1fb;border-radius:50%}
+.app:not(.admin-app) .mc-day{
+ color:#8d8298;background:#f5f0fa;border:0;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.bubble:not(.mine){
+ background:#f1ecf9!important;color:#392e48;border:0;
+ box-shadow:0 2px 9px #6c46730a;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.bubble.mine{
+ background:linear-gradient(130deg,#ff8c9d,#f5758b)!important;color:#fff;border:0;
+ box-shadow:0 3px 13px #ef6e8831;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.mine :is(p,span,a){color:inherit}
+.app:not(.admin-app) .mc-message-meta{color:#968a9f}
+.app:not(.admin-app) .mc-bubble.mine .mc-message-meta{color:#fffcef}
+.app:not(.admin-app) .mc-status.read{color:#d7f6fd}
+.app:not(.admin-app) .mc-compose-zone,.app:not(.admin-app) .mc-composer{
+ background:rgba(255,255,255,.97);border-top:1px solid #f1e9f3;
+ backdrop-filter:blur(12px);
+}
+.app:not(.admin-app) .mc-compose-field{
+ background:#f6f1fb;border:1px solid #f0e7f3;border-radius:24px;
+}
+.app:not(.admin-app) .mc-compose-field textarea,
+.app:not(.admin-app) .mc-compose-field input{color:#332a42}
+.app:not(.admin-app) .mc-send{
+ background:var(--v-accent);color:#fff;border:0;border-radius:50%;box-shadow:0 4px 14px #fa718733;
+}
+.app:not(.admin-app) .mc-overlay{background:#2016268a!important}
+.app:not(.admin-app) .mc-overlay .sheet{background:#fff;color:#342b42;border:0}
+.app:not(.admin-app) .mc-emoji-dock,
+.app:not(.admin-app) .mm-attachment-menu{background:#fff;color:#3b3048;border-color:#eee5f0}
+.app:not(.admin-app) .mc-chat .EmojiPickerReact{--epr-bg-color:#fff;--epr-category-label-bg-color:#fff;--epr-text-color:#34283f;--epr-search-input-bg-color:#f7f2fb}
+
+/* Forms, onboarding, sheets, premium storefront. */
+.app:not(.admin-app) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select){
+ background:#fbf9fd;color:#3b3047;border:1px solid #ece4f0;border-radius:16px;
+ box-shadow:none;
+}
+.app:not(.admin-app) :is(input,textarea)::placeholder{color:#aaa0b2}
+.app:not(.admin-app) input:focus,.app:not(.admin-app) textarea:focus{border-color:#e4a6c4}
+.app:not(.admin-app) input[type=checkbox]{accent-color:#fa778e}
+.app:not(.admin-app) .field>span{color:#7f718e}
+.app:not(.admin-app) .button,.app:not(.admin-app) button.primary{
+ border-radius:18px;transition:transform .15s ease,box-shadow .18s ease,background .18s ease;
+}
+.app:not(.admin-app) :is(.button.primary,.primary:not(.mc-send):not(.purchase-button)){
+ color:#fff;background:var(--v-accent);border:0;box-shadow:0 6px 19px #fc76852d;
+}
+.app:not(.admin-app) .button.secondary,
+.app:not(.admin-app) .button.ghost{color:#886c9d;background:#f6f0fd;border:0}
+.app:not(.admin-app) .choice,
+.app:not(.admin-app) .interest-choices button,
+.app:not(.admin-app) .registration-step,
+.app:not(.admin-app) .selected-city,
+.app:not(.admin-app) .range-card{
+ background:#fff;color:#64566e;border:1px solid #f0e8f1;border-radius:20px;box-shadow:0 3px 12px #44325808;
+}
+.app:not(.admin-app) .choice.active,.app:not(.admin-app) .interest-choices button.active{
+ color:#ee6f86;border-color:#ffbbca;background:#fff0f4;
+}
+.app:not(.admin-app) .registration-progress .complete{background:#f57990}
+.app:not(.admin-app) .registration-body{color:#3a3046}
+.app:not(.admin-app) .photo-upload,.app:not(.admin-app) .photo-empty{
+ background:#fff5f8;border:2px dashed #f3becb;color:#dd7d99;
+}
+.app:not(.admin-app) .welcome-photo:after{
+ background:linear-gradient(180deg,#ffffff14,#fff6fa69 32%,#fffdfd 100%);
+}
+.app:not(.admin-app) .welcome h1{color:#362943}
+.app:not(.admin-app) :is(.welcome-links,.how-steps>div){background:white;color:#6f607c;border:1px solid #f0e8f2}
+.app:not(.admin-app) .sheet{background:#fff;border:1px solid #f2e8f3;color:#312a3c;box-shadow:0 -12px 50px #55346022}
+.app:not(.admin-app) .scrim{background:rgba(46,23,54,.43);backdrop-filter:blur(4px)}
+.app:not(.admin-app) .toast{background:#fff;color:#644f77;border:1px solid #f1e0f0;box-shadow:0 5px 22px #4e345322}
+.app:not(.admin-app) .premium-hero{
+ background:linear-gradient(135deg,#ffebf1,#f0eafe)!important;
+ border-radius:28px;margin:0;min-height:180px;color:#694e72;
+}
+.app:not(.admin-app) .premium-hero :is(h1,p){color:#5a425e!important;-webkit-text-fill-color:inherit!important}
+.app:not(.admin-app) :is(.premium-page .perks>div,.premium-page .product,.premium-page .boost-box){
+ background:#fff;border:1px solid #eee6f1;border-radius:21px;color:#3b3046;
+}
+.app:not(.admin-app) .premium-page .product.selected{
+ border-color:#ffaec0;box-shadow:0 0 0 2px #ffedf2;
+ background:linear-gradient(130deg,#fff1f5,#fbf6ff);
+}
+.app:not(.admin-app) .product-price,.app:not(.admin-app) .plan-check{color:#fa778e}
+.app:not(.admin-app) .purchase-button{background:var(--v-accent);color:#fff;border:0}
+.app:not(.admin-app) .fineprint{color:#8c8395}
+
+/* Low cost GPU effects, accessibility and narrow-screen constraints */
+@media(hover:hover){
+ .app:not(.admin-app) :is(.button,.icon-button,.like-tile,.chat-row,.vp-row):not(:disabled):hover{
+  box-shadow:0 7px 21px #9f6f9f14;
+ }
+}
+@media(max-width:390px){
+ .app:not(.admin-app) .discovery-modes{gap:5px}
+ .app:not(.admin-app) .discovery-modes button{font-size:11px}
+ .app:not(.admin-app) .dating-card{border-radius:25px}
+ .app:not(.admin-app) .card-info{left:14px;right:14px}
+ .app:not(.admin-app) .card-info h2{font-size:26px}
+ .app:not(.admin-app) .card-info .interest-tags>span{font-size:9px;padding:5px 8px}
+ .app:not(.admin-app) .reaction-bar{gap:5px}
+ .app:not(.admin-app) .reaction-bar .icon-button{width:49px;height:49px}
+ .app:not(.admin-app) .reaction-bar .like{width:62px;height:62px}
+ .app:not(.admin-app) .reaction-bar .rewind{width:37px;height:37px}
+}
+@media(max-height:740px){
+ .app:not(.admin-app) .feed-surface .card-info .interest-tags>span:nth-child(n+4){display:none}
+ .app:not(.admin-app) .card-info{bottom:75px}
+ .app:not(.admin-app) .reaction-bar .like{width:60px;height:60px}
+}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) *, .member-profile-screen *{
+  animation-duration:.01ms!important;animation-iteration-count:1!important;
+  transition-duration:.01ms!important;scroll-behavior:auto!important;
+ }
+}
+
+/* Discover actions overlay their own feed, never the viewport or bottom navigation. */
+.app:not(.admin-app) .feed-surface{position:relative;min-height:0}
+.app:not(.admin-app) .feed-surface>.reaction-bar{bottom:12px}
+.app:not(.admin-app) .feed-surface>.dating-card{flex:1;min-height:0}
+.app:not(.admin-app) .card-info .bio{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.app:not(.admin-app) .member-profile-photo-controls{display:none}
+.member-profile-screen .member-profile-photo-progress{
+ position:absolute;top:14px;left:14px;right:14px;z-index:8;display:flex;gap:5px;
+ pointer-events:none;
+}
+.member-profile-screen .member-profile-photo-progress>span{
+ height:4px;flex:1;min-width:0;border-radius:99px;
+ background:rgba(255,255,255,.5);box-shadow:0 1px 3px rgba(0,0,0,.15);
+}
+.member-profile-screen .member-profile-photo-progress>span.active{background:#fff}
+.app:not(.admin-app) .member-profile-screen .member-profile-hero-top{top:27px}
+
+/* Gift & courting layers are portals, so styles must not rely on .app ancestry. */
+.vg-picker-backdrop,.vc-courtship-modal{
+ background:rgba(51,31,60,.42);backdrop-filter:blur(7px);
+ -webkit-backdrop-filter:blur(7px);color:#392f47;
+}
+.vg-picker,.vc-courtship-sheet{
+ background:#fff;border:1px solid #f2e9f2;color:#362b43;
+ box-shadow:0 16px 50px rgba(77,47,92,.2);
+}
+.vg-picker :is(h2,h3),.vg-collection h2,.vc-courtship-sheet h3,.vc-inbox h3{color:#392d46}
+.vg-picker-header button{
+ background:#f5f0fb;color:#8966b6;border:0;
+}
+.vg-eyebrow{color:#f1768d}
+.vg-picker-hint,.vg-collection-heading p,.vg-done p,.vc-courtship-sheet p{color:#867b92}
+.vg-choice,.vg-collected,.vg-collection-empty{
+ background:#fff;color:#493e52;border:1px solid #eee7f0;
+ box-shadow:0 4px 14px rgba(96,57,97,.05);
+}
+.vg-choice.selected{background:#fff0f3;border-color:#faa6b6;box-shadow:0 0 0 2px #ffe3ea}
+.vg-choice small,.vg-total,.vg-message-label,.vg-done h3{color:#ec738b}
+.vg-art{background:linear-gradient(140deg,#ffe6ec,#eae2fa);box-shadow:inset 0 1px #fff,0 5px 14px #9e7d9e1a}
+.vg-art.rarity-welcome{background:linear-gradient(140deg,#ffedf2,#f3eafb)}
+.vg-art.rarity-rare{background:linear-gradient(140deg,#fadcea,#e9d7f9)}
+.vg-art.rarity-epic{background:linear-gradient(140deg,#dce9fe,#eadcf9)}
+.vg-art.rarity-legendary{background:linear-gradient(140deg,#ffa6bd,#b9a4f3)}
+.vg-art-emoji{filter:drop-shadow(0 4px 5px #654b592b)}
+.vg-message-label textarea{background:#fbf9fd;color:#382e44;border:1px solid #eee3f1}
+.vg-message-label small,.vg-collected small{color:#93899d}
+.vg-send,.vg-done button{background:linear-gradient(120deg,#ff899b,#fb7087);color:#fff;box-shadow:0 5px 17px #e8779730}
+.vg-collection{color:#3b3044}
+.vg-total{background:#fff1f4;border-color:#ffdae4}
+.vg-collection-empty p,.vg-collected p{color:#8d8294}
+.vg-collection-empty button{background:#f6effb;border:0;color:#8563ad}
+.vc-courtship-start,.vc-courtship-state{
+ background:linear-gradient(115deg,#fff0f3,#f1eafa);color:#9166a8;border:1px solid #f3deec;
+ box-shadow:0 3px 12px #846a8d13;
+}
+.vc-courtship-start svg:first-child,.vc-courtship-public>header{color:#f1788f}
+.vc-courtship-state.is-active{color:#ed6b8a;border-color:#ffbad0}
+.vc-courtship-public,.vc-inbox{background:#fff;color:#392e46;border:1px solid #eee6f1}
+.vc-courtship-public>header>span,.vc-courtship-public>small,.vc-inbox>p{color:#877a96}
+.vc-courtship-person{background:#fff0f3;border:0;color:#a4668d}
+.vc-inbox-row{border-color:#f2e6ee}
+.vc-inbox-row button,.vc-courtship-confirm button{background:#f4effa;color:#8567a4;border:0}
+.vc-courtship-sheet>svg,.vc-courtship-price{color:#ed758e}
+.vc-courtship-confirm button:last-child{background:linear-gradient(120deg,#ff899b,#fb7087);border:0;color:#fff}
+
+/* The complete profile is a scrollable destination, not a fixed-CTA sheet. */
+.member-profile-screen .member-profile-inline-actions{
+ display:flex;align-items:center;justify-content:center;gap:10px;
+ padding:14px 14px 12px;flex-wrap:wrap;
+}
+.member-profile-screen .member-profile-icon-action{
+ display:grid;place-items:center;width:49px;height:49px;min-width:49px;
+ border-radius:50%;transition:transform .16s ease,box-shadow .16s ease;
+}
+.member-profile-screen .member-profile-icon-action:active{transform:scale(.94)}
+.member-profile-screen .member-profile-icon-action.is-like{
+ background:linear-gradient(130deg,#ff899c,#f8758a);
+ color:#fff;box-shadow:0 5px 16px #ec7a9136;
+}
+.member-profile-screen .member-profile-icon-action.is-spark{
+ background:#f1eafa;color:#9a67d1;
+}
+.member-profile-screen .member-profile-icon-action.is-prematch{
+ background:#f7f1fc;color:#8267aa;
+}
+.member-profile-screen .member-profile-compose{
+ display:flex;flex-direction:column;gap:9px;margin:4px 16px 16px;
+ background:#fff;border:1px solid #efe6f3;padding:15px;border-radius:21px;
+ color:#443650;
+}
+.member-profile-screen .member-profile-compose textarea{
+ width:100%;color:#443650;background:#faf7fc;border:1px solid #f0e6f2;
+ border-radius:13px;padding:12px;
+}
+.member-profile-screen .member-profile-compose .button.primary{
+ background:linear-gradient(120deg,#ff879a,#fa7087);color:#fff;border:0;
+ padding:12px;align-self:stretch;border-radius:15px;
+}
+.member-profile-screen .member-profile-compose small{color:#94899d;align-self:flex-end}
+.member-profile-screen .member-profile-page{scrollbar-color:#e8dff1 transparent}
+
+/* Visual QA: remove dark islands still inherited from the pre-rebrand themes. */
+.app:not(.admin-app) .vg-profile-tabs,
+.member-profile-screen .vg-profile-tabs{
+ background:#f7f1fb;border:1px solid #f0e7f5;border-radius:17px;
+ padding:5px;box-shadow:none;gap:5px;
+}
+.app:not(.admin-app) .vg-profile-tabs button,
+.member-profile-screen .vg-profile-tabs button{
+ color:#8e7c9e;background:transparent;border:0;border-radius:13px;
+ min-height:40px;font-weight:700;
+}
+.app:not(.admin-app) .vg-profile-tabs button.active,
+.member-profile-screen .vg-profile-tabs button.active{
+ color:#f66e86;background:#fff;border-color:transparent;
+ box-shadow:0 3px 12px rgba(100,71,112,.08);
+}
+.app:not(.admin-app) .premium-page .perks{
+ background:transparent;border:0;box-shadow:none;
+ grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 0 3px;gap:10px;
+}
+.app:not(.admin-app) .premium-page .perks>div{
+ display:flex;align-items:flex-start;gap:8px;min-width:0;padding:12px 10px;
+ background:#fff;border:1px solid #efe7f1;border-radius:20px;
+ box-shadow:0 4px 12px rgba(98,69,108,.05);
+}
+.app:not(.admin-app) .premium-page .perks>div>span{
+ background:#fff0f5;border:0;color:#ef7891;
+}
+.app:not(.admin-app) .premium-page .perks h3{color:#41364b;font-weight:750}
+.app:not(.admin-app) .premium-page .perks p{color:#8e8297}
+.app:not(.admin-app) .premium-page .boost-box{
+ background:#fff;border:1px solid #eee5f2;color:#3a3046;box-shadow:0 4px 14px #9a70900d;
+}
+.app:not(.admin-app) .premium-page .boost-box :is(h3,p,small){color:#625269}
+.app:not(.admin-app) .premium-page .boost-box .icon-button{background:#f8f2fd;color:#9165af}
+.app:not(.admin-app) .premium-page .notice{
+ background:#fff9fb;border:1px solid #f6e8ef;color:#896d91;border-radius:19px;
+}
+.app:not(.admin-app) .premium-page .product-tabs button.active{color:#ef748e}
+.app:not(.admin-app) .premium-page .product-price{color:#f1768b}
+.app:not(.admin-app) .card-info .card-online{display:none}
+.app:not(.admin-app) .card-info .today-badge{display:none}
+.app:not(.admin-app) .card-info .bio{font-weight:500;opacity:.97;line-height:1.35}
+
+/* Own profile photos follow the approved non-numeric carousel language. */
+.app:not(.admin-app) .vp-photo-progress{position:absolute;z-index:6;top:11px;left:13px;right:13px;display:flex;gap:5px;pointer-events:none}
+.app:not(.admin-app) .vp-photo-progress span{height:4px;flex:1;min-width:0;background:rgba(255,255,255,.48);border-radius:99px;box-shadow:0 1px 2px #0001}
+.app:not(.admin-app) .vp-photo-progress span.active{background:#fff}
+.app:not(.admin-app) .vp-hero-top{top:26px}
+
+/* Trustworthy user-only popularity insight. Public appearance ratings deliberately avoided. */
+.app:not(.admin-app) .veyra-weekly-interest{margin:0 12px 10px;padding:13px 14px;border:1px solid #f6e7ef;background:linear-gradient(115deg,#fff5f8,#f7f2ff);border-radius:17px}
+.app:not(.admin-app) .veyra-weekly-heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;color:#eb7890}
+.app:not(.admin-app) .veyra-weekly-heading>span{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:750;color:#c8668a}
+.app:not(.admin-app) .veyra-weekly-heading>small{color:#93869d;font-size:10px}
+.app:not(.admin-app) .veyra-weekly-values{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.app:not(.admin-app) .veyra-weekly-values>div{display:flex;align-items:baseline;gap:8px;padding:8px 11px;background:#fff;border-radius:13px;border:1px solid #f8edf3}
+.app:not(.admin-app) .veyra-weekly-values strong{font-size:21px;font-variant-numeric:tabular-nums;color:#ef758b}
+.app:not(.admin-app) .veyra-weekly-values span{font-size:11px;color:#897a92}
+
+/* Brand-consistent first launch, welcome and mutual match — no remaining midnight screens. */
+.welcome.welcome-photo{
+ background:#fffdfd;color:#362d43;min-height:100dvh;
+}
+.welcome.welcome-photo::before{background-position:center 18%;opacity:.91}
+.welcome.welcome-photo::after{
+ background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.1) 23%,rgba(255,251,253,.66) 41%,#fffdfd 62%,#fffdfd 100%)!important;
+}
+.welcome.welcome-photo header{position:relative;z-index:3}
+.welcome.welcome-photo .brand.approved-brand{width:143px;height:49px}
+.welcome.welcome-photo .language-button{
+ color:#806b90;background:rgba(255,255,255,.88);border:1px solid #f1eaf3;
+ box-shadow:0 4px 17px #54406317;backdrop-filter:blur(10px);border-radius:999px;
+}
+.welcome.welcome-photo .welcome-location{
+ color:#665874;font-weight:700;background:#fffffff0;
+ border:1px solid #f2eaf3;border-radius:99px;align-self:start;padding:8px 12px;
+ box-shadow:0 4px 15px rgba(65,40,82,.08);
+}
+.welcome.welcome-photo .welcome-location svg{color:#f6788e}
+.welcome.welcome-photo .welcome-copy{margin-top:clamp(180px,30dvh,310px)}
+.welcome.welcome-photo .welcome-copy .eyebrow{color:#e4778c}
+.welcome.welcome-photo h1{color:#3c2d47;font-weight:760}
+.welcome.welcome-photo h1 em{
+ background:linear-gradient(110deg,#f57489,#fb9c9e);
+ background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+}
+.welcome.welcome-photo .welcome-copy>p{color:#796f85}
+.welcome.welcome-photo .welcome-promises>div{border-color:#eee4ec}
+.welcome.welcome-photo .welcome-promises span{
+ border:0;color:#e76b87;background:#ffedf2;
+}
+.welcome.welcome-photo .welcome-promises>div:nth-child(2) span{color:#8d6cbe;background:#f3edfc}
+.welcome.welcome-photo .welcome-promises small{color:#766d7e;font-weight:600}
+.welcome.welcome-photo .welcome-copy>.primary{
+ background:linear-gradient(115deg,#ff8999,#f8758b);color:#fff;
+ border:0;border-radius:22px;box-shadow:0 7px 25px #e66e8838;
+}
+.welcome.welcome-photo .welcome-links .button{
+ color:#8c6ea4;background:#f7f1fc;border:0;border-radius:17px;
+}
+.welcome.welcome-photo .adult-note{color:#857a8e}
+.welcome.welcome-photo .adult-note>strong{border-color:#f3cad2;background:#fff3f6;color:#ef7690}
+.welcome.welcome-photo .how-steps>div{background:#fff;color:#473b52;border:1px solid #f1eaf2}
+.welcome.welcome-photo .how-steps b{background:#ffedf2;border:0;color:#e7768c}
+.welcome.welcome-photo .how-steps p{color:#80758b}
+
+.match-scene{background:rgba(65,41,76,.55)!important;backdrop-filter:blur(12px)}
+.match-scene>.sheet{
+ background:linear-gradient(164deg,#fff9fc,#fff 48%,#fcf6ff)!important;
+ color:#392e47!important;border:0;box-shadow:0 8px 50px #301b4a35;
+}
+.match-scene .match-glow{
+ background:radial-gradient(ellipse at 50% 26%,#ffc6d64f,transparent 63%);
+}
+.match-scene .match-title h1{color:#3a2d45;font-weight:800}
+.match-scene .match-title h1 em{
+ background:linear-gradient(115deg,#fc708b,#ffa29b);
+ background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+}
+.match-scene .match-title p{color:#8b7e95}
+.match-scene .match-title>.artwork{filter:drop-shadow(0 8px 18px #fd9eae45)}
+.match-scene .match-people h3{color:#4d3c58}
+.match-scene .match-people img{
+ border:4px solid #fff;box-shadow:0 7px 24px #b984a24d;
+}
+.match-scene .match-heart{color:#f97891;filter:drop-shadow(0 5px 13px #ff8ca4a8)}
+.match-scene .match-heart svg{stroke:#fff}
+.match-scene .match-note{
+ background:linear-gradient(115deg,#ffedf3,#f1eafa);color:#826990;
+ border:1px solid #f6deee;box-shadow:0 4px 16px #91577510;border-radius:20px;
+}
+.match-scene .match-note svg{color:#f5748d;filter:none}
+.match-scene .match-sparks{z-index:0}
+.match-scene .match-sparks svg{color:#f8a0b9;fill:#f8b2c2}
+.match-scene .button.primary{
+ background:linear-gradient(115deg,#fa8599,#f4748b);color:#fff;border:0;
+ box-shadow:0 7px 22px #ef7c9330;
+}
+.match-scene .button.secondary{background:#f5effc;color:#8966aa;border:0}
+.match-scene .sheet>header button{color:#8e7a9c;background:#f4ecfa;border-radius:50%}
+@media(max-width:390px){
+ .welcome.welcome-photo .welcome-copy{margin-top:clamp(110px,25dvh,220px)}
+ .welcome.welcome-photo h1,.welcome.welcome-photo h1 em{font-size:35px}
+ .match-scene>.sheet{padding-top:56px}
+}
+
+/* Account and privacy: readable light surfaces with functional accessible switches. */
+.app:not(.admin-app) .account-page .account-panel{
+ background:#fff;border:1px solid #eee7f1;border-radius:23px;
+ box-shadow:0 6px 22px rgba(70,48,79,.05);color:#3e334a;
+}
+.app:not(.admin-app) .account-page .account-panel h2{font-size:15px;color:#43334d;font-weight:750}
+.app:not(.admin-app) .account-page .setting-row{
+ color:#4a3c57;border-color:#f1e9f3;font-size:13px;min-height:54px;
+}
+.app:not(.admin-app) .account-page .setting-row small{color:#898092}
+.app:not(.admin-app) .account-page .account-icon,
+.app:not(.admin-app) .account-page .menu-symbol{
+ background:#f5effc;border:0;color:#946bb9;border-radius:13px;
+ box-shadow:none;
+}
+.app:not(.admin-app) .account-page .setting-row .text-button{
+ background:#f8f2fd;color:#8367a2;border-radius:11px;padding:8px 10px;
+}
+.app:not(.admin-app) .account-page .language-setting select{
+ background:#f9f5fc;color:#493954;border:1px solid #efe5f3;border-radius:15px;
+}
+.app:not(.admin-app) input[role="switch"]{
+ appearance:none;width:43px;min-width:43px;height:26px;min-height:26px;padding:0;
+ border-radius:20px;border:1px solid #e7dfe9;background:#e9e4ef;box-shadow:none;
+ transition:background-color .19s ease,border-color .19s ease;
+}
+.app:not(.admin-app) input[role="switch"]::before{
+ left:3px;top:3px;height:18px;width:18px;background:#fff;
+ box-shadow:0 1px 4px rgba(83,64,94,.17);
+}
+.app:not(.admin-app) input[role="switch"]:checked{
+ background:#f47a91;border-color:#f47a91;box-shadow:none;
+}
+.app:not(.admin-app) input[role="switch"]:checked::before{transform:translateX(17px)}
+.app:not(.admin-app) .support-faq details{border:0;border-bottom:1px solid #f2eaf3;border-radius:0;box-shadow:none}
+.app:not(.admin-app) .support-faq summary{color:#4c3a57}
+.app:not(.admin-app) .ticket-reply{border-color:#f17b92;background:#fff4f8;color:#715c79}
+.app:not(.admin-app) .referral-history{border-color:#eee6f2;color:#52435e}
+.legal{background:#fffdfd;color:#42374d}
+.legal :is(h1,h2){color:#3f304a}
+.legal p{color:#786c84}
+.legal a{color:#ef748a}
+
+/* Coral Registration v4 — consistent light onboarding from first tap to moderation. */
+.app:not(.admin-app) .registration{
+ max-width:520px;margin:0 auto;padding:12px 2px 32px;
+ color:#3b3046;
+}
+.app:not(.admin-app) .registration-meta>span{
+ color:#ed728c;font-size:12px;letter-spacing:.015em;font-weight:750;
+}
+.app:not(.admin-app) .registration-meta>small{color:#988da3;font-size:11px}
+.app:not(.admin-app) .registration-progress{
+ gap:6px;margin:13px 0 26px;
+}
+.app:not(.admin-app) .registration-progress span{
+ height:5px;border-radius:99px;background:#f2ecf5;
+}
+.app:not(.admin-app) .registration-progress span.complete{
+ background:linear-gradient(115deg,#ffa1b0,#fb788e);box-shadow:none;
+}
+.app:not(.admin-app) .registration-welcome{
+ display:flex;align-items:center;gap:6px;color:#ee748c;
+ font-weight:750;font-size:13px;margin:8px 0 14px;
+}
+.app:not(.admin-app) .registration-heading{
+ display:flex;align-items:center;min-height:80px;gap:12px;margin-bottom:25px;
+}
+.app:not(.admin-app) .registration-heading h1{
+ font-size:clamp(27px,7.5vw,32px);font-weight:780;line-height:1.12;
+ color:#392e44;letter-spacing:-.047em;margin-bottom:10px;
+}
+.app:not(.admin-app) .registration-heading p{
+ color:#817589;font-size:13px;line-height:1.55;
+}
+.app:not(.admin-app) .registration-heading .artwork{
+ filter:drop-shadow(0 5px 12px #dfbed451);
+}
+.app:not(.admin-app) .registration .field>span,
+.app:not(.admin-app) .registration .choice-group legend{
+ color:#655a71;font-weight:700;font-size:12px;
+}
+.app:not(.admin-app) .registration .field{
+ display:block;margin:14px 0 19px;
+}
+.app:not(.admin-app) .registration :is(input:not([type=checkbox]):not([type=range]),textarea){
+ width:100%;background:#fff;color:#40344c;border:1px solid #ece3f0;
+ border-radius:17px;min-height:47px;box-shadow:0 3px 11px rgba(67,44,78,.035);
+}
+.app:not(.admin-app) .registration :is(input,textarea):focus{
+ outline:2px solid #f8c2d3;outline-offset:1px;border-color:#f3aabf;
+}
+.app:not(.admin-app) .registration textarea{resize:vertical;line-height:1.5}
+.app:not(.admin-app) .registration .field-help{
+ color:#988ca1;font-size:11px;line-height:1.5;
+}
+.app:not(.admin-app) .registration .choice-group{margin:25px 0 0}
+.app:not(.admin-app) .registration .choice-row{gap:8px}
+.app:not(.admin-app) .registration .choice{
+ min-height:53px;background:#fff;color:#6f617b;border:1px solid #ede6f0;
+ border-radius:17px;box-shadow:0 4px 12px #77557a0b;
+ font-size:13px;font-weight:680;
+ transition:background-color .19s ease,border-color .19s ease,transform .19s ease;
+}
+.app:not(.admin-app) .registration .choice.active{
+ color:#eb7189;background:linear-gradient(120deg,#fff0f4,#fcf5ff);
+ border-color:#ffc9d5;box-shadow:0 0 0 1px #ffedf1 inset;
+}
+.app:not(.admin-app) .registration .choice-emoji{color:#f07593}
+.app:not(.admin-app) .registration .choice svg{flex-shrink:0}
+.app:not(.admin-app) .registration .registration-private{
+ display:flex;gap:9px;align-items:flex-start;background:#f8f4fd;
+ border:1px solid #f0e8f5;border-radius:16px;
+ padding:12px 13px;margin:18px 0 12px;
+ color:#85778e;font-size:11px;line-height:1.55;
+}
+.app:not(.admin-app) .registration .registration-private>svg{
+ color:#ac80c8;flex-shrink:0;margin-top:1px;
+}
+.app:not(.admin-app) .registration .or-divider{color:#968b9e;margin:20px 0}
+.app:not(.admin-app) .registration .or-divider::before,
+.app:not(.admin-app) .registration .or-divider::after{background:#eee5f1}
+.app:not(.admin-app) .registration .city-search{
+ display:flex;align-items:center;background:#fff;border:1px solid #eee5f1;
+ border-radius:18px;overflow:hidden;box-shadow:0 3px 13px #9b769a0b;
+}
+.app:not(.admin-app) .registration .city-search input{
+ background:transparent;border:0;box-shadow:none;min-height:50px;
+}
+.app:not(.admin-app) .registration .city-search>.icon-button{
+ flex:0 0 46px;color:#9972bc;background:#f8f3fc;border:0;
+ height:40px;width:40px;min-height:40px;border-radius:13px;margin:4px;
+}
+.app:not(.admin-app) .registration .place-results button{
+ background:#fff;color:#61546d;border:1px solid #eee7f1;border-radius:17px;
+ padding:13px 14px;box-shadow:0 3px 12px #7352790a;
+}
+.app:not(.admin-app) .registration .place-results button svg{color:#ae81c9}
+.app:not(.admin-app) .registration .selected-city{
+ background:linear-gradient(115deg,#fff0f4,#f7f1ff);
+ border:1px solid #f6dfec;border-radius:20px;color:#463651;
+}
+.app:not(.admin-app) .registration .selected-city>svg{color:#ef7890}
+.app:not(.admin-app) .registration .selected-city span{color:#88768e}
+.app:not(.admin-app) .registration .range-card{
+ background:#fff;border:1px solid #eee6f1;border-radius:22px;
+ padding:19px;box-shadow:0 5px 17px #70517309;
+}
+.app:not(.admin-app) .registration .range-card>div:first-child{
+ color:#655673;font-size:13px;font-weight:650;
+}
+.app:not(.admin-app) .registration .range-card strong{
+ color:#ed768d;font-variant-numeric:tabular-nums;
+}
+.app:not(.admin-app) .registration .range-card input[type="range"]{
+ accent-color:#fa8299;background:#f0e6f1;box-shadow:none;
+}
+.app:not(.admin-app) .registration .range-card input[type="range"]::-webkit-slider-thumb{
+ background:#f67690;border:3px solid #fff;box-shadow:0 2px 10px #ed759575;
+}
+.app:not(.admin-app) .registration .range-card input[type="range"]::-moz-range-thumb{
+ background:#f67690;border:3px solid #fff;
+}
+.app:not(.admin-app) .registration .dual-track{
+ background:linear-gradient(to right,#f2e7f1 var(--low),#f47c98 var(--low),#f47c98 var(--high),#f2e7f1 var(--high));
+}
+.app:not(.admin-app) .registration .dual-range input[type=range]{background:transparent}
+.app:not(.admin-app) .registration .interest-heading>strong{color:#655674}
+.app:not(.admin-app) .registration .interest-heading>span{color:#ec748e;font-weight:750}
+.app:not(.admin-app) .registration .interest-choices{gap:7px}
+.app:not(.admin-app) .registration .interest-choices button{
+ background:#fff;color:#7d6d89;border:1px solid #ede5f0;
+ border-radius:18px;min-height:41px;font-size:12px;font-weight:650;
+ box-shadow:0 2px 12px #744f760a;
+ transition:background-color .16s,border-color .16s,transform .16s;
+}
+.app:not(.admin-app) .registration .interest-choices button svg{color:#9673c0}
+.app:not(.admin-app) .registration .interest-choices button.active{
+ background:linear-gradient(115deg,#ffedf2,#f6f0ff);
+ color:#ea718c;border-color:#ffc2d0;
+ box-shadow:0 0 0 1px #fff5f7 inset;
+}
+.app:not(.admin-app) .registration .interest-choices button.active svg{color:#f07591}
+.app:not(.admin-app) .registration .photo-guidance{
+ background:#f8f3fc;border:1px solid #f0e7f5;
+ color:#776986;border-radius:16px;padding:13px 15px;font-size:12px;
+}
+.app:not(.admin-app) .registration .sortable-photos .photo-upload{
+ background:linear-gradient(135deg,#fff1f5,#f5eefd);
+ border:2px dashed #f2acc3;color:#dd718e;border-radius:20px;
+}
+.app:not(.admin-app) .registration .sortable-photos .photo-tile{
+ border-radius:20px;border:1px solid #eee3ef;
+}
+.app:not(.admin-app) .registration .photo-main{
+ background:#f67391;color:#fff;box-shadow:0 3px 13px #ef6c8961;
+}
+.app:not(.admin-app) .registration .photo-empty{
+ background:#faf7fd;border:1px dashed #eee4f1;color:#aaa0b3;
+ border-radius:20px;
+}
+.app:not(.admin-app) .registration .photo-count{color:#96889f}
+.app:not(.admin-app) .registration .photo-count strong{color:#ef758e}
+.app:not(.admin-app) .registration .photo-drag-hint{color:#978a9e}
+.app:not(.admin-app) .registration .registration-consent{color:#75697f}
+.app:not(.admin-app) .registration .registration-consent a{
+ color:#ed758c;text-decoration:underline;text-underline-offset:2px;
+}
+.app:not(.admin-app) .registration .registration-error{
+ background:#fff0f4;border:1px solid #ffb9c8;color:#bc5879;
+ border-radius:17px;padding:13px 15px;
+}
+.app:not(.admin-app) .registration .registration-footer{margin:28px 0 0;gap:9px}
+.app:not(.admin-app) .registration .registration-footer>.primary{
+ min-height:55px;border-radius:19px;font-weight:750;
+ background:linear-gradient(115deg,#ff8e9d,#f7738b);color:#fff;
+ border:0;box-shadow:0 5px 19px #ed708831;
+}
+.app:not(.admin-app) .registration .registration-footer>.secondary{
+ color:#9270b2;background:#f6effc;border:0;border-radius:17px;box-shadow:none;
+}
+.app:not(.admin-app) .registration .skip-interests{color:#9a75b4}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .registration .registration-body{animation:none!important}
+}
+
+/* Courtship is a graceful third photo-action icon, never a floating action button. */
+.member-profile-screen .member-profile-inline-actions{flex-wrap:wrap;gap:11px;align-items:center}
+.member-profile-screen .member-profile-inline-actions>.vc-courtship,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-action{display:contents}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-start,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state{
+ display:flex;align-items:center;justify-content:center;
+ width:58px;min-width:58px;height:52px;min-height:52px;
+ padding:0;gap:0;border:0;border-radius:17px;margin:0;
+ color:#e9768e;background:#ffedf2;font-size:0;line-height:0;
+ box-shadow:0 3px 13px #aa648a16;overflow:hidden;
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state.is-active{
+ color:#3fae90;background:#e9f9f2
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state.is-payment,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state:not(.is-active){
+ color:#8d6fba;background:#f2eefa
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-start svg:first-child,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state svg:first-child{width:23px;height:23px;flex-shrink:0}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-start svg:not(:first-child){display:none}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-stop{
+ display:grid;place-items:center;min-width:43px;height:45px;padding:5px;
+ font-size:10px;color:#907b9e;background:#f5f0fa;border:0;
+ border-radius:15px;margin:0
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-public,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-error{
+ flex:0 0 100%;width:100%;order:15;margin:8px 0 0;text-align:left
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-public>header strong{color:#594362}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-person{color:#946dab;background:#f5edfb;border:0}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-public>small{color:#93859c}
+.member-profile-screen .member-profile-manage{
+ background:#fff;border:1px solid #eee7f1;color:#483b54;
+ border-radius:20px;box-shadow:0 5px 18px rgba(81,55,88,.05);
+}
+.member-profile-screen .member-profile-manage :is(select,textarea){
+ color:#433450;background:#fdfafd;border:1px solid #ede4f0;border-radius:15px
+}
+.member-profile-screen .member-profile-manage-actions button{
+ color:#8969a0;background:#f6effb;border:0;border-radius:14px
+}
+.member-profile-screen .member-profile-manage-actions button:last-child{
+ color:#f0768d;background:#ffeff4
+}
+.member-profile-screen .member-profile-compose label{color:#82718d}
+.member-profile-screen .member-profile-compose textarea{color:#382d43;background:#fff;border:1px solid #eee6f0;border-radius:17px}
+.member-profile-screen .member-profile-compose small{color:#998c9f}
+.member-profile-screen .member-profile-goal{background:rgba(255,255,255,.22);border:1px solid #fff7;color:#fff}
+.member-profile-screen .member-profile-test{background:#fff5fa;border:1px solid #f7e6ed;color:#9c6c89}
+.member-profile-screen .member-profile-disclaimer{color:#93869c}
+
+/* Moderation, review and identity gate: same brand as registration. */
+.app:not(.admin-app) .moderation-page{
+ width:min(100%,500px);margin:0 auto;display:flex;flex-direction:column;
+ align-items:stretch;gap:10px;min-height:calc(100dvh - 145px);
+ padding:16px 2px 33px;color:#41354e;
+}
+.app:not(.admin-app) .moderation-page>.artwork{
+ width:145px;height:145px;align-self:center;
+ filter:drop-shadow(0 12px 22px rgba(251,141,174,.22));
+}
+.app:not(.admin-app) .moderation-page>h1{
+ text-align:center;margin:8px 0 0;font-size:29px;
+ font-weight:800;letter-spacing:-.05em;color:#41334b;
+}
+.app:not(.admin-app) .moderation-page>.muted{
+ color:#817589;font-size:13px;line-height:1.65;
+ margin:0 0 6px;text-align:center;
+}
+.app:not(.admin-app) .moderation-page>.notice{
+ border:1px solid #f8deec;background:#fff4f8;
+ color:#be718b;border-radius:17px;padding:13px 15px;
+}
+.app:not(.admin-app) .moderation-page .moderation-preview{
+ border-radius:22px;background:#fff;border:1px solid #eee6f1;
+ padding:18px 19px;margin:12px 0;box-shadow:0 6px 18px #74537c0d;
+}
+.app:not(.admin-app) .moderation-preview h2{color:#4a3a54;font-weight:750;margin:0 0 8px}
+.app:not(.admin-app) .moderation-preview p{
+ color:#897993;font-size:12px;line-height:1.6;
+}
+.app:not(.admin-app) .moderation-preview p svg{color:#f08095}
+.app:not(.admin-app) .moderation-page .photo-manager{margin-bottom:12px}
+.app:not(.admin-app) .moderation-page>.button{
+ min-height:50px;border-radius:18px;font-weight:750;
+}
+.app:not(.admin-app) .moderation-page>.button.primary{
+ background:linear-gradient(115deg,#ff8c9f,#f77a90);
+ color:#fff;border:0;box-shadow:0 7px 22px #ed789431;
+}
+.app:not(.admin-app) .moderation-page>.button.secondary{
+ color:#8e6bad;background:#f7f0fc;border:0;
+}
+.app:not(.admin-app) .moderation-page>.text-button{color:#9970a9;margin:3px auto 0}
+.app:not(.admin-app) .moderation-page>.check{color:#807287;font-size:12px;line-height:1.6}
+.app:not(.admin-app) .moderation-page>.check a{color:#ec728c;text-decoration:underline}
+
+/* Main moderation console shares the new brand without narrowing desktop screens. */
+.app.admin-app{
+ max-width:none;width:100%;min-height:100dvh;background:#fffdfd;color:#40344b;
+}
+.app.admin-app .topbar{
+ background:#fff;border-bottom:1px solid #f0e7f0;
+ justify-content:space-between;min-height:68px;padding:14px clamp(16px,2vw,31px);
+}
+.app.admin-app .topbar .brand.approved-brand{margin:0;width:136px;height:47px}
+.app.admin-app .admin-label{color:#876d9e;background:#f5effa;border:0;border-radius:20px;padding:9px 13px}
+.app.admin-app .admin-shell{max-width:1400px;margin:0 auto;gap:18px;color:#473b50}
+.app.admin-app .admin-shell aside{background:#fff;border:1px solid #eee7f1;border-radius:20px;box-shadow:0 6px 22px #6b427410}
+.app.admin-app .admin-shell aside button{color:#796988;background:#f9f6fc;border-radius:14px;padding:11px 13px}
+.app.admin-app .admin-shell aside button.active{color:#e97791;background:#fff0f4;box-shadow:inset 0 0 0 1px #ffe0e7}
+.app.admin-app .section-head h1,.app.admin-app h2,.app.admin-app h3{color:#43324d}
+.app.admin-app .metric,.app.admin-app .review-card,.app.admin-app .account-panel{
+ color:#41354b;background:#fff;border:1px solid #eee7f1;border-radius:21px;
+ box-shadow:0 6px 18px #70527d0b;
+}
+.app.admin-app .metric strong{color:#ec788f}
+.app.admin-app .review-card p,.app.admin-app .metric span{color:#8c7b97}
+.app.admin-app :is(input:not([type=checkbox]),textarea,select){
+ color:#42364d;background:#fbf9fd;border:1px solid #eee5f1;border-radius:15px;
+}
+.app.admin-app .button.primary{
+ background:linear-gradient(115deg,#ff8b9c,#f4788e);color:#fff;border:0;
+}
+.app.admin-app .button.secondary{background:#f5effb;color:#8a6cac;border:0}
+.app.admin-app .sheet{background:#fff;color:#473b50}
+.app.admin-app .scrim{background:rgba(54,32,65,.36);backdrop-filter:blur(6px)}
+
+/* Real activity / notifications center: native-feeling summary, no fake news or data. */
+.app:not(.admin-app) .notifications-link{position:relative}
+.veyra-notice-modal .sheet{background:#fff;color:#382b44;border-color:#eee6f1}
+.veyra-notice-center{display:flex;flex-direction:column;gap:11px;padding:5px 0 7px}
+.veyra-notice-intro{font-size:12px;line-height:1.6;color:#8a7d96;margin:0 1px 6px}
+.veyra-notice-item{
+ display:flex;align-items:center;gap:12px;text-align:left;width:100%;
+ padding:13px;border:1px solid #f1e8f2;background:#fff;
+ border-radius:19px;box-shadow:0 4px 14px rgba(81,49,94,.045);
+ color:#584365;min-height:77px;
+}
+.veyra-notice-item:focus-visible{outline:2px solid #eb9fbe;outline-offset:2px}
+.veyra-notice-item .veyra-notice-icon{
+ display:grid;place-items:center;flex-shrink:0;height:48px;width:48px;
+ border-radius:16px;
+}
+.veyra-notice-icon.is-like{color:#f4718a;background:#ffebf0}
+.veyra-notice-icon.is-chat{color:#9271be;background:#f1ecfd}
+.veyra-notice-icon.is-settings{color:#947da9;background:#f7f2fb}
+.veyra-notice-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.veyra-notice-copy strong{color:#44334f;font-size:14px;font-weight:750}
+.veyra-notice-copy small{color:#95899d;font-size:11px;line-height:1.3}
+.veyra-notice-item>svg{color:#a28eaf}
+.veyra-notice-count{
+ display:grid;place-items:center;min-width:25px;height:25px;padding:0 6px;
+ border-radius:99px;background:#ff8498;color:#fff;font-size:11px;
+ font-variant-numeric:tabular-nums;flex-shrink:0;
+}
+.veyra-notice-item.is-settings{background:#faf7fd;box-shadow:none}
+
+/* Profile editor — no legacy black controls after the original five-step onboarding. */
+.app:not(.admin-app) .veyra-subpage{max-width:560px;margin:auto}
+.app:not(.admin-app) .veyra-subpage>.back{
+ display:inline-flex;align-items:center;gap:7px;min-height:41px;
+ margin:0 0 9px;padding:8px 13px;border:0;border-radius:14px;
+ color:#916fb4;background:#f7f1fc;font-size:12px;font-weight:750;
+}
+.app:not(.admin-app) .form-page{
+ padding:7px 0 30px;color:#43374d;
+}
+.app:not(.admin-app) .form-page h1{
+ color:#3b2e46;font-weight:800;font-size:clamp(25px,7.2vw,32px);
+ letter-spacing:-.048em;margin:0 0 7px;
+}
+.app:not(.admin-app) .form-page .page-subtitle{
+ color:#81738d;font-size:13px;line-height:1.55;margin-bottom:13px;
+}
+.app:not(.admin-app) .form-page .onboarding-progress{
+ display:flex;align-items:center;gap:7px;margin:17px 0 25px;
+ background:linear-gradient(118deg,#fff3f7,#f7f2fd);
+ border:1px solid #f5e7f1;border-radius:18px;
+ padding:14px 12px;min-height:51px;
+}
+.app:not(.admin-app) .form-page .onboarding-progress span{
+ flex-shrink:0;width:10px;height:10px;background:#d9cce3;box-shadow:none;
+}
+.app:not(.admin-app) .form-page .onboarding-progress span.active{
+ background:#f47790;box-shadow:0 0 0 4px #ffd5df;
+}
+.app:not(.admin-app) .form-page .onboarding-progress i{
+ background:#ecdaed;flex:0 0 15px;width:auto;height:2px;
+}
+.app:not(.admin-app) .form-page .onboarding-progress small{
+ color:#8b7799;font-size:10px;font-weight:700;letter-spacing:0;
+}
+.app:not(.admin-app) .form-page form{display:flex;flex-direction:column;gap:4px}
+.app:not(.admin-app) .form-page .field{
+ display:block;min-width:0;margin:9px 0 14px;
+}
+.app:not(.admin-app) .form-page .field>span{
+ display:block;color:#655773;font-weight:750;font-size:12px;margin-bottom:8px;
+}
+.app:not(.admin-app) .form-page :is(input:not([type=checkbox]),select,textarea){
+ min-height:49px;width:100%;background:#fff;border:1px solid #eee5f1;
+ color:#43354e;border-radius:17px;padding:12px 14px;font-size:14px;
+ box-shadow:0 3px 13px rgba(79,49,98,.035);
+}
+.app:not(.admin-app) .form-page textarea{
+ min-height:106px;resize:vertical;line-height:1.55;
+}
+.app:not(.admin-app) .form-page :is(input,select,textarea):focus{
+ outline:2px solid #ffc5d4;outline-offset:1px;border-color:#ecabc5;
+}
+.app:not(.admin-app) .form-page .columns{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+.app:not(.admin-app) .form-page .chips{display:flex;gap:8px;flex-wrap:wrap}
+.app:not(.admin-app) .form-page .chip{
+ background:#fff;color:#7f6d8c;border:1px solid #eee6f1;
+ border-radius:17px;min-height:40px;padding:9px 12px;
+ font-size:12px;font-weight:700;box-shadow:0 3px 12px #6b49760a;
+ transition:background-color .17s,border-color .17s,color .17s;
+}
+.app:not(.admin-app) .form-page .chip.active{
+ color:#ed6e88;background:#fff0f4;border-color:#ffbcd1;
+ box-shadow:inset 0 0 0 1px #fff4f7;
+}
+.app:not(.admin-app) .form-page .location-box{
+ border:1px solid #eee6f1;background:linear-gradient(130deg,#fff,#fcf9fd);
+ box-shadow:0 5px 18px #653e760a;border-radius:22px;
+ padding:15px;margin:5px 0 15px;
+}
+.app:not(.admin-app) .form-page .location-box>.muted{color:#7c6e86;font-weight:750;font-size:12px}
+.app:not(.admin-app) .form-page .location-box>p{
+ color:#9a709e;display:flex;align-items:center;gap:7px;margin:9px 0;
+ font-size:12px;
+}
+.app:not(.admin-app) .form-page .location-box>.inline{
+ display:flex;align-items:center;gap:8px;margin:11px 0;
+}
+.app:not(.admin-app) .form-page .location-box>.inline input{flex:1;min-width:0}
+.app:not(.admin-app) .form-page .location-box .icon-button{
+ background:#f3edfc;color:#9471b7;border:0;border-radius:14px;
+ width:47px;height:47px;flex-shrink:0;box-shadow:none;
+}
+.app:not(.admin-app) .form-page .location-box .place{
+ display:block;text-align:left;background:#fff;color:#675572;
+ border:1px solid #f0e6f2;width:100%;padding:12px 14px;
+ border-radius:13px;margin:5px 0;font-size:12px;
+}
+.app:not(.admin-app) .form-page .location-box>.text-button{
+ display:inline-flex;align-items:center;gap:7px;color:#e27592;
+ background:#fff0f5;border:0;border-radius:13px;padding:10px 12px;
+ font-size:12px;font-weight:700;
+}
+.app:not(.admin-app) .form-page .section-label{
+ display:flex;align-items:center;gap:9px;margin:11px 0;color:#6b5a79;font-size:16px;
+}
+.app:not(.admin-app) .form-page .check{
+ display:flex;align-items:flex-start;gap:9px;color:#807186;
+ font-size:11px;line-height:1.55;margin:11px 0;
+}
+.app:not(.admin-app) .form-page .check input{accent-color:#f67891}
+.app:not(.admin-app) .form-page .check a{color:#e86f88;text-decoration:underline}
+.app:not(.admin-app) .form-page .button.primary.full{
+ min-height:54px;color:#fff;background:linear-gradient(115deg,#ff8c9d,#f67990);
+ border:0;border-radius:19px;font-weight:750;
+ box-shadow:0 7px 22px #ee78972c;
+}
+@media(max-width:350px){
+ .app:not(.admin-app) .form-page .columns{grid-template-columns:1fr;gap:0}
+ .app:not(.admin-app) .form-page .onboarding-progress small{font-size:9px}
+}
+
+/* Completion pass: pastel loading, offline, toast and empty states. */
+.app:not(.admin-app) .boot-screen{
+ min-height:calc(100dvh - env(safe-area-inset-top,0px));
+ width:100%;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:17px;text-align:center;padding:34px 24px;
+ background:radial-gradient(ellipse at 50% 43%,#ffe6ed 0%,#fcf4ff 30%,#fffdfd 65%);
+ color:#44344f;
+}
+.app:not(.admin-app) .boot-screen .brand.approved-brand.large{
+ width:min(260px,70vw);height:91px;margin:0;padding:0;
+ filter:drop-shadow(0 8px 22px rgba(246,130,155,.12));
+}
+.app:not(.admin-app) .boot-screen h1{
+ color:#3e304a;font-size:24px;letter-spacing:-.04em;margin:10px 0 3px;
+}
+.app:not(.admin-app) .boot-screen>p{
+ max-width:310px;color:#877990;font-size:13px;line-height:1.55;
+}
+.app:not(.admin-app) .boot-screen .button.primary{
+ background:linear-gradient(110deg,#ff8c9e,#f5758d);color:#fff;
+ border:0;min-height:49px;padding:12px 22px;border-radius:18px;
+ box-shadow:0 6px 20px #ee7b9533;
+}
+.app:not(.admin-app) .loading{
+ display:flex;align-items:center;justify-content:center;
+ color:#9a7eab;font-size:12px;gap:10px;
+}
+.app:not(.admin-app) .loading svg{
+ color:#f27890;stroke-width:2.4;
+}
+.app:not(.admin-app) .empty.veyra-empty-feature{
+ padding:31px 17px 25px;border-radius:24px;
+ background:linear-gradient(150deg,#fff8fa,#faf6ff);
+ border:1px solid #f2eaf4;color:#44334f;
+}
+.app:not(.admin-app) .empty.veyra-empty-feature .artwork{
+ filter:drop-shadow(0 8px 17px rgba(237,137,183,.16));
+}
+.app:not(.admin-app) .empty.veyra-empty-feature h2{
+ color:#4b3856;font-size:19px;font-weight:780;
+}
+.app:not(.admin-app) .empty.veyra-empty-feature p{
+ color:#95849e;font-size:12px;line-height:1.65;
+}
+.app:not(.admin-app) .veyra-skeleton{
+ width:100%;margin:5px auto 20px;gap:10px;
+}
+.app:not(.admin-app) .veyra-skeleton [class^="veyra-skeleton-"]{
+ background:linear-gradient(105deg,#f2ebf5 16%,#fff8fb 40%,#f2ebf5 67%)!important;
+ background-size:240% 100%!important;
+ animation:veyra-coral-skeleton 1.85s ease-in-out infinite!important;
+ border-color:#f0e7f3!important;
+}
+.app:not(.admin-app) .veyra-skeleton .veyra-skeleton-lines{
+ background:none!important;animation:none!important;
+}
+.app:not(.admin-app) .veyra-skeleton .veyra-skeleton-item{
+ background:#fff!important;border:1px solid #efe7f1!important;
+ box-shadow:0 4px 17px #78588b09;
+}
+.app:not(.admin-app) .veyra-skeleton .veyra-skeleton-hero{
+ border:1px solid #efe7f1!important;
+ border-radius:28px;
+}
+.app:not(.admin-app) .veyra-skeleton-reactions span{
+ height:47px;width:47px;border-radius:50%;box-shadow:0 4px 15px #74597b12;
+}
+.app:not(.admin-app) .toast{
+ color:#594768;background:#fff;border:1px solid #f3e6ee;
+ box-shadow:0 8px 29px #67417323;border-radius:18px;
+ padding:13px 14px;backdrop-filter:blur(12px);
+}
+.app:not(.admin-app) .toast>svg{color:#3db88a}
+.app:not(.admin-app) .toast button{
+ color:#a18dac;background:#f6f1f9;border:0;border-radius:50%;
+}
+@keyframes veyra-coral-skeleton{
+ 0%{background-position:110% 0}
+ 100%{background-position:-110% 0}
+}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .veyra-skeleton [class^="veyra-skeleton-"]{
+  animation:none!important;background:#f3ecf5!important
+ }
+ .app:not(.admin-app) .boot-screen .brand-animated{animation:none!important}
+}

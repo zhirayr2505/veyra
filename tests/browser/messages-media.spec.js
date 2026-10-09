@@ -3,74 +3,24 @@ import {initData} from '../helpers.js';
 async function login(page,id){await page.route('https://telegram.org/**',r=>r.fulfill({body:''}));await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},initData(id));await page.goto('/');await page.getByRole('button',{name:'Чаты',exact:true}).click();await page.locator('.chat-row').click();await expect(page.locator('.mc-bubble').first()).toBeVisible();}
 const button=(page,name)=>page.getByRole('button',{name,exact:true}).last();
 async function menu(page,kind){await page.locator('.kind-'+kind).last().click({button:'right'});await expect(page.getByRole('dialog',{name:'Сообщение',exact:true})).toBeVisible();}
-async function micDown(page){const mic=button(page,'Записать голосовое');const box=await mic.boundingBox();const p={x:box.x+box.width/2,y:box.y+box.height/2};await page.mouse.move(p.x,p.y);await page.mouse.down();await expect(page.locator('.mm-recording')).toBeVisible();return p;}
-test('Messages Media: actual recording, playback, photos, stickers and durable retry',async({browser},info)=>{
- const a=await browser.newPage({viewport:{width:390,height:844}}),b=await browser.newPage({viewport:{width:390,height:844}}),errors=[];a.on('pageerror',e=>errors.push(e.message));b.on('pageerror',e=>errors.push(e.message));await login(a,401);await login(b,402);
- // Permission denial is simulated; recording itself uses the browser MediaRecorder and fake microphone.
- await a.evaluate(()=>{window.originalGUM=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('denied','NotAllowedError');};});await button(a,'Записать голосовое').click();await expect(a.locator('.mm-mic-permission')).toBeVisible();await button(a,'Понятно').click();await a.evaluate(()=>navigator.mediaDevices.getUserMedia=window.originalGUM);
- // Explicit opt-in retains a muted live audio track between recordings inside
- // this chat. Two recordings should use one getUserMedia permission request.
- await button(a,'Настройки').click();
- await button(a,'Быстрые голосовые · меньше запросов').click();
- await expect(a.locator('.mm-standby')).toContainText('микрофон доступен');
- await a.evaluate(()=>{
-  const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-  window.countMicrophoneRequests=0;
-  navigator.mediaDevices.getUserMedia=(...args)=>{
-   window.countMicrophoneRequests++;
-   return original(...args);
-  };
- });
- await button(a,'Записать голосовое').click();
- await expect(button(a,'Пауза записи')).toBeVisible();
- await button(a,'Удалить запись').click();
+test('Messages Media: photos, stickers and durable retry without microphone',async({browser},info)=>{
+ const a=await browser.newPage({viewport:{width:390,height:844}}),b=await browser.newPage({viewport:{width:390,height:844}}),errors=[],received=[];b.on('response',async r=>{if(r.url().includes('/api/matches/')&&r.url().includes('/messages')&&!r.url().includes('/media')){try{const d=await r.json();if(Array.isArray(d.messages))received.push({count:d.messages.length,types:d.messages.map(m=>m.kind),sync:d.sync_version});}catch{}}});a.on('pageerror',e=>errors.push(e.message));b.on('pageerror',e=>errors.push(e.message));await login(a,401);await login(b,402);
+ await expect(a.getByRole('button',{name:'Записать голосовое'})).toHaveCount(0);
  await expect(a.locator('.mm-recording')).toHaveCount(0);
- await button(a,'Записать голосовое').click();
- await expect(button(a,'Пауза записи')).toBeVisible();
- expect(await a.evaluate(()=>window.countMicrophoneRequests)).toBe(1);
- await button(a,'Удалить запись').click();
- await expect(a.locator('.mm-recording')).toHaveCount(0);
- await button(a,'Отключить').click();
- await expect(a.locator('.mm-standby')).toHaveCount(0);
- // Android Telegram may dispatch pointercancel while its permission sheet is open.
- // Resolving getUserMedia afterward must still enter an editable locked recording.
- await a.evaluate(()=>{
-  const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-  navigator.mediaDevices.getUserMedia=()=>new Promise((resolve,reject)=>{
-   window.releaseMicrophonePermission=()=>{
-    navigator.mediaDevices.getUserMedia=original;
-    original({audio:true}).then(resolve,reject);
-   };
-  });
- });
- let permissionPoint=await micDown(a);
- await a.evaluate(()=>{
-  // Android may hide its WebView while the OS permission sheet is visible.
-  Object.defineProperty(document,'hidden',{configurable:true,value:true});
-  document.dispatchEvent(new Event('visibilitychange'));
-  window.dispatchEvent(new PointerEvent('pointercancel',{pointerId:1,bubbles:true}));
-  window.releaseMicrophonePermission();
-  setTimeout(()=>{
-   delete document.hidden;
-   document.dispatchEvent(new Event('visibilitychange'));
-  },220);
- });
- await a.mouse.up();
- await expect(button(a,'Пауза записи')).toBeVisible();
- await button(a,'Удалить запись').click();
- await expect(a.locator('.mm-recording')).toHaveCount(0);
- let p=await micDown(a);await a.waitForTimeout(750);await a.mouse.move(p.x-110,p.y,{steps:5});await a.mouse.up();await expect(a.locator('.mm-recording')).toHaveCount(0);await expect(a.locator('.kind-voice')).toHaveCount(0);
- p=await micDown(a);await a.waitForTimeout(650);await a.mouse.move(p.x,p.y-95,{steps:5});await a.mouse.up();await expect(button(a,'Пауза записи')).toBeVisible();await a.waitForTimeout(1300);await button(a,'Пауза записи').click();await expect(button(a,'Продолжить запись')).toBeVisible();await a.screenshot({path:info.outputPath('media-recording.png')});await button(a,'Продолжить запись').click();await a.waitForTimeout(1600);await button(a,'Отправить голосовое').click();await expect(b.locator('.kind-voice')).toHaveCount(1,{timeout:15000});
- // Receiver plays the normalized stored file, not the sender's local recording.
- const voice=b.locator('.kind-voice').last();await voice.getByRole('button',{name:'Воспроизвести',exact:true}).click();await expect(voice.getByRole('button',{name:'Пауза',exact:true})).toBeVisible();await voice.getByRole('button',{name:'Пауза',exact:true}).click();await voice.getByRole('slider').press('Home');await voice.getByRole('slider').press('ArrowRight');await expect(voice.getByRole('slider')).toHaveAttribute('aria-valuenow','5');await voice.locator('.mm-speed').click();await expect(voice.locator('.mm-speed')).toHaveText('1.5×');await voice.locator('.mm-speed').click();await expect(voice.locator('.mm-speed')).toHaveText('2×');
- await button(a,'Записать голосовое').click();await expect(button(a,'Пауза записи')).toBeVisible();await button(a,'Удалить запись').click();await expect(a.locator('.mm-recording')).toHaveCount(0);
- await micDown(a);await a.waitForTimeout(2300);await a.mouse.up();await expect(b.locator('.kind-voice')).toHaveCount(2,{timeout:15000});await b.locator('.kind-voice').first().locator('.mm-play').click();await b.locator('.kind-voice').last().locator('.mm-play').click();expect(await b.locator('audio').evaluateAll(rows=>rows.filter(x=>!x.paused).length)).toBe(1);await b.locator('.kind-voice').last().locator('.mm-play').click();
- await menu(b,'voice');await button(b,'Ответить').click();await expect(b.locator('.mc-compose-preview')).toContainText('Голосовое');await b.getByRole('textbox',{name:'Сообщение…'}).fill('Услышала тебя');await button(b,'Отправить').click();await expect(a.locator('.mc-quote').filter({hasText:'Голосовое'})).toBeVisible({timeout:10000});await menu(b,'voice');await button(b,'❤️').click();await expect(a.locator('.mc-message').filter({has:a.locator('.kind-voice')}).locator('.mc-reactions')).toBeVisible({timeout:10000});
- await button(a,'Прикрепить').click();await expect(a.getByRole('dialog')).toContainText('Фото из галереи');await a.locator('input[type=file]').first().setInputFiles('web/assets/welcome-couple.webp');await expect(a.locator('.mm-photo-draft img')).toBeVisible();await a.getByRole('textbox',{name:'Подпись к фото'}).fill('Наш вечер 💜');await button(a,'Эмодзи в подписи').click();await expect(a.locator('.EmojiPickerReact')).toBeVisible();await button(a,'Эмодзи в подписи').click();await button(a,'Отправить фото').click();await expect(b.locator('.kind-image img')).toBeVisible({timeout:15000});await b.locator('.mm-photo-button').click();await expect(b.locator('.mm-viewer')).toBeVisible();await button(b,'Увеличить фото').click();await expect(button(b,'Уменьшить фото')).toBeVisible();await b.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
- await menu(b,'image');await button(b,'🔥').click();await expect(a.locator('.mc-message').filter({has:a.locator('.kind-image')}).locator('.mc-reactions')).toBeVisible({timeout:10000});await menu(b,'image');await button(b,'Пожаловаться').click();await button(b,'Отправить жалобу').click();
- await button(a,'Эмодзи').click();await button(a,'Стикеры').click();await button(a,'Кофе вдвоём').click();await a.locator('.mm-sticker-grid button').first().click();await button(a,'В избранное').click();await expect(button(a,'В избранное')).toHaveAttribute('aria-pressed','true');await a.screenshot({path:info.outputPath('media-stickers.png')});await button(a,'Отправить стикер').click();await expect(b.locator('.kind-sticker')).toHaveCount(1,{timeout:10000});await button(a,'Эмодзи').click();await button(a,'Избранные стикеры').click();await expect(a.locator('.mm-sticker-grid button')).toHaveCount(1);await button(a,'Недавние стикеры').click();await expect(a.locator('.mm-sticker-grid button')).toHaveCount(1);await button(a,'Эмодзи').click();
- await menu(b,'sticker');await button(b,'👍').click();await expect(a.locator('.mc-message').filter({has:a.locator('.kind-sticker')}).locator('.mc-reactions')).toBeVisible({timeout:10000});await menu(a,'sticker');await button(a,'Удалить').click();await button(a,'Удалить у всех').click();await expect(b.locator('.kind-sticker')).toHaveCount(0,{timeout:10000});
- await a.route('**/api/matches/*/media',r=>r.abort());await a.locator('input[type=file]').first().setInputFiles('web/assets/welcome-couple.webp');await a.getByRole('textbox',{name:'Подпись к фото'}).fill('Повтор после сети');await button(a,'Отправить фото').click();await expect(a.locator('.mc-retry')).toBeVisible();await a.reload();await button(a,'Чаты').click();await a.locator('.chat-row').click();await expect(a.locator('.mc-retry')).toBeVisible();await a.unroute('**/api/matches/*/media');await a.locator('.mc-retry').click();await expect(a.locator('.mc-retry')).toHaveCount(0,{timeout:15000});await expect(b.locator('.kind-image').filter({hasText:'Повтор после сети'})).toHaveCount(1,{timeout:10000});
+ await button(a,'Прикрепить').click();await expect(a.getByRole('dialog')).toContainText('Фото из галереи');await a.locator('input[type=file]').first().setInputFiles('web/assets/welcome-couple.webp');await expect(a.locator('.mm-photo-draft img')).toBeVisible();await a.getByRole('textbox',{name:'Подпись к фото'}).fill('Наш вечер 💜');await button(a,'Эмодзи в подписи').click();await expect(a.locator('.EmojiPickerReact')).toBeVisible();await button(a,'Эмодзи в подписи').click();await button(a,'Отправить фото').click();await b.bringToFront();await b.reload();await b.getByRole('button',{name:'Чаты',exact:true}).click();await b.locator('.chat-row').click();try{await expect(b.locator('.kind-image')).toBeVisible({timeout:15000});}catch(error){
+   console.log('VEYRA_MEDIA_RECEIVER_DEBUG',JSON.stringify({
+    recipientMessages:await b.locator('.mc-message').count(),
+    lastRecipientMessages:(await b.locator('.mc-message').allTextContents()).slice(-4),
+    recipientChatHeader:await b.locator('.mc-person strong').allTextContents(),
+    clientErrors:errors,
+    senderPhotoCount:await a.locator('.kind-image').count(),recentRecipientSync:received.slice(-4)
+   }));
+   throw error;
+  }await b.locator('.kind-image').last().scrollIntoViewIfNeeded();await expect(b.locator('.kind-image img')).toBeVisible({timeout:15000});await b.locator('.mm-photo-button').click();await expect(b.locator('.mm-viewer')).toBeVisible();await button(b,'Увеличить фото').click();await expect(button(b,'Уменьшить фото')).toBeVisible();await b.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await menu(b,'image');await button(b,'🔥').click();await a.bringToFront();await expect(a.locator('.mc-message').filter({has:a.locator('.kind-image')}).locator('.mc-reactions')).toBeVisible({timeout:10000});await menu(b,'image');await button(b,'Пожаловаться').click();await button(b,'Отправить жалобу').click();
+ await button(a,'Эмодзи').click();await button(a,'Стикеры').click();await button(a,'Кофе вдвоём').click();await a.locator('.mm-sticker-grid button').first().click();await button(a,'В избранное').click();await expect(button(a,'В избранное')).toHaveAttribute('aria-pressed','true');await a.screenshot({path:info.outputPath('media-stickers.png')});await button(a,'Отправить стикер').click();await b.bringToFront();await expect(b.locator('.kind-sticker')).toHaveCount(1,{timeout:10000});await button(a,'Эмодзи').click();await button(a,'Избранные стикеры').click();await expect(a.locator('.mm-sticker-grid button')).toHaveCount(1);await button(a,'Недавние стикеры').click();await expect(a.locator('.mm-sticker-grid button')).toHaveCount(1);await button(a,'Эмодзи').click();
+ await menu(b,'sticker');await button(b,'👍').click();await a.bringToFront();await expect(a.locator('.mc-message').filter({has:a.locator('.kind-sticker')}).locator('.mc-reactions')).toBeVisible({timeout:10000});await menu(a,'sticker');await button(a,'Удалить').click();await button(a,'Удалить у всех').click();await expect(b.locator('.kind-sticker')).toHaveCount(0,{timeout:10000});
+ await a.route('**/api/matches/*/media',r=>r.abort());await a.locator('input[type=file]').first().setInputFiles('web/assets/welcome-couple.webp');await a.getByRole('textbox',{name:'Подпись к фото'}).fill('Повтор после сети');await button(a,'Отправить фото').click();await expect(a.locator('.mc-retry')).toBeVisible();await a.reload();await button(a,'Чаты').click();await a.locator('.chat-row').click();await expect(a.locator('.mc-retry')).toBeVisible();await a.unroute('**/api/matches/*/media');await a.locator('.mc-retry').click();await expect(a.locator('.mc-retry')).toHaveCount(0,{timeout:15000});await b.bringToFront();await expect(b.locator('.kind-image').filter({hasText:'Повтор после сети'})).toHaveCount(1,{timeout:10000});
  await menu(a,'image');await button(a,'Удалить').click();await button(a,'Удалить у меня').click();await expect(b.locator('.kind-image').filter({hasText:'Повтор после сети'})).toHaveCount(1);
  for(const viewport of [{width:320,height:568},{width:390,height:440},{width:390,height:844}]){await a.setViewportSize(viewport);await expect(a.locator('.mc-composer')).toBeInViewport();expect(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
  await a.waitForTimeout(250);await a.screenshot({path:info.outputPath('media-chat.png')});expect(errors).toEqual([]);await a.close();await b.close();

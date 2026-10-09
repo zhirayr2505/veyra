@@ -41,3 +41,35 @@ test('Today batch validates its size and repeat rendering does not charge duplic
   assert.equal((await one(db,'SELECT views FROM daily_usage WHERE user_id=60')).views,3);
  }finally{await db.close();}
 });
+
+test('Undo permits one free reversal daily, and Premium permits more',async()=>{
+ const{db,app,aut}=await fixture([70,71,72]);try{
+  await db.tx(q=>react(q,'70','71','like'));
+  const available=await aut(request(app).get('/api/reactions/last'));
+  assert.equal(available.body.free_undo_left,1);
+  const first=await aut(request(app).post('/api/reactions/undo')).send({target:'71'});
+  assert.equal(first.status,200,JSON.stringify(first.body));
+  assert.equal((await one(db,"SELECT count(*)::int AS n FROM reactions WHERE actor=70 AND target=71")).n,0);
+  await db.tx(q=>react(q,'70','72','pass'));
+  const remaining=await aut(request(app).get('/api/reactions/last'));
+  assert.equal(remaining.body.free_undo_left,0);
+  assert.equal((await aut(request(app).post('/api/reactions/undo')).send({target:'72'})).status,402);
+  await db.query("UPDATE users SET premium_until=now()+interval '1 day' WHERE id=70");
+  const paid=await aut(request(app).post('/api/reactions/undo')).send({target:'72'});
+  assert.equal(paid.status,200,JSON.stringify(paid.body));
+ }finally{await db.close();}
+});
+
+test('profile stats report only real recent impressions and positive reactions',async()=>{
+ const{db,app,aut}=await fixture([90,91,92]);try{
+  await db.query("INSERT INTO impressions(viewer,target,day) VALUES(91,90,CURRENT_DATE) ON CONFLICT DO NOTHING");
+  await db.query("INSERT INTO impressions(viewer,target,day) VALUES(92,90,CURRENT_DATE-9) ON CONFLICT DO NOTHING");
+  await db.tx(q=>react(q,'91','90','like'));
+  const r=await aut(request(app).get('/api/profile/stats'));
+  assert.equal(r.status,200);
+  assert.equal(r.body.views_7d,1);
+  assert.equal(r.body.likes_7d,1);
+  assert.ok(r.body.views>=2);
+  assert.ok(r.body.likes>=1);
+ }finally{await db.close();}
+});
