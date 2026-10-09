@@ -890,3 +890,57 @@ body{color-scheme:light}
 @media(prefers-reduced-motion:reduce){
  .app:not(.admin-app) .registration .registration-body{animation:none!important}
 }
+
+/* Courtship is a graceful third photo-action icon, never a floating action button. */
+.member-profile-screen .member-profile-inline-actions{flex-wrap:wrap;gap:11px;align-items:center}
+.member-profile-screen .member-profile-inline-actions>.vc-courtship,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-action{display:contents}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-start,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state{
+ display:flex;align-items:center;justify-content:center;
+ width:58px;min-width:58px;height:52px;min-height:52px;
+ padding:0;gap:0;border:0;border-radius:17px;margin:0;
+ color:#e9768e;background:#ffedf2;font-size:0;line-height:0;
+ box-shadow:0 3px 13px #aa648a16;overflow:hidden;
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state.is-active{
+ color:#3fae90;background:#e9f9f2
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state.is-payment,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state:not(.is-active){
+ color:#8d6fba;background:#f2eefa
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-start svg:first-child,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-state svg:first-child{width:23px;height:23px;flex-shrink:0}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-start svg:not(:first-child){display:none}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-stop{
+ display:grid;place-items:center;min-width:43px;height:45px;padding:5px;
+ font-size:10px;color:#907b9e;background:#f5f0fa;border:0;
+ border-radius:15px;margin:0
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-public,
+.member-profile-screen .member-profile-inline-actions .vc-courtship-error{
+ flex:0 0 100%;width:100%;order:15;margin:8px 0 0;text-align:left
+}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-public>header strong{color:#594362}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-person{color:#946dab;background:#f5edfb;border:0}
+.member-profile-screen .member-profile-inline-actions .vc-courtship-public>small{color:#93859c}
+.member-profile-screen .member-profile-manage{
+ background:#fff;border:1px solid #eee7f1;color:#483b54;
+ border-radius:20px;box-shadow:0 5px 18px rgba(81,55,88,.05);
+}
+.member-profile-screen .member-profile-manage :is(select,textarea){
+ color:#433450;background:#fdfafd;border:1px solid #ede4f0;border-radius:15px
+}
+.member-profile-screen .member-profile-manage-actions button{
+ color:#8969a0;background:#f6effb;border:0;border-radius:14px
+}
+.member-profile-screen .member-profile-manage-actions button:last-child{
+ color:#f0768d;background:#ffeff4
+}
+.member-profile-screen .member-profile-compose label{color:#82718d}
+.member-profile-screen .member-profile-compose textarea{color:#382d43;background:#fff;border:1px solid #eee6f0;border-radius:17px}
+.member-profile-screen .member-profile-compose small{color:#998c9f}
+.member-profile-screen .member-profile-goal{background:rgba(255,255,255,.22);border:1px solid #fff7;color:#fff}
+.member-profile-screen .member-profile-test{background:#fff5fa;border:1px solid #f7e6ed;color:#9c6c89}
+.member-profile-screen .member-profile-disclaimer{color:#93869c}

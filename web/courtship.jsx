@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Crown,Star,Heart,Check,Clock,X,LoaderCircle} from 'lucide-react';
+import {Crown,Star,Heart,Check,Clock,X,LoaderCircle,Flower2} from 'lucide-react';
 import {api,post} from './api';
 import {VeyraIcon} from './graphics';
 import './courtship.css';
@@ -91,7 +91,7 @@ export function CourtshipPanel({targetId,lang='ru',showAction=false}){
   </section>}
   {showAction&&<div className="vc-courtship-action">
    {(!mine||['declined','cancelled','revoked'].includes(mine.status)||(mine.status==='active'&&!currentActive))?
-    <button className="vc-courtship-start" type="button" disabled={busy||!data} onClick={()=>setConfirm(true)}><VeyraIcon icon={Crown} size={18}/>{L('Стать ухажёром','Become a suitor')}<VeyraIcon icon={Star} size={15}/></button>
+    <button className="vc-courtship-start" type="button" disabled={busy||!data} title={L('Стать ухажёром','Become a suitor')} onClick={()=>setConfirm(true)}><VeyraIcon icon={Flower2} size={21}/>{L('Стать ухажёром','Become a suitor')}<VeyraIcon icon={Star} size={15}/></button>
    :mine.status==='pending'?<span className="vc-courtship-state"><VeyraIcon icon={Clock} size={17}/>{L('Предложение отправлено. Ожидаем согласия.','Request sent. Waiting for consent.')}</span>
    :mine.status==='accepted'?<button type="button" disabled={busy} className="vc-courtship-start" onClick={()=>setPayConfirm(true)}><VeyraIcon icon={Star} size={18}/>{L('Активировать ухаживание за ','Activate for ')}{data?.stars||99} ⭐</button>
    :mine.status==='payment_pending'?<button type="button" disabled={busy} className="vc-courtship-state is-payment" onClick={()=>setPayConfirm(true)}><VeyraIcon icon={Clock} size={17}/>{L('Ожидаем оплату · открыть снова','Awaiting payment · reopen')}</button>
