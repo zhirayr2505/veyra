@@ -28,6 +28,24 @@ export function CourtshipPanel({targetId,lang='ru',showAction=false}){
   window.addEventListener('veyra:courtship-changed',update);
   return()=>{mounted=false;window.removeEventListener('veyra:courtship-changed',update);};
  },[targetId]);
+ // Quietly discover acceptance/activation while the member profile stays open.
+ // No skeletons, no rerender if nothing changed, no polling in the background.
+ useEffect(()=>{
+  if(!['pending','accepted','payment_pending'].includes(data?.mine?.status))return;
+  let alive=true;
+  const check=async()=>{
+   if(!alive||document.hidden)return;
+   try{const fresh=await api(pathFor(targetId));if(!alive)return;
+    const previous=cache.get(String(targetId))?.data;
+    keep(targetId,fresh);
+    if(JSON.stringify(previous)!==JSON.stringify(fresh))setData(fresh);
+   }catch{}
+  };
+  const timer=setInterval(check,12000);
+  const onVisible=()=>{if(!document.hidden)check();};
+  document.addEventListener('visibilitychange',onVisible);
+  return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',onVisible);};
+ },[targetId,data?.mine?.status]);
  const mine=data?.mine,suitors=data?.suitors||[];
  const refresh=async()=>{await load(true);window.dispatchEvent(new Event('veyra:courtship-changed'));};
  const apply=async(fn)=>{
