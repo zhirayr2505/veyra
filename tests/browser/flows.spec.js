@@ -70,8 +70,11 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await a.setViewportSize({width:390,height:844});await a.evaluate(()=>document.documentElement.style.removeProperty('--safe'));
  await screenshot(a,testInfo.outputPath('feed-mobile.png'));
  const card=a.locator('.dating-card');const box=await card.boundingBox();
+ const initialPhoto=await card.locator('.photo-dots button.on').getAttribute('aria-label');
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
- await expect(card).toHaveCount(0);
+ await expect(card).toHaveCount(1); // Photo gesture must never like or skip the profile.
+ await expect(card.locator('.photo-dots button.on')).not.toHaveAttribute('aria-label',initialPhoto);
+ await a.getByRole('button',{name:'Нравится',exact:true}).click();await expect(card).toHaveCount(0);
  await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();
  await b.setViewportSize({width:320,height:568});
  const match=b.getByRole('dialog',{name:'Взаимная симпатия!'});
@@ -127,11 +130,12 @@ test('redesigned screens use real data, chat search, profile pause and usable mo
  await page.getByRole('tab',{name:'Анкета'}).click();
  expect(giftsRequests).toHaveLength(0);
 
- await page.getByRole('button',{name:'Сегодня',exact:true}).click();await expect(page.locator('.today-person').first()).toBeVisible();
- expect(await page.locator('.today-person').count()).toBeGreaterThan(1);
- await screenshot(page,testInfo.outputPath('design-today.png'));
- if(await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).isChecked()){await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).uncheck();await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeEnabled();}
- const planSaved=page.waitForResponse(r=>r.url().endsWith('/api/today')&&r.request().method()==='PUT'&&r.status()===200);await page.getByRole('switch',{name:'Я свободен сегодня',exact:true}).check();await planSaved;await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeEnabled();await expect(page.getByRole('switch',{name:'Я свободен сегодня',exact:true})).toBeChecked();
+ await page.getByRole('button',{name:'Discover',exact:true}).click();
+ await expect(page.locator('.discovery-modes button')).toHaveCount(3);
+ await expect(page.locator('.bottom-nav button')).toHaveCount(4);
+ await page.locator('.discovery-modes button').filter({hasText:'Nearby'}).click();
+ await expect(page.locator('.discovery-modes button.active')).toContainText('Nearby');
+ await page.locator('.discovery-modes button').filter({hasText:'Discover'}).click();
  await page.getByRole('button',{name:'Лайки',exact:true}).click();await expect(page.locator('.like-tile').first()).toBeVisible();
  await screenshot(page,testInfo.outputPath('design-likes.png'));
  await page.locator('.like-tile').first().click();const preview=page.getByRole('dialog',{name:'Профиль пользователя'});await expect(preview).toBeVisible();const likeAction=preview.getByRole('button',{name:'Нравится',exact:true});await expect(likeAction).toBeVisible();await screenshot(page,testInfo.outputPath('design-profile-preview.png'));expect(await likeAction.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})).toBe(true);
