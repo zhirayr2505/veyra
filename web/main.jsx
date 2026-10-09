@@ -66,7 +66,7 @@ function photoSource(id,urgent=false){
  workPhotoQueue();return job;
 }
 function warmPhotos(ids,max=2){for(const id of [...new Set((ids||[]).filter(Boolean))].slice(0,max))photoSource(id).catch(()=>{});}
-function Photo({id,className='',alt=''}) {
+const Photo=React.memo(function Photo({id,className='',alt=''}) {
  const[url,setUrl]=useState(()=>photoResolved.get(id)||'');
  const[renderedId,setRenderedId]=useState(id);
  const placeholder=useRef(null);
@@ -98,7 +98,7 @@ function Photo({id,className='',alt=''}) {
  const visible=ready||(id===renderedId?url:'');
  return visible?<img src={visible} decoding="async" loading={urgent?'eager':'lazy'} className={className+' photo-image is-loaded'} alt={alt} draggable={false}/>
  :<div ref={placeholder} className={'photo-placeholder '+className} aria-label={alt}/>;
-}
+});
 
 const sheetScrollLock={count:0,overflow:''};
 function Sheet({title,children,onClose,className=''}){
