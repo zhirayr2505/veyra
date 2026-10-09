@@ -596,3 +596,13 @@ body{background:var(--v-bg);color:var(--v-text)}
  .app:not(.admin-app) .section-heading h1{font-size:25px}
  .app:not(.admin-app) .today-person,.app:not(.admin-app) .chat-row{padding:11px}
 }
+
+
+/* During the 185ms pane slide, transformed content must never increase
+   document width on 320px Android viewports. This is not a scroll container. */
+.app:not(.admin-app) .veyra-tab-deck{
+ width:100%;max-width:100%;min-width:0;overflow-x:clip;
+}
+.app:not(.admin-app) .veyra-tab-pane{
+ max-width:100%;
+}
