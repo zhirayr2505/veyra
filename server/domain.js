@@ -78,7 +78,7 @@ async function finishMatch(q,actor,target) {
  const created=!!m;if(!m)m=await one(q,'SELECT * FROM matches WHERE a=$1 AND b=$2',[a,b]);
  if(!m.active)fail(409,'MATCH_ENDED');
  if(isTestProfile(target)&&!isTestProfile(actor)&&!await one(q,'SELECT 1 FROM messages WHERE match_id=$1',[m.id]))
-  await q.query('INSERT INTO messages(id,match_id,sender,body,client_id) VALUES($1,$2,$3,$4,$2) ON CONFLICT(sender,client_id) DO NOTHING',[randomUUID(),m.id,target,'Тестовая анкета VEYRA · автоматическое приветствие. Привет! Мэтч создан — здесь можно проверить сообщения, фото и голосовые.']);
+  await q.query('INSERT INTO messages(id,match_id,sender,body,client_id) VALUES($1,$2,$3,$4,$2) ON CONFLICT(sender,client_id) DO NOTHING',[randomUUID(),m.id,target,'Тестовая анкета VEYRA · автоматическое приветствие. Привет! Мэтч создан — здесь можно проверить сообщения и фотографии.']);
  if(created){await notify(q,actor,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');await notify(q,target,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');}
  return {matched:true,match_id:m.id,test_profile:isTestProfile(target)};
 }
@@ -100,7 +100,7 @@ export async function react(q,actor,target,kind,message){
  }
  if(isTestProfile(target)&&!isTestProfile(actor))await q.query("INSERT INTO reactions(actor,target,kind) VALUES($1,$2,'like') ON CONFLICT(actor,target) DO UPDATE SET kind='like'",[target,actor]);
  if(await one(q,"SELECT 1 FROM reactions WHERE actor=$1 AND target=$2 AND kind<>'pass'",[target,actor]))return finishMatch(q,actor,target);
- if(!repeat)await notify(q,target,kind==='super'?'✨ Вам отправили Super Like в VEYRA!':'💜 Вы кому-то понравились в VEYRA.');
+ if(!repeat)await notify(q,target,kind==='super'?'✨ Кто-то отправил тебе Искру в VEYRA!':'💜 Вы кому-то понравились в VEYRA.');
  return {matched:false};
 }
 
