@@ -416,3 +416,20 @@ body{color-scheme:light}
   transition-duration:.01ms!important;scroll-behavior:auto!important;
  }
 }
+
+/* Discover actions overlay their own feed, never the viewport or bottom navigation. */
+.app:not(.admin-app) .feed-surface{position:relative;min-height:0}
+.app:not(.admin-app) .feed-surface>.reaction-bar{bottom:12px}
+.app:not(.admin-app) .feed-surface>.dating-card{flex:1;min-height:0}
+.app:not(.admin-app) .card-info .bio{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.app:not(.admin-app) .member-profile-photo-controls{display:none}
+.member-profile-screen .member-profile-photo-progress{
+ position:absolute;top:14px;left:14px;right:14px;z-index:8;display:flex;gap:5px;
+ pointer-events:none;
+}
+.member-profile-screen .member-profile-photo-progress>span{
+ height:4px;flex:1;min-width:0;border-radius:99px;
+ background:rgba(255,255,255,.5);box-shadow:0 1px 3px rgba(0,0,0,.15);
+}
+.member-profile-screen .member-profile-photo-progress>span.active{background:#fff}
+.app:not(.admin-app) .member-profile-screen .member-profile-hero-top{top:27px}
