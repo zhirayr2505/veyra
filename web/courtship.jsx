@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Crown,Star,Heart,Check,Clock,X,ShieldCheck,LoaderCircle} from 'lucide-react';
+import {Crown,Star,Heart,Check,Clock,X,LoaderCircle} from 'lucide-react';
 import {api,post} from './api';
 import {VeyraIcon} from './graphics';
 import './courtship.css';
@@ -67,7 +67,7 @@ export function CourtshipPanel({targetId,lang='ru',showAction=false}){
  const currentActive=mine?.status==='active'&&new Date(mine.expires_at)>new Date();
  return <div className="vc-courtship">
   {!!suitors.length&&<section className="vc-courtship-public" aria-label={L('Ухажёры','Suitors')}>
-   <header><VeyraIcon icon={Crown} size={17}/><strong>{L('За мной ухаживают','People courting me')}</strong><span>{suitors.length}</span></header>
+   <header><VeyraIcon icon={Crown} size={17}/><strong>{targetId==='me'?L('За мной ухаживают','My suitors'):L('За этим человеком ухаживают','People courting this member')}</strong><span>{suitors.length}</span></header>
    <div className="vc-courtship-list">{suitors.map(s=><span key={s.id} className="vc-courtship-person"><VeyraIcon icon={Heart} size={13}/>{s.sender_name}</span>)}</div>
    <small>{L('Ухаживание подтверждено владельцем профиля и оплачено. Это знак внимания, не отношения.','The profile owner approved this paid attention badge; it is not a relationship status.')}</small>
   </section>}
@@ -99,6 +99,12 @@ export function CourtshipInbox({lang='ru'}){
  const [rows,setRows]=useState([]),[busy,setBusy]=useState(null),[error,setError]=useState('');
  const load=async()=>{try{setRows(await api('/courtships/inbox'));setError('');}catch{setError(L('Не удалось загрузить предложения','Could not load requests'));}};
  useEffect(()=>{load();const onUpdate=()=>load();window.addEventListener('veyra:courtship-changed',onUpdate);return()=>window.removeEventListener('veyra:courtship-changed',onUpdate);},[]);
+ const stop=async(c)=>{
+  if(busy)return;setBusy(c.id);
+  try{await post('/courtships/'+c.id+'/stop',{});setRows(old=>old.filter(row=>row.id!==c.id));window.dispatchEvent(new Event('veyra:courtship-changed'));}
+  catch{setError(L('Не удалось завершить ухаживание','Could not end courtship'));}
+  finally{setBusy(null);}
+ };
  const respond=async(c,accept)=>{
   if(busy)return;setBusy(c.id);
   try{await post('/courtships/'+c.id+'/respond',{accept});setRows(old=>old.filter(row=>row.id!==c.id));window.dispatchEvent(new Event('veyra:courtship-changed'));}
@@ -107,8 +113,8 @@ export function CourtshipInbox({lang='ru'}){
  };
  if(!rows.length&&!error)return null;
  return <section className="vc-inbox"><h3><VeyraIcon icon={Crown} size={20}/>{L('Предложения об ухаживании','Courtship requests')}</h3>
-  <p>{L('Ухаживание станет публичным только после твоего согласия и оплаты отправителем.','Only after your consent and the sender’s payment will anything appear publicly.')}</p>
-  {rows.map(c=><div key={c.id} className="vc-inbox-row"><strong>{c.sender_name}</strong><div><button disabled={!!busy} onClick={()=>respond(c,false)}><VeyraIcon icon={X} size={15}/>{L('Отклонить','Decline')}</button><button disabled={!!busy} onClick={()=>respond(c,true)}><VeyraIcon icon={Check} size={15}/>{L('Принять','Accept')}</button></div></div>)}
+  <p>{L('Только после согласия и оплаты статус увидят другие. Ты можешь завершить активное ухаживание.','Only after consent and payment can others see a courtship. You can end active courtship.')}</p>
+  {rows.map(c=><div key={c.id} className="vc-inbox-row"><div className="vc-inbox-person"><strong>{c.sender_name}</strong>{c.status!=='pending'&&<small>{c.status==='accepted'?L('Предложение принято · ожидаем оплату','Accepted · waiting for payment'):c.status==='payment_pending'?L('Платёж обрабатывается','Payment is processing'):L('Публичный ухажёр','Public suitor')}</small>}</div><div>{c.status==='pending'?<><button disabled={!!busy} onClick={()=>respond(c,false)}><VeyraIcon icon={X} size={15}/>{L('Отклонить','Decline')}</button><button disabled={!!busy} onClick={()=>respond(c,true)}><VeyraIcon icon={Check} size={15}/>{L('Принять','Accept')}</button></>:c.status==='payment_pending'?<span className="vc-inbox-processing">{L('Подтверждение…','Confirming…')}</span>:<button disabled={!!busy} onClick={()=>stop(c)}><VeyraIcon icon={X} size={15}/>{L('Завершить','End')}</button>}</div></div>)}
   {error&&<p className="vc-courtship-error" role="alert">{error}</p>}
  </section>;
 }

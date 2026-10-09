@@ -52,10 +52,11 @@ export function courtshipRoutes(app,{db,rate,tg}){
  });
  app.get('/api/courtships/inbox',async(req,res)=>{
   await approved(db,req.user.id);
-  res.json((await db.query(`SELECT c.id,c.sender,p.name AS sender_name,c.created_at
+  res.json((await db.query(`SELECT c.id,c.sender,p.name AS sender_name,c.status,c.created_at,c.expires_at
    FROM courtships c JOIN profiles p ON p.user_id=c.sender
    JOIN matches m ON m.id=c.match_id
-   WHERE c.recipient=$1 AND c.status='pending' AND m.active=true
+   WHERE c.recipient=$1 AND c.status IN ('pending','accepted','payment_pending','active')
+   AND (c.status<>'active' OR c.expires_at>now()) AND m.active=true
    AND NOT EXISTS(SELECT 1 FROM blocks b WHERE
     (b.actor=c.sender AND b.target=c.recipient) OR (b.actor=c.recipient AND b.target=c.sender))
    ORDER BY c.created_at DESC LIMIT 30`,[req.user.id])).rows);
