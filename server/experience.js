@@ -47,9 +47,8 @@ export function experienceRoutes(app,{db,rate,env}){
    OR EXISTS(SELECT 1 FROM matches WHERE active AND (a=$1 AND b=$2 OR a=$2 AND b=$1))
    OR ($3::boolean AND EXISTS(SELECT 1 FROM reactions WHERE actor=$2 AND target=$1 AND kind<>'pass'))`,[req.user.id,target,premium(req.user)]);
   if(!allowed)fail(403,'PROFILE_FORBIDDEN');
-  const p=await publicProfile(db,target),mine=await approved(db,req.user.id);
+  const [p,mine,match]=await Promise.all([publicProfile(db,target),approved(db,req.user.id),one(db,'SELECT id FROM matches WHERE active AND (a=$1 AND b=$2 OR a=$2 AND b=$1)',[req.user.id,target])]);
   p.shared_interests=p.interests.filter(x=>mine.interests.includes(x));
-  const match=await one(db,'SELECT id FROM matches WHERE active AND (a=$1 AND b=$2 OR a=$2 AND b=$1)',[req.user.id,target]);
   res.json({...p,match_id:match?.id||null});
  });
  app.post('/api/profiles/:id/hide',async(req,res)=>{
