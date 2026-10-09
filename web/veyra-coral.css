@@ -664,3 +664,46 @@ body{color-scheme:light}
  .welcome.welcome-photo h1,.welcome.welcome-photo h1 em{font-size:35px}
  .match-scene>.sheet{padding-top:56px}
 }
+
+/* Account and privacy: readable light surfaces with functional accessible switches. */
+.app:not(.admin-app) .account-page .account-panel{
+ background:#fff;border:1px solid #eee7f1;border-radius:23px;
+ box-shadow:0 6px 22px rgba(70,48,79,.05);color:#3e334a;
+}
+.app:not(.admin-app) .account-page .account-panel h2{font-size:15px;color:#43334d;font-weight:750}
+.app:not(.admin-app) .account-page .setting-row{
+ color:#4a3c57;border-color:#f1e9f3;font-size:13px;min-height:54px;
+}
+.app:not(.admin-app) .account-page .setting-row small{color:#898092}
+.app:not(.admin-app) .account-page .account-icon,
+.app:not(.admin-app) .account-page .menu-symbol{
+ background:#f5effc;border:0;color:#946bb9;border-radius:13px;
+ box-shadow:none;
+}
+.app:not(.admin-app) .account-page .setting-row .text-button{
+ background:#f8f2fd;color:#8367a2;border-radius:11px;padding:8px 10px;
+}
+.app:not(.admin-app) .account-page .language-setting select{
+ background:#f9f5fc;color:#493954;border:1px solid #efe5f3;border-radius:15px;
+}
+.app:not(.admin-app) input[role="switch"]{
+ appearance:none;width:43px;min-width:43px;height:26px;min-height:26px;padding:0;
+ border-radius:20px;border:1px solid #e7dfe9;background:#e9e4ef;box-shadow:none;
+ transition:background-color .19s ease,border-color .19s ease;
+}
+.app:not(.admin-app) input[role="switch"]::before{
+ left:3px;top:3px;height:18px;width:18px;background:#fff;
+ box-shadow:0 1px 4px rgba(83,64,94,.17);
+}
+.app:not(.admin-app) input[role="switch"]:checked{
+ background:#f47a91;border-color:#f47a91;box-shadow:none;
+}
+.app:not(.admin-app) input[role="switch"]:checked::before{transform:translateX(17px)}
+.app:not(.admin-app) .support-faq details{border:0;border-bottom:1px solid #f2eaf3;border-radius:0;box-shadow:none}
+.app:not(.admin-app) .support-faq summary{color:#4c3a57}
+.app:not(.admin-app) .ticket-reply{border-color:#f17b92;background:#fff4f8;color:#715c79}
+.app:not(.admin-app) .referral-history{border-color:#eee6f2;color:#52435e}
+.legal{background:#fffdfd;color:#42374d}
+.legal :is(h1,h2){color:#3f304a}
+.legal p{color:#786c84}
+.legal a{color:#ef748a}
