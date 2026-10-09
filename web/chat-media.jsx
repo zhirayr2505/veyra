@@ -7,7 +7,7 @@ import {VeyraIcon} from './graphics';
 const EmojiPicker=lazy(()=>import('./chat-emoji'));
 export const stickerById=id=>catalog.stickers.find(s=>s.id===id);
 export const mediaSummary=(m,L)=>m?.body||({voice:L('Голосовое сообщение','Voice message'),image:L('Фотография','Photo'),sticker:stickerById(m?.sticker_id)?.label||L('Стикер','Sticker')}[m?.kind])||'';
-return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');};
+
 const buzz=style=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.(style||'light');}catch{}};
 function safeRead(key,fallback){try{return JSON.parse(localStorage.getItem(key))||fallback;}catch{return fallback;}}
 function safeSave(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}
