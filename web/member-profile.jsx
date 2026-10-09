@@ -1,6 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Star,MessageCircle,MapPin,ShieldCheck,Images,Flag,EyeOff,Send,CheckCircle2,LoaderCircle,X,Gift} from 'lucide-react';
+import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Sparkles,MessageCircle,MapPin,ShieldCheck,Images,Flag,EyeOff,Send,CheckCircle2,LoaderCircle,X,Gift} from 'lucide-react';
 import {api,post} from './api';
 import {Brand,VeyraIcon} from './graphics';
 import {GiftCollection,GiftPicker} from './gifts';
@@ -124,7 +124,11 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
      <div className="member-profile-inline-actions" aria-label={L('Действия с профилем','Profile actions')}>
       {mutual&&<button className="member-profile-icon-action is-chat" type="button" aria-label={L('Перейти в чат','Open chat')} title={L('Перейти в чат','Open chat')} onClick={chat}><VeyraIcon icon={MessageCircle} size={23}/></button>}
       <button className="member-profile-icon-action is-gift" type="button" aria-label={L('Подарить подарок','Send a gift')} title={L('Подарить подарок','Send a gift')} onClick={()=>setGiftOpen(true)}><VeyraIcon icon={Gift} size={23}/></button>
+      {!mutual&&<button className="member-profile-icon-action is-like" type="button" aria-label={L('Нравится','Like')} title={L('Нравится','Like')} disabled={sending} onClick={()=>react('like')}><VeyraIcon icon={Heart} size={23}/></button>}
+      {!mutual&&<button className="member-profile-icon-action is-spark" type="button" aria-label={L('Искра','Spark')} title={L('Искра','Spark')} disabled={sending} onClick={()=>react('super')}><VeyraIcon icon={Sparkles} size={23}/></button>}
+      {!mutual&&<button className="member-profile-icon-action is-prematch" type="button" aria-label={L('Сказать привет до мэтча','Say hello before matching')} title={L('Сказать привет до мэтча','Say hello before matching')} onClick={startPrematch}><VeyraIcon icon={Send} size={21}/></button>}
      </div>
+     {composer&&!onPrematch&&!mutual&&<div className="member-profile-compose"><label htmlFor="member-profile-message">{L('Сообщение до мэтча','Message before matching')}</label><textarea id="member-profile-message" rows={2} value={message} maxLength={140} onChange={e=>setMessage(e.target.value)} placeholder={L('Напиши пару слов…','Say hello…')}/><small>{message.length}/140</small><button type="button" className="button primary" disabled={sending||!message.trim()} onClick={()=>react('like')}><VeyraIcon icon={Send} size={17}/>{L('Отправить','Send')}</button></div>}
      <CourtshipPanel targetId={profile.id} lang={app.lang} showAction={mutual}/>
      <div className="vg-profile-tabs" role="tablist" aria-label={L('Разделы профиля','Profile sections')}>
       <button type="button" role="tab" aria-selected={profileTab==='about'} className={profileTab==='about'?'active':''} onClick={()=>setProfileTab('about')}><VeyraIcon icon={Heart} size={16}/>{L('Анкета','Profile')}</button>
@@ -142,12 +146,7 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
      <div className="member-profile-safety"><button onClick={()=>{if(onReport){onClose();onReport();}else{setReporting(true);setConfirmHide(false);}}}><VeyraIcon icon={Flag} size={17}/>{L('Пожаловаться','Report')}</button><button onClick={()=>{setConfirmHide(true);setReporting(false);}}><VeyraIcon icon={EyeOff} size={17}/>{L('Скрыть','Hide')}</button></div>
     </>}
    </main>
-   {!error&&!loading&&data&&!mutual&&<footer className="member-profile-footer">
-    <>{composer&&!onPrematch&&<div className="member-profile-compose"><label htmlFor="member-profile-message">{L('Сообщение до мэтча','Message before matching')}</label><textarea id="member-profile-message" rows={2} value={message} maxLength={140} onChange={e=>setMessage(e.target.value)} placeholder={L('Напиши пару слов…','Say hello…')}/><small>{message.length}/140</small></div>}
-    <div className="member-profile-reactions"><button className="member-profile-like" disabled={sending||(composer&&!message.trim())} onClick={()=>react('like')}>{composer?<VeyraIcon icon={Send} size={19}/>:<VeyraIcon icon={Heart} size={20}/>} {composer?L('Отправить','Send'):L('Нравится','Like')}</button>{!composer&&<button className="member-profile-super" disabled={sending} onClick={()=>react('super')}><VeyraIcon icon={Star} size={19}/>Super Like</button>}</div>
-    {!composer&&<button className="member-profile-prematch" disabled={sending} onClick={startPrematch}><VeyraIcon icon={MessageCircle} size={17}/>{L('Сказать привет до мэтча','Say hello before matching')}</button>}</>}
-   </footer>}
-  </div>
+     </div>
   {giftOpen&&<GiftPicker target={p} lang={app.lang} onClose={()=>setGiftOpen(false)}/>}
  </section>,document.body);
 }
