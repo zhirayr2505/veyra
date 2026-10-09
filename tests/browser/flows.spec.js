@@ -127,7 +127,7 @@ test('redesigned screens use real data, chat search, profile pause and usable mo
  await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Несуществующий собеседник');await expect(page.locator('.chat-row')).toHaveCount(0);
  await page.getByRole('textbox',{name:'Поиск по чатам…'}).fill('Диана');await expect(page.locator('.chat-row')).toHaveCount(1);
  await screenshot(page,testInfo.outputPath('design-chats.png'));
- await page.locator('.chat-row').click();await expect(page.locator('.mc-bubble')).toBeVisible();
+ await page.locator('.chat-row').click();await expect(page.locator('.mc-bubble').first()).toBeVisible();
  await screenshot(page,testInfo.outputPath('design-conversation.png'));
  await page.getByRole('button',{name:'Назад',exact:true}).click();await page.getByRole('button',{name:'Профиль',exact:true}).click();
  const pauseSaved=page.waitForResponse(r=>r.url().endsWith('/api/profile/visibility')&&r.request().method()==='PATCH'&&r.status()===200);await page.getByRole('switch',{name:/Пауза анкеты/}).check();await pauseSaved;await page.reload();await expect(page.locator('.feed-surface')).toBeVisible();await expect(page.locator('.pause-note')).toBeVisible();
