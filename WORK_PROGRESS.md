@@ -32,4 +32,8 @@
 - Typecheck currently covers backend JavaScript; frontend is covered by ESLint, build and browser tests.
 
 ## Next concrete step
-All local verification is complete. Push changes relative to local baseline 1aa1a20 onto the verified remote main with a lease. Check the deployed revision/ready endpoint once deployment finishes, then record the result. Do not re-audit, re-install browsers, regenerate assets or rerun already-passing suites.
+All local verification is complete. Published all 43 changed files to GitHub main with a successful lease: application commit 5a47ec2f273e024e46f404c9f87c8f1e72ffc1e0, tree e5e1fb6035d0908fb69335ec10e946c18ed427ab. Local verified checkpoint: aa95f33.
+
+2026-10-09 deployment confirmed: Render /healthz reports exactly 5a47ec2f273e024e46f404c9f87c8f1e72ffc1e0 and ok=true. /readyz returns {ok:true}. Homepage and deployed JavaScript asset return HTTP 200; unauthenticated /api/me returns HTTP 401. Legacy registrationReset status is retired. Both synthetic profiles are present (status completed, count 2). Render therefore completed the production Docker deployment; local Docker was unavailable. This deployment record is a documentation-only commit using [skip render] [skip ci]; the live application revision remains 5a47ec2.
+
+This release is complete and work is stopped. For a future continuation, begin with the documented remaining limitations or the user's next specific request. Do not re-audit, re-install browsers, regenerate assets or rerun already-passing suites.
