@@ -65,12 +65,30 @@ export function useVoiceRecording({onSend,onPermission,onError}){
    // call can reopen Telegram's Android permission sheet every single time.
    const cached=keepReadyRef.current&&stream.current?.getAudioTracks().some(t=>t.readyState==='live')?stream.current:null;
    const source=cached||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
-   source.getAudioTracks().forEach(t=>{t.enabled=true;});
-   if(gen!==generation.current||!mounted.current||document.hidden){
-    source.getTracks().forEach(t=>t.stop());
-    if(document.hidden&&mounted.current){keepReadyRef.current=false;setKeepReady(false);reset();}
-    return;
+   // The OS permission sheet can briefly put Telegram WebView in the
+   // background AFTER getUserMedia resolves. Wait for it to become visible
+   // instead of discarding a freshly granted stream and reopening the sheet.
+   if(document.hidden){
+    source.getAudioTracks().forEach(t=>{t.enabled=false;});
+    const returned=await new Promise(resolve=>{
+     let complete=false;
+     const finish=visible=>{if(complete)return;complete=true;clearTimeout(timeout);
+      document.removeEventListener('visibilitychange',check);resolve(visible);};
+     const check=()=>{if(!document.hidden)finish(true);};
+     document.addEventListener('visibilitychange',check);
+     const timeout=setTimeout(()=>finish(!document.hidden),4000);
+     check();
+    });
+    if(!returned){
+     source.getTracks().forEach(t=>t.stop());stream.current=null;
+     if(gen===generation.current&&mounted.current){keepReadyRef.current=false;setKeepReady(false);reset();callbacks.current.onPermission('unavailable');}
+     return;
+    }
    }
+   if(gen!==generation.current||!mounted.current){
+    source.getTracks().forEach(t=>t.stop());return;
+   }
+   source.getAudioTracks().forEach(t=>{t.enabled=true;});
    stream.current=source;const mime=['audio/webm;codecs=opus','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
    const recorder=new MediaRecorder(source,{...(mime?{mimeType:mime}:{}),audioBitsPerSecond:64000});rec.current=recorder;chunks.current=[];samples.current=[];elapsed.current=0;let bytes=0;
    recorder.ondataavailable=event=>{if(gen!==generation.current)return;if(event.data.size){chunks.current.push(event.data);bytes+=event.data.size;if(bytes>11*1024*1024&&recorder.state!=='inactive')stop('ready');}};

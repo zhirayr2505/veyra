@@ -48,9 +48,12 @@ test('Messages Media: actual recording, playback, photos, stickers and durable r
   // Android may hide its WebView while the OS permission sheet is visible.
   Object.defineProperty(document,'hidden',{configurable:true,value:true});
   document.dispatchEvent(new Event('visibilitychange'));
-  delete document.hidden;
   window.dispatchEvent(new PointerEvent('pointercancel',{pointerId:1,bubbles:true}));
   window.releaseMicrophonePermission();
+  setTimeout(()=>{
+   delete document.hidden;
+   document.dispatchEvent(new Event('visibilitychange'));
+  },220);
  });
  await a.mouse.up();
  await expect(button(a,'Пауза записи')).toBeVisible();

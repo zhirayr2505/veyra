@@ -193,7 +193,7 @@ function Likes(){
 
 function Chats(){
  const{t,lang,tab,run,setTab,setChatOpen,openChatId,setOpenChatId,setBadges}=useApp();const[rows,setRows]=useState(null);const[chat,setChat]=useState(null);const[search,setSearch]=useState('');const listPositions=useRef(new Map());
- const load=useCallback(async()=>{const values=await api('/matches');values.sort((a,b)=>new Date(b.last?.created_at||b.created_at)-new Date(a.last?.created_at||a.created_at));setRows(values);setBadges(x=>{const count=values.reduce((n,m)=>n+m.unread,0);return x.chats===count?x:{...x,chats:count};});},[]);
+ const load=useCallback(async()=>{const values=await api('/matches');values.sort((a,b)=>new Date(b.last?.created_at||b.created_at)-new Date(a.last?.created_at||a.created_at));setRows(old=>old&&JSON.stringify(old)===JSON.stringify(values)?old:values);setBadges(x=>{const count=values.reduce((n,m)=>n+m.unread,0);return x.chats===count?x:{...x,chats:count};});},[]);
  useEffect(()=>{if(tab!=='chats')return;run(load);const timer=setInterval(()=>{if(!document.hidden)load().catch(()=>{});},5000);return()=>clearInterval(timer);},[load,tab]);
  useLayoutEffect(()=>{
   if(!rows||chat)return;
