@@ -1165,3 +1165,90 @@ body{color-scheme:light}
  .app:not(.admin-app) .form-page .columns{grid-template-columns:1fr;gap:0}
  .app:not(.admin-app) .form-page .onboarding-progress small{font-size:9px}
 }
+
+/* Completion pass: pastel loading, offline, toast and empty states. */
+.app:not(.admin-app) .boot-screen{
+ min-height:calc(100dvh - env(safe-area-inset-top,0px));
+ width:100%;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:17px;text-align:center;padding:34px 24px;
+ background:radial-gradient(ellipse at 50% 43%,#ffe6ed 0%,#fcf4ff 30%,#fffdfd 65%);
+ color:#44344f;
+}
+.app:not(.admin-app) .boot-screen .brand.approved-brand.large{
+ width:min(260px,70vw);height:91px;margin:0;padding:0;
+ filter:drop-shadow(0 8px 22px rgba(246,130,155,.12));
+}
+.app:not(.admin-app) .boot-screen h1{
+ color:#3e304a;font-size:24px;letter-spacing:-.04em;margin:10px 0 3px;
+}
+.app:not(.admin-app) .boot-screen>p{
+ max-width:310px;color:#877990;font-size:13px;line-height:1.55;
+}
+.app:not(.admin-app) .boot-screen .button.primary{
+ background:linear-gradient(110deg,#ff8c9e,#f5758d);color:#fff;
+ border:0;min-height:49px;padding:12px 22px;border-radius:18px;
+ box-shadow:0 6px 20px #ee7b9533;
+}
+.app:not(.admin-app) .loading{
+ display:flex;align-items:center;justify-content:center;
+ color:#9a7eab;font-size:12px;gap:10px;
+}
+.app:not(.admin-app) .loading svg{
+ color:#f27890;stroke-width:2.4;
+}
+.app:not(.admin-app) .empty.veyra-empty-feature{
+ padding:31px 17px 25px;border-radius:24px;
+ background:linear-gradient(150deg,#fff8fa,#faf6ff);
+ border:1px solid #f2eaf4;color:#44334f;
+}
+.app:not(.admin-app) .empty.veyra-empty-feature .artwork{
+ filter:drop-shadow(0 8px 17px rgba(237,137,183,.16));
+}
+.app:not(.admin-app) .empty.veyra-empty-feature h2{
+ color:#4b3856;font-size:19px;font-weight:780;
+}
+.app:not(.admin-app) .empty.veyra-empty-feature p{
+ color:#95849e;font-size:12px;line-height:1.65;
+}
+.app:not(.admin-app) .veyra-skeleton{
+ width:100%;margin:5px auto 20px;gap:10px;
+}
+.app:not(.admin-app) .veyra-skeleton [class^="veyra-skeleton-"]{
+ background:linear-gradient(105deg,#f2ebf5 16%,#fff8fb 40%,#f2ebf5 67%)!important;
+ background-size:240% 100%!important;
+ animation:veyra-coral-skeleton 1.85s ease-in-out infinite!important;
+ border-color:#f0e7f3!important;
+}
+.app:not(.admin-app) .veyra-skeleton .veyra-skeleton-lines{
+ background:none!important;animation:none!important;
+}
+.app:not(.admin-app) .veyra-skeleton .veyra-skeleton-item{
+ background:#fff!important;border:1px solid #efe7f1!important;
+ box-shadow:0 4px 17px #78588b09;
+}
+.app:not(.admin-app) .veyra-skeleton .veyra-skeleton-hero{
+ border:1px solid #efe7f1!important;
+ border-radius:28px;
+}
+.app:not(.admin-app) .veyra-skeleton-reactions span{
+ height:47px;width:47px;border-radius:50%;box-shadow:0 4px 15px #74597b12;
+}
+.app:not(.admin-app) .toast{
+ color:#594768;background:#fff;border:1px solid #f3e6ee;
+ box-shadow:0 8px 29px #67417323;border-radius:18px;
+ padding:13px 14px;backdrop-filter:blur(12px);
+}
+.app:not(.admin-app) .toast>svg{color:#3db88a}
+.app:not(.admin-app) .toast button{
+ color:#a18dac;background:#f6f1f9;border:0;border-radius:50%;
+}
+@keyframes veyra-coral-skeleton{
+ 0%{background-position:110% 0}
+ 100%{background-position:-110% 0}
+}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .veyra-skeleton [class^="veyra-skeleton-"]{
+  animation:none!important;background:#f3ecf5!important
+ }
+ .app:not(.admin-app) .boot-screen .brand-animated{animation:none!important}
+}
