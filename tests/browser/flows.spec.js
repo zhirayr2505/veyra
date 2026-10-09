@@ -119,7 +119,13 @@ test('redesigned screens use real data, chat search, profile pause and usable mo
  await expect(page.locator('.dating-card .photo-image')).toHaveClass(/is-loaded/);
  await screenshot(page,testInfo.outputPath('design-feed.png'));
  const giftsRequests=[];page.on('request',r=>{if(r.method()==='POST'&&/gifts|payments/.test(r.url()))giftsRequests.push(r.url());});
- await page.getByRole('button',{name:'Профиль',exact:true}).click();await page.locator('.vp-gifts button').click();await expect(page.getByRole('dialog',{name:'Подарки',exact:true})).toContainText('Скоро');await screenshot(page,testInfo.outputPath('gifts-placeholder.png'));await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect(giftsRequests).toHaveLength(0);
+ await page.getByRole('button',{name:'Профиль',exact:true}).click();
+ await page.getByRole('tab',{name:'Коллекция подарков'}).click();
+ await expect(page.locator('.vg-collection')).toBeVisible();
+ await expect(page.locator('.vg-collection')).toContainText('Коллекция подарков');
+ await screenshot(page,testInfo.outputPath('gifts-collection.png'));
+ await page.getByRole('tab',{name:'Анкета'}).click();
+ expect(giftsRequests).toHaveLength(0);
 
  await page.getByRole('button',{name:'Сегодня',exact:true}).click();await expect(page.locator('.today-person').first()).toBeVisible();
  expect(await page.locator('.today-person').count()).toBeGreaterThan(1);
