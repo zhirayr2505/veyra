@@ -40,12 +40,36 @@ export async function recommendations(q,user,todayOnly=false,limit=1){const p=aw
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
  ORDER BY boosted DESC NULLS LAST,shared DESC,distance ASC,u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||''])).rows;
  const candidates=rows.filter(x=>p.radius_km===20000||x.distance<=p.radius_km).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
- const profiles=[];
- for(const candidate of candidates){
-  const seen=await q.query('INSERT INTO impressions(viewer,target) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING viewer',[user.id,candidate.user_id]);
-  if(seen.rowCount)await q.query('UPDATE daily_usage SET views=views+1 WHERE user_id=$1 AND day=CURRENT_DATE',[user.id]);
-  const card=await publicProfile(q,candidate.user_id);card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);profiles.push(card);
- }
+ if(!candidates.length)return {profiles:[],limited:false};
+ // One impressions write, one usage write and one profile query: the former
+ // N+1 loop multiplied network latency on Render/Supabase for every card.
+ const candidateIds=candidates.map(candidate=>String(candidate.user_id));
+ const seen=await q.query(`INSERT INTO impressions(viewer,target)
+  SELECT $1::bigint,x.id FROM unnest($2::bigint[]) AS x(id)
+  ON CONFLICT DO NOTHING RETURNING target`,[user.id,candidateIds]);
+ if(seen.rowCount)await q.query('UPDATE daily_usage SET views=views+$2 WHERE user_id=$1 AND day=CURRENT_DATE',[user.id,seen.rowCount]);
+ const cards=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,
+  p.gender,p.bio,p.interests,p.goal,p.smoking,p.leisure,p.city,p.country,u.boost_until,
+  (CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,
+  (NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,
+  t.activity,t.time_slot,t.expires_at AS today_until,
+  (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[])
+    FROM photos ph WHERE ph.user_id=p.user_id) AS photos
+  FROM profiles p JOIN users u ON u.id=p.user_id
+  LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
+  WHERE p.user_id=ANY($1::bigint[])`,[candidateIds])).rows;
+ const byId=new Map(cards.map(card=>{
+  card.test_profile=isTestProfile(card.id);
+  if(card.test_profile){card.online=false;card.last_seen=null;}
+  card.photos=card.photos||[];
+  return [String(card.id),card];
+ }));
+ const profiles=candidates.map(candidate=>{
+  const card=byId.get(String(candidate.user_id));
+  if(!card)return null;
+  card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);
+  return card;
+ }).filter(Boolean);
  return {profiles,limited:false};
 }
 async function finishMatch(q,actor,target) {

@@ -44,13 +44,17 @@ function workPhotoQueue(){
   }).catch(err=>{photoCache.delete(job.id);job.reject(err);}).finally(()=>{photoInflight--;workPhotoQueue();});
  }
 }
-function photoSource(id){
+function photoSource(id,urgent=false){
  if(!id)return Promise.resolve('');
  if(photoCache.has(id)){
   const cached=photoCache.get(id);photoCache.delete(id);photoCache.set(id,cached);
+  if(urgent){
+   const index=photoQueue.findIndex(job=>job.id===id);
+   if(index>0)photoQueue.unshift(photoQueue.splice(index,1)[0]);
+  }
   return cached;
  }
- const job=new Promise((resolve,reject)=>photoQueue.push({id,resolve,reject}));
+ const job=new Promise((resolve,reject)=>{const task={id,resolve,reject};if(urgent)photoQueue.unshift(task);else photoQueue.push(task);});
  photoCache.set(id,job);
  if(photoCache.size>96){
   const old=photoCache.keys().next().value;
@@ -71,12 +75,12 @@ function Photo({id,className='',alt=''}) {
   const warm=photoResolved.get(id);
   if(warm){setUrl(warm);return()=>{active=false;};}
   setUrl('');
-  if(id)photoSource(id).then(source=>{if(active)setUrl(source);}).catch(()=>{});
+  if(id)photoSource(id,true).then(source=>{if(active)setUrl(source);}).catch(()=>{});
   return()=>{active=false;};
  },[id]);
  const ready=photoResolved.get(id);
  const visible=ready||(id===renderedId?url:'');
- return visible?<img src={visible} decoding="async" loading={className.includes('cover')?'eager':'lazy'} className={className+' photo-image is-loaded'} alt={alt} draggable={false}/>
+ return visible?<img src={visible} decoding="async" loading={/(cover|hero|avatar|photo-main|photo-image-main)/.test(className)?'eager':'lazy'} className={className+' photo-image is-loaded'} alt={alt} draggable={false}/>
  :<div className={'photo-placeholder '+className} aria-label={alt}/>;
 }
 
@@ -176,7 +180,7 @@ function Card({p,onReact,onUndo,canUndo}){
   return()=>clearTimeout(warm);
  },[p.id]);
  const act=kind=>{if(sending.current)return;sending.current=true;run(async()=>{setPhase('leaving-'+kind);try{const r=await post('/reactions',{target:String(p.id),kind,...(msg?{message:msg}:{})});setPrematch(false);setMsg('');tg?.HapticFeedback?.impactOccurred?.('light');if(r.matched)setModal({type:'match',profile:p,match_id:r.match_id});await onReact();}finally{setPhase('');sending.current=false;}});};
- const viewProfile=()=>app.openProfile(p,{onReact:act,onPrematch:()=>setPrematch(true),onReport:()=>setReport(true),onHandled:onReact});
+ const viewProfile=()=>{prefetchMemberProfile(p.id).catch(()=>{});warmPhotos(p.photos?.slice(0,3),3);app.openProfile(p,{onReact:act,onPrematch:()=>setPrematch(true),onReport:()=>setReport(true),onHandled:onReact});};
  const pointerDown=e=>{if(busy||sending.current||e.button!==0||(e.target.closest('button,a,input,textarea')&&!e.target.closest('.photo-controls')))return;suppressClick.current=false;gesture.current={x:e.clientX,y:e.clientY};e.currentTarget.setPointerCapture(e.pointerId);};
  const pointerMove=e=>{if(!gesture.current)return;const dx=e.clientX-gesture.current.x,dy=e.clientY-gesture.current.y;setDrag(Math.abs(dx)>Math.abs(dy)*1.2?dx:0);};
  const pointerUp=e=>{if(!gesture.current)return;const dx=e.clientX-gesture.current.x,dy=e.clientY-gesture.current.y;gesture.current=null;setDrag(0);suppressClick.current=Math.abs(dx)>25&&Math.abs(dx)>Math.abs(dy)*1.2;if(dy<-70&&Math.abs(dy)>Math.abs(dx)*1.2&&!busy){suppressClick.current=true;viewProfile();}else if(Math.abs(dx)>90&&Math.abs(dx)>Math.abs(dy)*1.2&&!busy)act(dx>0?'like':'pass');};
