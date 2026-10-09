@@ -110,7 +110,7 @@ function App(){
  {!page&&approved&&!chatOpen&&<nav className="bottom-nav" aria-label={t('Навигация')}>{[['feed','Лента'],['today','Сегодня'],['likes','Лайки'],['chats','Чаты'],['profile','Профиль']].map(([key,label])=><button key={key} className={tab===key?'selected':''} onClick={()=>switchTab(key)} aria-label={t(label)} aria-current={tab===key?'page':undefined}><span className="nav-icon"><VeyraIcon name={key} size={24}/>{badges[key]>0&&<b className="nav-count">{badges[key]>99?'99+':badges[key]}</b>}</span><span>{t(label)}</span><i/></button>)}</nav>}
  </>}
  {modal?.type==='gifts'&&<GiftsSoon onClose={()=>setModal(null)}/>}
- {modal?.type==='match'&&<MatchCelebration p={modal.profile} onClose={()=>setModal(null)} onProfile={()=>openProfile(modal.profile,{matchId:modal.match_id})} onChat={()=>{setModal(null);setTab('chats');setOpenChatId(modal.match_id||null);}}/>}
+ {modal?.type==='match'&&<MatchCelebration p={modal.profile} onClose={()=>setModal(null)} onProfile={()=>openProfile(modal.profile,{matchId:modal.match_id})} onChat={()=>{const id=modal.match_id;setModal(null);switchTab('chats');setOpenChatId(id||null);}}/>}
  {profileView&&<MemberProfile key={profileView.profile.id} entry={profileView} app={ctx} Photo={Photo} onClose={()=>setProfileView(null)}/>}
  {toast&&<div className="toast" role="status"><CheckCircle2 size={18}/><span>{toast}</span><button aria-label="Close" onClick={()=>setToast('')}><X size={17}/></button></div>}
  </div></Context.Provider>;
