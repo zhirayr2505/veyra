@@ -4,7 +4,7 @@ async function login(page,id){await page.route('https://telegram.org/**',r=>r.fu
 const button=(page,name)=>page.getByRole('button',{name,exact:true}).last();
 async function menu(page,kind){await page.locator('.kind-'+kind).last().click({button:'right'});await expect(page.getByRole('dialog',{name:'Сообщение',exact:true})).toBeVisible();}
 test('Messages Media: photos, stickers and durable retry without microphone',async({browser},info)=>{
- const a=await browser.newPage({viewport:{width:390,height:844}}),b=await browser.newPage({viewport:{width:390,height:844}}),errors=[];a.on('pageerror',e=>errors.push(e.message));b.on('pageerror',e=>errors.push(e.message));await login(a,401);await login(b,402);
+ const a=await browser.newPage({viewport:{width:390,height:844}}),b=await browser.newPage({viewport:{width:390,height:844}}),errors=[],received=[];b.on('response',async r=>{if(r.url().includes('/api/matches/')&&r.url().includes('/messages')&&!r.url().includes('/media')){try{const d=await r.json();if(Array.isArray(d.messages))received.push({count:d.messages.length,types:d.messages.map(m=>m.kind),sync:d.sync_version});}catch{}}});a.on('pageerror',e=>errors.push(e.message));b.on('pageerror',e=>errors.push(e.message));await login(a,401);await login(b,402);
  await expect(a.getByRole('button',{name:'Записать голосовое'})).toHaveCount(0);
  await expect(a.locator('.mm-recording')).toHaveCount(0);
  await button(a,'Прикрепить').click();await expect(a.getByRole('dialog')).toContainText('Фото из галереи');await a.locator('input[type=file]').first().setInputFiles('web/assets/welcome-couple.webp');await expect(a.locator('.mm-photo-draft img')).toBeVisible();await a.getByRole('textbox',{name:'Подпись к фото'}).fill('Наш вечер 💜');await button(a,'Эмодзи в подписи').click();await expect(a.locator('.EmojiPickerReact')).toBeVisible();await button(a,'Эмодзи в подписи').click();await button(a,'Отправить фото').click();await b.bringToFront();await b.reload();await b.getByRole('button',{name:'Чаты',exact:true}).click();await b.locator('.chat-row').click();try{await expect(b.locator('.kind-image')).toBeVisible({timeout:15000});}catch(error){
@@ -13,7 +13,7 @@ test('Messages Media: photos, stickers and durable retry without microphone',asy
     lastRecipientMessages:(await b.locator('.mc-message').allTextContents()).slice(-4),
     recipientChatHeader:await b.locator('.mc-person strong').allTextContents(),
     clientErrors:errors,
-    senderPhotoCount:await a.locator('.kind-image').count()
+    senderPhotoCount:await a.locator('.kind-image').count(),recentRecipientSync:received.slice(-4)
    }));
    throw error;
   }await b.locator('.kind-image').last().scrollIntoViewIfNeeded();await expect(b.locator('.kind-image img')).toBeVisible({timeout:15000});await b.locator('.mm-photo-button').click();await expect(b.locator('.mm-viewer')).toBeVisible();await button(b,'Увеличить фото').click();await expect(button(b,'Уменьшить фото')).toBeVisible();await b.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
