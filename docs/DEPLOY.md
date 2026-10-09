@@ -54,3 +54,18 @@ Official references checked during implementation:
 - Bot mismatch: setup validates expected bot usernames before modifying webhook/menu configuration.
 - Login error: open via the correct bot. Never trust initDataUnsafe as authentication.
 - Payments disabled: use owner panel; payment flag intentionally defaults off.
+
+
+### Confirm the actual deployed revision (mobile-friendly)
+
+The **Settings → App version & status** panel requests the public `/healthz` only while Settings is open (or when the user taps **Check again**). The value under **Server revision** is the first 12 characters of Render's `RENDER_GIT_COMMIT`, if supplied. Compare it to the first 12 characters of the latest verified GitHub commit. The panel deliberately does not claim a version is up to date when the SHA is unavailable.
+
+For a non-mutating production acceptance run, use:
+
+```sh
+node scripts/smoke.js https://YOUR-VEYRA-URL.onrender.com EXPECTED_GIT_SHA
+```
+
+The optional second argument checks the server's revision as well as `/healthz`, `/readyz`, the website, and unauthenticated access protections. Without a SHA it performs the previous route checks. A passing CI build alone does **not** prove the Render instance is deployed.
+
+**Physical Telegram Android acceptance:** open the Mini App in Telegram; in Settings, check the revision and use **Check again**; test Match on a short viewport (all three buttons reachable), keyboard/composer resizing in an active chat, and two consecutive voice recordings including hold-to-lock, cancel, pause, and send. Note any repeated Android microphone permission prompts. Browser simulations cannot verify Telegram WebView permission persistence. Do not leave a microphone recording running merely to keep permissions.

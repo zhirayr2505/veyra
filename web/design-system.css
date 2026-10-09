@@ -336,3 +336,36 @@ body{background:var(--v-bg);color:var(--v-text)}
  }
  .app:not(.admin-app) .match-scene .match-sparks{display:none}
 }
+
+
+/* Lightweight, on-demand production revision diagnostic.
+   No extra polling, tokens, tracking, or authenticated API calls. */
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-state{
+ display:flex;align-items:flex-start;gap:13px;padding:2px 0 8px;
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-indicator{
+ margin-top:4px;display:block;flex:0 0 10px;width:10px;height:10px;
+ border-radius:50%;background:var(--v-orchid);
+ box-shadow:0 0 0 4px rgba(182,123,233,.09);
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-indicator.ready{
+ background:var(--v-ice);box-shadow:0 0 0 4px rgba(136,211,230,.10);
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-indicator.error{
+ background:#ff9eac;box-shadow:0 0 0 4px rgba(255,158,172,.1);
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-state>span:last-child{
+ min-width:0;display:grid;gap:6px;
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-state strong{
+ font-size:14px;font-weight:600;color:var(--v-text);
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-state small,
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-hint{
+ font-size:12px;line-height:1.5;color:var(--v-muted);
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-state code{
+ color:#e8cfef;white-space:nowrap;font:600 12px ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+.app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-hint{margin:6px 0 16px}
+.app:not(.admin-app) .veyra-runtime-panel .button{min-height:44px}

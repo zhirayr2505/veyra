@@ -11,6 +11,19 @@ export function AccountSettings({app,Sheet,PauseToggle}){
  const L=(ru,en)=>lang==='ru'?ru:en;
  const[settings,setSettings]=useState({language:me.user.language,notifications:me.user.notifications,invisible:me.user.invisible});
  const[blocks,setBlocks]=useState([]),[orders,setOrders]=useState([]),[confirmDelete,setConfirmDelete]=useState(false);
+ const[runtime,setRuntime]=useState({status:'loading',revision:null});
+ async function checkRuntime(signal){
+  setRuntime(previous=>({...previous,status:'loading'}));
+  try{
+   const response=await fetch('/healthz',{cache:'no-store',signal});
+   if(!response.ok)throw Error('HEALTH_UNAVAILABLE');
+   const data=await response.json();
+   if(data?.ok!==true||data?.service!=='veyra')throw Error('HEALTH_UNAVAILABLE');
+   const revision=typeof data.revision==='string'&&/^[a-f\d]{40}$/i.test(data.revision)?data.revision:null;
+   setRuntime({status:'ready',revision});
+  }catch(error){if(error?.name!=='AbortError')setRuntime({status:'unavailable',revision:null});}
+ }
+ useEffect(()=>{const controller=new AbortController();checkRuntime(controller.signal);return()=>controller.abort();},[]);
  useEffect(()=>{run(async()=>{const [b,o]=await Promise.all([api('/blocks'),api('/orders')]);setBlocks(b);setOrders(o);});},[]);
  return <section className="settings-page account-page">
   <SectionHeading eyebrow={L('ТВОЁ ПРОСТРАНСТВО','YOUR SPACE')} title={t('Настройки')} body={L('Всё так, как удобно тебе.','Make yourself at home.')} art="review-shield"/>
@@ -26,6 +39,15 @@ export function AccountSettings({app,Sheet,PauseToggle}){
    <a className="menu-row" href="/legal" target="_blank" rel="noreferrer"><VeyraIcon icon={ShieldCheck} size={19}/><span>{t('Условия и конфиденциальность')}</span><VeyraIcon icon={ArrowUpRight} size={17}/></a>
    <button className="menu-row" onClick={()=>run(async()=>{await post('/logout');setSession('');window.Telegram?.WebApp?.close();location.reload();})}><VeyraIcon icon={LogOut} size={19}/><span>{t('Выйти')}</span><VeyraIcon icon={ChevronRight} size={17}/></button>
    <button className="menu-row danger" onClick={()=>setConfirmDelete(true)}><VeyraIcon icon={Trash2} size={19}/><span>{t('Удалить аккаунт')}</span><VeyraIcon icon={ChevronRight} size={17}/></button>
+  </Panel>
+  <Panel title={L('Версия и состояние приложения','App version & status')} className="veyra-runtime-panel">
+   <div className="veyra-runtime-state" role="status" aria-live="polite">
+    <span className={'veyra-runtime-indicator '+(runtime.status==='ready'?'ready':runtime.status==='unavailable'?'error':'loading')} aria-hidden="true"/>
+    <span><strong>{runtime.status==='loading'?L('Проверяем сервер…','Checking server…'):runtime.status==='ready'?L('Сервер отвечает','Server responding'):L('Не удалось проверить','Could not check')}</strong>
+     <small>{L('Версия сервера','Server revision')}: <code>{runtime.revision?.slice(0,12)||'—'}</code></small></span>
+   </div>
+   <p className="veyra-runtime-hint">{L('По этому номеру можно узнать, установлено ли последнее обновление VEYRA.','Use this revision to check whether VEYRA has been updated.')}</p>
+   <button type="button" className="button secondary full" disabled={runtime.status==='loading'} onClick={()=>checkRuntime()}>{L('Проверить снова','Check again')}</button>
   </Panel>
   {confirmDelete&&<Sheet title={t('Удалить аккаунт')} onClose={()=>setConfirmDelete(false)}><div className="confirmation-symbol"><VeyraIcon icon={Trash2} size={30}/></div><p>{t('Удалить аккаунт и анкету? Это действие нельзя отменить.')}</p><div className="confirmation-actions"><button className="button secondary full" onClick={()=>setConfirmDelete(false)}>{L('Оставить аккаунт','Keep my account')}</button><button className="button danger full" disabled={busy} onClick={()=>run(async()=>{await api('/account',{method:'DELETE',body:{confirm:'DELETE'}});setSession('');location.reload();})}>{t('Удалить аккаунт')}</button></div></Sheet>}
  </section>;
