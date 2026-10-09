@@ -18,10 +18,11 @@ test('synthetic likes are reciprocal, labelled, retry safe and not charged twice
  assert.equal((await one(db,'SELECT likes FROM daily_usage WHERE user_id=10')).likes,1);
  const regular=await db.tx(q=>react(q,'11','10','like'));assert.equal(regular.matched,false);
 });
-test('Undo requires premium and latest reaction, preserves quota, cannot undo a match',async()=>{
+test('Undo supports the first daily free reversal and forbids reversing an active match',async()=>{
  await db.tx(q=>react(q,'10','11','pass'));
  assert.equal((await auth(request(app).post('/api/reactions/undo')).send({target:'11'})).status,200);
- assert.equal((await auth(request(app).post('/api/reactions/undo'),11).send({target:'10'})).status,402);
+ assert.equal((await auth(request(app).post('/api/reactions/undo'),11).send({target:'10'})).status,200);
+ assert.equal((await auth(request(app).get('/api/reactions/last'),11)).body.free_undo_left,0);
  assert.equal((await auth(request(app).post('/api/reactions/undo')).send({target:TEST_PROFILE_IDS[0]})).status,409);
 });
 test('hiding and reports exclude discovery; stranger profile lookup is forbidden',async()=>{
