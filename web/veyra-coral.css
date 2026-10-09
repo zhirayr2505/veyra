@@ -577,3 +577,90 @@ body{color-scheme:light}
 .app:not(.admin-app) .veyra-weekly-values>div{display:flex;align-items:baseline;gap:8px;padding:8px 11px;background:#fff;border-radius:13px;border:1px solid #f8edf3}
 .app:not(.admin-app) .veyra-weekly-values strong{font-size:21px;font-variant-numeric:tabular-nums;color:#ef758b}
 .app:not(.admin-app) .veyra-weekly-values span{font-size:11px;color:#897a92}
+
+/* Brand-consistent first launch, welcome and mutual match — no remaining midnight screens. */
+.welcome.welcome-photo{
+ background:#fffdfd;color:#362d43;min-height:100dvh;
+}
+.welcome.welcome-photo::before{background-position:center 18%;opacity:.91}
+.welcome.welcome-photo::after{
+ background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.1) 23%,rgba(255,251,253,.66) 41%,#fffdfd 62%,#fffdfd 100%)!important;
+}
+.welcome.welcome-photo header{position:relative;z-index:3}
+.welcome.welcome-photo .brand.approved-brand{width:143px;height:49px}
+.welcome.welcome-photo .language-button{
+ color:#806b90;background:rgba(255,255,255,.88);border:1px solid #f1eaf3;
+ box-shadow:0 4px 17px #54406317;backdrop-filter:blur(10px);border-radius:999px;
+}
+.welcome.welcome-photo .welcome-location{
+ color:#665874;font-weight:700;background:#fffffff0;
+ border:1px solid #f2eaf3;border-radius:99px;align-self:start;padding:8px 12px;
+ box-shadow:0 4px 15px rgba(65,40,82,.08);
+}
+.welcome.welcome-photo .welcome-location svg{color:#f6788e}
+.welcome.welcome-photo .welcome-copy{margin-top:clamp(180px,30dvh,310px)}
+.welcome.welcome-photo .welcome-copy .eyebrow{color:#e4778c}
+.welcome.welcome-photo h1{color:#3c2d47;font-weight:760}
+.welcome.welcome-photo h1 em{
+ background:linear-gradient(110deg,#f57489,#fb9c9e);
+ background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+}
+.welcome.welcome-photo .welcome-copy>p{color:#796f85}
+.welcome.welcome-photo .welcome-promises>div{border-color:#eee4ec}
+.welcome.welcome-photo .welcome-promises span{
+ border:0;color:#e76b87;background:#ffedf2;
+}
+.welcome.welcome-photo .welcome-promises>div:nth-child(2) span{color:#8d6cbe;background:#f3edfc}
+.welcome.welcome-photo .welcome-promises small{color:#766d7e;font-weight:600}
+.welcome.welcome-photo .welcome-copy>.primary{
+ background:linear-gradient(115deg,#ff8999,#f8758b);color:#fff;
+ border:0;border-radius:22px;box-shadow:0 7px 25px #e66e8838;
+}
+.welcome.welcome-photo .welcome-links .button{
+ color:#8c6ea4;background:#f7f1fc;border:0;border-radius:17px;
+}
+.welcome.welcome-photo .adult-note{color:#857a8e}
+.welcome.welcome-photo .adult-note>strong{border-color:#f3cad2;background:#fff3f6;color:#ef7690}
+.welcome.welcome-photo .how-steps>div{background:#fff;color:#473b52;border:1px solid #f1eaf2}
+.welcome.welcome-photo .how-steps b{background:#ffedf2;border:0;color:#e7768c}
+.welcome.welcome-photo .how-steps p{color:#80758b}
+
+.match-scene{background:rgba(65,41,76,.55)!important;backdrop-filter:blur(12px)}
+.match-scene>.sheet{
+ background:linear-gradient(164deg,#fff9fc,#fff 48%,#fcf6ff)!important;
+ color:#392e47!important;border:0;box-shadow:0 8px 50px #301b4a35;
+}
+.match-scene .match-glow{
+ background:radial-gradient(ellipse at 50% 26%,#ffc6d64f,transparent 63%);
+}
+.match-scene .match-title h1{color:#3a2d45;font-weight:800}
+.match-scene .match-title h1 em{
+ background:linear-gradient(115deg,#fc708b,#ffa29b);
+ background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+}
+.match-scene .match-title p{color:#8b7e95}
+.match-scene .match-title>.artwork{filter:drop-shadow(0 8px 18px #fd9eae45)}
+.match-scene .match-people h3{color:#4d3c58}
+.match-scene .match-people img{
+ border:4px solid #fff;box-shadow:0 7px 24px #b984a24d;
+}
+.match-scene .match-heart{color:#f97891;filter:drop-shadow(0 5px 13px #ff8ca4a8)}
+.match-scene .match-heart svg{stroke:#fff}
+.match-scene .match-note{
+ background:linear-gradient(115deg,#ffedf3,#f1eafa);color:#826990;
+ border:1px solid #f6deee;box-shadow:0 4px 16px #91577510;border-radius:20px;
+}
+.match-scene .match-note svg{color:#f5748d;filter:none}
+.match-scene .match-sparks{z-index:0}
+.match-scene .match-sparks svg{color:#f8a0b9;fill:#f8b2c2}
+.match-scene .button.primary{
+ background:linear-gradient(115deg,#fa8599,#f4748b);color:#fff;border:0;
+ box-shadow:0 7px 22px #ef7c9330;
+}
+.match-scene .button.secondary{background:#f5effc;color:#8966aa;border:0}
+.match-scene .sheet>header button{color:#8e7a9c;background:#f4ecfa;border-radius:50%}
+@media(max-width:390px){
+ .welcome.welcome-photo .welcome-copy{margin-top:clamp(110px,25dvh,220px)}
+ .welcome.welcome-photo h1,.welcome.welcome-photo h1 em{font-size:35px}
+ .match-scene>.sheet{padding-top:56px}
+}
