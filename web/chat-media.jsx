@@ -29,7 +29,7 @@ export function useVoiceRecording({onSend,onPermission,onError}){
   elapsed.current=duration();update({phase:'processing',elapsed:elapsed.current});if(rec.current?.state!=='inactive')rec.current.stop();else cleanup();
  }
  async function start(e){
-  if(live.current.phase!=='idle')return;clearTimeout(cancelTimer.current);gesture.current={x:e.clientX,y:e.clientY,down:true};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}
+  if(live.current.phase!=='idle')return;clearTimeout(cancelTimer.current);gesture.current={x:e.clientX,y:e.clientY,down:true,locked:false};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}
   if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){callbacks.current.onPermission('unsupported');return;}
   const gen=++generation.current;update({phase:'requesting',locked:false,elapsed:0,levels:[]});
   try{
@@ -49,12 +49,12 @@ export function useVoiceRecording({onSend,onPermission,onError}){
    };
    let analyser=null;try{const Context=window.AudioContext||window.webkitAudioContext;if(Context){const context=new Context();audioContext.current=context;await context.resume();analyser=context.createAnalyser();analyser.fftSize=256;context.createMediaStreamSource(source).connect(analyser);}}catch{}
    if(gen!==generation.current){cleanup();return;}
-   since.current=performance.now();update({phase:'recording',locked:!gesture.current?.down});recorder.start(1000);buzz('medium');
+   since.current=performance.now();update({phase:'recording',locked:!!gesture.current?.locked||!gesture.current?.down});recorder.start(1000);buzz('medium');
    const values=new Uint8Array(256);timer.current=setInterval(()=>{if(live.current.phase!=='recording')return;let level=.08;if(analyser){analyser.getByteTimeDomainData(values);level=Math.min(1,Math.sqrt(values.reduce((n,v)=>n+Math.pow((v-128)/128,2),0)/values.length)*4+.04);}samples.current.push(level);if(samples.current.length>64)samples.current.shift();const total=duration();update({elapsed:total,levels:[...samples.current]});if(total>=599.8)stop('ready');},90);
   }catch(error){cleanup();reset();if(gen===generation.current)callbacks.current.onPermission(['NotAllowedError','SecurityError'].includes(error.name)?'denied':error.name==='NotFoundError'?'missing':'unavailable');}
  }
- function move(e){const g=gesture.current;if(!g||live.current.locked)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;if(dx<-85){g.down=false;stop('cancel');}else if(dy<-65){update({locked:true});buzz('medium');}}
- function release(){if(gesture.current)gesture.current.down=false;if(live.current.locked)return;if(live.current.phase==='requesting'){update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){update({locked:true});buzz();}else stop('send');}}
+ function move(e){const g=gesture.current;if(!g||live.current.locked)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;if(dx<-85){g.down=false;stop('cancel');}else if(dy<-65){g.locked=true;update({locked:true});buzz('medium');}}
+ function release(e){const g=gesture.current;if(g){const dx=(e?.clientX??g.x)-g.x,dy=(e?.clientY??g.y)-g.y;if(dy<-65&&Math.abs(dy)>Math.abs(dx)){g.locked=true;update({locked:true});}g.down=false;}if(live.current.locked)return;if(live.current.phase==='requesting'){if(g)g.locked=true;update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){if(g)g.locked=true;update({locked:true});buzz();}else stop('send');}}
  function pause(){if(live.current.phase==='recording'){elapsed.current=duration();rec.current?.pause();update({phase:'paused',elapsed:elapsed.current});}else if(live.current.phase==='paused'){since.current=performance.now();rec.current?.resume();update({phase:'recording'});}buzz();}
  useEffect(()=>()=>{mounted.current=false;generation.current++;clearTimeout(cancelTimer.current);if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}cleanup();},[]);
  return {...state,active:state.phase!=='idle',handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
