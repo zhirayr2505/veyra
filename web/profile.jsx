@@ -22,8 +22,8 @@ export function PersonalProfile({app,Photo,Sheet,Artwork,PauseToggle,GiftCollect
   {profileTab==='gifts'?<GiftCollection ownerId="me" lang={lang} active={app.tab==='profile'&&profileTab==='gifts'}/>:<>
   <div className="vp-hero">
    <button type="button" className="vp-cover" onClick={()=>photos.length?setViewer(cover):edit()} aria-label={t('Мои фотографии')}><Photo id={photos[cover]?.id} alt={p.name}/></button>
-   <div className="vp-hero-shade"/>
-   <div className="vp-hero-top"><button className="vp-verified" onClick={()=>setInfo(true)}><VeyraIcon icon={ShieldCheck} size={15}/>{L('Анкета проверена','Profile reviewed')}</button>{photos.length>0&&<button className="vp-photo-count" onClick={()=>setViewer(cover)} aria-label={L('Открыть фотографии','Open photos')}><VeyraIcon icon={Images} size={15}/>{cover+1}<span>/ {photos.length}</span></button>}</div>
+   <div className="vp-hero-shade"/>{photos.length>1&&<div className="vp-photo-progress" aria-hidden="true">{photos.map((photo,i)=><span key={photo.id} className={cover===i?"active":""}/>)}</div>}
+   <div className="vp-hero-top"><button className="vp-verified" onClick={()=>setInfo(true)}><VeyraIcon icon={ShieldCheck} size={15}/>{L('Анкета проверена','Profile reviewed')}</button></div>
    <div className="vp-identity"><div className="vp-name"><h2>{p.name}<span>, {age}</span></h2>{premium&&<VeyraIcon icon={Sparkles} size={20} aria-label="Premium"/>}</div><p><VeyraIcon icon={MapPin} size={14}/>{[p.city,p.country].filter(Boolean).join(', ')}</p>{goal&&<span className="vp-goal"><VeyraIcon icon={Heart} size={13}/>{goal}</span>}</div>
   </div>
   <div className="vp-photo-strip" aria-label={t('Мои фотографии')}>{photos.map((photo,i)=><button key={photo.id} type="button" className={cover===i?'active':''} aria-label={t('Фото')+' '+(i+1)} aria-pressed={cover===i} onClick={()=>setCover(i)}><Photo id={photo.id}/>{i===0&&<span><VeyraIcon icon={Star} size={10} fill="currentColor"/></span>}</button>)}{photos.length<6&&<button type="button" className="vp-add-photo" onClick={edit} aria-label={L('Добавить фото','Add photo')}><VeyraIcon icon={Plus} size={22}/></button>}</div>

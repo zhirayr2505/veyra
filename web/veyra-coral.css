@@ -561,3 +561,9 @@ body{color-scheme:light}
 .app:not(.admin-app) .card-info .card-online{display:none}
 .app:not(.admin-app) .card-info .today-badge{display:none}
 .app:not(.admin-app) .card-info .bio{font-weight:500;opacity:.97;line-height:1.35}
+
+/* Own profile photos follow the approved non-numeric carousel language. */
+.app:not(.admin-app) .vp-photo-progress{position:absolute;z-index:6;top:11px;left:13px;right:13px;display:flex;gap:5px;pointer-events:none}
+.app:not(.admin-app) .vp-photo-progress span{height:4px;flex:1;min-width:0;background:rgba(255,255,255,.48);border-radius:99px;box-shadow:0 1px 2px #0001}
+.app:not(.admin-app) .vp-photo-progress span.active{background:#fff}
+.app:not(.admin-app) .vp-hero-top{top:26px}
