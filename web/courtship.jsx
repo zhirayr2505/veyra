@@ -112,11 +112,27 @@ export function CourtshipPanel({targetId,lang='ru',showAction=false}){
  </div>;
 }
 
-export function CourtshipInbox({lang='ru'}){
+export function CourtshipInbox({lang='ru',active=true}){
  const L=(ru,en)=>translate(lang,ru,en);
  const [rows,setRows]=useState([]),[busy,setBusy]=useState(null),[error,setError]=useState('');
- const load=async()=>{try{setRows(await api('/courtships/inbox'));setError('');}catch{setError(L('Не удалось загрузить предложения','Could not load requests'));}};
- useEffect(()=>{load();const onUpdate=()=>load();window.addEventListener('veyra:courtship-changed',onUpdate);return()=>window.removeEventListener('veyra:courtship-changed',onUpdate);},[]);
+ const load=async()=>{try{
+   const next=await api('/courtships/inbox');
+   setRows(old=>JSON.stringify(old)===JSON.stringify(next)?old:next);
+   setError('');
+  }catch{setError(L('Не удалось загрузить предложения','Could not load requests'));}
+ };
+ // A request from another member cannot dispatch an event in this WebView.
+ // Refresh only while the owner's About tab is visible; no idle background traffic.
+ useEffect(()=>{
+  if(!active)return;
+  load();
+  const onUpdate=()=>{if(!document.hidden)load();};
+  const onVisible=()=>{if(!document.hidden)load();};
+  const timer=setInterval(onUpdate,10000);
+  window.addEventListener('veyra:courtship-changed',onUpdate);
+  document.addEventListener('visibilitychange',onVisible);
+  return()=>{clearInterval(timer);window.removeEventListener('veyra:courtship-changed',onUpdate);document.removeEventListener('visibilitychange',onVisible);};
+ },[active]);
  const stop=async(c)=>{
   if(busy)return;setBusy(c.id);
   try{await post('/courtships/'+c.id+'/stop',{});setRows(old=>old.filter(row=>row.id!==c.id));window.dispatchEvent(new Event('veyra:courtship-changed'));}

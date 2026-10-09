@@ -19,7 +19,7 @@ export function PersonalProfile({app,Photo,Sheet,Artwork,PauseToggle,GiftCollect
    <button type="button" role="tab" aria-selected={profileTab==='about'} className={profileTab==='about'?'active':''} onClick={()=>setProfileTab('about')}><VeyraIcon icon={Heart} size={17}/>{L('Анкета','Profile')}</button>
    <button type="button" role="tab" aria-selected={profileTab==='gifts'} className={profileTab==='gifts'?'active':''} onClick={()=>setProfileTab('gifts')}><VeyraIcon icon={Gift} size={17}/>{L('Коллекция подарков','Gift collection')}</button>
   </div>
-  {profileTab==='gifts'?<GiftCollection ownerId="me" lang={lang}/>:<>
+  {profileTab==='gifts'?<GiftCollection ownerId="me" lang={lang} active={app.tab==='profile'&&profileTab==='gifts'}/>:<>
   <div className="vp-hero">
    <button type="button" className="vp-cover" onClick={()=>photos.length?setViewer(cover):edit()} aria-label={t('Мои фотографии')}><Photo id={photos[cover]?.id} alt={p.name}/></button>
    <div className="vp-hero-shade"/>
@@ -28,7 +28,7 @@ export function PersonalProfile({app,Photo,Sheet,Artwork,PauseToggle,GiftCollect
   </div>
   <div className="vp-photo-strip" aria-label={t('Мои фотографии')}>{photos.map((photo,i)=><button key={photo.id} type="button" className={cover===i?'active':''} aria-label={t('Фото')+' '+(i+1)} aria-pressed={cover===i} onClick={()=>setCover(i)}><Photo id={photo.id}/>{i===0&&<span><VeyraIcon icon={Star} size={10} fill="currentColor"/></span>}</button>)}{photos.length<6&&<button type="button" className="vp-add-photo" onClick={edit} aria-label={L('Добавить фото','Add photo')}><VeyraIcon icon={Plus} size={22}/></button>}</div>
   <CourtshipPanel targetId="me" lang={lang}/>
-  <CourtshipInbox lang={lang}/>
+  <CourtshipInbox lang={lang} active={app.tab==='profile'&&profileTab==='about'}/>
   <button className="vp-edit" onClick={edit}><VeyraIcon icon={Pencil} size={17}/>{t('Редактировать профиль')}<VeyraIcon icon={ArrowUpRight} size={18}/></button>
   <ProfileStats app={app}/><section className="vp-about vp-panel"><header><h3>{L('Обо мне','About me')}</h3><button type="button" onClick={edit} aria-label={L('Изменить описание и интересы','Edit bio and interests')}><VeyraIcon icon={Pencil} size={15}/></button></header>{p.bio?<p className="vp-bio">{p.bio}</p>:<button type="button" className="vp-bio-prompt" onClick={edit}>{L('Пара слов о тебе — и знакомиться уже проще.','A few words about you make connecting easier.')}<span>{L('Добавить описание','Add a bio')}<VeyraIcon icon={ArrowUpRight} size={13}/></span></button>}{p.interests?.length>0&&<div className="vp-interests">{p.interests.map(tag=>{const Icon=interestIcons[tag]||Sparkles;return <span key={tag}><VeyraIcon icon={Icon} size={14}/>{t(tag)}</span>;})}</div>}</section>
   <button type="button" className="vp-premium" onClick={()=>setPage('premium')}><div className="vp-premium-copy"><span className="vp-kicker">VEYRA PREMIUM</span><strong>{premium?L('Больше возможностей — уже твои','Your extra possibilities are here'):L('Знакомства без ограничений','More ways to connect')}</strong><small>{premium?L('Активен до ','Active until ')+new Date(me.user.premium_until).toLocaleDateString(lang==='ru'?'ru-RU':'en-GB'):L('Открой все преимущества','Explore your benefits')}<VeyraIcon icon={ArrowUpRight} size={13}/></small></div><Artwork name="premium-crown" size={94}/></button>

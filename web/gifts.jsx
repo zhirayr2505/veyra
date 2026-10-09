@@ -1,4 +1,4 @@
-import React,{useState,useEffect,useCallback} from 'react';
+import React,{useState,useEffect,useCallback,useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {Gift,Star,Check,ArrowLeft,X,Heart,Lock,RefreshCw} from 'lucide-react';
 import {api,post} from './api';
@@ -8,22 +8,31 @@ const collectionCache=new Map();
 const apiCatalog=()=>catalogCache.data?Promise.resolve(catalogCache.data):catalogCache.promise||(catalogCache.promise=api('/gifts/catalog').then(r=>(catalogCache.data=r,catalogCache.promise=null,r)).catch(e=>{catalogCache.promise=null;throw e;}));
 const language=(lang,ru,en)=>lang==='en'?en:ru;
 function GiftArt({gift,size='normal'}){return <span className={'vg-art '+size+' rarity-'+(gift.rarity||'classic')} aria-hidden="true"><span className="vg-art-orbit"/><span className="vg-art-emoji">{gift.emoji||'🎁'}</span><span className="vg-art-shine"/></span>;}
-export function GiftCollection({ownerId='me',lang='ru',compact=false}){
+export function GiftCollection({ownerId='me',lang='ru',compact=false,active=true}){
  const [state,setState]=useState(()=>collectionCache.get(String(ownerId))?.data||null);
  const [error,setError]=useState(false);
  const load=useCallback(async(force=false)=>{
   const key=String(ownerId),cached=collectionCache.get(key);
   if(!force&&cached&&Date.now()-cached.time<15000){setState(cached.data);return;}
-  try{const data=await api('/gifts/collection/'+ownerId);collectionCache.set(key,{data,time:Date.now()});setState(data);setError(false);}
+  try{const data=await api('/gifts/collection/'+ownerId);collectionCache.set(key,{data,time:Date.now()});setState(old=>JSON.stringify(old)===JSON.stringify(data)?old:data);setError(false);}
   catch{setError(true);}
  },[ownerId]);
- useEffect(()=>{let mounted=true;
-  const cached=collectionCache.get(String(ownerId));if(mounted&&cached)setState(cached.data);
+ useEffect(()=>{
+  if(!active)return;
+  const cached=collectionCache.get(String(ownerId));
+  if(cached)setState(old=>old||cached.data);
   load();
-  const update=()=>load(true);
+  const update=()=>{if(!document.hidden)load(true);};
+  const visible=()=>{if(!document.hidden)load(true);};
+  const timer=setInterval(update,12000);
   window.addEventListener('veyra:gift-delivered',update);
-  return()=>{mounted=false;window.removeEventListener('veyra:gift-delivered',update);};
- },[load,ownerId]);
+  document.addEventListener('visibilitychange',visible);
+  return()=>{
+   clearInterval(timer);
+   window.removeEventListener('veyra:gift-delivered',update);
+   document.removeEventListener('visibilitychange',visible);
+  };
+ },[load,ownerId,active]);
  const L=(ru,en)=>language(lang,ru,en);
  return <section className={'vg-collection '+(compact?'compact':'')} aria-label={L('Коллекция подарков','Gift collection')}>
   <div className="vg-collection-heading"><div><span className="vg-eyebrow">VEYRA GIFTS</span><h2>{L('Коллекция подарков','Gift collection')}</h2><p>{L('Знаки внимания, которые остаются с тобой','Moments of affection to keep')}</p></div><span className="vg-total"><Gift size={19}/>{state?.total??0}</span></div>
@@ -40,6 +49,7 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[done,setDone]=useState(false);
  const [waiting,setWaiting]=useState(false);
  const [pendingGift,setPendingGift]=useState(null);
+ const requestInFlight=useRef(false),purchaseAttempt=useRef(null);
  useEffect(()=>{let alive=true;apiCatalog().then(d=>{if(alive)setCatalog(d);}).catch(()=>{if(alive)setError(L('Не удалось загрузить витрину','Could not load the gift catalog'));});return()=>{alive=false;};},[]);
  useEffect(()=>{const escape=e=>{if(e.key==='Escape')onClose();};document.addEventListener('keydown',escape);return()=>document.removeEventListener('keydown',escape);},[onClose]);
  const current=catalog?.gifts.find(g=>g.key===selected);
@@ -52,7 +62,7 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
    try{
     const status=await api('/gifts/status/'+pendingGift);
     if(status.status==='delivered'){
-     clearInterval(timer);setPendingGift(null);setWaiting(false);setDone(true);
+     clearInterval(timer);setPendingGift(null);setWaiting(false);setDone(true);purchaseAttempt.current=null;
      window.dispatchEvent(new Event('veyra:gift-delivered'));onDelivered?.();
     }else if(status.status==='revoked'){
      clearInterval(timer);setPendingGift(null);setWaiting(false);
@@ -66,10 +76,17 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
   return()=>{alive=false;clearInterval(timer);};
  },[pendingGift]);
  const confirm=async()=>{
-  if(busy||!current)return;setBusy(true);setError('');
+  if(busy||requestInFlight.current||!current)return;
+  requestInFlight.current=true;setBusy(true);setError('');
   try{
-   const result=await post('/gifts/send',{target:String(target.id),gift_key:current.key,note,client_id:crypto.randomUUID()});
-   if(result.status==='delivered'){setDone(true);window.dispatchEvent(new Event('veyra:gift-delivered'));onDelivered?.();return;}
+   // Keep one idempotency key for a purchase attempt. A lost HTTP response
+   // must never create a second invoice or free gift when Retry is tapped.
+   const fingerprint=[target.id,current.key,note.trim()].join(':');
+   if(purchaseAttempt.current?.fingerprint!==fingerprint){
+    purchaseAttempt.current={fingerprint,id:crypto.randomUUID()};
+   }
+   const result=await post('/gifts/send',{target:String(target.id),gift_key:current.key,note,client_id:purchaseAttempt.current.id});
+   if(result.status==='delivered'){purchaseAttempt.current=null;setDone(true);window.dispatchEvent(new Event('veyra:gift-delivered'));onDelivered?.();return;}
    if(result.status!=='payment_required'||!result.invoice_url)throw Error('BAD_INVOICE');
    const tg=window.Telegram?.WebApp;
    setWaiting(true);
@@ -87,7 +104,7 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
    :e.message==='FREE_GIFT_LIMIT'?L('Бесплатный подарок уже отправлен за последние 24 часа','Your free gift for the last 24 hours has been used')
    :e.message==='BLOCKED'?L('Нельзя отправить подарок этому участнику','You cannot send a gift to this member')
    :L('Не удалось отправить подарок. Попробуй ещё.','Could not send the gift. Please retry.'));
-  }finally{setBusy(false);}
+  }finally{requestInFlight.current=false;setBusy(false);}
  };
  return createPortal(<section className="vg-picker-backdrop" role="dialog" aria-modal="true" aria-label={L('Подарить подарок','Send a gift')} onClick={onClose}>
   <div className="vg-picker" onClick={e=>e.stopPropagation()}>
