@@ -22,8 +22,29 @@ export const giftCatalog=Object.freeze([
  {key:'crystal',name:'Кристалл',en:'Crystal',emoji:'💎',stars:90,rarity:'epic'},
  {key:'crown',name:'Корона',en:'Crown',emoji:'👑',stars:120,rarity:'legendary'},
  {key:'starfall',name:'Звездопад',en:'Starfall',emoji:'🌠',stars:150,rarity:'legendary'},
- {key:'galaxy',name:'Галактика',en:'Galaxy',emoji:'🌌',stars:200,rarity:'legendary'}
-]);
+ {key:'galaxy',name:'Галактика',en:'Galaxy',emoji:'🌌',stars:200,rarity:'legendary'},
+ {key:'ribbon',name:'Бантик',en:'Ribbon',emoji:'🎀',stars:7,rarity:'classic'},
+ {key:'balloon',name:'Воздушный шар',en:'Balloon',emoji:'🎈',stars:10,rarity:'classic'},
+ {key:'candy',name:'Конфетка',en:'Candy',emoji:'🍬',stars:11,rarity:'classic'},
+ {key:'chocolate',name:'Шоколад',en:'Chocolate',emoji:'🍫',stars:14,rarity:'classic'},
+ {key:'puppy',name:'Щенок',en:'Puppy',emoji:'🐶',stars:18,rarity:'classic'},
+ {key:'lotus',name:'Лотос',en:'Lotus',emoji:'🪷',stars:22,rarity:'rare'},
+ {key:'sunflower',name:'Подсолнух',en:'Sunflower',emoji:'🌻',stars:24,rarity:'rare'},
+ {key:'icecream',name:'Мороженое',en:'Ice cream',emoji:'🍦',stars:27,rarity:'rare'},
+ {key:'rainbow',name:'Радуга',en:'Rainbow',emoji:'🌈',stars:32,rarity:'rare'},
+ {key:'fox',name:'Лисёнок',en:'Little fox',emoji:'🦊',stars:38,rarity:'rare'},
+ {key:'candle',name:'Свеча',en:'Candle',emoji:'🕯️',stars:42,rarity:'rare'},
+ {key:'dolphin',name:'Дельфин',en:'Dolphin',emoji:'🐬',stars:60,rarity:'epic'},
+ {key:'pearl',name:'Жемчужина',en:'Pearl',emoji:'🦪',stars:65,rarity:'epic'},
+ {key:'snowflake',name:'Снежинка',en:'Snowflake',emoji:'❄️',stars:78,rarity:'epic'},
+ {key:'flamingo',name:'Фламинго',en:'Flamingo',emoji:'🦩',stars:85,rarity:'epic'},
+ {key:'planet',name:'Планета',en:'Planet',emoji:'🪐',stars:110,rarity:'epic'},
+ {key:'castle',name:'Замок мечты',en:'Dream castle',emoji:'🏰',stars:140,rarity:'legendary'},
+ {key:'dragon',name:'Дракон',en:'Dragon',emoji:'🐉',stars:165,rarity:'legendary'},
+ {key:'phoenix',name:'Феникс',en:'Phoenix',emoji:'🔥',stars:185,rarity:'legendary'},
+ {key:'treasure',name:'Сокровище',en:'Treasure',emoji:'🪙',stars:230,rarity:'legendary'},
+ {key:'aurora',name:'Северное сияние',en:'Aurora',emoji:'🌌',stars:250,rarity:'legendary'}
+].sort((a,b)=>a.stars-b.stars));
 const giftByKey=new Map(giftCatalog.map(g=>[g.key,g]));
 export async function deliverPaidGift(q,order){
  const row=await one(q,"UPDATE gifts SET status='delivered',delivered_at=now() WHERE order_id=$1 AND status='pending' RETURNING *",[order.id]);
