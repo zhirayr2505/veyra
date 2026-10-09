@@ -23,6 +23,14 @@ test('premium visual system: real flows, mobile layouts, chat and account pages'
  const fits=async()=>expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const capture=async name=>{await page.waitForTimeout(180);await page.screenshot({path:info.outputPath(name+'.png')});};
  await page.goto('/');await expect(page.locator('.dating-card .cover.is-loaded')).toBeVisible();
+ await page.getByRole('banner').getByRole('button',{name:'Уведомления'}).click();
+ const notice=page.getByRole('dialog',{name:'Уведомления'});
+ await expect(notice).toBeVisible();
+ await expect(notice.getByRole('button',{name:/Симпатии/})).toBeVisible();
+ await expect(notice.getByRole('button',{name:/Сообщения/})).toBeVisible();
+ await expect(notice.getByRole('button',{name:/Настройки уведомлений/})).toBeVisible();
+ await notice.getByRole('button',{name:'Close'}).click();
+ await expect(notice).toHaveCount(0);
  await expect.poll(orphanBraces).toEqual([]);await capture('design-feed');
  for(const viewport of [{width:320,height:568},{width:390,height:844},{width:560,height:844}]){
   await page.setViewportSize(viewport);await fits();await expect(page.locator('.reaction-bar')).toBeInViewport({ratio:1});await expect(page.locator('.bottom-nav')).toBeInViewport({ratio:1});

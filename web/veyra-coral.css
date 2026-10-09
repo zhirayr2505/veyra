@@ -1021,3 +1021,33 @@ body{color-scheme:light}
 .app.admin-app .button.secondary{background:#f5effb;color:#8a6cac;border:0}
 .app.admin-app .sheet{background:#fff;color:#473b50}
 .app.admin-app .scrim{background:rgba(54,32,65,.36);backdrop-filter:blur(6px)}
+
+/* Real activity / notifications center: native-feeling summary, no fake news or data. */
+.app:not(.admin-app) .notifications-link{position:relative}
+.veyra-notice-modal .sheet{background:#fff;color:#382b44;border-color:#eee6f1}
+.veyra-notice-center{display:flex;flex-direction:column;gap:11px;padding:5px 0 7px}
+.veyra-notice-intro{font-size:12px;line-height:1.6;color:#8a7d96;margin:0 1px 6px}
+.veyra-notice-item{
+ display:flex;align-items:center;gap:12px;text-align:left;width:100%;
+ padding:13px;border:1px solid #f1e8f2;background:#fff;
+ border-radius:19px;box-shadow:0 4px 14px rgba(81,49,94,.045);
+ color:#584365;min-height:77px;
+}
+.veyra-notice-item:focus-visible{outline:2px solid #eb9fbe;outline-offset:2px}
+.veyra-notice-item .veyra-notice-icon{
+ display:grid;place-items:center;flex-shrink:0;height:48px;width:48px;
+ border-radius:16px;
+}
+.veyra-notice-icon.is-like{color:#f4718a;background:#ffebf0}
+.veyra-notice-icon.is-chat{color:#9271be;background:#f1ecfd}
+.veyra-notice-icon.is-settings{color:#947da9;background:#f7f2fb}
+.veyra-notice-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.veyra-notice-copy strong{color:#44334f;font-size:14px;font-weight:750}
+.veyra-notice-copy small{color:#95899d;font-size:11px;line-height:1.3}
+.veyra-notice-item>svg{color:#a28eaf}
+.veyra-notice-count{
+ display:grid;place-items:center;min-width:25px;height:25px;padding:0 6px;
+ border-radius:99px;background:#ff8498;color:#fff;font-size:11px;
+ font-variant-numeric:tabular-nums;flex-shrink:0;
+}
+.veyra-notice-item.is-settings{background:#faf7fd;box-shadow:none}

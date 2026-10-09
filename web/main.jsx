@@ -29,6 +29,28 @@ const ruPluralRules=new Intl.PluralRules('ru');
 function countNoun(count,lang,ru,en){return lang==='ru'?ru[{one:0,few:1,many:2}[ruPluralRules.select(count)]??2]:en[count===1?0:1];}
 function Empty({icon:Icon=Heart,title,body,children}){const art=Icon===Crown?'premium-crown':Icon===MessageCircle?'chat-bubbles':Icon===Sparkles?'today-coffee':Icon===ShieldCheck?'review-shield':'discover-cards';return <VeyraEmptyState art={art} title={title} body={body}>{children}</VeyraEmptyState>}
 function GiftsHub({onClose}){const{t,lang,me}=useApp();return <Sheet title={t('Коллекция подарков')} onClose={onClose}><GiftCollection ownerId="me" lang={lang}/></Sheet>;}
+function NotificationsCenter({counts,onClose,onLikes,onChats,onSettings}){
+ const{lang,t,me}=useApp();const likes=counts.likes||0,chats=counts.chats||0;
+ return <Sheet title={t('Уведомления')} onClose={onClose} className="veyra-notice-modal">
+  <div className="veyra-notice-center">
+   <p className="veyra-notice-intro">{lang==='ru'?'Все важные события знакомств в одном месте. Показываем реальные данные из VEYRA.':'Your important dating activity in one place, based on real VEYRA data.'}</p>
+   <button type="button" className="veyra-notice-item" onClick={onLikes}>
+    <span className="veyra-notice-icon is-like"><Heart size={23}/></span>
+    <span className="veyra-notice-copy"><strong>{lang==='ru'?'Симпатии':'Likes'}</strong><small>{likes>0?likes+' '+countNoun(likes,lang,['входящая симпатия','входящие симпатии','входящих симпатий'],['incoming like','incoming likes']):lang==='ru'?'Пока нет входящих симпатий':'No incoming likes yet'}</small></span>
+    {likes>0&&<b className="veyra-notice-count">{likes>99?'99+':likes}</b>}<ChevronRight size={19} aria-hidden="true"/>
+   </button>
+   <button type="button" className="veyra-notice-item" onClick={onChats}>
+    <span className="veyra-notice-icon is-chat"><MessageCircle size={23}/></span>
+    <span className="veyra-notice-copy"><strong>{lang==='ru'?'Сообщения':'Messages'}</strong><small>{chats>0?chats+' '+countNoun(chats,lang,['непрочитанное сообщение','непрочитанных сообщения','непрочитанных сообщений'],['unread message','unread messages']):lang==='ru'?'Все сообщения прочитаны':'All messages have been read'}</small></span>
+    {chats>0&&<b className="veyra-notice-count">{chats>99?'99+':chats}</b>}<ChevronRight size={19} aria-hidden="true"/>
+   </button>
+   <button type="button" className="veyra-notice-item is-settings" onClick={onSettings}>
+    <span className="veyra-notice-icon is-settings"><SettingsIcon size={22}/></span>
+    <span className="veyra-notice-copy"><strong>{lang==='ru'?'Настройки уведомлений':'Notification settings'}</strong><small>{me?.user?.notifications?(lang==='ru'?'Уведомления Telegram включены':'Telegram notifications are enabled'):(lang==='ru'?'Уведомления Telegram выключены':'Telegram notifications are disabled')}</small></span><ChevronRight size={19} aria-hidden="true"/>
+   </button>
+  </div>
+ </Sheet>;
+}
 function Loading(){const{t}=useApp();return <div className="loading"><LoaderCircle className="spin"/><span>{t('Загрузка…')}</span></div>}
 const photoCache=new Map(),photoResolved=new Map(),photoQueue=[];
 let photoInflight=0;
@@ -109,7 +131,7 @@ function Sheet({title,children,onClose,className=''}){
 }
 
 function App(){
- const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_code?.startsWith('ru')?'ru':'en');const[auth,setAuth]=useState('loading');const[authAttempt,setAuthAttempt]=useState(0);const[me,setMe]=useState(null);const[tab,setTab]=useState('feed');const[page,setPage]=useState(null);const[toast,setToast]=useState('');const[modal,setModal]=useState(null);const[busy,setBusy]=useState(false);const[openChatId,setOpenChatId]=useState(null);const[profileView,setProfileView]=useState(null);const[chatOpen,setChatOpen]=useState(false);const[badges,setBadges]=useState({likes:0,chats:0});const[feedFilters,setFeedFilters]=useState(false);const[tabSlide,setTabSlide]=useState('');const[visitedTabs,setVisitedTabs]=useState(()=>['feed']);
+ const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_code?.startsWith('ru')?'ru':'en');const[auth,setAuth]=useState('loading');const[authAttempt,setAuthAttempt]=useState(0);const[me,setMe]=useState(null);const[tab,setTab]=useState('feed');const[page,setPage]=useState(null);const[toast,setToast]=useState('');const[modal,setModal]=useState(null);const[busy,setBusy]=useState(false);const[openChatId,setOpenChatId]=useState(null);const[profileView,setProfileView]=useState(null);const[chatOpen,setChatOpen]=useState(false);const[badges,setBadges]=useState({likes:0,chats:0});const[feedFilters,setFeedFilters]=useState(false);const[notificationsOpen,setNotificationsOpen]=useState(false);const[tabSlide,setTabSlide]=useState('');const[visitedTabs,setVisitedTabs]=useState(()=>['feed']);
  const t=useCallback(s=>lang==='en'?(en[s]||s):s,[lang]);const refresh=useCallback(async()=>{const m=await api('/me');setMe(m);setLang(m.user.language);return m;},[]);
  const alert=useCallback(s=>setToast(s),[]);useEffect(()=>{if(toast){const timer=setTimeout(()=>setToast(''),4800);return()=>clearTimeout(timer);}},[toast]);
  const run=useCallback(async fn=>{setBusy(true);try{return await fn();}catch(e){alert(lang==='ru'?(errors[e.message]||e.message):(e.message.replaceAll('_',' ').toLowerCase()));}finally{setBusy(false);}},[lang,alert]);
@@ -138,7 +160,7 @@ function App(){
  {location.pathname==='/legal'?<Legal/>:auth==='loading'?<div className="boot-screen"><Logo large animated/><Loading/></div>:auth==='error'?<section className="boot-screen"><Logo large/><h1>{t('Нет соединения')}</h1><p className="muted">{t('Проверь интернет и попробуй ещё раз.')}</p><Button className="primary" onClick={()=>setAuthAttempt(n=>n+1)}><RotateCcw size={18}/>{t('Попробовать ещё')}</Button></section>:auth!=='ok'?<Welcome/>:isAdmin?<Admin/>:!me?<Loading/>:<>
  {!chatOpen&&<header className={'topbar '+(approved&&!page&&tab==='feed'?'feed-topbar':'')}>
   {approved&&<div className="topbar-left"><IconButton icon={!page&&tab==='feed'?SlidersHorizontal:SettingsIcon} label={!page&&tab==='feed'?t('Фильтры'):t('Настройки')} onClick={()=>!page&&tab==='feed'?setFeedFilters(true):setPage('settings')}/></div>}
-  <Logo/><div className="top-actions">{approved&&<button type="button" className="icon-button notifications-link" aria-label={t('Симпатии и уведомления')} onClick={()=>{setPage(null);switchTab('likes');}}><VeyraIcon icon={Bell} size={23}/>{badges.likes>0&&<span className="notification-dot"/>}</button>}</div>
+  <Logo/><div className="top-actions">{approved&&<button type="button" className="icon-button notifications-link" aria-label={t('Уведомления')} onClick={()=>setNotificationsOpen(true)}><VeyraIcon icon={Bell} size={23}/>{badges.likes>0&&<span className="notification-dot"/>}</button>}</div>
  </header>}
  <main className={chatOpen?'conversation-main':''}>
   {approved&&<div className="view-enter veyra-tab-deck" hidden={!!page}>
@@ -153,7 +175,8 @@ function App(){
  </main>
  {!page&&approved&&!chatOpen&&<nav className="bottom-nav" aria-label={t('Навигация')}>{[['feed','Discover'],['likes','Лайки'],['chats','Чаты'],['profile','Профиль']].map(([key,label])=><button key={key} className={tab===key?'selected':''} onClick={()=>switchTab(key)} aria-label={t(label)} aria-current={tab===key?'page':undefined}><span className="nav-icon"><VeyraIcon name={key==='feed'?'flame':key} size={24}/>{badges[key]>0&&<b className="nav-count">{badges[key]>99?'99+':badges[key]}</b>}</span><span>{t(label)}</span><i/></button>)}</nav>}
  </>}
- {modal?.type==='gifts'&&<GiftsHub onClose={()=>setModal(null)}/>}
+ {notificationsOpen&&<NotificationsCenter counts={badges} onClose={()=>setNotificationsOpen(false)} onLikes={()=>{setNotificationsOpen(false);setPage(null);switchTab('likes');}} onChats={()=>{setNotificationsOpen(false);setPage(null);switchTab('chats');}} onSettings={()=>{setNotificationsOpen(false);setPage('settings');}}/>}
+  {modal?.type==='gifts'&&<GiftsHub onClose={()=>setModal(null)}/>}
  {modal?.type==='gift'&&modal.target&&<GiftPicker target={modal.target} lang={lang} onClose={()=>setModal(null)}/>}
  {modal?.type==='match'&&<MatchCelebration p={modal.profile} onClose={()=>setModal(null)} onProfile={()=>openProfile(modal.profile,{matchId:modal.match_id})} onChat={()=>{const id=modal.match_id;setModal(null);switchTab('chats');setOpenChatId(id||null);}}/>}
  {profileView&&<MemberProfile key={profileView.profile.id} entry={profileView} app={ctx} Photo={Photo} prefetchPhotos={warmPhotos} onClose={()=>setProfileView(null)}/>}
