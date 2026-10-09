@@ -30,29 +30,54 @@ function countNoun(count,lang,ru,en){return lang==='ru'?ru[{one:0,few:1,many:2}[
 function Empty({icon:Icon=Heart,title,body,children}){const art=Icon===Crown?'premium-crown':Icon===MessageCircle?'chat-bubbles':Icon===Sparkles?'today-coffee':Icon===ShieldCheck?'review-shield':'discover-cards';return <VeyraEmptyState art={art} title={title} body={body}>{children}</VeyraEmptyState>}
 function GiftsHub({onClose}){const{t,lang,me}=useApp();return <Sheet title={t('Коллекция подарков')} onClose={onClose}><GiftCollection ownerId="me" lang={lang}/></Sheet>;}
 function Loading(){const{t}=useApp();return <div className="loading"><LoaderCircle className="spin"/><span>{t('Загрузка…')}</span></div>}
-const photoCache=new Map(),photoResolved=new Map();
-function photoSource(id){
- if(!photoCache.has(id)){
-  if(photoCache.size>120){const [key,promise]=photoCache.entries().next().value;photoCache.delete(key);photoResolved.delete(key);promise.then(URL.revokeObjectURL).catch(()=>{});}
-  photoCache.set(id,api('/photos/'+id,{raw:true}).then(r=>r.blob()).then(URL.createObjectURL).then(url=>{photoResolved.set(id,url);return url;}).catch(e=>{photoCache.delete(id);throw e;}));
+const photoCache=new Map(),photoResolved=new Map(),photoQueue=[];
+let photoInflight=0;
+const MAX_PHOTO_CONNECTIONS=3;
+// Bound concurrent authenticated downloads and decode before showing the photo.
+function workPhotoQueue(){
+ while(photoInflight<MAX_PHOTO_CONNECTIONS&&photoQueue.length){
+  const job=photoQueue.shift();photoInflight++;
+  api('/photos/'+job.id,{raw:true}).then(r=>r.blob()).then(async blob=>{
+   const url=URL.createObjectURL(blob);
+   try{const img=new Image();img.src=url;if(img.decode)await img.decode().catch(()=>{});}catch{}
+   photoResolved.set(job.id,url);job.resolve(url);
+  }).catch(err=>{photoCache.delete(job.id);job.reject(err);}).finally(()=>{photoInflight--;workPhotoQueue();});
  }
- return photoCache.get(id);
 }
-function Photo({id,className='',alt=''}){
+function photoSource(id){
+ if(!id)return Promise.resolve('');
+ if(photoCache.has(id)){
+  const cached=photoCache.get(id);photoCache.delete(id);photoCache.set(id,cached);
+  return cached;
+ }
+ const job=new Promise((resolve,reject)=>photoQueue.push({id,resolve,reject}));
+ photoCache.set(id,job);
+ if(photoCache.size>96){
+  const old=photoCache.keys().next().value;
+  photoCache.delete(old);
+  const resolved=photoResolved.get(old);
+  photoResolved.delete(old);
+  if(resolved)setTimeout(()=>URL.revokeObjectURL(resolved),90000);
+ }
+ workPhotoQueue();return job;
+}
+function warmPhotos(ids,max=2){for(const id of [...new Set((ids||[]).filter(Boolean))].slice(0,max))photoSource(id).catch(()=>{});}
+function Photo({id,className='',alt=''}) {
  const[url,setUrl]=useState(()=>photoResolved.get(id)||'');
- const[loaded,setLoaded]=useState(()=>!!photoResolved.get(id));
  const[renderedId,setRenderedId]=useState(id);
  useEffect(()=>{
-  let alive=true;
-  const ready=photoResolved.get(id)||'';
-  setRenderedId(id);setUrl(ready);setLoaded(!!ready);
-  if(id&&!ready)photoSource(id).then(source=>{if(alive){setUrl(source);setLoaded(true);}}).catch(()=>{});
-  return()=>{alive=false;};
+  let active=true;
+  setRenderedId(id);
+  const warm=photoResolved.get(id);
+  if(warm){setUrl(warm);return()=>{active=false;};}
+  setUrl('');
+  if(id)photoSource(id).then(source=>{if(active)setUrl(source);}).catch(()=>{});
+  return()=>{active=false;};
  },[id]);
- // A textless bounded placeholder avoids the enormous fallback SVG seen in Android.
- // Keep already-decoded photos visible immediately on return to a visited tab.
- if(id!==renderedId)return <div className={'photo-placeholder '+className} aria-label={alt}/>;
- return url?<img src={url} onLoad={()=>setLoaded(true)} decoding="async" loading={className.includes('cover')?'eager':'lazy'} className={`${className} photo-image ${loaded?'is-loaded':''}`} alt={alt} draggable={false}/>:<div className={'photo-placeholder '+className} aria-label={alt}/>;
+ const ready=photoResolved.get(id);
+ const visible=ready||(id===renderedId?url:'');
+ return visible?<img src={visible} decoding="async" loading={className.includes('cover')?'eager':'lazy'} className={className+' photo-image is-loaded'} alt={alt} draggable={false}/>
+ :<div className={'photo-placeholder '+className} aria-label={alt}/>;
 }
 
 const sheetScrollLock={count:0,overflow:''};
@@ -111,7 +136,7 @@ function App(){
  {modal?.type==='gifts'&&<GiftsHub onClose={()=>setModal(null)}/>}
  {modal?.type==='gift'&&modal.target&&<GiftPicker target={modal.target} lang={lang} onClose={()=>setModal(null)}/>}
  {modal?.type==='match'&&<MatchCelebration p={modal.profile} onClose={()=>setModal(null)} onProfile={()=>openProfile(modal.profile,{matchId:modal.match_id})} onChat={()=>{const id=modal.match_id;setModal(null);switchTab('chats');setOpenChatId(id||null);}}/>}
- {profileView&&<MemberProfile key={profileView.profile.id} entry={profileView} app={ctx} Photo={Photo} onClose={()=>setProfileView(null)}/>}
+ {profileView&&<MemberProfile key={profileView.profile.id} entry={profileView} app={ctx} Photo={Photo} prefetchPhotos={warmPhotos} onClose={()=>setProfileView(null)}/>}
  {toast&&<div className="toast" role="status"><CheckCircle2 size={18}/><span>{toast}</span><button aria-label="Close" onClick={()=>setToast('')}><X size={17}/></button></div>}
  </div></Context.Provider>;
 }
@@ -146,8 +171,11 @@ function PhotoManager({readonly=false}){
 
 function Card({p,onReact,onUndo,canUndo}){
  const app=useApp();const{t,run,setModal,busy}=app;const[index,setIndex]=useState(0);const[report,setReport]=useState(false);const[prematch,setPrematch]=useState(false);const[msg,setMsg]=useState('');const[phase,setPhase]=useState('');const gesture=useRef(null);const[drag,setDrag]=useState(0);const suppressClick=useRef(false);const sending=useRef(false);
- useEffect(()=>{setIndex(0);setDrag(0);setPhase('');gesture.current=null;},[p.id]);
- const act=kind=>{if(sending.current)return;sending.current=true;run(async()=>{setPhase('leaving-'+kind);try{const [r]=await Promise.all([post('/reactions',{target:String(p.id),kind,...(msg?{message:msg}:{})}),new Promise(resolve=>setTimeout(resolve,230))]);setPrematch(false);setMsg('');tg?.HapticFeedback?.impactOccurred?.('light');if(r.matched)setModal({type:'match',profile:p,match_id:r.match_id});await onReact();}finally{setPhase('');sending.current=false;}});};
+ useEffect(()=>{setIndex(0);setDrag(0);setPhase('');gesture.current=null;
+  const warm=setTimeout(()=>{prefetchMemberProfile(p.id).catch(()=>{});warmPhotos(p.photos?.slice(1,3),2);},220);
+  return()=>clearTimeout(warm);
+ },[p.id]);
+ const act=kind=>{if(sending.current)return;sending.current=true;run(async()=>{setPhase('leaving-'+kind);try{const r=await post('/reactions',{target:String(p.id),kind,...(msg?{message:msg}:{})});setPrematch(false);setMsg('');tg?.HapticFeedback?.impactOccurred?.('light');if(r.matched)setModal({type:'match',profile:p,match_id:r.match_id});await onReact();}finally{setPhase('');sending.current=false;}});};
  const viewProfile=()=>app.openProfile(p,{onReact:act,onPrematch:()=>setPrematch(true),onReport:()=>setReport(true),onHandled:onReact});
  const pointerDown=e=>{if(busy||sending.current||e.button!==0||(e.target.closest('button,a,input,textarea')&&!e.target.closest('.photo-controls')))return;suppressClick.current=false;gesture.current={x:e.clientX,y:e.clientY};e.currentTarget.setPointerCapture(e.pointerId);};
  const pointerMove=e=>{if(!gesture.current)return;const dx=e.clientX-gesture.current.x,dy=e.clientY-gesture.current.y;setDrag(Math.abs(dx)>Math.abs(dy)*1.2?dx:0);};

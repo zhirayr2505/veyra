@@ -23,7 +23,7 @@ export function prefetchMemberProfile(id){
 // A full-screen destination shared by discovery, matches and conversations.
 // It deliberately stays mounted above the originating screen, so Back restores
 // the feed position or chat draft instead of rebuilding those screens.
-export function MemberProfile({entry,app,Photo,onClose}){
+export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
  const {profile,onReact,onPrematch,onReport,onHandled,fromChat}=entry;
  const L=(ru,en)=>app.lang==='en'?en:ru;
  const [data,setData]=useState(()=>profileCache.get(String(profile.id))||null),[error,setError]=useState(false),[loading,setLoading]=useState(()=>!profileCache.has(String(profile.id)));
@@ -48,6 +48,7 @@ export function MemberProfile({entry,app,Photo,onClose}){
  },[]);
  const p=data||profile;
  const photos=p?.photos||[];
+ useEffect(()=>{prefetchPhotos?.(photos.slice(0,3),3);},[profile.id,data?.photos?.join(',')]);
  const photoCount=photos.length;
  const mutual=!!data?.match_id;
  const matchId=data?.match_id;
