@@ -74,6 +74,14 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
  await expect(card).toHaveCount(1); // Photo gesture must never like or skip the profile.
  await expect(card.locator('.photo-dots button.on')).not.toHaveAttribute('aria-label',initialPhoto);
+ await expect(card.locator('.photo-counter')).toHaveCount(0); // Progress bars replace the numeric 1/6 badge.
+ // Swiping back from the last picture wraps to the first without reacting to the profile.
+ await a.mouse.move(box.x+box.width/2+105,box.y+box.height/2);
+ await a.mouse.down();
+ await a.mouse.move(box.x+box.width/2-110,box.y+box.height/2,{steps:12});
+ await a.mouse.up();
+ await expect(card.locator('.photo-dots button.on')).toHaveAttribute('aria-label',initialPhoto);
+ await expect(card).toHaveCount(1);
  await a.getByRole('button',{name:'Нравится',exact:true}).click();await expect(card).toHaveCount(0);
  await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();
  await b.setViewportSize({width:320,height:568});
