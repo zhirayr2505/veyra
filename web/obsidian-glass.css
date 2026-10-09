@@ -1,0 +1,487 @@
+/* VEYRA — OBSIDIAN GLASS v3
+   One coherent visual layer for the existing Telegram Mini App.
+   Scope: presentation only. Keep all routes, APIs, payment and moderation behavior.
+   Main visual idea: blue-black obsidian, translucent mineral glass and silver-blue light.
+   Original VEYRA identity/logo is intentionally retained.
+*/
+:root{
+  color-scheme:dark;
+  --v-bg:#080d15;
+  --v-surface:#111a25;
+  --v-raised:#182432;
+  --v-active:#233346;
+  --v-text:#f4f7ff;
+  --v-muted:#9eacbd;
+  --v-rose:#e7a7cc;
+  --v-orchid:#aaa9f4;
+  --v-ice:#a3d9f2;
+  --v-gold:#aabed7; /* legacy token: deliberately neutralized, no gold surfaces */
+  --v-border:rgba(206,227,255,.13);
+  --v-focus:rgba(152,202,255,.7);
+  --v-accent:linear-gradient(115deg,#80a9ee 0%,#9c9df2 58%,#c3a7e5 100%);
+  --v-radius-control:17px;
+  --v-radius-panel:23px;
+  --v-radius-hero:28px;
+  --ink:#080d15;
+  --surface:#111a25;
+  --surface-raised:#182432;
+  --muted:#9eacbd;
+  --line:rgba(206,227,255,.13);
+  --pink:#e7a7cc;
+  --violet:#aaa9f4;
+  --ice:#a3d9f2;
+  --accent:var(--v-accent);
+  --glass-fill:linear-gradient(146deg,rgba(39,56,78,.80),rgba(18,28,42,.86));
+  --glass-fill-soft:linear-gradient(135deg,rgba(39,55,74,.62),rgba(15,25,39,.7));
+  --glass-border:rgba(216,232,255,.16);
+  --glass-highlight:rgba(255,255,255,.14);
+  --shadow-elevated:0 16px 40px rgba(0,4,12,.35),inset 0 1px 0 rgba(255,255,255,.06);
+  font-family:Inter,'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#080d15;
+  color:#f4f7ff;
+}
+html{background:#080d15}
+body{background:#080d15;color:var(--v-text)}
+:where(button,input,textarea,select){font-family:inherit}
+:where(button,a,input,textarea,select):focus-visible{outline:2px solid #a3cffd;outline-offset:3px}
+:where(.app:not(.admin-app),.member-profile-screen) :is(button,a,input,textarea,select):focus-visible{outline-color:#a3cffd}
+.app:not(.admin-app){
+  background:
+    radial-gradient(ellipse 105% 390px at 95% -9%,rgba(91,133,206,.17),transparent 75%),
+    radial-gradient(ellipse 86% 380px at -20% 72%,rgba(106,98,178,.085),transparent 80%),
+    linear-gradient(160deg,#0b111c 0%,#080d15 58%,#0a1019 100%);
+  color:var(--v-text);
+}
+.app:not(.admin-app)>main{padding-left:18px;padding-right:18px}
+.app:not(.admin-app) :is(h1,h2,h3){letter-spacing:-.035em;color:#f6f8ff}
+.app:not(.admin-app) .muted,.app:not(.admin-app) .page-subtitle{color:var(--v-muted)}
+.app:not(.admin-app) :is(.section-eyebrow,.eyebrow,.section-label,.section-heading>div>span,.section-head .eyebrow){color:#aebde1;letter-spacing:.14em}
+.app:not(.admin-app) :is(.section-head,.page-heading){gap:12px}
+.app:not(.admin-app) .brand-horizontal .brand-wordmark{
+  background:linear-gradient(100deg,#fff 0%,#dce8ff 56%,#a9d5f2 100%);
+  background-clip:text;color:transparent;letter-spacing:.15em;
+}
+.app:not(.admin-app) .topbar{background:transparent}
+.app:not(.admin-app) .topbar .icon-button,
+.app:not(.admin-app) .discovery-heading>.icon-button,
+.app:not(.admin-app) .icon-button{
+  color:#dce7fa;border:1px solid var(--glass-border);
+  background:linear-gradient(145deg,rgba(49,66,91,.65),rgba(21,31,46,.75));
+  box-shadow:inset 0 1px rgba(255,255,255,.055);
+}
+.app:not(.admin-app) .premium-pill{
+  color:#dce6ff;border:1px solid rgba(168,183,242,.26);
+  background:linear-gradient(125deg,rgba(109,125,186,.24),rgba(48,65,94,.43));
+  box-shadow:inset 0 1px rgba(255,255,255,.06);
+}
+.app:not(.admin-app) .button{border-radius:17px;font-weight:650;letter-spacing:.005em}
+.app:not(.admin-app) :is(.button.primary,.primary:not(.purchase-button)),
+.member-profile-screen .member-profile-like{
+  color:#08111e;background:var(--v-accent);
+  border:1px solid rgba(219,234,255,.44);
+  box-shadow:0 8px 27px rgba(99,133,214,.19),inset 0 1px 0 rgba(255,255,255,.39);
+}
+.app:not(.admin-app) .button.primary svg,
+.app:not(.admin-app) .primary:not(.purchase-button) svg{color:currentColor}
+.app:not(.admin-app) :is(.button.secondary,.secondary,.segmented,.pagination button){
+  color:#e8efff;background:var(--glass-fill-soft);
+  border:1px solid var(--glass-border);
+  box-shadow:inset 0 1px var(--glass-highlight);
+}
+.app:not(.admin-app) :is(.text-button,.back){color:#c6d5f6}
+.app:not(.admin-app) input:not([type=checkbox]):not([type=range]):not([type=radio]),
+.app:not(.admin-app) :is(textarea,select),
+.member-profile-screen textarea{
+  color:#f2f7ff;background:rgba(14,24,36,.76);
+  border:1px solid rgba(186,212,244,.19);border-radius:15px;
+  box-shadow:inset 0 1px rgba(255,255,255,.025);
+}
+.app:not(.admin-app) :is(input,textarea)::placeholder{color:#7f91a9}
+.app:not(.admin-app) input[type=checkbox],
+.app:not(.admin-app) input[type=range]{accent-color:#96b7ff}
+.app:not(.admin-app) .field>span{color:#b3c0d1}
+.app:not(.admin-app) :is(.chips .chip,.chip,.tags span,.interest-tags span,.goal-tags span){
+  background:rgba(130,169,222,.10);border:1px solid rgba(174,206,243,.17);
+  color:#d6e4f9;border-radius:999px;
+}
+.app:not(.admin-app) .chip.active{
+  background:rgba(134,162,232,.23);border-color:rgba(160,196,248,.53);
+  color:#f3f7ff;
+}
+.app:not(.admin-app) :is(.notice,.account-panel,.editorial-hero,.review-card,.boost-box,.paywall-copy,.locked-cards,.offer-tag){
+  background:var(--glass-fill);
+  border-color:var(--glass-border);
+  box-shadow:inset 0 1px rgba(255,255,255,.055);
+}
+.app:not(.admin-app) .button:active:not(:disabled),
+.app:not(.admin-app) .icon-button:active:not(:disabled){transform:scale(.975)}
+
+/* Glass dock: a floating physical object, with an illuminated current tab. */
+.app:not(.admin-app) .bottom-nav{
+  width:calc(100% - 24px);max-width:520px;
+  border:1px solid rgba(220,235,255,.22);border-radius:26px;
+  background:linear-gradient(135deg,rgba(34,49,68,.89),rgba(16,27,41,.92));
+  box-shadow:0 14px 42px rgba(0,4,14,.55),inset 0 1px rgba(255,255,255,.16);
+  backdrop-filter:blur(19px) saturate(130%);
+  -webkit-backdrop-filter:blur(19px) saturate(130%);
+}
+.app:not(.admin-app) .bottom-nav button{color:#98aabe}
+.app:not(.admin-app) .bottom-nav button.selected{
+  color:#e7f1ff;
+  background:linear-gradient(145deg,rgba(143,174,235,.20),rgba(139,167,221,.075));
+  box-shadow:inset 0 1px rgba(234,243,255,.13);
+}
+.app:not(.admin-app) .bottom-nav .selected:before{
+  background:#c5ddff;box-shadow:0 0 12px rgba(135,186,248,.42);
+}
+.app:not(.admin-app) .bottom-nav .selected .nav-icon svg{
+  stroke:#d2e6ff;fill:rgba(161,189,236,.075);
+}
+.app:not(.admin-app) .nav-count{
+  background:#b4cfff;color:#12233a;border-color:#172537;
+}
+
+/* Discovery photo-first: preserve existing swipe and photo tap gestures. */
+.app:not(.admin-app) .feed-counter{color:#b7d9ff}
+.app:not(.admin-app) .feed-counter>svg{color:#a9ceff;filter:none}
+.app:not(.admin-app) .feed-counter button{
+  border-color:rgba(177,205,245,.25);background:rgba(136,170,226,.12);color:#bfd7fa;
+}
+.app:not(.admin-app) .discovery-heading{color:#bac9da}
+.app:not(.admin-app) .location-line,
+.app:not(.admin-app) .feed-allowance{color:#aebfd1}
+.app:not(.admin-app) .location-line svg{color:#a8c6ed}
+.app:not(.admin-app) .dating-card{
+  background:#172333;border:1px solid rgba(207,225,255,.20);
+  border-radius:29px;box-shadow:0 23px 45px rgba(0,4,12,.39);
+}
+.app:not(.admin-app) .dating-card:after{
+  background:linear-gradient(180deg,rgba(6,12,21,.35) 0%,transparent 29%,rgba(5,12,22,.11) 48%,rgba(4,9,17,.94) 100%);
+}
+.app:not(.admin-app) .dating-card::before{
+  background:linear-gradient(90deg,transparent,rgba(232,241,255,.42),transparent);
+}
+.app:not(.admin-app) :is(.card-top .icon-button,.card-open-profile,.card-gift-link,.card-status,.card-online,.today-badge){
+  color:#e7f2ff;border-color:rgba(227,240,255,.28);
+  background:rgba(15,29,44,.53);
+  backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);
+}
+.app:not(.admin-app) .card-name-button{color:#fff}
+.app:not(.admin-app) .card-info :is(p,.bio){color:#e1e9f4}
+.app:not(.admin-app) .dating-card .tags span,
+.app:not(.admin-app) .dating-card .goal-tags span{
+  color:#ecf4ff;background:rgba(33,48,66,.48);border-color:rgba(223,237,255,.2);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.app:not(.admin-app) .photo-dots button{background:rgba(255,255,255,.35)}
+.app:not(.admin-app) .photo-dots button.on{background:#eaf5ff;box-shadow:0 0 8px #d1e9ff67}
+.app:not(.admin-app) .reaction-bar .icon-button{
+  background:linear-gradient(145deg,#243448,#162434);
+  color:#cfdef4;border:1px solid rgba(199,225,255,.2);
+  box-shadow:0 8px 22px #0005,inset 0 1px rgba(255,255,255,.07);
+}
+.app:not(.admin-app) .reaction-bar .like{
+  background:linear-gradient(135deg,#8dbaf5,#aaa1ee);
+  color:#081524;border:1px solid rgba(230,244,255,.45);
+  box-shadow:0 10px 25px rgba(110,149,226,.24),inset 0 1px rgba(255,255,255,.28);
+}
+.app:not(.admin-app) .reaction-bar .like svg{fill:currentColor}
+.app:not(.admin-app) .reaction-bar .super{color:#b9cdfa}
+.app:not(.admin-app) .reaction-bar .pass{color:#c4d1e1}
+.app:not(.admin-app) .reaction-bar .prematch{color:#d4c6f0}
+
+/* Welcome, onboarding, forms and photo upload. */
+.app:not(.admin-app) .welcome-photo:after{
+  background:linear-gradient(180deg,rgba(5,9,17,.44),rgba(7,12,20,.10) 30%,rgba(7,13,22,.94) 85%,#080d15);
+}
+.app:not(.admin-app) .welcome :is(.welcome-links,.welcome-promises>div,.how-steps>div){
+  border-color:var(--glass-border);background:var(--glass-fill-soft);
+}
+.app:not(.admin-app) .welcome .language-button{
+  color:#e3eefd;background:rgba(17,30,44,.5);
+  border-color:rgba(228,242,255,.22);backdrop-filter:blur(12px);
+}
+.app:not(.admin-app) .registration-progress span{background:rgba(177,203,234,.15)}
+.app:not(.admin-app) .registration-progress .complete{
+  background:linear-gradient(90deg,#86baf4,#a49dea);box-shadow:0 0 10px #9dbcf645;
+}
+.app:not(.admin-app) :is(.registration-welcome,.registration-meta>span,.interest-heading>span){color:#b8d5ff}
+.app:not(.admin-app) :is(.choice,.interest-choices button,.city-search,.range-card,.selected-city,.place-results button){
+  color:#d5e0ef;background:var(--glass-fill-soft);
+  border:1px solid var(--glass-border);box-shadow:inset 0 1px rgba(255,255,255,.045);
+}
+.app:not(.admin-app) :is(.choice.active,.interest-choices button.active){
+  color:#f5f9ff;background:linear-gradient(135deg,rgba(102,157,233,.28),rgba(142,136,220,.17));
+  border-color:rgba(151,197,255,.63);
+}
+.app:not(.admin-app) :is(.selected-city>svg,.range-card strong,.registration-private>svg){color:#b7d3fa}
+.app:not(.admin-app) :is(.photo-upload,.sortable-photos .photo-upload,.photo-empty){
+  background:linear-gradient(145deg,rgba(58,81,113,.3),rgba(16,29,47,.56));
+  border-color:rgba(171,210,255,.31);color:#c6d8ee;
+}
+.app:not(.admin-app) .photo-placeholder{background:linear-gradient(155deg,#263a52,#131e2d);color:#8ba6c7}
+.app:not(.admin-app) .photo-tile .photo-main{background:#618ac5;color:#fff}
+.app:not(.admin-app) .registration :is(.photo-guidance,.moderation-preview,.location-box){background:var(--glass-fill-soft);border-color:var(--glass-border)}
+
+/* Likes, Today and Chat list: soft cards rather than hot gradients. */
+.app:not(.admin-app) :is(.today-person,.today-invitation,.today-plan,.activity-picker,.like-tile,.chat-row,.likes-paywall,.locked-tile){
+  border-color:var(--glass-border);background:var(--glass-fill-soft);
+  box-shadow:inset 0 1px rgba(255,255,255,.045);
+}
+.app:not(.admin-app) :is(.today-person,.like-tile,.chat-row){border-radius:21px}
+.app:not(.admin-app) :is(.today-bio,.likes-meta,.chat-meta,.chat-summary){color:#a9bbcd}
+.app:not(.admin-app) .chat-search{
+  background:rgba(19,31,47,.76);border:1px solid rgba(190,215,244,.18);
+}
+.app:not(.admin-app) .chat-search input{background:transparent;border:0;box-shadow:none}
+.app:not(.admin-app) .chat-avatar img{border-color:rgba(209,225,255,.31)}
+.app:not(.admin-app) :is(.segmented-scroll,.segmented,.product-tabs){
+  background:rgba(21,34,50,.73);border:1px solid var(--glass-border);border-radius:18px;
+}
+.app:not(.admin-app) :is(.segmented-scroll button.active,.segmented button.active,.product-tabs button.active){
+  background:linear-gradient(145deg,rgba(130,166,226,.22),rgba(133,144,209,.11));
+  border-color:rgba(176,206,247,.34);color:#f0f6ff;
+}
+.app:not(.admin-app) .locked-tile:after{background:linear-gradient(0deg,rgba(6,11,21,.82),transparent 80%)}
+.app:not(.admin-app) .nav-icon svg{stroke-linecap:round;stroke-linejoin:round}
+
+/* Full-screen member profile: photo remains the hero, actions stay under the photos. */
+.member-profile-screen{
+  color:#f4f8ff;background:#080d15;
+}
+.member-profile-screen .member-profile-page{
+  background:radial-gradient(ellipse at 85% -5%,rgba(105,142,205,.16),transparent 55%),#080e17;
+}
+.member-profile-screen .member-profile-header{
+  background:rgba(13,23,36,.92);border-bottom:1px solid var(--glass-border);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.member-profile-screen .member-profile-back{color:#e0ecfc}
+.member-profile-screen .member-profile-content{scrollbar-color:#53688464 transparent}
+.member-profile-screen .member-profile-hero{
+  background:#192635;border:1px solid rgba(215,232,255,.22);border-radius:29px;
+  box-shadow:0 18px 40px rgba(0,3,13,.34);
+}
+.member-profile-screen .member-profile-shade{
+  background:linear-gradient(180deg,rgba(7,13,24,.42),transparent 25%,rgba(4,9,17,.05) 47%,rgba(5,11,20,.95) 100%);
+}
+.member-profile-screen .member-profile-hero-top span,
+.member-profile-screen .member-profile-photo-controls button{
+  background:rgba(14,28,44,.54);border-color:rgba(225,237,255,.28);
+  color:#eaf4ff;backdrop-filter:blur(10px);
+}
+.member-profile-screen .member-profile-goal{
+  color:#eaf1ff;background:rgba(78,108,154,.25);border-color:rgba(199,223,255,.28);
+}
+.member-profile-screen .member-profile-thumbs button{
+  background:rgba(29,44,64,.75);border-color:rgba(180,206,239,.2);
+}
+.member-profile-screen .member-profile-thumbs button.active{
+  border-color:#b0d7ff;box-shadow:0 0 0 1px rgba(156,203,252,.2);
+}
+.member-profile-screen .member-profile-inline-actions{
+  background:transparent;
+}
+.member-profile-screen .member-profile-icon-action{
+  background:linear-gradient(140deg,rgba(50,74,105,.76),rgba(24,37,55,.9));
+  color:#dfebfd;border:1px solid rgba(216,232,255,.24);
+  box-shadow:inset 0 1px rgba(255,255,255,.09);
+}
+.member-profile-screen .member-profile-icon-action.is-chat{
+  color:#e8f4ff;border-color:rgba(169,208,251,.55);
+  background:linear-gradient(145deg,rgba(85,129,187,.54),rgba(36,66,105,.7));
+}
+.member-profile-screen .member-profile-icon-action.is-gift{color:#e3d0fa}
+.member-profile-screen .member-profile-section,
+.member-profile-screen :is(.vg-collection,.vc-courtship-public,.vc-inbox){
+  border:1px solid var(--glass-border);border-radius:23px;
+  background:var(--glass-fill);box-shadow:inset 0 1px rgba(255,255,255,.06);
+}
+.member-profile-screen .member-profile-section h2{color:#f1f6ff}
+.member-profile-screen .member-profile-bio{color:#c1cedf}
+.member-profile-screen .member-profile-interests>span,
+.member-profile-screen .vg-profile-tabs>button{
+  color:#d2e3f7;background:rgba(127,169,225,.105);border-color:rgba(195,223,255,.19);
+}
+.member-profile-screen .member-profile-interests>span.shared,
+.member-profile-screen .vg-profile-tabs>button.active{
+  color:#fff;background:rgba(124,161,222,.26);border-color:rgba(166,209,255,.52);
+}
+.member-profile-screen .member-profile-mutual{
+  color:#caddff;border-color:rgba(164,193,250,.35);
+  background:linear-gradient(135deg,rgba(84,117,171,.3),rgba(66,64,126,.22));
+}
+.member-profile-screen .member-profile-mutual strong{color:#f2f6ff}
+.member-profile-screen .member-profile-mutual span{color:#aebfdb}
+.member-profile-screen .member-profile-footer{
+  background:rgba(12,24,38,.95);border-color:rgba(202,224,249,.2);
+  backdrop-filter:blur(14px);
+}
+.member-profile-screen .member-profile-super{
+  background:linear-gradient(140deg,#283a50,#1d2a3c);border-color:var(--glass-border);color:#e3ecfa;
+}
+
+/* My profile and account area — visual hierarchy, real stats unchanged. */
+.app:not(.admin-app) .vp-profile{
+  --vp-border:rgba(207,225,249,.17);
+  --vp-muted:#9fb0c3;color:#f2f6fd;
+}
+.app:not(.admin-app) .vp-hero{background:#1c2b3d;border-color:rgba(212,234,255,.2);box-shadow:0 18px 39px #0005}
+.app:not(.admin-app) .vp-hero-shade{
+  background:linear-gradient(180deg,rgba(5,11,20,.35),transparent 31%,rgba(4,9,17,.94));
+}
+.app:not(.admin-app) .vp-hero-top button{
+  color:#f1f5ff;background:rgba(16,31,49,.59);border-color:rgba(222,237,255,.3);
+  backdrop-filter:blur(12px);
+}
+.app:not(.admin-app) :is(.vp-goal,.vp-interests>span){
+  background:rgba(120,161,217,.16);border-color:rgba(187,219,253,.24);color:#d9e7fa;
+}
+.app:not(.admin-app) .vp-photo-strip>button{background:#1c2b3e;border-color:var(--glass-border)}
+.app:not(.admin-app) .vp-photo-strip>button.active{border-color:#b5d8fd}
+.app:not(.admin-app) .vp-edit{
+  background:linear-gradient(135deg,rgba(69,108,158,.8),rgba(62,75,117,.9));
+  border-color:rgba(177,215,254,.35);color:#eff7ff;
+}
+.app:not(.admin-app) :is(.vp-panel,.vp-balance>button,.vp-premium,.vp-gifts .gift-collection){
+  background:var(--glass-fill);border:1px solid var(--glass-border);
+  box-shadow:inset 0 1px rgba(255,255,255,.07);border-radius:22px;
+}
+.app:not(.admin-app) .vp-premium{background:linear-gradient(145deg,#273950,#192438)}
+.app:not(.admin-app) .vp-kicker{color:#b7d5f8}
+.app:not(.admin-app) .vp-balance svg{color:#a8cefa}
+.app:not(.admin-app) .vp-balance>button:nth-child(2) svg{color:#b7c7e4}
+.app:not(.admin-app) .vp-balance>button:nth-child(3) svg{color:#bfb2eb}
+.app:not(.admin-app) .vp-row-icon{
+  background:rgba(108,154,214,.11);border:1px solid rgba(178,210,248,.16);color:#b4ccef;
+}
+.app:not(.admin-app) .vp-row strong{color:#eaf1fb}
+.app:not(.admin-app) .vp-row small{color:#9eb0c2}
+.app:not(.admin-app) .vp-section-label{color:#a3b6d0}
+.app:not(.admin-app) :is(.menu-row,.setting-row,.account-links,.account-icon,.support-faq details){
+  border-color:rgba(207,227,255,.12);color:#d9e7f9;
+}
+
+/* Conversation: ink-blue space with frosted incoming and indigo outgoing bubbles. */
+.app:not(.admin-app) .mc-chat{
+  --mc-pink:#b5caf4;--mc-muted:#99aabe;--mc-line:rgba(204,223,249,.12);
+  background:radial-gradient(ellipse at 95% 0%,rgba(84,129,192,.105),transparent 48%),#0a121e!important;
+  color:#f0f6ff;
+}
+.app:not(.admin-app) .mc-header.chat-header{
+  background:rgba(18,31,46,.92);border-bottom-color:rgba(219,233,255,.16);
+  backdrop-filter:blur(16px);box-shadow:0 4px 23px #0004;
+}
+.app:not(.admin-app) .mc-person{color:#f2f7ff}
+.app:not(.admin-app) .mc-person small{color:#a6bbd2!important}
+.app:not(.admin-app) .mc-person small.live{color:#9ce2d2!important}
+.app:not(.admin-app) .mc-tool{color:#c5d6ec}
+.app:not(.admin-app) .mc-tool.active{color:#d7e8ff;background:rgba(137,176,229,.11)}
+.app:not(.admin-app) .mc-day{
+  color:#aec0d6;background:rgba(30,47,66,.82);
+  border-color:rgba(208,232,255,.15);
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.bubble:not(.mine){
+  background:linear-gradient(145deg,#223144,#182638);
+  border-color:rgba(207,231,255,.12);color:#f0f5fc;
+}
+.app:not(.admin-app) .mc-chat .mc-bubble.bubble.mine{
+  background:linear-gradient(125deg,#364f78,#42547f);
+  border-color:rgba(207,225,255,.18);color:#f6f9ff;
+}
+.app:not(.admin-app) .mc-message-meta,
+.app:not(.admin-app) .mc-bubble.mine .mc-message-meta{color:#b4c5de}
+.app:not(.admin-app) .mc-status.read{color:#b1e1f8}
+.app:not(.admin-app) .mc-compose-zone,
+.app:not(.admin-app) .mc-composer{
+  background:rgba(15,28,43,.92);border-color:rgba(201,224,249,.16);
+}
+.app:not(.admin-app) .mc-compose-field{background:rgba(33,50,70,.69);border-color:var(--glass-border)}
+.app:not(.admin-app) .mc-send{
+  background:linear-gradient(135deg,#8bb6ed,#a6a3e5);color:#0a1827;
+  border-color:rgba(230,242,255,.36);
+}
+.app:not(.admin-app) :is(.mc-emoji-dock,.mm-tray.mc-emoji-dock,.mm-attachment-menu){
+  background:#17283a;border-color:var(--glass-border);color:#ecf4ff;
+}
+.app:not(.admin-app) :is(.mm-tray-tabs>button.active,.mm-sticker-tray>nav>button.active){
+  background:rgba(122,159,222,.18);border-color:rgba(170,204,244,.29);color:#e5eeff;
+}
+.app:not(.admin-app) .mc-quote{border-color:rgba(160,201,255,.4)}
+
+/* Premium, gifts, courtship, match, dialogs. Deliberately no metallic gold. */
+.app:not(.admin-app) .premium-hero{
+  background:radial-gradient(ellipse 80% 50% at 50% 5%,rgba(110,149,224,.24),transparent 75%),#132032;
+  border-color:var(--glass-border);
+}
+.app:not(.admin-app) .premium-page .premium-hero h1{
+  color:#f4f8ff;background:none;-webkit-text-fill-color:#f4f8ff;
+  text-shadow:0 2px 22px rgba(153,184,238,.13);
+}
+.app:not(.admin-app) :is(.perks>div,.product,.boost-box,.premium-tag,.product-price,.promo-form){
+  border-color:var(--glass-border);background:var(--glass-fill-soft);
+}
+.app:not(.admin-app) .product.selected{
+  background:linear-gradient(145deg,rgba(103,142,197,.25),rgba(104,104,176,.18));
+  border-color:rgba(166,204,255,.54);
+}
+.app:not(.admin-app) :is(.product-price,.plan-check,.premium-tag){color:#c1ddff}
+.app:not(.admin-app) .purchase-button{
+  background:var(--v-accent);color:#0a1422;border-color:rgba(224,238,255,.35);
+}
+.app:not(.admin-app) :is(.sheet,.confirmation-actions,.match-note){
+  background:var(--glass-fill);border-color:var(--glass-border);
+}
+.app:not(.admin-app) .sheet{
+  box-shadow:0 22px 70px rgba(0,4,13,.55),inset 0 1px rgba(255,255,255,.085);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.app:not(.admin-app) .match-scene .match-title h1 em{
+  color:#b9d5ff;background:none;-webkit-text-fill-color:#b9d5ff;
+}
+.app:not(.admin-app) .match-glow{
+  background:radial-gradient(circle at 50% 40%,rgba(116,153,228,.2),transparent 68%);
+}
+:where(.app:not(.admin-app),.member-profile-screen) :is(.vg-picker,.vg-collection,.vg-choice,.vg-collected,.vg-catalog-grid>button){
+  background:var(--glass-fill);border-color:var(--glass-border);color:#f1f5ff;
+}
+:where(.app:not(.admin-app),.member-profile-screen) :is(.vg-picker-header,.vg-collection-heading,.vg-profile-tabs){
+  border-color:var(--glass-border);color:#eaf2ff;
+}
+:where(.app:not(.admin-app),.member-profile-screen) :is(.vc-courtship-start,.vc-courtship-state,.vc-inbox-row button,.vc-courtship-confirm button){
+  background:linear-gradient(135deg,#293b52,#1b2b40);
+  color:#e2edff;border:1px solid rgba(183,213,248,.25);
+}
+:where(.app:not(.admin-app),.member-profile-screen) .vc-courtship-start svg{color:#c3b5f5}
+:where(.app:not(.admin-app),.member-profile-screen) :is(.vc-courtship-public,.vc-inbox,.vc-courtship-sheet){
+  background:var(--glass-fill);border:1px solid var(--glass-border);color:#e8f2ff;
+}
+:where(.app:not(.admin-app),.member-profile-screen) .vc-courtship-modal{background:rgba(3,10,19,.76)}
+:where(.app:not(.admin-app),.member-profile-screen) .vc-courtship-price{color:#c9dbff}
+:where(.app:not(.admin-app),.member-profile-screen) .vc-courtship-confirm button:last-child{
+  color:#081422;background:var(--v-accent);
+}
+.app:not(.admin-app) .toast{background:#1b2e41;border-color:rgba(186,223,255,.25);color:#e5f3ff}
+
+/* Motion used on actual interactions; no ornamental infinite glow loops. */
+@media(hover:hover){
+  .app:not(.admin-app) :is(.button,.icon-button,.chat-row,.like-tile,.today-person):not(:disabled):hover{
+    border-color:rgba(179,218,255,.40);
+  }
+  .member-profile-screen :is(.member-profile-icon-action,.member-profile-thumbs button):hover{
+    border-color:rgba(182,213,255,.55);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app:not(.admin-app) :is(.button,.icon-button,.view-enter),
+  .member-profile-screen :is(.member-profile-icon-action,.member-profile-hero){
+    animation:none!important;transition:none!important;
+  }
+}
+/* On narrow phones, glass decoration never steals usable space. */
+@media(max-width:360px){
+  .app:not(.admin-app)>main{padding-left:13px;padding-right:13px}
+  .app:not(.admin-app) .bottom-nav{width:calc(100% - 14px)}
+  .app:not(.admin-app) .bottom-nav button{min-width:0}
+  .member-profile-screen .member-profile-content{padding-left:13px;padding-right:13px}
+}
