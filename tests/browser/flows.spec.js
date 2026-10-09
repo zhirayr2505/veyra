@@ -83,7 +83,7 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  await b.getByRole('button',{name:'Посмотреть профиль',exact:true}).click();
  await expect(b.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
  await expect(b.locator('.member-profile-mutual')).toBeVisible();
- await expect(b.locator('.member-profile-footer').getByRole('button',{name:'Перейти в чат'})).toBeVisible();
+ await expect(b.locator('.member-profile-inline-actions').getByRole('button',{name:'Перейти в чат'})).toBeVisible();await expect(b.locator('.member-profile-inline-actions').getByRole('button',{name:'Подарить подарок'})).toBeVisible();await expect(b.getByRole('button',{name:'Стать ухажёром'})).toBeVisible();await expect(b.locator('.member-profile-footer')).toHaveCount(0);
  await b.locator('.member-profile-back').click();
  await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();
  await b.getByRole('button',{name:'Перейти в чаты',exact:true}).click();await expect(b.locator('.chat-header')).toContainText('Тест Алекс');
