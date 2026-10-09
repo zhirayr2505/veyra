@@ -45,7 +45,7 @@ svg {stroke-width:1.7}
 .section-heading h1 {margin:0 0 11px}
 .section-heading p {font-size:12px;line-height:1.6;max-width:270px;margin:0;color:var(--muted)}
 .section-heading>.artwork {width:94px;height:94px;margin-right:-9px;filter:drop-shadow(0 10px 24px #a649b52a);animation:art-arrive .6s var(--ease) both}
-.view-enter {animation:view-enter .38s var(--ease) both}
+.view-enter {animation:view-enter .24s var(--ease) both}
 @keyframes art-arrive {from{opacity:0;transform:translateY(10px) rotate(-5deg) scale(.92)}to{opacity:1;transform:none}}
 @keyframes veyra-glimmer {0%,60%,100%{opacity:.4}30%{opacity:1}}
 

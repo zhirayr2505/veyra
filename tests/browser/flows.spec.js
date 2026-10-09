@@ -13,7 +13,7 @@ test('five-step registration resumes, blocks underage users, skips interests and
  await page.getByLabel('Дата рождения').fill('1995-05-12');await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('heading',{name:'Люди рядом',exact:true})).toBeVisible();
  await page.getByLabel('Город и страна',{exact:true}).fill('Paris');await page.getByRole('button',{name:'Найти город',exact:true}).click();await page.getByRole('button',{name:'Paris',exact:true}).click();await page.getByRole('checkbox',{name:'Без ограничения',exact:true}).check();
  await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('heading',{name:'Кого хочешь встретить?',exact:true})).toBeVisible();await page.evaluate(()=>localStorage.clear());await page.reload();await expect(page.getByRole('heading',{name:'Кого хочешь встретить?',exact:true})).toBeVisible();await page.getByRole('button',{name:'Всех',exact:true}).click();await page.getByLabel('Возраст от',{exact:true}).fill('23');await page.getByLabel('Возраст до',{exact:true}).fill('32');await screenshot(page,testInfo.outputPath('registration-search.png'));
- await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('heading',{name:'Что тебе близко?',exact:true})).toBeVisible();await screenshot(page,testInfo.outputPath('registration-interests.png'));await page.getByRole('button',{name:'Заполнить позже',exact:true}).click();await expect(page.getByRole('heading',{name:'Покажи себя',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Продолжить',exact:true}).click();await expect(page.getByRole('heading',{name:'Что тебе близко?',exact:true})).toBeVisible();await page.setViewportSize({width:320,height:568});await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow','4');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await screenshot(page,testInfo.outputPath('registration-interests.png'));await page.getByRole('button',{name:'Заполнить позже',exact:true}).click();await expect(page.getByRole('heading',{name:'Покажи себя',exact:true})).toBeVisible();
  await page.getByRole('checkbox').check();await expect(page.getByRole('button',{name:'Отправить анкету на проверку',exact:true})).toBeDisabled();await page.reload();await expect(page.getByRole('heading',{name:'Покажи себя',exact:true})).toBeVisible();await expect(page.locator('.photo-tile')).toHaveCount(0);
 });
 test('admin login uses separate bot signature and opens moderation',async({page})=>{await telegram(page,1,true);await page.goto('/admin');await expect(page.getByRole('heading',{name:'Обзор',exact:true})).toBeVisible();await page.getByRole('button',{name:'Модерация',exact:true}).click();await expect(page.getByRole('heading',{name:'Очередь модерации'})).toBeVisible();await expect(page.getByRole('button',{name:'Одобрить',exact:true})).toBeVisible();});
@@ -72,7 +72,14 @@ test('two adults register, upload photos, receive approval, swipe to match, chat
  const card=a.locator('.dating-card');const box=await card.boundingBox();
  await a.mouse.move(box.x+box.width/2,box.y+box.height/2);await a.mouse.down();await a.mouse.move(box.x+box.width/2+120,box.y+box.height/2,{steps:12});await a.mouse.up();
  await expect(card).toHaveCount(0);
- await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();await screenshot(b,testInfo.outputPath('match-mobile.png'));
+ await b.getByRole('button',{name:'Нравится',exact:true}).click();await expect(b.getByRole('dialog',{name:'Взаимная симпатия!'})).toBeVisible();
+ await b.setViewportSize({width:320,height:568});
+ const match=b.getByRole('dialog',{name:'Взаимная симпатия!'});
+ const continueButton=match.getByRole('button',{name:'Продолжить поиск',exact:true});
+ await continueButton.scrollIntoViewIfNeeded();await expect(continueButton).toBeInViewport({ratio:1});
+ expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await b.setViewportSize({width:390,height:844});
+ await screenshot(b,testInfo.outputPath('match-mobile.png'));
  await b.getByRole('button',{name:'Посмотреть профиль',exact:true}).click();
  await expect(b.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
  await expect(b.locator('.member-profile-mutual')).toBeVisible();

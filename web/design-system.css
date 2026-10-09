@@ -277,3 +277,62 @@ body{background:var(--v-bg);color:var(--v-text)}
  .app:not(.admin-app) .premium-page .product,
  .app:not(.admin-app) .premium-page .product-tabs button{transition:none}
 }
+
+
+/* Finish the Match scene: one calm entrance, no perpetual drifting or cropped CTA.
+   On short Telegram viewports the sheet scrolls instead of hiding the exit actions. */
+@keyframes veyra-match-arrive{
+ from{opacity:.25;transform:translateY(9px) scale(.97)}
+ to{opacity:1;transform:none}
+}
+.app:not(.admin-app) .match-scene .match-title{
+ animation:veyra-match-arrive 460ms var(--v-ease) both;
+}
+.app:not(.admin-app) .match-scene .match-people{
+ animation:veyra-match-arrive 620ms var(--v-ease) both;
+}
+.app:not(.admin-app) .match-scene .match-note{
+ border-color:var(--v-border);
+ background:linear-gradient(140deg,rgba(47,30,54,.74),var(--v-surface));
+}
+.app:not(.admin-app) .match-scene .match-people img{
+ border-color:var(--v-jewel-border);
+ box-shadow:0 10px 28px rgba(140,47,110,.24);
+}
+.app:not(.admin-app) .match-scene .match-heart{color:var(--v-rose)}
+.app:not(.admin-app) .match-scene .full{min-height:51px}
+.app:not(.admin-app) .match-scene .sheet{
+ scrollbar-width:thin;overscroll-behavior-y:contain;
+}
+@media(max-height:700px){
+ .app:not(.admin-app) .match-scene>.sheet{
+  height:100dvh;min-height:0;max-height:100dvh;
+  justify-content:flex-start;overflow-y:auto;
+  padding:66px 20px max(24px,env(safe-area-inset-bottom,0px));
+ }
+ .app:not(.admin-app) .match-scene .match-title{margin:0 0 16px}
+ .app:not(.admin-app) .match-scene .match-title>.artwork{width:90px;height:90px}
+ .app:not(.admin-app) .match-scene .match-title h1{font-size:36px;margin-bottom:8px}
+ .app:not(.admin-app) .match-scene .match-people{margin:2px auto 15px;max-width:290px;width:100%}
+ .app:not(.admin-app) .match-scene .match-people h3{font-size:13px}
+ .app:not(.admin-app) .match-scene .match-note{margin-bottom:16px;padding:12px 14px;font-size:12px}
+}
+@media(max-width:359px){
+ .app:not(.admin-app) .match-scene .match-title h1{font-size:34px}
+ .app:not(.admin-app) .match-scene .match-title p{font-size:13px}
+ .app:not(.admin-app) .match-scene .full{font-size:13px}
+}
+/* Lightweight press feedback on real cards; keep layout stable. */
+.app:not(.admin-app) :is(.chat-row,.today-person,.like-tile){
+ transition:border-color var(--v-fast) ease,transform var(--v-fast) var(--v-ease);
+}
+.app:not(.admin-app) :is(.chat-row,.today-person,.like-tile):active{transform:scale(.987)}
+.app:not(.admin-app) .chat-row{border-color:var(--v-border)}
+.app:not(.admin-app) .today-person{border-color:var(--v-border)}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .match-scene :is(.match-title,.match-people),
+ .app:not(.admin-app) :is(.chat-row,.today-person,.like-tile){
+  animation:none!important;transition:none!important;
+ }
+ .app:not(.admin-app) .match-scene .match-sparks{display:none}
+}
