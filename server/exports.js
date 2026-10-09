@@ -58,7 +58,7 @@ async function* transcript(db,matchId){
 
 // Entries are awaited one at a time; photos and transcripts are never accumulated
 // for the whole database in the memory of the small test server.
-export async function streamArchive({db,storage,actor,userId,res}){
+export async function streamArchive({db,storage,actor,userId=null,res}){
  if(userId&&!await one(db,'SELECT 1 FROM users WHERE id=$1',[userId]))fail(404,'USER_NOT_FOUND');
  await audit(db,actor,'admin.export.started',userId||'all',{format:'zip'});
  const zip=archiver('zip',{zlib:{level:3}});

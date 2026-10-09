@@ -1,5 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
+import {react} from './domain.js';
 import {TEST_PROFILE_IDS} from './test-profile-ids.js';
 const TARGET='https://veyra-3806.onrender.com';
 const SEED='two-test-women-2026-10-08';
@@ -9,10 +10,16 @@ export async function seedTestProfiles(db,storage,env){
  const uploaded=[];
  try{return await db.tx(async q=>{
   await q.query("SELECT key FROM feature_flags WHERE key='registrations' FOR UPDATE");
-  if(await one(q,"SELECT 1 FROM audit_log WHERE action='test_profiles.seed' AND subject=$1",[SEED])){await q.query('UPDATE users SET last_seen=now() WHERE id=ANY($1::bigint[])',[TEST_PROFILE_IDS]);return {status:'completed',count:2};}
+  if(await one(q,"SELECT 1 FROM audit_log WHERE action='test_profiles.seed' AND subject=$1",[SEED])){
+   const pending=(await q.query("SELECT r.actor,r.target,r.kind FROM reactions r JOIN users u ON u.id=r.actor JOIN profiles p ON p.user_id=u.id WHERE r.target=ANY($1::bigint[]) AND r.actor<>ALL($1::bigint[]) AND r.kind<>'pass' AND u.status='active' AND p.moderation='approved' AND NOT EXISTS(SELECT 1 FROM matches m WHERE m.a=least(r.actor,r.target) AND m.b=greatest(r.actor,r.target)) AND NOT EXISTS(SELECT 1 FROM blocks b WHERE b.actor=r.actor AND b.target=r.target OR b.actor=r.target AND b.target=r.actor)",[TEST_PROFILE_IDS])).rows;
+   for(const r of pending)await react(q,String(r.actor),String(r.target),r.kind);
+   return {status:'completed',count:2};
+  }
   const owner=await one(q,'SELECT city,country,lat,lon FROM profiles WHERE user_id=$1',[env.OWNER_TELEGRAM_ID]);
   const place=owner||{city:'Краснодар',country:'Россия',lat:45.0355,lon:38.9753};
-  for(const [i,name,age,interests] of [[0,'Алина',24,['Кофе','Кино','Прогулки']],[1,'София',26,['Путешествия','Музыка','Фотография']]]){
+  /** @type {[number,string,number,string[]][]} */
+  const fixtures=[[0,'Алина',24,['Кофе','Кино','Прогулки']],[1,'София',26,['Путешествия','Музыка','Фотография']]];
+  for(const [i,name,age,interests] of fixtures){
    const id=TEST_PROFILE_IDS[i];if(await one(q,'SELECT id FROM users WHERE id=$1',[id]))throw Error('TEST_PROFILE_ID_CONFLICT');
    await q.query("INSERT INTO users(id,first_name,referral_code,notifications,last_seen) VALUES($1,$2,$3,false,now()-interval '30 days')",[id,name+' (тест)',randomUUID().slice(0,12)]);
    await q.query("INSERT INTO profiles(user_id,name,birth_date,gender,looking_for,bio,interests,goal,city,country,lat,lon,min_age,max_age,radius_km,moderation,accepted_terms_at,moderation_reason) VALUES($1,$2,(CURRENT_DATE-($3::text||' years')::interval)::date,'woman',ARRAY['man','woman','other'],$4,$5,'relationship',$6,$7,$8,$9,18,110,20000,'approved',NULL,'Owner-created synthetic test profile')",[id,name+' · тест',age,'ТЕСТОВАЯ АНКЕТА VEYRA. Вымышленный персонаж для проверки приложения, не настоящий пользователь. '+(i?'Путешествия, музыка и красивые фотографии.':'Кофе, кино и прогулки по городу.'),interests,place.city,place.country,place.lat,place.lon]);

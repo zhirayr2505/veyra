@@ -14,6 +14,6 @@ test('synthetic test profile returns a like, creates a match and opens with a gr
   const result=await db.tx(q=>react(q,'1',TEST_PROFILE_IDS[0],'like'));
   assert.equal(result.matched,true);assert.ok(result.match_id);
   const reaction=await db.query('SELECT kind FROM reactions WHERE actor=$1 AND target=$2',[TEST_PROFILE_IDS[0],'1']);assert.equal(reaction.rows[0].kind,'like');
-  const message=await db.query('SELECT sender,body FROM messages WHERE match_id=$1',[result.match_id]);assert.equal(message.rows.length,1);assert.equal(String(message.rows[0].sender),TEST_PROFILE_IDS[0]);assert.match(message.rows[0].body,/Давай знакомиться/);
+  const message=await db.query('SELECT sender,body FROM messages WHERE match_id=$1',[result.match_id]);assert.equal(message.rows.length,1);assert.equal(String(message.rows[0].sender),TEST_PROFILE_IDS[0]);assert.match(message.rows[0].body,/Тестовая анкета VEYRA · автоматическое приветствие/);
  }finally{await db.close();}
 });

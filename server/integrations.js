@@ -1,7 +1,9 @@
 import {fail} from './core.js';
 import sharp from 'sharp';
 export async function telegram(botToken,method,body){
- let payload,headers={'content-type':'application/json'};
+ let payload;
+ /** @type {Record<string,string>} */
+ let headers={'content-type':'application/json'};
  if(Buffer.isBuffer(body.photo)){
   payload=new FormData();headers={};
   for(const[k,v]of Object.entries(body)){

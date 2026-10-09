@@ -21,9 +21,9 @@ test('registration advances only for adults, persists private draft across sessi
  assert.equal((await one(db,'SELECT accepted_terms_at FROM profiles WHERE user_id=200')).accepted_terms_at,null);
  assert.equal((await one(db,'SELECT step FROM registration_drafts WHERE user_id=200')).step,5);
 });
-test('three photos and explicit consent are enforced server-side; foreign and duplicate reorder attempts fail',async()=>{
+test('at least one photo and explicit consent are enforced server-side; foreign and duplicate reorder attempts fail',async()=>{
+ assert.equal((await auth(request(app).post('/api/profile/submit')).send({consent:true})).body.error,'PHOTO_REQUIRED');
  const own=[];for(let i=0;i<2;i++){const id=randomUUID();own.push(id);await db.query('INSERT INTO photos(id,user_id,object_key,position) VALUES($1,200,$2,$3)',[id,'200/'+id,i]);}
- assert.equal((await auth(request(app).post('/api/profile/submit')).send({consent:true})).body.error,'THREE_PHOTOS_REQUIRED');
  const third=randomUUID();own.push(third);await db.query('INSERT INTO photos(id,user_id,object_key,position) VALUES($1,200,$2,2)',[third,'200/'+third]);
  assert.equal((await auth(request(app).post('/api/profile/submit')).send({})).status,400);
  assert.equal((await auth(request(app).put('/api/photos/order')).send({ids:[own[0],own[0],own[2]]})).status,409);

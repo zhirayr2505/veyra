@@ -4,12 +4,14 @@ import {fail,validBirth} from './core.js';
 import {z,parse,profileFields,uuid} from './validation.js';
 
 export async function saveProfile(q,userId,p,consent=false){
+ p={...p,lat:Math.round(p.lat*100)/100,lon:Math.round(p.lon*100)/100};
  const fields=Object.keys(profileFields.shape);
  await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[userId]);
  await q.query(`INSERT INTO profiles(user_id,${fields.join(',')},accepted_terms_at)
  VALUES($1,${fields.map((_,i)=>'$'+(i+2)).join(',')},${consent?'now()':'NULL'})
  ON CONFLICT(user_id) DO UPDATE SET ${fields.map(f=>`${f}=EXCLUDED.${f}`).join(',')},
  moderation='draft',moderation_reason=NULL,revision=profiles.revision+1,updated_at=now()`,[userId,...fields.map(f=>p[f])]);
+ await q.query('UPDATE profiles SET location_updated_at=now(),location_consent_at=coalesce(location_consent_at,now()) WHERE user_id=$1',[userId]);
 }
 
 const draftData=profileFields.partial().extend({name:z.string().max(50),birth_date:z.string().max(10),gender:z.enum(['','man','woman']),looking_for:z.array(z.enum(['man','woman'])).max(2),city:z.string().max(100),country:z.string().max(100),lat:z.number().min(-90).max(90).nullable(),lon:z.number().min(-180).max(180).nullable()});
