@@ -707,3 +707,186 @@ body{color-scheme:light}
 .legal :is(h1,h2){color:#3f304a}
 .legal p{color:#786c84}
 .legal a{color:#ef748a}
+
+/* Coral Registration v4 — consistent light onboarding from first tap to moderation. */
+.app:not(.admin-app) .registration{
+ max-width:520px;margin:0 auto;padding:12px 2px 32px;
+ color:#3b3046;
+}
+.app:not(.admin-app) .registration-meta>span{
+ color:#ed728c;font-size:12px;letter-spacing:.015em;font-weight:750;
+}
+.app:not(.admin-app) .registration-meta>small{color:#988da3;font-size:11px}
+.app:not(.admin-app) .registration-progress{
+ gap:6px;margin:13px 0 26px;
+}
+.app:not(.admin-app) .registration-progress span{
+ height:5px;border-radius:99px;background:#f2ecf5;
+}
+.app:not(.admin-app) .registration-progress span.complete{
+ background:linear-gradient(115deg,#ffa1b0,#fb788e);box-shadow:none;
+}
+.app:not(.admin-app) .registration-welcome{
+ display:flex;align-items:center;gap:6px;color:#ee748c;
+ font-weight:750;font-size:13px;margin:8px 0 14px;
+}
+.app:not(.admin-app) .registration-heading{
+ display:flex;align-items:center;min-height:80px;gap:12px;margin-bottom:25px;
+}
+.app:not(.admin-app) .registration-heading h1{
+ font-size:clamp(27px,7.5vw,32px);font-weight:780;line-height:1.12;
+ color:#392e44;letter-spacing:-.047em;margin-bottom:10px;
+}
+.app:not(.admin-app) .registration-heading p{
+ color:#817589;font-size:13px;line-height:1.55;
+}
+.app:not(.admin-app) .registration-heading .artwork{
+ filter:drop-shadow(0 5px 12px #dfbed451);
+}
+.app:not(.admin-app) .registration .field>span,
+.app:not(.admin-app) .registration .choice-group legend{
+ color:#655a71;font-weight:700;font-size:12px;
+}
+.app:not(.admin-app) .registration .field{
+ display:block;margin:14px 0 19px;
+}
+.app:not(.admin-app) .registration :is(input:not([type=checkbox]):not([type=range]),textarea){
+ width:100%;background:#fff;color:#40344c;border:1px solid #ece3f0;
+ border-radius:17px;min-height:47px;box-shadow:0 3px 11px rgba(67,44,78,.035);
+}
+.app:not(.admin-app) .registration :is(input,textarea):focus{
+ outline:2px solid #f8c2d3;outline-offset:1px;border-color:#f3aabf;
+}
+.app:not(.admin-app) .registration textarea{resize:vertical;line-height:1.5}
+.app:not(.admin-app) .registration .field-help{
+ color:#988ca1;font-size:11px;line-height:1.5;
+}
+.app:not(.admin-app) .registration .choice-group{margin:25px 0 0}
+.app:not(.admin-app) .registration .choice-row{gap:8px}
+.app:not(.admin-app) .registration .choice{
+ min-height:53px;background:#fff;color:#6f617b;border:1px solid #ede6f0;
+ border-radius:17px;box-shadow:0 4px 12px #77557a0b;
+ font-size:13px;font-weight:680;
+ transition:background-color .19s ease,border-color .19s ease,transform .19s ease;
+}
+.app:not(.admin-app) .registration .choice.active{
+ color:#eb7189;background:linear-gradient(120deg,#fff0f4,#fcf5ff);
+ border-color:#ffc9d5;box-shadow:0 0 0 1px #ffedf1 inset;
+}
+.app:not(.admin-app) .registration .choice-emoji{color:#f07593}
+.app:not(.admin-app) .registration .choice svg{flex-shrink:0}
+.app:not(.admin-app) .registration .registration-private{
+ display:flex;gap:9px;align-items:flex-start;background:#f8f4fd;
+ border:1px solid #f0e8f5;border-radius:16px;
+ padding:12px 13px;margin:18px 0 12px;
+ color:#85778e;font-size:11px;line-height:1.55;
+}
+.app:not(.admin-app) .registration .registration-private>svg{
+ color:#ac80c8;flex-shrink:0;margin-top:1px;
+}
+.app:not(.admin-app) .registration .or-divider{color:#968b9e;margin:20px 0}
+.app:not(.admin-app) .registration .or-divider::before,
+.app:not(.admin-app) .registration .or-divider::after{background:#eee5f1}
+.app:not(.admin-app) .registration .city-search{
+ display:flex;align-items:center;background:#fff;border:1px solid #eee5f1;
+ border-radius:18px;overflow:hidden;box-shadow:0 3px 13px #9b769a0b;
+}
+.app:not(.admin-app) .registration .city-search input{
+ background:transparent;border:0;box-shadow:none;min-height:50px;
+}
+.app:not(.admin-app) .registration .city-search>.icon-button{
+ flex:0 0 46px;color:#9972bc;background:#f8f3fc;border:0;
+ height:40px;width:40px;min-height:40px;border-radius:13px;margin:4px;
+}
+.app:not(.admin-app) .registration .place-results button{
+ background:#fff;color:#61546d;border:1px solid #eee7f1;border-radius:17px;
+ padding:13px 14px;box-shadow:0 3px 12px #7352790a;
+}
+.app:not(.admin-app) .registration .place-results button svg{color:#ae81c9}
+.app:not(.admin-app) .registration .selected-city{
+ background:linear-gradient(115deg,#fff0f4,#f7f1ff);
+ border:1px solid #f6dfec;border-radius:20px;color:#463651;
+}
+.app:not(.admin-app) .registration .selected-city>svg{color:#ef7890}
+.app:not(.admin-app) .registration .selected-city span{color:#88768e}
+.app:not(.admin-app) .registration .range-card{
+ background:#fff;border:1px solid #eee6f1;border-radius:22px;
+ padding:19px;box-shadow:0 5px 17px #70517309;
+}
+.app:not(.admin-app) .registration .range-card>div:first-child{
+ color:#655673;font-size:13px;font-weight:650;
+}
+.app:not(.admin-app) .registration .range-card strong{
+ color:#ed768d;font-variant-numeric:tabular-nums;
+}
+.app:not(.admin-app) .registration .range-card input[type="range"]{
+ accent-color:#fa8299;background:#f0e6f1;box-shadow:none;
+}
+.app:not(.admin-app) .registration .range-card input[type="range"]::-webkit-slider-thumb{
+ background:#f67690;border:3px solid #fff;box-shadow:0 2px 10px #ed759575;
+}
+.app:not(.admin-app) .registration .range-card input[type="range"]::-moz-range-thumb{
+ background:#f67690;border:3px solid #fff;
+}
+.app:not(.admin-app) .registration .dual-track{
+ background:linear-gradient(to right,#f2e7f1 var(--low),#f47c98 var(--low),#f47c98 var(--high),#f2e7f1 var(--high));
+}
+.app:not(.admin-app) .registration .dual-range input[type=range]{background:transparent}
+.app:not(.admin-app) .registration .interest-heading>strong{color:#655674}
+.app:not(.admin-app) .registration .interest-heading>span{color:#ec748e;font-weight:750}
+.app:not(.admin-app) .registration .interest-choices{gap:7px}
+.app:not(.admin-app) .registration .interest-choices button{
+ background:#fff;color:#7d6d89;border:1px solid #ede5f0;
+ border-radius:18px;min-height:41px;font-size:12px;font-weight:650;
+ box-shadow:0 2px 12px #744f760a;
+ transition:background-color .16s,border-color .16s,transform .16s;
+}
+.app:not(.admin-app) .registration .interest-choices button svg{color:#9673c0}
+.app:not(.admin-app) .registration .interest-choices button.active{
+ background:linear-gradient(115deg,#ffedf2,#f6f0ff);
+ color:#ea718c;border-color:#ffc2d0;
+ box-shadow:0 0 0 1px #fff5f7 inset;
+}
+.app:not(.admin-app) .registration .interest-choices button.active svg{color:#f07591}
+.app:not(.admin-app) .registration .photo-guidance{
+ background:#f8f3fc;border:1px solid #f0e7f5;
+ color:#776986;border-radius:16px;padding:13px 15px;font-size:12px;
+}
+.app:not(.admin-app) .registration .sortable-photos .photo-upload{
+ background:linear-gradient(135deg,#fff1f5,#f5eefd);
+ border:2px dashed #f2acc3;color:#dd718e;border-radius:20px;
+}
+.app:not(.admin-app) .registration .sortable-photos .photo-tile{
+ border-radius:20px;border:1px solid #eee3ef;
+}
+.app:not(.admin-app) .registration .photo-main{
+ background:#f67391;color:#fff;box-shadow:0 3px 13px #ef6c8961;
+}
+.app:not(.admin-app) .registration .photo-empty{
+ background:#faf7fd;border:1px dashed #eee4f1;color:#aaa0b3;
+ border-radius:20px;
+}
+.app:not(.admin-app) .registration .photo-count{color:#96889f}
+.app:not(.admin-app) .registration .photo-count strong{color:#ef758e}
+.app:not(.admin-app) .registration .photo-drag-hint{color:#978a9e}
+.app:not(.admin-app) .registration .registration-consent{color:#75697f}
+.app:not(.admin-app) .registration .registration-consent a{
+ color:#ed758c;text-decoration:underline;text-underline-offset:2px;
+}
+.app:not(.admin-app) .registration .registration-error{
+ background:#fff0f4;border:1px solid #ffb9c8;color:#bc5879;
+ border-radius:17px;padding:13px 15px;
+}
+.app:not(.admin-app) .registration .registration-footer{margin:28px 0 0;gap:9px}
+.app:not(.admin-app) .registration .registration-footer>.primary{
+ min-height:55px;border-radius:19px;font-weight:750;
+ background:linear-gradient(115deg,#ff8e9d,#f7738b);color:#fff;
+ border:0;box-shadow:0 5px 19px #ed708831;
+}
+.app:not(.admin-app) .registration .registration-footer>.secondary{
+ color:#9270b2;background:#f6effc;border:0;border-radius:17px;box-shadow:none;
+}
+.app:not(.admin-app) .registration .skip-interests{color:#9a75b4}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .registration .registration-body{animation:none!important}
+}
