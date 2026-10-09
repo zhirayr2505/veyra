@@ -85,6 +85,8 @@ function App(){
   setTab(value);setChatOpen(false);setOpenChatId(null);
   tg?.HapticFeedback?.selectionChanged?.();
  };
+ // Also mount tabs opened directly by match/chat deep links, not only the nav bar.
+ useEffect(()=>{if(me?.profile?.moderation==='approved')setVisitedTabs(current=>current.includes(tab)?current:[...current,tab]);},[tab,me?.profile?.moderation]);
  const openProfile=(profile,options={})=>setProfileView({profile,...options});
  const approved=me?.profile?.moderation==='approved';const ctx={t,lang,setLang,me,refresh,run,busy,alert,tab,setTab:switchTab,page,setPage,modal,setModal,openChatId,setOpenChatId,setChatOpen,setBadges,feedFilters,setFeedFilters,openProfile,closeProfile:()=>setProfileView(null)};
  const shell=isAdmin?'admin-app':chatOpen?'conversation-app':auth==='ok'&&!page&&tab==='feed'&&approved?'feed-app':'member-app';
