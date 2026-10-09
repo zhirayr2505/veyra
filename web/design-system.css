@@ -1,0 +1,37 @@
+/* VEYRA Midnight Atelier 2.0 — shared tokens and visual polish */
+:root{
+ --v-bg:#090A12;--v-surface:#12131D;--v-raised:#1B1928;--v-active:#272033;
+ --v-text:#F8F3FA;--v-muted:#B8A9C3;--v-rose:#F477B8;--v-orchid:#B67BE9;--v-ice:#88D3E6;--v-gold:#E7C58C;
+ --v-border:rgba(239,218,255,.10);--v-focus:rgba(244,175,224,.38);
+ --v-accent:linear-gradient(112deg,#F477B8 0%,#DC59AB 45%,#A873DF 100%);
+ --v-radius-control:17px;--v-radius-panel:23px;--v-radius-hero:27px;
+ --v-ease:cubic-bezier(.22,1,.36,1);--v-fast:150ms;--v-normal:220ms;
+ --ink:var(--v-bg);--surface:var(--v-surface);--surface-raised:var(--v-raised);
+ --pink:var(--v-rose);--violet:var(--v-orchid);--ice:var(--v-ice);--accent:var(--v-accent);
+ --muted:var(--v-muted);--line:var(--v-border);--ease:var(--v-ease);
+}
+body{background:var(--v-bg);color:var(--v-text)}
+.app:not(.admin-app){color:var(--v-text);background:radial-gradient(ellipse 75% 380px at 90% -8%,rgba(182,123,233,.11),transparent 75%),radial-gradient(ellipse 80% 480px at 7% 85%,rgba(244,119,184,.045),transparent 75%),var(--v-bg)}
+.app:not(.admin-app) .button{border-radius:var(--v-radius-control);transition:transform var(--v-fast) var(--v-ease),border-color var(--v-normal) ease,box-shadow var(--v-normal) ease}
+.app:not(.admin-app) .button.primary{background:var(--v-accent);color:#fff;border:1px solid rgba(255,216,238,.18);box-shadow:0 8px 25px rgba(170,67,133,.17),inset 0 1px rgba(255,255,255,.2)}
+.app:not(.admin-app) .button.secondary{background:linear-gradient(155deg,var(--v-active),var(--v-raised));border-color:var(--v-border);color:var(--v-text)}
+.app:not(.admin-app) .button:active:not(:disabled){transform:scale(.985)}
+.app:not(.admin-app) .icon-button{border-color:var(--v-border);transition:transform var(--v-fast) var(--v-ease),color var(--v-fast) ease,border-color var(--v-fast) ease}
+.app:not(.admin-app) .icon-button:active:not(:disabled){transform:scale(.94)}
+.app:not(.admin-app) .account-panel{border-color:var(--v-border);border-radius:var(--v-radius-panel)}
+:where(.app:not(.admin-app),.member-profile-screen) :is(button,a,input,textarea,select):focus-visible{outline:2px solid var(--v-orchid);outline-offset:3px}
+.veyra-icon,.veyra-icon-fallback{flex:none;vertical-align:middle;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.app:not(.admin-app) .bottom-nav{border-color:var(--v-border);background:linear-gradient(135deg,rgba(29,25,41,.97),rgba(18,19,29,.97));box-shadow:0 12px 42px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.055)}
+.app:not(.admin-app) .bottom-nav .selected{color:#F6B1D6;background:rgba(244,119,184,.095)}
+.app:not(.admin-app) .dating-card{border-color:rgba(244,175,224,.18);isolation:isolate}
+.app:not(.admin-app) .dating-card::before{content:"";position:absolute;z-index:2;inset:0 0 auto;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,227,244,.25),transparent)}
+.app:not(.admin-app) .card-open-profile{border-color:var(--v-focus);background:rgba(25,17,32,.35);color:var(--v-text)}
+.member-profile-screen{background:var(--v-bg);color:var(--v-text)}
+.member-profile-screen .member-profile-page{max-width:560px;background:radial-gradient(ellipse at 100% 0%,rgba(182,123,233,.09),transparent 54%),var(--v-bg)}
+.member-profile-screen .member-profile-header{border-color:var(--v-border);background:rgba(18,19,29,.96)}
+.member-profile-screen .member-profile-hero{border-color:var(--v-focus);border-radius:var(--v-radius-hero)}
+.member-profile-screen .member-profile-section{background:var(--v-surface);border-color:var(--v-border);border-radius:var(--v-radius-panel)}
+.member-profile-screen .member-profile-footer{background:rgba(18,19,29,.96);border-color:var(--v-border)}
+.member-profile-screen .member-profile-chat,.member-profile-screen .member-profile-like{background:var(--v-accent)}
+@media(hover:hover){.app:not(.admin-app) .button:not(:disabled):hover,.app:not(.admin-app) .icon-button:not(:disabled):hover{border-color:var(--v-focus)}}
+@media(prefers-reduced-motion:reduce){.app:not(.admin-app) .button,.app:not(.admin-app) .icon-button{transition:none!important}}

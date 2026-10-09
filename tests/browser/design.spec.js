@@ -6,12 +6,24 @@ test('premium visual system: real flows, mobile layouts, chat and account pages'
  await page.route('https://telegram.org/**',r=>r.fulfill({body:''}));
  await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},initData(10));
  const button=name=>page.getByRole('button',{name,exact:true});
- const tab=name=>page.locator('.bottom-nav').getByRole('button',{name,exact:true}).click();
+ const orphanBraces=()=>page.evaluate(()=>{
+  const found=[],walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  while(walker.nextNode()){
+   const node=walker.currentNode;
+   if(node.textContent.trim()!=='}')continue;
+   const parent=node.parentElement;
+   if(!parent||!parent.getClientRects().length)continue;
+   const style=getComputedStyle(parent);
+   if(style.display!=='none'&&style.visibility!=='hidden')found.push(parent.tagName.toLowerCase()+'.'+parent.className);
+  }
+  return found;
+ });
+ const tab=async name=>{await page.locator('.bottom-nav').getByRole('button',{name,exact:true}).click();await expect.poll(orphanBraces).toEqual([]);};
  const back=()=>button('Назад').click();
  const fits=async()=>expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const capture=async name=>{await page.waitForTimeout(180);await page.screenshot({path:info.outputPath(name+'.png')});};
  await page.goto('/');await expect(page.locator('.dating-card .cover.is-loaded')).toBeVisible();
- await capture('design-feed');
+ await expect.poll(orphanBraces).toEqual([]);await capture('design-feed');
  for(const viewport of [{width:320,height:568},{width:390,height:844},{width:560,height:844}]){
   await page.setViewportSize(viewport);await fits();await expect(page.locator('.reaction-bar')).toBeInViewport({ratio:1});await expect(page.locator('.bottom-nav')).toBeInViewport({ratio:1});
   const [actions,nav]=await Promise.all([page.locator('.reaction-bar').boundingBox(),page.locator('.bottom-nav').boundingBox()]);expect(actions.y+actions.height).toBeLessThanOrEqual(nav.y);
