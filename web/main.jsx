@@ -69,19 +69,35 @@ function warmPhotos(ids,max=2){for(const id of [...new Set((ids||[]).filter(Bool
 function Photo({id,className='',alt=''}) {
  const[url,setUrl]=useState(()=>photoResolved.get(id)||'');
  const[renderedId,setRenderedId]=useState(id);
+ const placeholder=useRef(null);
+ const urgent=/(cover|hero|avatar|photo-main|photo-image-main)/.test(className);
  useEffect(()=>{
-  let active=true;
+  let active=true,observer=null;
   setRenderedId(id);
   const warm=photoResolved.get(id);
   if(warm){setUrl(warm);return()=>{active=false;};}
   setUrl('');
-  if(id)photoSource(id,true).then(source=>{if(active)setUrl(source);}).catch(()=>{});
-  return()=>{active=false;};
- },[id]);
+  if(!id)return()=>{active=false;};
+  const start=()=>{
+   observer?.disconnect();observer=null;
+   photoSource(id,urgent).then(source=>{if(active)setUrl(source);}).catch(()=>{});
+  };
+  // A long list of offscreen tiles must not block the active hero image.
+  // The fallback keeps old Telegram WebViews compatible.
+  if(urgent||!('IntersectionObserver' in window)){start();}
+  else{
+   observer=new IntersectionObserver(entries=>{
+    if(entries.some(entry=>entry.isIntersecting))start();
+   },{rootMargin:'320px 0px',threshold:0});
+   if(placeholder.current)observer.observe(placeholder.current);
+   else start();
+  }
+  return()=>{active=false;observer?.disconnect();};
+ },[id,urgent]);
  const ready=photoResolved.get(id);
  const visible=ready||(id===renderedId?url:'');
- return visible?<img src={visible} decoding="async" loading={/(cover|hero|avatar|photo-main|photo-image-main)/.test(className)?'eager':'lazy'} className={className+' photo-image is-loaded'} alt={alt} draggable={false}/>
- :<div className={'photo-placeholder '+className} aria-label={alt}/>;
+ return visible?<img src={visible} decoding="async" loading={urgent?'eager':'lazy'} className={className+' photo-image is-loaded'} alt={alt} draggable={false}/>
+ :<div ref={placeholder} className={'photo-placeholder '+className} aria-label={alt}/>;
 }
 
 const sheetScrollLock={count:0,overflow:''};
