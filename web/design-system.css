@@ -82,3 +82,37 @@ body{background:var(--v-bg);color:var(--v-text)}
   transition:none!important;
  }
 }
+
+/* Cohesive VEYRA material loading and empty states. */
+.veyra-skeleton{
+ display:grid;gap:14px;width:100%;max-width:520px;margin:14px auto 24px;
+}
+.veyra-skeleton [class^="veyra-skeleton-"]{
+ background:linear-gradient(105deg,rgba(34,32,47,.8) 20%,rgba(92,71,107,.33) 42%,rgba(34,32,47,.8) 66%);
+ background-size:260% 100%;animation:veyra-skeleton-light 1.65s linear infinite;
+}
+@keyframes veyra-skeleton-light{to{background-position-x:-260%}}
+.veyra-skeleton-feed .veyra-skeleton-hero{
+ height:clamp(290px,57dvh,530px);border-radius:var(--v-radius-hero);border:1px solid var(--v-border);
+}
+.veyra-skeleton-reactions{display:flex;gap:25px;justify-content:center;padding:0 0 10px}
+.veyra-skeleton-reactions span{width:53px;height:53px;border-radius:50%}
+.veyra-skeleton-chats .veyra-skeleton-item,
+.veyra-skeleton-today .veyra-skeleton-item{
+ display:flex;gap:13px;align-items:center;min-height:74px;
+ padding:12px;border:1px solid var(--v-border);border-radius:19px;
+ background:var(--v-surface);
+}
+.veyra-skeleton-today .veyra-skeleton-item{min-height:110px}
+.veyra-skeleton-avatar{width:53px;height:53px;flex:0 0 53px;border-radius:50%}
+.veyra-skeleton-today .veyra-skeleton-avatar{width:75px;height:75px;flex-basis:75px;border-radius:17px}
+.veyra-skeleton-lines{flex:1;min-width:0;display:grid;gap:11px;background:none!important;animation:none!important}
+.veyra-skeleton-lines i{height:10px;border-radius:8px;width:78%}
+.veyra-skeleton-lines i:nth-child(2){width:53%;opacity:.7}
+.veyra-skeleton-likes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.veyra-skeleton-likes .veyra-skeleton-item{
+ min-height:180px;border-radius:20px;border:1px solid var(--v-border);overflow:hidden;
+}
+.veyra-skeleton-likes .veyra-skeleton-avatar,.veyra-skeleton-likes .veyra-skeleton-lines{display:none}
+.veyra-empty-feature .button{margin-top:3px}
+@media(prefers-reduced-motion:reduce){.veyra-skeleton [class^="veyra-skeleton-"]{animation:none!important}}

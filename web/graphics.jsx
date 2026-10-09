@@ -51,3 +51,12 @@ export function VeyraPanel({title,children,className='',as:Tag='section',...prop
 export function VeyraEmptyState({art='discover-cards',title,body,children,className=''}){
  return <div className={'empty veyra-empty-feature '+className}><Artwork name={art} size={146}/>{title&&<h2>{title}</h2>}{body&&<p>{body}</p>}{children}</div>;
 }
+
+/* Layout-matched loading surfaces stop the UI from jumping before photos arrive. */
+export function VeyraSkeleton({variant='feed',label='Loading…'}){
+ const count=variant==='chats'?4:variant==='today'?3:4;
+ return <div className={'veyra-skeleton veyra-skeleton-'+variant} role="status" aria-label={label}>
+  {variant==='feed'?<><div className="veyra-skeleton-hero"/><div className="veyra-skeleton-reactions">{Array.from({length:3},(_,i)=><span key={i}/>)}</div></>:
+   Array.from({length:count},(_,i)=><div className="veyra-skeleton-item" key={i}><span className="veyra-skeleton-avatar"/><span className="veyra-skeleton-lines"><i/><i/></span></div>)}
+ </div>;
+}
