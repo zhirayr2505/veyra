@@ -109,6 +109,7 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
     {error&&!data?<div className="member-profile-failed"><h2>{L('Не удалось открыть профиль','Could not open this profile')}</h2><p>{L('Анкета могла стать недоступна или соединение прервалось.','This profile may no longer be available, or the connection was lost.')}</p><button className="button secondary" onClick={()=>load(true)}>{L('Повторить','Retry')}</button></div>
     :<>
      <div className="member-profile-hero">
+      {photoCount>1&&<div className="member-profile-photo-progress" aria-hidden="true">{photos.map((id,i)=><span key={id} className={i===photoIndex?"active":""}/>)}</div>}
       <div className="member-profile-photo" onTouchStart={e=>{photoSwipe.current={x:e.touches[0]?.clientX,y:e.touches[0]?.clientY};}} onTouchEnd={e=>{const start=photoSwipe.current;photoSwipe.current=null;if(!start||photoCount<2)return;const dx=(e.changedTouches[0]?.clientX||start.x)-start.x,dy=(e.changedTouches[0]?.clientY||start.y)-start.y;if(Math.abs(dx)>38&&Math.abs(dx)>Math.abs(dy)*1.3)nextPhoto(dx<0?1:-1);}}><Photo id={photos[photoIndex]} alt={p.name+' — '+(photoIndex+1)}/></div>
       <div className="member-profile-shade"/>
       <div className="member-profile-hero-top"><span><VeyraIcon icon={ShieldCheck} size={15}/>{L('Анкета проверена','Profile reviewed')}</span></div>
