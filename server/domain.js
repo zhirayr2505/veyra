@@ -20,7 +20,7 @@ export async function ensurePair(q,a,b){if(String(a)===String(b))fail(400,'SELF_
 export async function activeMatch(q,id,user,lock=false){const m=await one(q,`SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2) AND active=true ${lock?'FOR UPDATE':''}`,[id,user]);if(!m)fail(404,'MATCH_NOT_FOUND');const other=String(m.a)===String(user)?m.b:m.a;await ensurePair(q,user,other);return {...m,other};}
 export async function usage(q,id){await q.query('INSERT INTO daily_usage(user_id) VALUES($1) ON CONFLICT DO NOTHING',[id]);return one(q,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE FOR UPDATE',[id]);}
 export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}
-export async function recommendations(q,user,todayOnly=false,limit=1){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
+export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover'){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
@@ -38,7 +38,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1){const p=aw
  AND NOT EXISTS(SELECT 1 FROM matches WHERE (a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id))
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY boosted DESC NULLS LAST,shared DESC,distance ASC,u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||''])).rows;
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||''])).rows;
  const candidates=rows.filter(x=>p.radius_km===20000||x.distance<=p.radius_km).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
