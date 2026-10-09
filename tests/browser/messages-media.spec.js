@@ -8,6 +8,30 @@ test('Messages Media: actual recording, playback, photos, stickers and durable r
  const a=await browser.newPage({viewport:{width:390,height:844}}),b=await browser.newPage({viewport:{width:390,height:844}}),errors=[];a.on('pageerror',e=>errors.push(e.message));b.on('pageerror',e=>errors.push(e.message));await login(a,401);await login(b,402);
  // Permission denial is simulated; recording itself uses the browser MediaRecorder and fake microphone.
  await a.evaluate(()=>{window.originalGUM=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('denied','NotAllowedError');};});await button(a,'Записать голосовое').click();await expect(a.locator('.mm-mic-permission')).toBeVisible();await button(a,'Понятно').click();await a.evaluate(()=>navigator.mediaDevices.getUserMedia=window.originalGUM);
+ // Explicit opt-in retains a muted live audio track between recordings inside
+ // this chat. Two recordings should use one getUserMedia permission request.
+ await button(a,'Настройки').click();
+ await button(a,'Быстрые голосовые · меньше запросов').click();
+ await expect(a.locator('.mm-standby')).toContainText('микрофон доступен');
+ await a.evaluate(()=>{
+  const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+  window.countMicrophoneRequests=0;
+  navigator.mediaDevices.getUserMedia=(...args)=>{
+   window.countMicrophoneRequests++;
+   return original(...args);
+  };
+ });
+ await button(a,'Записать голосовое').click();
+ await expect(button(a,'Пауза записи')).toBeVisible();
+ await button(a,'Удалить запись').click();
+ await expect(a.locator('.mm-recording')).toHaveCount(0);
+ await button(a,'Записать голосовое').click();
+ await expect(button(a,'Пауза записи')).toBeVisible();
+ expect(await a.evaluate(()=>window.countMicrophoneRequests)).toBe(1);
+ await button(a,'Удалить запись').click();
+ await expect(a.locator('.mm-recording')).toHaveCount(0);
+ await button(a,'Отключить').click();
+ await expect(a.locator('.mm-standby')).toHaveCount(0);
  // Android Telegram may dispatch pointercancel while its permission sheet is open.
  // Resolving getUserMedia afterward must still enter an editable locked recording.
  await a.evaluate(()=>{
