@@ -13,6 +13,15 @@ export async function validateCheckout(q,pc){
  const o=await one(q,"SELECT o.* FROM orders o JOIN users u ON u.id=o.user_id WHERE o.id=$1 AND u.status='active' FOR UPDATE OF o",[pc.invoice_payload]);
  if(!o||o.status!=='pending'||String(o.user_id)!==String(pc.from.id)||pc.currency!=='XTR'||pc.total_amount!==o.total||new Date(o.created_at)<new Date(Date.now()-3600000))return false;
  if(!await flag(q,'payments'))return false;
+ if(o.kind==='courtship'){
+  // Never authorize a charge if the match has ended or the recipient's
+  // explicit consent has been withdrawn before Telegram's pre-checkout.
+  const eligible=await one(q,`SELECT c.id FROM courtships c JOIN matches m ON m.id=c.match_id
+   WHERE c.order_id=$1 AND c.status='payment_pending' AND m.active=true
+   AND NOT EXISTS(SELECT 1 FROM blocks b WHERE
+    (b.actor=c.sender AND b.target=c.recipient) OR (b.actor=c.recipient AND b.target=c.sender))`,[o.id]);
+  if(!eligible)return false;
+ }
  if(o.precheckout_id&&o.precheckout_id!==pc.id)return false;
  if(o.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND id<>$2 AND (status='paid' OR (first_only AND precheckout_id IS NOT NULL))",[o.user_id,o.id]))return false;
  if(!pc.id)return false;
