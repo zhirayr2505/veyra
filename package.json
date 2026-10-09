@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "dev:api": "node --env-file-if-exists=.env --watch server/index.js",
-    "build": "vite build",
+    "build": "node scripts/generate-brand-icons.js && vite build",
     "start": "node --env-file-if-exists=.env server/index.js",
     "migrate": "node --env-file-if-exists=.env scripts/migrate.js",
     "test": "node --test --test-concurrency=1 tests/*.test.js",

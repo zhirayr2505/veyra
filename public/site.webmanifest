@@ -1,0 +1,24 @@
+{
+  "name": "veyra · знакомства",
+  "short_name": "veyra",
+  "description": "Знакомства и новые истории",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffdfd",
+  "theme_color": "#fffdfd",
+  "icons": [
+    {
+      "src": "/graphics/brand/veyra-app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/graphics/brand/veyra-app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
