@@ -433,3 +433,51 @@ body{color-scheme:light}
 }
 .member-profile-screen .member-profile-photo-progress>span.active{background:#fff}
 .app:not(.admin-app) .member-profile-screen .member-profile-hero-top{top:27px}
+
+/* Gift & courting layers are portals, so styles must not rely on .app ancestry. */
+.vg-picker-backdrop,.vc-courtship-modal{
+ background:rgba(51,31,60,.42);backdrop-filter:blur(7px);
+ -webkit-backdrop-filter:blur(7px);color:#392f47;
+}
+.vg-picker,.vc-courtship-sheet{
+ background:#fff;border:1px solid #f2e9f2;color:#362b43;
+ box-shadow:0 16px 50px rgba(77,47,92,.2);
+}
+.vg-picker :is(h2,h3),.vg-collection h2,.vc-courtship-sheet h3,.vc-inbox h3{color:#392d46}
+.vg-picker-header button{
+ background:#f5f0fb;color:#8966b6;border:0;
+}
+.vg-eyebrow{color:#f1768d}
+.vg-picker-hint,.vg-collection-heading p,.vg-done p,.vc-courtship-sheet p{color:#867b92}
+.vg-choice,.vg-collected,.vg-collection-empty{
+ background:#fff;color:#493e52;border:1px solid #eee7f0;
+ box-shadow:0 4px 14px rgba(96,57,97,.05);
+}
+.vg-choice.selected{background:#fff0f3;border-color:#faa6b6;box-shadow:0 0 0 2px #ffe3ea}
+.vg-choice small,.vg-total,.vg-message-label,.vg-done h3{color:#ec738b}
+.vg-art{background:linear-gradient(140deg,#ffe6ec,#eae2fa);box-shadow:inset 0 1px #fff,0 5px 14px #9e7d9e1a}
+.vg-art.rarity-welcome{background:linear-gradient(140deg,#ffedf2,#f3eafb)}
+.vg-art.rarity-rare{background:linear-gradient(140deg,#fadcea,#e9d7f9)}
+.vg-art.rarity-epic{background:linear-gradient(140deg,#dce9fe,#eadcf9)}
+.vg-art.rarity-legendary{background:linear-gradient(140deg,#ffa6bd,#b9a4f3)}
+.vg-art-emoji{filter:drop-shadow(0 4px 5px #654b592b)}
+.vg-message-label textarea{background:#fbf9fd;color:#382e44;border:1px solid #eee3f1}
+.vg-message-label small,.vg-collected small{color:#93899d}
+.vg-send,.vg-done button{background:linear-gradient(120deg,#ff899b,#fb7087);color:#fff;box-shadow:0 5px 17px #e8779730}
+.vg-collection{color:#3b3044}
+.vg-total{background:#fff1f4;border-color:#ffdae4}
+.vg-collection-empty p,.vg-collected p{color:#8d8294}
+.vg-collection-empty button{background:#f6effb;border:0;color:#8563ad}
+.vc-courtship-start,.vc-courtship-state{
+ background:linear-gradient(115deg,#fff0f3,#f1eafa);color:#9166a8;border:1px solid #f3deec;
+ box-shadow:0 3px 12px #846a8d13;
+}
+.vc-courtship-start svg:first-child,.vc-courtship-public>header{color:#f1788f}
+.vc-courtship-state.is-active{color:#ed6b8a;border-color:#ffbad0}
+.vc-courtship-public,.vc-inbox{background:#fff;color:#392e46;border:1px solid #eee6f1}
+.vc-courtship-public>header>span,.vc-courtship-public>small,.vc-inbox>p{color:#877a96}
+.vc-courtship-person{background:#fff0f3;border:0;color:#a4668d}
+.vc-inbox-row{border-color:#f2e6ee}
+.vc-inbox-row button,.vc-courtship-confirm button{background:#f4effa;color:#8567a4;border:0}
+.vc-courtship-sheet>svg,.vc-courtship-price{color:#ed758e}
+.vc-courtship-confirm button:last-child{background:linear-gradient(120deg,#ff899b,#fb7087);border:0;color:#fff}
