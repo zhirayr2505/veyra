@@ -13,3 +13,44 @@
 @media(max-width:360px){.messages.mc-timeline{padding-left:11px;padding-right:11px}.mc-header.chat-header{padding:9px 6px;min-height:72px}.mc-person{gap:8px}.mc-person strong{font-size:15px}.mc-person small{font-size:10px!important}.mc-composer{gap:7px;padding-left:9px;padding-right:9px}.mc-quick-reactions>button{font-size:23px;height:36px}.mc-overlay .sheet{padding-left:12px;padding-right:12px}.mc-report-reasons{gap:6px}.mc-chat .mc-quote>p{max-width:190px}}
 @media(min-width:700px){.mc-overlay .sheet{border-radius:28px}.mc-chat .mc-message-content{max-width:78%}}
 @media(prefers-reduced-motion:reduce){.mc-chat *,.mc-overlay *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+
+/* VEYRA Messenger 3 — native-feeling, one-time message arrivals. */
+@keyframes mc-message-arrive-in{
+ from{opacity:0;transform:translate3d(0,17px,0) scale(.975)}
+ to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes mc-reaction-bloom{
+ from{transform:scale(.78);opacity:.55}
+ 70%{transform:scale(1.075);opacity:1}
+ to{transform:scale(1);opacity:1}
+}
+@media(prefers-reduced-motion:no-preference){
+ .mc-chat .mc-message.mc-entering>.mc-message-content{
+  animation:mc-message-arrive-in 235ms cubic-bezier(.2,.9,.25,1) both;
+ }
+ .mc-chat .mc-reactions button.mine{
+  animation:mc-reaction-bloom 185ms cubic-bezier(.16,1,.3,1) both;
+ }
+}
+.mc-chat .mc-timeline{scroll-behavior:auto;overscroll-behavior-y:contain}
+.mc-chat .mc-reactions button{
+ transition:background-color .12s,border-color .12s,color .12s;
+}
+.mc-chat .mc-reactions button.mine{
+ color:#ffe6f4;background:#69405f;border-color:#e48ebd8f;
+}
+.mc-chat .mm-standby{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:10px;min-height:37px;margin:0 4px 6px;
+ color:#d9afcd;font-size:10px;line-height:1.4;
+}
+.mc-chat .mm-standby>span{display:flex;align-items:center;gap:6px;min-width:0}
+.mc-chat .mm-standby button{
+ flex:0 0 auto;border:1px solid #d99dc05b;border-radius:10px;
+ padding:6px 9px;color:#f3cde6;background:#502e4880;
+}
+@media(prefers-reduced-motion:reduce){
+ .mc-chat .mc-message.mc-entering>.mc-message-content,
+ .mc-chat .mc-reactions button.mine{animation:none!important}
+}

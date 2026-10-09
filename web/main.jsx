@@ -192,14 +192,27 @@ function Likes(){
 }
 
 function Chats(){
- const{t,lang,tab,run,setTab,setChatOpen,openChatId,setOpenChatId,setBadges}=useApp();const[rows,setRows]=useState(null);const[chat,setChat]=useState(null);const[search,setSearch]=useState('');
+ const{t,lang,tab,run,setTab,setChatOpen,openChatId,setOpenChatId,setBadges}=useApp();const[rows,setRows]=useState(null);const[chat,setChat]=useState(null);const[search,setSearch]=useState('');const listPositions=useRef(new Map());
  const load=useCallback(async()=>{const values=await api('/matches');values.sort((a,b)=>new Date(b.last?.created_at||b.created_at)-new Date(a.last?.created_at||a.created_at));setRows(values);setBadges(x=>{const count=values.reduce((n,m)=>n+m.unread,0);return x.chats===count?x:{...x,chats:count};});},[]);
- useEffect(()=>{if(tab!=='chats')return;run(load);const timer=setInterval(()=>{if(!document.hidden)load().catch(()=>{});},12000);return()=>clearInterval(timer);},[load,tab]);
+ useEffect(()=>{if(tab!=='chats')return;run(load);const timer=setInterval(()=>{if(!document.hidden)load().catch(()=>{});},5000);return()=>clearInterval(timer);},[load,tab]);
+ useLayoutEffect(()=>{
+  if(!rows||chat)return;
+  const old=listPositions.current,next=new Map();
+  document.querySelectorAll('.chats-page .chat-row[data-match-id]').forEach(el=>{
+   const id=el.dataset.matchId;const y=el.getBoundingClientRect().top;
+   next.set(id,y);
+   const previous=old.get(id);
+   if(previous!==undefined&&Math.abs(previous-y)>3&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    el.animate([{transform:`translate3d(0,${previous-y}px,0)`},{transform:'translate3d(0,0,0)'}],{duration:260,easing:'cubic-bezier(.22,1,.36,1)'});
+   }
+  });
+  listPositions.current=next;
+ },[rows,chat]);
  useEffect(()=>{if(tab!=='chats'&&chat){setChat(null);setChatOpen(false);}},[tab]);
  useEffect(()=>{if(openChatId&&rows){const next=rows.find(m=>m.id===openChatId);if(next){setChat(next);setOpenChatId(null);}}},[openChatId,rows]);
  if(chat)return <Chat chat={chat} onBack={()=>{setChat(null);run(load);}}/>;
  const visible=rows?.filter(m=>(m.profile.name+' '+(m.last?.body||'')).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
- return <section className="chats-page"><SectionHeading eyebrow={lang==='ru'?'БЛИЖЕ С КАЖДЫМ СЛОВОМ':'CLOSER WITH EVERY WORD'} title={t('Чаты')} body={t('Одно сообщение может изменить всё')} art="chat-bubbles"/><label className="chat-search"><Search size={19}/><input placeholder={t('Поиск по чатам…')} aria-label={t('Поиск по чатам…')} value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch('')} aria-label={t('Очистить поиск')}><X size={16}/></button>}</label>{rows===null?<VeyraSkeleton variant="chats" label={t('Загрузка…')}/>:visible.length?visible.map(m=><button className="chat-row" key={m.id} onClick={()=>setChat(m)}><span className="chat-avatar"><Photo id={m.profile.photos[0]} alt=""/>{m.unread>0&&<i/>}</span><div className="chat-summary"><h3>{m.profile.name}<span>, {m.profile.age}</span></h3><p>{m.blocked_by_me?t('Заблокированные'):m.last?.body||(m.last?.kind==='voice'?(lang==='ru'?'Голосовое сообщение':'Voice message'):m.last?.kind==='image'?(lang==='ru'?'Фотография':'Photo'):m.last?.kind==='sticker'?(lang==='ru'?'Стикер':'Sticker'):t('Сказать привет'))}</p></div><div className="chat-meta"><time>{new Date(m.last?.created_at||m.created_at).toLocaleDateString()===new Date().toLocaleDateString()?new Date(m.last?.created_at||m.created_at).toLocaleTimeString(lang==='ru'?'ru-RU':'en-GB',{hour:'2-digit',minute:'2-digit'}):new Date(m.last?.created_at||m.created_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-GB',{day:'numeric',month:'short'})}</time>{m.unread>0?<span className="count">{m.unread}</span>:<ChevronRight size={17}/>}</div></button>):<Empty icon={MessageCircle} title={t(search?'Ничего не найдено':'Пока нет переписок')} body={t(search?'Попробуй другое имя или слово из сообщения.':'Взаимный лайк открывает чат.')}>{!search&&<Button className="secondary" onClick={()=>setTab('feed')}>{t('Лента')}</Button>}</Empty>}</section>;
+ return <section className="chats-page"><SectionHeading eyebrow={lang==='ru'?'БЛИЖЕ С КАЖДЫМ СЛОВОМ':'CLOSER WITH EVERY WORD'} title={t('Чаты')} body={t('Одно сообщение может изменить всё')} art="chat-bubbles"/><label className="chat-search"><Search size={19}/><input placeholder={t('Поиск по чатам…')} aria-label={t('Поиск по чатам…')} value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch('')} aria-label={t('Очистить поиск')}><X size={16}/></button>}</label>{rows===null?<VeyraSkeleton variant="chats" label={t('Загрузка…')}/>:visible.length?visible.map(m=><button className="chat-row" key={m.id} data-match-id={m.id} onClick={()=>setChat(m)}><span className="chat-avatar"><Photo id={m.profile.photos[0]} alt=""/>{m.unread>0&&<i/>}</span><div className="chat-summary"><h3>{m.profile.name}<span>, {m.profile.age}</span></h3><p>{m.blocked_by_me?t('Заблокированные'):m.last?.body||(m.last?.kind==='voice'?(lang==='ru'?'Голосовое сообщение':'Voice message'):m.last?.kind==='image'?(lang==='ru'?'Фотография':'Photo'):m.last?.kind==='sticker'?(lang==='ru'?'Стикер':'Sticker'):t('Сказать привет'))}</p></div><div className="chat-meta"><time>{new Date(m.last?.created_at||m.created_at).toLocaleDateString()===new Date().toLocaleDateString()?new Date(m.last?.created_at||m.created_at).toLocaleTimeString(lang==='ru'?'ru-RU':'en-GB',{hour:'2-digit',minute:'2-digit'}):new Date(m.last?.created_at||m.created_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-GB',{day:'numeric',month:'short'})}</time>{m.unread>0?<span className="count">{m.unread}</span>:<ChevronRight size={17}/>}</div></button>):<Empty icon={MessageCircle} title={t(search?'Ничего не найдено':'Пока нет переписок')} body={t(search?'Попробуй другое имя или слово из сообщения.':'Взаимный лайк открывает чат.')}>{!search&&<Button className="secondary" onClick={()=>setTab('feed')}>{t('Лента')}</Button>}</Empty>}</section>;
 }
 
 function Chat({chat,onBack}){return <MessagesChat key={chat.id} chat={chat} onBack={onBack} app={useApp()} Photo={Photo} Sheet={Sheet}/>;}
