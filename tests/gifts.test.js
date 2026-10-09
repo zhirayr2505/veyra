@@ -18,7 +18,7 @@ test('VEYRA gifts: real collection, free quota, paid Stars settlement, idempoten
   const from102=r=>r.set('Authorization','Bearer '+recipient);
   const catalog=await from101(request(app).get('/api/gifts/catalog'));
   assert.equal(catalog.status,200);
-  assert.equal(catalog.body.gifts.length,16);
+  assert.equal(catalog.body.gifts.length,37);
   assert.equal(catalog.body.gifts[0].stars,0);
   const idempotent=randomUUID();
   const free={target:'102',gift_key:'spark',note:'Первый подарок 💜',client_id:idempotent};
