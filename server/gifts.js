@@ -49,6 +49,12 @@ export function giftsRoutes(app,{db,rate,tg}){
   await ensurePair(db,req.user.id,target);
   res.json(await collection(db,target));
  });
+ app.get('/api/gifts/status/:id',async(req,res)=>{
+  const giftId=parse(uuid,req.params.id);
+  const gift=await one(db,'SELECT id,sender,recipient,status FROM gifts WHERE id=$1',[giftId]);
+  if(!gift||(String(gift.sender)!==String(req.user.id)&&String(gift.recipient)!==String(req.user.id)))fail(404,'GIFT_NOT_FOUND');
+  res.json({id:gift.id,status:gift.status});
+ });
  app.post('/api/gifts/send',async(req,res)=>{
   const {target,gift_key,note,client_id}=parse(z.object({
    target:id,gift_key:z.string().max(40),note:z.string().trim().max(140).default(''),

@@ -39,10 +39,32 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
  const [selected,setSelected]=useState('spark'),[note,setNote]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[done,setDone]=useState(false);
  const [waiting,setWaiting]=useState(false);
+ const [pendingGift,setPendingGift]=useState(null);
  useEffect(()=>{let alive=true;apiCatalog().then(d=>{if(alive)setCatalog(d);}).catch(()=>{if(alive)setError(L('Не удалось загрузить витрину','Could not load the gift catalog'));});return()=>{alive=false;};},[]);
  useEffect(()=>{const escape=e=>{if(e.key==='Escape')onClose();};document.addEventListener('keydown',escape);return()=>document.removeEventListener('keydown',escape);},[onClose]);
  const current=catalog?.gifts.find(g=>g.key===selected);
  const displayName=target?.name||L('пользователю','a member');
+ useEffect(()=>{
+  if(!pendingGift)return;
+  let count=0,alive=true;
+  const timer=setInterval(async()=>{
+   if(!alive)return;
+   try{
+    const status=await api('/gifts/status/'+pendingGift);
+    if(status.status==='delivered'){
+     clearInterval(timer);setPendingGift(null);setWaiting(false);setDone(true);
+     window.dispatchEvent(new Event('veyra:gift-delivered'));onDelivered?.();
+    }else if(status.status==='revoked'){
+     clearInterval(timer);setPendingGift(null);setWaiting(false);
+     setError(L('Платёж возвращён','Payment refunded'));
+    }
+   }catch{}
+   if(++count>=20){clearInterval(timer);setPendingGift(null);setWaiting(false);
+    setError(L('Подарок будет доставлен, когда Telegram подтвердит платёж. Проверить можно в коллекции получателя.','The gift will arrive when Telegram confirms payment. Check the recipient collection.'));
+   }
+  },1500);
+  return()=>{alive=false;clearInterval(timer);};
+ },[pendingGift]);
  const confirm=async()=>{
   if(busy||!current)return;setBusy(true);setError('');
   try{
@@ -53,10 +75,13 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
    setWaiting(true);
    if(tg?.openInvoice){
     tg.openInvoice(result.invoice_url,status=>{
-     if(status==='paid'){setDone(true);window.dispatchEvent(new Event('veyra:gift-delivered'));onDelivered?.();}
+     if(status==='paid'){setPendingGift(result.gift_id);}
      else if(status==='cancelled'||status==='failed')setWaiting(false);
     });
-   }else{window.open(result.invoice_url,'_blank','noopener');}
+   }else{
+    window.open(result.invoice_url,'_blank','noopener');
+    setPendingGift(result.gift_id);
+   }
   }catch(e){
    setError(e.message==='PAYMENTS_DISABLED'?L('Оплата Stars временно недоступна. Бесплатный подарок отправить можно.','Stars payments are currently unavailable. The free gift still works.')
    :e.message==='FREE_GIFT_LIMIT'?L('Бесплатный подарок уже отправлен за последние 24 часа','Your free gift for the last 24 hours has been used')
@@ -69,7 +94,7 @@ export function GiftPicker({target,lang='ru',onClose,onDelivered}){
    <header className="vg-picker-header"><div><span className="vg-eyebrow">VEYRA GIFTS</span><h2>{done?L('С любовью отправлено','Sent with love'):L('Подарок для ','A gift for ')+displayName}</h2></div><button aria-label={L('Закрыть','Close')} onClick={onClose}><X size={20}/></button></header>
    {done?<div className="vg-done"><GiftArt gift={current||{emoji:'💝',rarity:'rare'}} size="large"/><h3>{L('Подарок отправлен!','Gift sent!')}</h3><p>{L('Он появится в коллекции получателя','It will appear in their collection')}</p><button onClick={onClose}>{L('Готово','Done')}<Check size={17}/></button></div>:
    <><p className="vg-picker-hint">{L('Выбери знак внимания. Платные подарки оплачиваются через Telegram Stars.','Choose a little surprise. Paid gifts use Telegram Stars.')}</p>
-   <div className="vg-catalog-grid" role="group" aria-label={L('Витрина подарков','Gift catalog')}>{catalog?.gifts.map(g=><button className={'vg-choice '+(selected===g.key?'selected':'')} key={g.key} aria-pressed={selected===g.key} onClick={()=>{setSelected(g.key);setError('');}}><GiftArt gift={g}/><strong>{lang==='en'?g.en:g.name}</strong><small>{g.stars===0?L('Бесплатно','Free'):'⭐ '+g.stars}</small></button>)||<div className="vg-collection-loading">{L('Загружаем подарки…','Loading gifts…')}</div>}</div>
+   <div className="vg-catalog-grid" role="group" aria-label={L('Витрина подарков','Gift catalog')}>{catalog?.gifts.map(g=><button className={'vg-choice '+(selected===g.key?'selected':'')} key={g.key} disabled={waiting} aria-pressed={selected===g.key} onClick={()=>{setSelected(g.key);setError('');}}><GiftArt gift={g}/><strong>{lang==='en'?g.en:g.name}</strong><small>{g.stars===0?L('Бесплатно','Free'):'⭐ '+g.stars}</small></button>)||<div className="vg-collection-loading">{L('Загружаем подарки…','Loading gifts…')}</div>}</div>
    <label className="vg-message-label">{L('Небольшая записка (необязательно)','A note (optional)')}<textarea value={note} maxLength={140} rows={2} onChange={e=>setNote(e.target.value)} placeholder={L('Пусть этот день станет особенным…','A little something for you…')}/><small>{note.length}/140</small></label>
    {error&&<p className="vg-error" role="alert">{error}</p>}{waiting&&<p className="vg-wait" role="status">{L('Оплата открыта в Telegram. Подарок будет зачислен только после подтверждения.','Payment opened in Telegram. Delivery happens only after confirmation.')}</p>}
    <button className="vg-send" disabled={busy||!current||waiting} onClick={confirm}><Gift size={18}/>{busy?L('Отправляем…','Sending…'):current?.stars?L('Отправить за ','Send for ')+current.stars+' ⭐':L('Подарить бесплатно','Send free gift')}</button>
