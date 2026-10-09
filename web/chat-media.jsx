@@ -1,5 +1,5 @@
 import React,{useState,useEffect,useRef,lazy,Suspense} from 'react';
-import {Mic,MicOff,Pause,Play,Trash2,ArrowUp,ChevronLeft,Lock,Unlock,ImagePlus,Image as ImageIcon,Camera,Smile,Sticker,Clock,Star,X,LoaderCircle,RotateCw,ZoomIn,ZoomOut,Check,Volume2} from 'lucide-react';
+import {ArrowUp,Smile,Sticker,Clock,Star,X,LoaderCircle,RotateCw,ZoomIn,ZoomOut} from 'lucide-react';
 import {api} from './api';
 import catalog from '../shared/chat-stickers.json';
 import './chat-media.css';
@@ -7,140 +7,11 @@ import {VeyraIcon} from './graphics';
 const EmojiPicker=lazy(()=>import('./chat-emoji'));
 export const stickerById=id=>catalog.stickers.find(s=>s.id===id);
 export const mediaSummary=(m,L)=>m?.body||({voice:L('Голосовое сообщение','Voice message'),image:L('Фотография','Photo'),sticker:stickerById(m?.sticker_id)?.label||L('Стикер','Sticker')}[m?.kind])||'';
-export const clock=seconds=>{const n=Math.max(0,Math.floor(seconds||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');};
+return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');};
 const buzz=style=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.(style||'light');}catch{}};
 function safeRead(key,fallback){try{return JSON.parse(localStorage.getItem(key))||fallback;}catch{return fallback;}}
 function safeSave(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}
 
-export function useVoiceRecording({onSend,onPermission,onError}){
- const[state,setState]=useState({phase:'idle',locked:false,elapsed:0,levels:[]});
- const[keepReady,setKeepReady]=useState(false),keepReadyRef=useRef(false);
- const live=useRef({phase:'idle',locked:false}),rec=useRef(null),stream=useRef(null),audioContext=useRef(null),chunks=useRef([]),timer=useRef(null),gesture=useRef(null),samples=useRef([]),since=useRef(0),elapsed=useRef(0),result=useRef(null),intent=useRef(''),generation=useRef(0),gestureListeners=useRef(null),callbacks=useRef({onSend,onPermission,onError}),mounted=useRef(true),cancelTimer=useRef(null);
- callbacks.current={onSend,onPermission,onError};
- const update=patch=>{live.current={...live.current,...patch};if(mounted.current)setState(x=>({...x,...patch}));};
- const duration=()=>elapsed.current+(live.current.phase==='recording'?(performance.now()-since.current)/1000:0);
- const detachGesture=()=>{gestureListeners.current?.();gestureListeners.current=null;};
- const cleanup=(force=false)=>{
-  clearInterval(timer.current);
-  const reusable=!force&&keepReadyRef.current&&!document.hidden&&stream.current?.getAudioTracks().some(t=>t.readyState==='live');
-  if(reusable)stream.current.getAudioTracks().forEach(t=>{t.enabled=false;});
-  else{stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;}
-  audioContext.current?.close().catch(()=>{});audioContext.current=null;
- };
- const toggleKeepReady=()=>{
-  const next=!keepReadyRef.current;keepReadyRef.current=next;setKeepReady(next);
-  if(!next&&live.current.phase==='idle')cleanup(true);
- };
- const reset=()=>{detachGesture();gesture.current=null;result.current=null;chunks.current=[];samples.current=[];elapsed.current=0;update({phase:'idle',locked:false,elapsed:0,levels:[]});};
- function stop(mode){
-  if(live.current.phase==='idle'||live.current.phase==='cancelled')return;
-  intent.current=mode;
-  if(live.current.phase==='requesting'){generation.current++;cleanup();reset();return;}
-  if(mode==='cancel'){buzz('light');generation.current++;if(rec.current&&rec.current.state!=='inactive')rec.current.stop();cleanup();update({phase:'cancelled'});cancelTimer.current=setTimeout(reset,260);return;}
-  if(result.current){const value=result.current;reset();callbacks.current.onSend(value);return;}
-  elapsed.current=duration();update({phase:'processing',elapsed:elapsed.current});if(rec.current?.state!=='inactive')rec.current.stop();else cleanup();
- }
- async function start(e){
-  if(live.current.phase!=='idle')return;clearTimeout(cancelTimer.current);gesture.current={x:e.clientX,y:e.clientY,down:true,locked:false,ended:false};
-  detachGesture();
-  if(Number.isInteger(e.pointerId)){
-   const id=e.pointerId;
-   const onMove=event=>{if(event.pointerId===id)move(event);};
-   const onUp=event=>{if(event.pointerId===id)release(event);};
-   const onCancel=event=>{if(event.pointerId!==id)return;detachGesture();if(live.current.phase==='requesting'){if(gesture.current){gesture.current.down=false;gesture.current.locked=true;}update({locked:true});return;}if(!live.current.locked)stop('cancel');};
-   window.addEventListener('pointermove',onMove,true);
-   window.addEventListener('pointerup',onUp,true);
-   window.addEventListener('pointercancel',onCancel,true);
-   gestureListeners.current=()=>{
-    window.removeEventListener('pointermove',onMove,true);
-    window.removeEventListener('pointerup',onUp,true);
-    window.removeEventListener('pointercancel',onCancel,true);
-   };
-  }
-  try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}
-  if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){detachGesture();gesture.current=null;callbacks.current.onPermission('unsupported');return;}
-  const gen=++generation.current;update({phase:'requesting',locked:false,elapsed:0,levels:[]});
-  try{
-   // Reuse a live, explicitly consented chat-session stream. A new getUserMedia
-   // call can reopen Telegram's Android permission sheet every single time.
-   const cached=keepReadyRef.current&&stream.current?.getAudioTracks().some(t=>t.readyState==='live')?stream.current:null;
-   const source=cached||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
-   // The OS permission sheet can briefly put Telegram WebView in the
-   // background AFTER getUserMedia resolves. Wait for it to become visible
-   // instead of discarding a freshly granted stream and reopening the sheet.
-   if(document.hidden){
-    source.getAudioTracks().forEach(t=>{t.enabled=false;});
-    const returned=await new Promise(resolve=>{
-     let complete=false;
-     const finish=visible=>{if(complete)return;complete=true;clearTimeout(timeout);
-      document.removeEventListener('visibilitychange',check);resolve(visible);};
-     const check=()=>{if(!document.hidden)finish(true);};
-     document.addEventListener('visibilitychange',check);
-     const timeout=setTimeout(()=>finish(!document.hidden),4000);
-     check();
-    });
-    if(!returned){
-     source.getTracks().forEach(t=>t.stop());stream.current=null;
-     if(gen===generation.current&&mounted.current){keepReadyRef.current=false;setKeepReady(false);reset();callbacks.current.onPermission('unavailable');}
-     return;
-    }
-   }
-   if(gen!==generation.current||!mounted.current){
-    source.getTracks().forEach(t=>t.stop());return;
-   }
-   source.getAudioTracks().forEach(t=>{t.enabled=true;});
-   stream.current=source;const mime=['audio/webm;codecs=opus','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
-   const recorder=new MediaRecorder(source,{...(mime?{mimeType:mime}:{}),audioBitsPerSecond:64000});rec.current=recorder;chunks.current=[];samples.current=[];elapsed.current=0;let bytes=0;
-   recorder.ondataavailable=event=>{if(gen!==generation.current)return;if(event.data.size){chunks.current.push(event.data);bytes+=event.data.size;if(bytes>11*1024*1024&&recorder.state!=='inactive')stop('ready');}};
-   recorder.onerror=()=>{cleanup(true);reset();callbacks.current.onError('recording');};
-   recorder.onstop=()=>{
-    cleanup();if(gen!==generation.current||!mounted.current)return;
-    const blob=new Blob(chunks.current,{type:recorder.mimeType||mime||'audio/webm'});const total=elapsed.current;
-    if(total<.3||!blob.size){reset();callbacks.current.onError('short');return;}
-    const values=samples.current.length?samples.current:Array(40).fill(.12);const value={blob,duration:Math.min(600,total),waveform:values.slice(-64)};
-    if(intent.current==='ready'){result.current=value;update({phase:'ready',locked:true,elapsed:total,levels:value.waveform});}
-    else {reset();callbacks.current.onSend(value);}
-   };
-   // Start capture BEFORE opening/resuming AudioContext. On Android Telegram,
-   // resume() can remain suspended after the OS permission sheet closes.
-   if(gen!==generation.current){cleanup();return;}
-   since.current=performance.now();recorder.start(1000);
-   update({phase:'recording',locked:!!gesture.current?.locked||!gesture.current?.down});buzz('medium');
-   let analyser=null;try{const Context=window.AudioContext||window.webkitAudioContext;if(Context){const context=new Context();audioContext.current=context;analyser=context.createAnalyser();analyser.fftSize=256;context.createMediaStreamSource(source).connect(analyser);context.resume().catch(()=>{});}}catch{}
-   const values=new Uint8Array(256);timer.current=setInterval(()=>{if(live.current.phase!=='recording')return;let level=.08;if(analyser){analyser.getByteTimeDomainData(values);level=Math.min(1,Math.sqrt(values.reduce((n,v)=>n+Math.pow((v-128)/128,2),0)/values.length)*4+.04);}samples.current.push(level);if(samples.current.length>64)samples.current.shift();const total=duration();update({elapsed:total,levels:[...samples.current]});if(total>=599.8)stop('ready');},90);
-  }catch(error){cleanup(true);reset();if(gen===generation.current)callbacks.current.onPermission(['NotAllowedError','SecurityError'].includes(error.name)?'denied':error.name==='NotFoundError'?'missing':'unavailable');}
- }
- function move(e){const g=gesture.current;if(!g||live.current.locked)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;if(dx<-85){g.down=false;stop('cancel');}else if(dy<-65){g.locked=true;update({locked:true});buzz('medium');}}
- function release(e){const g=gesture.current;if(g?.ended)return;if(g)g.ended=true;detachGesture();if(g){const dx=(e?.clientX??g.x)-g.x,dy=(e?.clientY??g.y)-g.y;if(dy<-65&&Math.abs(dy)>Math.abs(dx)){g.locked=true;update({locked:true});}g.down=false;}if(live.current.locked)return;if(live.current.phase==='requesting'){if(g)g.locked=true;update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){if(g)g.locked=true;update({locked:true});buzz();}else stop('send');}}
- function pause(){if(live.current.phase==='recording'){elapsed.current=duration();rec.current?.pause();update({phase:'paused',elapsed:elapsed.current});}else if(live.current.phase==='paused'){since.current=performance.now();rec.current?.resume();update({phase:'recording'});}buzz();}
- useEffect(()=>{
-  const onBackground=()=>{
-   if(document.hidden){
-    // A Telegram/Android permission sheet can temporarily hide the WebView.
-    // Do not cancel its pending getUserMedia request or revoke quick mode.
-    if(live.current.phase==='requesting')return;
-    keepReadyRef.current=false;setKeepReady(false);
-    if(live.current.phase==='idle')cleanup(true);
-    else stop('cancel');
-   }
-  };
-  document.addEventListener('visibilitychange',onBackground);
-  return()=>{
-   document.removeEventListener('visibilitychange',onBackground);
-   mounted.current=false;generation.current++;detachGesture();clearTimeout(cancelTimer.current);
-   if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}
-   cleanup(true);
-  };
- },[]);
- return {...state,keepReady,active:state.phase!=='idle',toggleKeepReady,handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(live.current.phase==='requesting'){if(gesture.current){gesture.current.down=false;gesture.current.locked=true;}update({locked:true});return;}if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
-}
-export function RecordingPanel({voice,L}){return <div className={'mm-recording '+(voice.phase==='cancelled'?'cancelled':'')} role="region" aria-label={L('Запись голосового','Voice recording')}>
- {voice.phase==='cancelled'?<span className="mm-cancelled"><VeyraIcon icon={Trash2} size={19}/>{L('Запись отменена','Recording cancelled')}</span>:<><div className="mm-record-top"><span className={'mm-record-dot '+(voice.phase==='paused'?'paused':'')}/><strong>{voice.phase==='requesting'?L('Доступ к микрофону…','Microphone access…'):clock(voice.elapsed)}</strong><div className="mm-live-wave" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{height:Math.max(3,(voice.levels.slice(-28)[i]||.06)*26)+'px'}}/>)}</div>{voice.locked?<VeyraIcon icon={Lock} size={14}/>:<span className="mm-lock-hint"><VeyraIcon icon={ArrowUp} size={13}/><VeyraIcon icon={Lock} size={13}/></span>}</div>
- {voice.locked?<div className="mm-record-actions"><button type="button" aria-label={L('Удалить запись','Delete recording')} onClick={voice.cancel}><VeyraIcon icon={Trash2} size={18}/></button><span>{voice.phase==='ready'?L('Готово к отправке','Ready to send'):voice.phase==='paused'?L('Запись на паузе','Recording paused'):L('Запись закреплена','Recording locked')}</span>{['recording','paused'].includes(voice.phase)&&<button type="button" aria-label={voice.phase==='paused'?L('Продолжить запись','Resume recording'):L('Пауза записи','Pause recording')} onClick={voice.pause}>{voice.phase==='paused'?<VeyraIcon icon={Play} size={18}/>:<VeyraIcon icon={Pause} size={18}/>}</button>}</div>:<span className="mm-cancel-hint"><VeyraIcon icon={ChevronLeft} size={13}/>{L('Влево — отменить','Slide left to cancel')}</span>}</>}
- </div>;}
-
-let playingAudio=null;
-export function Waveform({values=[],progress=0,onSeek,L}){const bars=values.length?values:Array(48).fill(.1);const seek=e=>{const r=e.currentTarget.getBoundingClientRect();onSeek?.(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)));};return <div className="mm-waveform" role={onSeek?'slider':undefined} tabIndex={onSeek?0:undefined} aria-label={L('Позиция воспроизведения','Playback position')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress*100)} onPointerDown={e=>{if(onSeek){e.stopPropagation();seek(e);}}} onKeyDown={e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();onSeek?.(e.key==='Home'?0:e.key==='End'?1:Math.max(0,Math.min(1,progress+(e.key==='ArrowRight'?0.05:-0.05))));}}}><svg viewBox={`0 0 ${bars.length*4} 32`} preserveAspectRatio="none" aria-hidden="true">{bars.map((v,i)=><rect key={i} x={i*4} y={16-Math.max(2,v*15)} width="2.4" height={Math.max(4,v*30)} rx="1.2" className={i/bars.length<progress?'played':''}/>)}</svg></div>;}
 function useMediaSource(message){
  const[url,setUrl]=useState(message.local_url||'');const[loading,setLoading]=useState(false),[error,setError]=useState(false);const current=useRef(message),urlRef=useRef(message.local_url||''),promise=useRef(null),controller=useRef(null),owned=useRef(null),mounted=useRef(true);current.current=message;
  useEffect(()=>{if(message.local_url){urlRef.current=message.local_url;setUrl(message.local_url);}},[message.local_url]);
@@ -148,19 +19,9 @@ function useMediaSource(message){
  useEffect(()=>()=>{mounted.current=false;controller.current?.abort();if(owned.current)URL.revokeObjectURL(owned.current);},[]);
  return {url,loading,error,load};
 }
-export function VoiceBubble({message,L}){
- const source=useMediaSource(message),audio=useRef(null),frame=useRef(null),seekRef=useRef(null);const[playing,setPlaying]=useState(false),[position,setPosition]=useState(0),[speed,setSpeed]=useState(1),[failed,setFailed]=useState(false);const duration=message.media?.duration||0;
- useEffect(()=>{if(!playing)return;const tick=()=>{setPosition(audio.current?.currentTime||0);frame.current=requestAnimationFrame(tick);};frame.current=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame.current);},[playing]);
- useEffect(()=>{const element=audio.current;return()=>{if(playingAudio===element)playingAudio=null;element?.pause();};},[]);
- async function ensure(force=false){const url=await source.load(force);const el=audio.current;if(el.getAttribute('src')!==url){el.src=url;el.load();}el.playbackRate=speed;return el;}
- async function toggle(){if(playing){audio.current.pause();return;}setFailed(false);try{const el=await ensure(failed||source.error);if(playingAudio&&playingAudio!==el)playingAudio.pause();playingAudio=el;await el.play();}catch{setFailed(true);}}
- async function seek(fraction){setFailed(false);seekRef.current=fraction;try{const el=await ensure();if(el.readyState>=1){el.currentTime=Math.min(el.duration||duration,fraction*duration);setPosition(el.currentTime);seekRef.current=null;}}catch{setFailed(true);}}
- return <div className="mm-voice"><audio ref={audio} preload="none" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);setPosition(0);}} onError={()=>setFailed(true)} onLoadedMetadata={()=>{if(seekRef.current!==null){audio.current.currentTime=seekRef.current*duration;setPosition(audio.current.currentTime);seekRef.current=null;}}}/>
- <button type="button" className="mm-play" disabled={message.local&&message.local!=='failed'} aria-label={source.loading?L('Загрузка аудио','Loading audio'):failed||source.error?L('Повторить загрузку аудио','Retry audio'):playing?L('Пауза','Pause'):L('Воспроизвести','Play')} onClick={toggle}>{source.loading?<VeyraIcon icon={LoaderCircle} size={20} className="spin"/>:failed||source.error?<VeyraIcon icon={RotateCw} size={20}/>:playing?<VeyraIcon icon={Pause} size={21} fill="currentColor"/>:<VeyraIcon icon={Play} size={20} fill="currentColor"/>}</button><div className="mm-voice-track"><Waveform values={message.media?.waveform} progress={duration?position/duration:0} onSeek={!message.local?seek:undefined} L={L}/><div className="mm-voice-times"><span>{failed||source.error?L('Не загрузилось · повтори','Could not load · retry'):clock(position||duration)}</span><span>{position>0?'/ '+clock(duration):L('Голосовое','Voice')}</span></div></div><button type="button" className="mm-speed" aria-label={L('Скорость воспроизведения','Playback speed')} onClick={()=>{const next=speed===1?1.5:speed===1.5?2:1;setSpeed(next);if(audio.current)audio.current.playbackRate=next;}}>{speed}×</button></div>;
-}
 export function PhotoBubble({message,L,onOpen}){const source=useMediaSource(message),box=useRef(null);useEffect(()=>{const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){source.load().catch(()=>{});observer.disconnect();}},{rootMargin:'120px'});if(box.current)observer.observe(box.current);return()=>observer.disconnect();},[message.id]);return <div ref={box} className="mm-image" style={{aspectRatio:(message.media?.width||4)/(message.media?.height||3)}}>{source.url?<button type="button" className="mm-photo-button" aria-label={L('Открыть фотографию','Open photo')} onClick={()=>onOpen({...message,viewer_url:source.url})}><img src={source.url} alt={message.body||L('Фотография в переписке','Conversation photo')} draggable={false}/><span className="mm-photo-expand"><VeyraIcon icon={ZoomIn} size={16}/></span></button>:source.error?<button type="button" className="mm-media-load" onClick={()=>source.load(true).catch(()=>{})}><VeyraIcon icon={RotateCw} size={21}/>{L('Загрузить фото','Load photo')}</button>:<div className="mm-media-load"><VeyraIcon icon={ImageIcon} size={27}/><VeyraIcon icon={LoaderCircle} className="spin" size={17}/></div>}</div>;}
-export function MessageMedia({message,L,onOpen}){if(message.kind==='voice')return <VoiceBubble message={message} L={L}/>;if(message.kind==='image')return <PhotoBubble message={message} L={L} onOpen={onOpen}/>;if(message.kind==='sticker'){const sticker=stickerById(message.sticker_id);return sticker?<img className="mm-sticker-art" src={sticker.src} alt={sticker.label} draggable={false}/>:<span>{L('Стикер недоступен','Sticker unavailable')}</span>;}return null;}
-export function UploadState({message,L}){if(!['preparing','uploading','sending'].includes(message.local)||!['image','voice'].includes(message.kind))return null;return <div className="mm-upload" role="status"><VeyraIcon icon={LoaderCircle} size={12} className="spin"/><span>{message.local==='preparing'?L('Подготовка…','Preparing…'):message.local==='sending'?L('Обработка…','Processing…'):L('Загрузка','Uploading')+' '+(message.progress||0)+'%'}</span>{message.local==='uploading'&&<i style={{'--progress':(message.progress||0)+'%'}}/>}</div>;}
+export function MessageMedia({message,L,onOpen}){if(message.kind==='voice')return <div className="mm-legacy-audio" role="note">{L('Ранее отправленное аудиосообщение','Previously sent audio message')}</div>;if(message.kind==='image')return <PhotoBubble message={message} L={L} onOpen={onOpen}/>;if(message.kind==='sticker'){const sticker=stickerById(message.sticker_id);return sticker?<img className="mm-sticker-art" src={sticker.src} alt={sticker.label} draggable={false}/>:<span>{L('Стикер недоступен','Sticker unavailable')}</span>;}return null;}
+export function UploadState({message,L}){if(!['preparing','uploading','sending'].includes(message.local)||message.kind!=='image')return null;return <div className="mm-upload" role="status"><VeyraIcon icon={LoaderCircle} size={12} className="spin"/><span>{message.local==='preparing'?L('Подготовка…','Preparing…'):message.local==='sending'?L('Обработка…','Processing…'):L('Загрузка','Uploading')+' '+(message.progress||0)+'%'}</span>{message.local==='uploading'&&<i style={{'--progress':(message.progress||0)+'%'}}/>}</div>;}
 
 export function StickerTray({L,scope,onSend}){
  const[tab,setTab]=useState('recent'),[recent,setRecent]=useState(()=>safeRead(scope+':sticker-recent',[])),[favorites,setFavorites]=useState(()=>safeRead(scope+':sticker-favorites',[])),[preview,setPreview]=useState(null);
