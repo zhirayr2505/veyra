@@ -6,15 +6,15 @@ import {Brand,VeyraIcon} from './graphics';
 import {GiftCollection,GiftPicker} from './gifts';
 import './member-profile.css';
 
-const profileCache=new Map(),profileInflight=new Map();
+const profileCache=new Map(),profileInflight=new Map(),profileFetchedAt=new Map();
 export function prefetchMemberProfile(id,force=false){
  if(!id)return Promise.resolve(null);
  const key=String(id);
  if(!force&&profileCache.has(key))return Promise.resolve(profileCache.get(key));
  if(profileInflight.has(key))return profileInflight.get(key);
  const request=api('/profiles/'+id).then(profile=>{
-  profileCache.set(key,profile);
-  if(profileCache.size>80)profileCache.delete(profileCache.keys().next().value);
+  profileCache.set(key,profile);profileFetchedAt.set(key,Date.now());
+  if(profileCache.size>80){const oldest=profileCache.keys().next().value;profileCache.delete(oldest);profileFetchedAt.delete(oldest);}
   return profile;
  }).finally(()=>profileInflight.delete(key));
  profileInflight.set(key,request);
@@ -32,13 +32,24 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
  const [reporting,setReporting]=useState(false),[reason,setReason]=useState('fake'),[details,setDetails]=useState('');
  const [confirmHide,setConfirmHide]=useState(false),[profileTab,setProfileTab]=useState('about'),[giftOpen,setGiftOpen]=useState(false);
  const panel=useRef(null);
- const load=()=>{
+ const load=(force=false)=>{
   let cancelled=false;
-  setError(false);if(!profileCache.has(String(profile.id)))setLoading(true);
-  prefetchMemberProfile(profile.id,true).then(p=>{if(!cancelled){setData(p);setPhotoIndex(0);}}).catch(()=>{if(!cancelled)setError(true);}).finally(()=>{if(!cancelled)setLoading(false);});
+  const key=String(profile.id),cached=profileCache.get(key);
+  setError(false);
+  if(cached){setData(cached);setLoading(false);}
+  else setLoading(true);
+  // Opening a recently prefetched profile is instant; refresh expired entries
+  // quietly without replacing already-visible content with a skeleton.
+  const fresh=cached&&Date.now()-(profileFetchedAt.get(key)||0)<60000;
+  if(fresh&&!force)return ()=>{cancelled=true;};
+  prefetchMemberProfile(profile.id,true).then(p=>{
+   if(!cancelled){setData(p);if(!cached)setPhotoIndex(0);}
+  }).catch(()=>{if(!cancelled&&!cached)setError(true);}).finally(()=>{
+   if(!cancelled)setLoading(false);
+  });
   return ()=>{cancelled=true;};
  };
- useEffect(load,[profile.id]);
+ useEffect(()=>load(),[profile.id]);
  useEffect(()=>{
   const oldOverflow=document.body.style.overflow,previous=document.activeElement;
   document.body.style.overflow='hidden';panel.current?.focus();
@@ -94,7 +105,7 @@ export function MemberProfile({entry,app,Photo,prefetchPhotos,onClose}){
     <span className="member-profile-header-end"/>
    </header>
    <main className="member-profile-content">
-    {error&&!data?<div className="member-profile-failed"><h2>{L('Не удалось открыть профиль','Could not open this profile')}</h2><p>{L('Анкета могла стать недоступна или соединение прервалось.','This profile may no longer be available, or the connection was lost.')}</p><button className="button secondary" onClick={load}>{L('Повторить','Retry')}</button></div>
+    {error&&!data?<div className="member-profile-failed"><h2>{L('Не удалось открыть профиль','Could not open this profile')}</h2><p>{L('Анкета могла стать недоступна или соединение прервалось.','This profile may no longer be available, or the connection was lost.')}</p><button className="button secondary" onClick={()=>load(true)}>{L('Повторить','Retry')}</button></div>
     :<>
      <div className="member-profile-hero">
       <div className="member-profile-photo"><Photo id={photos[photoIndex]} alt={p.name+' — '+(photoIndex+1)}/></div>

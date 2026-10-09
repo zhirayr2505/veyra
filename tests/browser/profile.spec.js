@@ -2,6 +2,12 @@ import {test,expect} from '@playwright/test';
 import {initData} from '../helpers.js';
 test('personal profile: mobile layout, gallery, edit, privacy and existing destinations',async({page},info)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://telegram.org/**',r=>r.fulfill({body:''}));await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){}}};},initData(402));await page.goto('/');const profile=()=>page.getByRole('button',{name:'Профиль',exact:true}).click();await profile();await expect(page.getByRole('heading',{name:'Мой профиль',exact:true})).toBeVisible();await expect(page.locator('.vp-cover img.is-loaded')).toBeVisible();await expect(page.locator('.vp-bio')).toContainText('Люблю');await page.screenshot({path:info.outputPath('profile-mobile.png')});
+ // Returning to a previously visited profile retains the same decoded photo.
+ const coverBefore=await page.locator('.vp-cover img.is-loaded').getAttribute('src');
+ await page.getByRole('button',{name:'Лента',exact:true}).click();
+ await profile();
+ await expect(page.locator('.vp-cover img.is-loaded')).toHaveAttribute('src',coverBefore);
+ await expect(page.locator('.vp-cover .photo-placeholder')).toHaveCount(0);
  await page.locator('.vp-photo-strip button').nth(1).click();await expect(page.locator('.vp-photo-strip button').nth(1)).toHaveAttribute('aria-pressed','true');await page.locator('.vp-cover').click();await expect(page.getByRole('dialog',{name:'Мои фотографии'})).toBeVisible();await page.getByRole('button',{name:'Следующее фото',exact:true}).click();await page.getByRole('button',{name:'Close',exact:true}).click();await page.locator('.vp-verified').click();await expect(page.getByRole('dialog')).toContainText('Это не подтверждение личности');await page.getByRole('button',{name:'Close',exact:true}).click();
  await page.locator('.vp-edit').click();await expect(page.getByRole('heading',{name:'Редактировать',exact:true})).toBeVisible();await page.getByRole('button',{name:'Назад',exact:true}).click();await expect(page.locator('.vp-profile')).toBeVisible();
  await page.locator('.vp-premium').click();await expect(page.locator('.premium-page')).toBeVisible();await page.getByRole('button',{name:'Назад',exact:true}).click();
