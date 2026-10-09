@@ -8,7 +8,15 @@ test('Messages Core: two members, gestures, reactions, edit/delete, history, ret
  await expect(a.locator('.mc-person small')).toContainText('в сети');await a.getByRole('textbox',{name:'Сообщение…'}).fill('Буду рад! В субботу в 12?');await expect(b.locator('.mc-person small')).toContainText('печатает',{timeout:10000});await a.getByRole('button',{name:'Отправить',exact:true}).click();await expect(b.locator('.mc-body').filter({hasText:'Буду рад!'})).toBeVisible({timeout:10000});await expect(a.locator('.mc-bubble').filter({hasText:'Буду рад!'}).getByRole('img',{name:'Прочитано'})).toBeVisible({timeout:10000});
  // Right swipe on a bubble opens a composer quote.
  const bubble=b.locator('.mc-bubble').filter({hasText:'Буду рад!'});await bubble.dispatchEvent('pointerdown',{pointerId:1,button:0,clientX:60,clientY:300});await bubble.dispatchEvent('pointermove',{pointerId:1,clientX:160,clientY:301});await bubble.dispatchEvent('pointerup',{pointerId:1,clientX:160,clientY:301});await expect(b.locator('.mc-compose-preview')).toBeVisible();await b.getByRole('textbox',{name:'Сообщение…'}).fill('Договорились! До встречи 💜');await b.getByRole('button',{name:'Отправить',exact:true}).click();await expect(a.locator('.mc-quote').filter({hasText:'Буду рад!'})).toBeVisible({timeout:10000});
- await context(a,'Договорились!');await a.getByRole('button',{name:'❤️',exact:true}).click();await expect(b.locator('.mc-reactions').getByRole('button',{name:'❤️ · 1'})).toBeVisible({timeout:10000});await b.locator('.mc-reactions').getByRole('button',{name:'❤️ · 1'}).click();await expect(a.locator('.mc-reactions').getByRole('button',{name:'❤️ · 2'})).toBeVisible({timeout:10000});
+ // Delay only the reaction request: the pressed emoji must appear before HTTP resolves.
+ await a.route('**/api/matches/*/messages/*/reaction',async route=>{
+  await new Promise(resolve=>setTimeout(resolve,1100));
+  await route.continue();
+ });
+ await context(a,'Договорились!');await a.getByRole('button',{name:'❤️',exact:true}).click();
+ await expect(a.locator('.mc-reactions').getByRole('button',{name:'❤️ · 1'})).toBeVisible({timeout:450});
+ await expect(b.locator('.mc-reactions').getByRole('button',{name:'❤️ · 1'})).toBeVisible({timeout:10000});
+ await a.unroute('**/api/matches/*/messages/*/reaction');await b.locator('.mc-reactions').getByRole('button',{name:'❤️ · 1'}).click();await expect(a.locator('.mc-reactions').getByRole('button',{name:'❤️ · 2'})).toBeVisible({timeout:10000});
  await context(a,'Буду рад!');await a.getByRole('button',{name:'Редактировать',exact:true}).click();await a.getByRole('textbox',{name:'Сообщение…'}).fill('Буду рад! В субботу в 13?');await a.getByRole('button',{name:'Сохранить',exact:true}).click();await expect(b.locator('.mc-bubble').filter({hasText:'В субботу в 13?'}).first()).toContainText('изменено',{timeout:10000});await expect(b.locator('.mc-quote')).toContainText('в 13?',{timeout:10000});
  await a.locator('.mc-composer').getByRole('button',{name:'Эмодзи',exact:true}).click();await expect(a.locator('.EmojiPickerReact')).toBeVisible();await expect(a.locator('.EmojiPickerReact img')).toHaveCount(0);await expect(a.locator('.mc-emoji-dock')).toBeInViewport();await a.locator('.mc-composer').getByRole('button',{name:'Эмодзи',exact:true}).click();
  // Real long press and one visual review image with representative chat states.
