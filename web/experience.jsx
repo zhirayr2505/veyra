@@ -8,7 +8,9 @@ export function ProfileStats({app}){
  const[data,setData]=useState(null),[failed,setFailed]=useState(false);
  const load=()=>{setFailed(false);api('/profile/stats').then(setData).catch(()=>setFailed(true));};useEffect(load,[]);
  if(failed)return <button className="text-button" onClick={load}>Обновить статистику</button>;
- return <section className="profile-statistics" aria-label="Статистика профиля"><div className="stats-grid">{[[Eye,'views','Просмотры'],[Heart,'likes','Лайки'],[MessageCircle,'matches','Мэтчи']].map(([Icon,key,label])=><div key={key}><VeyraIcon icon={Icon} size={17}/><strong>{data?.[key]??'—'}</strong><small>{app.t(label)}</small></div>)}</div><button className="completion-row" onClick={()=>app.setPage('edit')}><span>{app.t('Заполненность профиля')}<b>{data?.completion??0}%</b></span><progress max={100} value={data?.completion||0}/></button></section>;
+ return <section className="profile-statistics" aria-label="Статистика профиля"><div className="stats-grid">{[[Eye,'views','Просмотры'],[Heart,'likes','Лайки'],[MessageCircle,'matches','Мэтчи']].map(([Icon,key,label])=><div key={key}><VeyraIcon icon={Icon} size={17}/><strong>{data?.[key]??'—'}</strong><small>{app.t(label)}</small></div>)}</div>
+ {data&&<div className="veyra-weekly-interest"><div className="veyra-weekly-heading"><span><VeyraIcon icon={Heart} size={17}/>{app.t('Интерес к анкете за 7 дней')}</span><small>{app.t('Только реальные действия пользователей')}</small></div><div className="veyra-weekly-values"><div><strong>{data.views_7d||0}</strong><span>{app.t('Просмотров')}</span></div><div><strong>{data.likes_7d||0}</strong><span>{app.t('Симпатий')}</span></div></div></div>}
+ <button className="completion-row" onClick={()=>app.setPage('edit')}><span>{app.t('Заполненность профиля')}<b>{data?.completion??0}%</b></span><progress max={100} value={data?.completion||0}/></button></section>;
 }
 
 export function LikesHistory({app,Photo}){

@@ -59,3 +59,17 @@ test('Undo permits one free reversal daily, and Premium permits more',async()=>{
   assert.equal(paid.status,200,JSON.stringify(paid.body));
  }finally{await db.close();}
 });
+
+test('profile stats report only real recent impressions and positive reactions',async()=>{
+ const{db,app,aut}=await fixture([90,91,92]);try{
+  await db.query("INSERT INTO impressions(viewer,target,day) VALUES(91,90,CURRENT_DATE) ON CONFLICT DO NOTHING");
+  await db.query("INSERT INTO impressions(viewer,target,day) VALUES(92,90,CURRENT_DATE-9) ON CONFLICT DO NOTHING");
+  await db.tx(q=>react(q,'91','90','like'));
+  const r=await aut(request(app).get('/api/profile/stats'));
+  assert.equal(r.status,200);
+  assert.equal(r.body.views_7d,1);
+  assert.equal(r.body.likes_7d,1);
+  assert.ok(r.body.views>=2);
+  assert.ok(r.body.likes>=1);
+ }finally{await db.close();}
+});

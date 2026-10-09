@@ -8,6 +8,8 @@ export async function profileStats(q,uid){
  const p=await one(q,'SELECT * FROM profiles WHERE user_id=$1',[uid]);
  const n=await one(q,`SELECT (SELECT count(*)::int FROM impressions WHERE target=$1) AS views,
  (SELECT count(*)::int FROM reactions WHERE target=$1 AND kind<>'pass') AS likes,
+ (SELECT count(*)::int FROM impressions WHERE target=$1 AND day>=CURRENT_DATE-6) AS views_7d,
+ (SELECT count(*)::int FROM reactions WHERE target=$1 AND kind<>'pass' AND created_at>=now()-interval '7 days') AS likes_7d,
  (SELECT count(*)::int FROM matches WHERE active AND (a=$1 OR b=$1)) AS matches,
  (SELECT count(*)::int FROM photos WHERE user_id=$1) AS photos`,[uid]);
  const fields=[!!p?.name,!!p?.bio,p?.interests?.length>0,!!p?.city,n.photos>0,n.photos>=3];

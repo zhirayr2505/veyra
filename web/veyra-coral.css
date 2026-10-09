@@ -567,3 +567,13 @@ body{color-scheme:light}
 .app:not(.admin-app) .vp-photo-progress span{height:4px;flex:1;min-width:0;background:rgba(255,255,255,.48);border-radius:99px;box-shadow:0 1px 2px #0001}
 .app:not(.admin-app) .vp-photo-progress span.active{background:#fff}
 .app:not(.admin-app) .vp-hero-top{top:26px}
+
+/* Trustworthy user-only popularity insight. Public appearance ratings deliberately avoided. */
+.app:not(.admin-app) .veyra-weekly-interest{margin:0 12px 10px;padding:13px 14px;border:1px solid #f6e7ef;background:linear-gradient(115deg,#fff5f8,#f7f2ff);border-radius:17px}
+.app:not(.admin-app) .veyra-weekly-heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;color:#eb7890}
+.app:not(.admin-app) .veyra-weekly-heading>span{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:750;color:#c8668a}
+.app:not(.admin-app) .veyra-weekly-heading>small{color:#93869d;font-size:10px}
+.app:not(.admin-app) .veyra-weekly-values{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.app:not(.admin-app) .veyra-weekly-values>div{display:flex;align-items:baseline;gap:8px;padding:8px 11px;background:#fff;border-radius:13px;border:1px solid #f8edf3}
+.app:not(.admin-app) .veyra-weekly-values strong{font-size:21px;font-variant-numeric:tabular-nums;color:#ef758b}
+.app:not(.admin-app) .veyra-weekly-values span{font-size:11px;color:#897a92}
