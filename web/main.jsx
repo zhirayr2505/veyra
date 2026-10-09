@@ -21,6 +21,7 @@ import {GiftCollection,GiftPicker} from './gifts';
 // Keep the substantial admin console out of the regular dating app startup bundle.
 const AdminOperations=React.lazy(()=>import('./operations').then(m=>({default:m.AdminOperations})));
 import {TodayIdeas} from './content';
+import './obsidian-glass.css';
 const Context=createContext();const useApp=()=>useContext(Context);const tg=window.Telegram?.WebApp;const isAdmin=location.pathname.startsWith('/admin');
 const Logo=Brand;
 const Button=VeyraButton;
@@ -113,7 +114,7 @@ function App(){
  const t=useCallback(s=>lang==='en'?(en[s]||s):s,[lang]);const refresh=useCallback(async()=>{const m=await api('/me');setMe(m);setLang(m.user.language);return m;},[]);
  const alert=useCallback(s=>setToast(s),[]);useEffect(()=>{if(toast){const timer=setTimeout(()=>setToast(''),4800);return()=>clearTimeout(timer);}},[toast]);
  const run=useCallback(async fn=>{setBusy(true);try{return await fn();}catch(e){alert(lang==='ru'?(errors[e.message]||e.message):(e.message.replaceAll('_',' ').toLowerCase()));}finally{setBusy(false);}},[lang,alert]);
- useEffect(()=>{setAuth('loading');tg?.ready();tg?.expand();tg?.setHeaderColor?.('#09090f');tg?.setBackgroundColor?.('#09090f');if(!tg?.initData){setAuth('outside');return;}post('/auth',{initData:tg.initData,scope:isAdmin?'admin':'user'}).then(async r=>{setSession(r.token);await refresh();setAuth('ok');}).catch(e=>{setAuth('error');alert(errors[e.message]||e.message);});},[authAttempt]);
+ useEffect(()=>{setAuth('loading');tg?.ready();tg?.expand();tg?.setHeaderColor?.('#080d15');tg?.setBackgroundColor?.('#080d15');if(!tg?.initData){setAuth('outside');return;}post('/auth',{initData:tg.initData,scope:isAdmin?'admin':'user'}).then(async r=>{setSession(r.token);await refresh();setAuth('ok');}).catch(e=>{setAuth('error');alert(errors[e.message]||e.message);});},[authAttempt]);
  useEffect(()=>{if(isAdmin||auth!=='ok'||me?.profile?.moderation!=='approved')return;let alive=true;const poll=()=>{if(document.hidden)return;Promise.all([api('/likes'),api('/matches')]).then(([likes,matches])=>{if(alive){const nextLikes=likes.count,nextChats=matches.reduce((sum,m)=>sum+m.unread,0);setBadges(old=>old.likes===nextLikes&&old.chats===nextChats?old:{likes:nextLikes,chats:nextChats});}}).catch(()=>{});};poll();const timer=setInterval(poll,30000);document.addEventListener('visibilitychange',poll);return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',poll);};},[auth,me?.profile?.moderation]);
  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});},[page,tab]);
  useEffect(()=>{const viewport=window.visualViewport;const resize=()=>document.documentElement.style.setProperty('--visual-height',`${viewport?.height||window.innerHeight}px`);resize();viewport?.addEventListener('resize',resize);return()=>viewport?.removeEventListener('resize',resize);},[]);
