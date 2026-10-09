@@ -499,3 +499,100 @@ body{background:var(--v-bg);color:var(--v-text)}
 .member-profile-screen .member-profile-header .brand{
  border:0!important;box-shadow:none!important;
 }
+
+/* VEYRA Atelier 3 — calmer luxury design and cheaper Android rendering */
+:root{
+ --v-bg:#0A0B12;--v-surface:#151620;--v-raised:#1C1A28;--v-active:#292235;
+ --v-text:#F7F4FA;--v-muted:#B8ACBF;--v-border:rgba(233,222,244,.105);
+ --v-accent:linear-gradient(120deg,#F17AB9 0%,#D867B4 53%,#A77CE0 100%);
+ --v-radius-panel:22px;--v-radius-hero:25px;
+}
+.app:not(.admin-app){background:#0A0B12;-webkit-font-smoothing:antialiased}
+.app:not(.admin-app)>.topbar{
+ background:#0E0F18;border-bottom:0!important;box-shadow:none!important;
+ isolation:isolate;
+}
+.app:not(.admin-app)>.topbar::after{display:none!important}
+.app:not(.admin-app) .brand-horizontal,
+.member-profile-screen .brand-horizontal{border:0!important;background:transparent!important}
+.app:not(.admin-app) .brand-wordmark,
+.member-profile-screen .brand-wordmark{font-weight:700;letter-spacing:.14em}
+.app:not(.admin-app) .bottom-nav{
+ background:#171620;border:1px solid rgba(242,227,250,.12);
+ box-shadow:0 10px 32px rgba(0,0,0,.36);
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.app:not(.admin-app) .bottom-nav button{
+ font-size:10px;letter-spacing:.01em;
+ transition:color 140ms ease,background-color 140ms ease!important;
+}
+.app:not(.admin-app) .bottom-nav .selected{
+ color:#FFD4EB;background:rgba(242,137,195,.115);
+}
+.app:not(.admin-app) .bottom-nav .selected:before,
+.app:not(.admin-app) .bottom-nav .selected>i{display:none!important}
+.app:not(.admin-app) .bottom-nav .selected .nav-icon{filter:none!important}
+.app:not(.admin-app) .bottom-nav .nav-icon svg{transition:none!important;animation:none!important}
+.app:not(.admin-app) .section-heading{
+ min-height:88px;margin:8px 0 22px;gap:10px;
+}
+.app:not(.admin-app) .section-eyebrow{
+ font-size:10px;letter-spacing:.14em;color:#D5B4D5;margin-bottom:9px;
+}
+.app:not(.admin-app) .section-heading h1{
+ font-size:clamp(25px,6.4vw,32px);font-weight:700;line-height:1.16;
+ letter-spacing:-.035em;margin:0 0 8px;
+}
+.app:not(.admin-app) .section-heading p{
+ font-size:13px;line-height:1.5;color:var(--v-muted);
+}
+.app:not(.admin-app) .section-heading>.artwork{
+ width:73px;height:73px;flex:0 0 73px;
+ margin:0;filter:none;animation:none!important;
+}
+.app:not(.admin-app) .today-invitation{
+ background:linear-gradient(135deg,#252031,#171723);
+ border:1px solid rgba(236,201,241,.15);box-shadow:none;
+}
+.app:not(.admin-app) .today-invitation .artwork{filter:none;animation:none!important}
+.app:not(.admin-app) :is(.today-plan,.account-panel,.boost-box){box-shadow:none}
+.app:not(.admin-app) .today-person,
+.app:not(.admin-app) .chat-row{
+ background:#171722;border:1px solid rgba(239,216,248,.09);
+ border-radius:19px;margin-bottom:9px;padding:13px;box-shadow:none;
+}
+.app:not(.admin-app) .chat-row h3{font-size:15px;color:var(--v-text)}
+.app:not(.admin-app) .chat-row p{
+ font-size:12.5px;color:#BCB1C5;line-height:1.5;
+}
+.app:not(.admin-app) .chat-meta time{font-size:10.5px;color:#B5A7BE}
+.app:not(.admin-app) .like-tile{
+ border-radius:19px;border-color:rgba(238,213,248,.14);box-shadow:none;
+}
+.app:not(.admin-app) .likes-grid{gap:12px}
+.app:not(.admin-app) .like-tile p{font-size:11.5px;color:#E2D4E5}
+.app:not(.admin-app) .dating-card{
+ border-radius:25px;box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+.app:not(.admin-app) .dating-card::before{display:none}
+.app:not(.admin-app) .reaction-bar .like{box-shadow:0 7px 20px rgba(215,79,147,.21)}
+.app:not(.admin-app) .veyra-skeleton [class^="veyra-skeleton-"]{
+ animation:none!important;background:#25212F;
+}
+.app:not(.admin-app) .artwork{animation:none!important}
+.member-profile-screen .member-profile-page{background:#0A0B12}
+.member-profile-screen .member-profile-header{min-height:64px;box-shadow:none!important}
+.member-profile-screen .member-profile-hero{
+ border:1px solid rgba(241,170,220,.22);box-shadow:none;
+}
+.member-profile-screen .member-profile-section{
+ background:#171721!important;border-color:rgba(238,213,248,.10)!important;
+}
+.member-profile-screen .member-profile-footer{
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+@media(max-width:359px){
+ .app:not(.admin-app) .section-heading>.artwork{width:60px;height:60px;flex-basis:60px}
+ .app:not(.admin-app) .section-heading h1{font-size:25px}
+ .app:not(.admin-app) .today-person,.app:not(.admin-app) .chat-row{padding:11px}
+}
