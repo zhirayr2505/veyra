@@ -64,9 +64,12 @@ export function useVoiceRecording({onSend,onPermission,onError}){
     if(intent.current==='ready'){result.current=value;update({phase:'ready',locked:true,elapsed:total,levels:value.waveform});}
     else {reset();callbacks.current.onSend(value);}
    };
-   let analyser=null;try{const Context=window.AudioContext||window.webkitAudioContext;if(Context){const context=new Context();audioContext.current=context;await context.resume();analyser=context.createAnalyser();analyser.fftSize=256;context.createMediaStreamSource(source).connect(analyser);}}catch{}
+   // Start capture BEFORE opening/resuming AudioContext. On Android Telegram,
+   // resume() can remain suspended after the OS permission sheet closes.
    if(gen!==generation.current){cleanup();return;}
-   since.current=performance.now();update({phase:'recording',locked:!!gesture.current?.locked||!gesture.current?.down});recorder.start(1000);buzz('medium');
+   since.current=performance.now();recorder.start(1000);
+   update({phase:'recording',locked:!!gesture.current?.locked||!gesture.current?.down});buzz('medium');
+   let analyser=null;try{const Context=window.AudioContext||window.webkitAudioContext;if(Context){const context=new Context();audioContext.current=context;analyser=context.createAnalyser();analyser.fftSize=256;context.createMediaStreamSource(source).connect(analyser);context.resume().catch(()=>{});}}catch{}
    const values=new Uint8Array(256);timer.current=setInterval(()=>{if(live.current.phase!=='recording')return;let level=.08;if(analyser){analyser.getByteTimeDomainData(values);level=Math.min(1,Math.sqrt(values.reduce((n,v)=>n+Math.pow((v-128)/128,2),0)/values.length)*4+.04);}samples.current.push(level);if(samples.current.length>64)samples.current.shift();const total=duration();update({elapsed:total,levels:[...samples.current]});if(total>=599.8)stop('ready');},90);
   }catch(error){cleanup();reset();if(gen===generation.current)callbacks.current.onPermission(['NotAllowedError','SecurityError'].includes(error.name)?'denied':error.name==='NotFoundError'?'missing':'unavailable');}
  }

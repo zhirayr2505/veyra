@@ -444,3 +444,58 @@ body{background:var(--v-bg);color:var(--v-text)}
   backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
  }
 }
+
+
+/* VEYRA Atelier 3 — mobile-first surface architecture.
+   Keep visited tab views mounted to preserve decoded media, network state and
+   UI selections. Never snapshot the root document or animate its header/nav. */
+.app:not(.admin-app) .veyra-tab-deck{
+ display:block;position:relative;min-height:0;
+ animation:none!important;view-transition-name:none!important;
+}
+.app:not(.admin-app) .veyra-tab-deck[hidden],
+.app:not(.admin-app) .veyra-tab-pane[hidden]{display:none!important}
+.app:not(.admin-app) .veyra-tab-pane{
+ position:relative;min-width:0;min-height:0;animation:none;
+ -webkit-backface-visibility:hidden;backface-visibility:hidden;
+}
+.app.feed-app>main>.veyra-tab-deck,
+.app.feed-app .veyra-tab-pane,
+.app.conversation-app>main>.veyra-tab-deck,
+.app.conversation-app .veyra-tab-pane{height:100%}
+@keyframes veyra-pane-in-left{
+ from{transform:translate3d(18px,0,0);opacity:.88}
+ to{transform:translate3d(0,0,0);opacity:1}
+}
+@keyframes veyra-pane-in-right{
+ from{transform:translate3d(-18px,0,0);opacity:.88}
+ to{transform:translate3d(0,0,0);opacity:1}
+}
+@media(prefers-reduced-motion:no-preference){
+ .app:not(.admin-app) .veyra-tab-pane.is-current.slide-left{
+  animation:veyra-pane-in-left 185ms cubic-bezier(.22,1,.36,1) both;
+ }
+ .app:not(.admin-app) .veyra-tab-pane.is-current.slide-right{
+  animation:veyra-pane-in-right 185ms cubic-bezier(.22,1,.36,1) both;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .veyra-tab-pane{animation:none!important;transition:none!important}
+}
+/* The SVG fallback was rendered as a huge photograph over a profile in WebView.
+   Keep the fallback inside its own rectangle without nested image/layout. */
+.app:not(.admin-app) .photo-placeholder,
+.member-profile-screen .photo-placeholder{
+ overflow:hidden;background:linear-gradient(145deg,#241d2c,#17141e);
+}
+.member-profile-screen .member-profile-photo>.photo-placeholder{
+ position:relative!important;inset:auto!important;z-index:auto!important;
+ box-shadow:none!important;border:0!important;border-radius:0!important;
+}
+.member-profile-screen .member-profile-header{
+ border-bottom:0!important;box-shadow:none!important;
+ background:#11111b!important;
+}
+.member-profile-screen .member-profile-header .brand{
+ border:0!important;box-shadow:none!important;
+}

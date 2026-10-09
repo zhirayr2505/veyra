@@ -5,13 +5,14 @@ import {api,post} from './api';
 import {Brand,VeyraIcon} from './graphics';
 import './member-profile.css';
 
+const profileCache=new Map();
 // A full-screen destination shared by discovery, matches and conversations.
 // It deliberately stays mounted above the originating screen, so Back restores
 // the feed position or chat draft instead of rebuilding those screens.
 export function MemberProfile({entry,app,Photo,onClose}){
  const {profile,onReact,onPrematch,onReport,onHandled,fromChat}=entry;
  const L=(ru,en)=>app.lang==='en'?en:ru;
- const [data,setData]=useState(null),[error,setError]=useState(false),[loading,setLoading]=useState(true);
+ const [data,setData]=useState(()=>profileCache.get(profile.id)||null),[error,setError]=useState(false),[loading,setLoading]=useState(()=>!profileCache.has(profile.id));
  const [photoIndex,setPhotoIndex]=useState(0),[sending,setSending]=useState(false);
  const [composer,setComposer]=useState(false),[message,setMessage]=useState('');
  const [reporting,setReporting]=useState(false),[reason,setReason]=useState('fake'),[details,setDetails]=useState('');
@@ -19,8 +20,8 @@ export function MemberProfile({entry,app,Photo,onClose}){
  const panel=useRef(null);
  const load=()=>{
   let cancelled=false;
-  setError(false);setLoading(true);
-  api('/profiles/'+profile.id).then(p=>{if(!cancelled){setData(p);setPhotoIndex(0);}}).catch(()=>{if(!cancelled)setError(true);}).finally(()=>{if(!cancelled)setLoading(false);});
+  setError(false);if(!profileCache.has(profile.id))setLoading(true);
+  api('/profiles/'+profile.id).then(p=>{if(!cancelled){profileCache.set(profile.id,p);if(profileCache.size>60)profileCache.delete(profileCache.keys().next().value);setData(p);setPhotoIndex(0);}}).catch(()=>{if(!cancelled)setError(true);}).finally(()=>{if(!cancelled)setLoading(false);});
   return ()=>{cancelled=true;};
  };
  useEffect(load,[profile.id]);
@@ -78,8 +79,7 @@ export function MemberProfile({entry,app,Photo,onClose}){
     <span className="member-profile-header-end"/>
    </header>
    <main className="member-profile-content">
-    {loading?<div className="member-profile-loading" role="status"><VeyraIcon icon={LoaderCircle} className="spin" size={28}/>{L('Загружаем профиль…','Loading profile…')}</div>
-    :error||!data?<div className="member-profile-failed"><h2>{L('Не удалось открыть профиль','Could not open this profile')}</h2><p>{L('Анкета могла стать недоступна или соединение прервалось.','This profile may no longer be available, or the connection was lost.')}</p><button className="button secondary" onClick={load}>{L('Повторить','Retry')}</button></div>
+    {error&&!data?<div className="member-profile-failed"><h2>{L('Не удалось открыть профиль','Could not open this profile')}</h2><p>{L('Анкета могла стать недоступна или соединение прервалось.','This profile may no longer be available, or the connection was lost.')}</p><button className="button secondary" onClick={load}>{L('Повторить','Retry')}</button></div>
     :<>
      <div className="member-profile-hero">
       <div className="member-profile-photo"><Photo id={photos[photoIndex]} alt={p.name+' — '+(photoIndex+1)}/></div>
@@ -103,7 +103,7 @@ export function MemberProfile({entry,app,Photo,onClose}){
      <div className="member-profile-safety"><button onClick={()=>{if(onReport){onClose();onReport();}else{setReporting(true);setConfirmHide(false);}}}><VeyraIcon icon={Flag} size={17}/>{L('Пожаловаться','Report')}</button><button onClick={()=>{setConfirmHide(true);setReporting(false);}}><VeyraIcon icon={EyeOff} size={17}/>{L('Скрыть','Hide')}</button></div>
     </>}
    </main>
-   {!loading&&!error&&data&&<footer className="member-profile-footer">
+   {!error&&!loading&&data&&<footer className="member-profile-footer">
     {mutual?<button className="member-profile-chat" onClick={chat}><VeyraIcon icon={MessageCircle} size={20}/>{L('Перейти в чат','Open chat')}<VeyraIcon icon={ChevronRight} size={18}/></button>
     :<>{composer&&!onPrematch&&<div className="member-profile-compose"><label htmlFor="member-profile-message">{L('Сообщение до мэтча','Message before matching')}</label><textarea id="member-profile-message" rows={2} value={message} maxLength={140} onChange={e=>setMessage(e.target.value)} placeholder={L('Напиши пару слов…','Say hello…')}/><small>{message.length}/140</small></div>}
     <div className="member-profile-reactions"><button className="member-profile-like" disabled={sending||(composer&&!message.trim())} onClick={()=>react('like')}>{composer?<VeyraIcon icon={Send} size={19}/>:<VeyraIcon icon={Heart} size={20}/>} {composer?L('Отправить','Send'):L('Нравится','Like')}</button>{!composer&&<button className="member-profile-super" disabled={sending} onClick={()=>react('super')}><VeyraIcon icon={Star} size={19}/>Super Like</button>}</div>

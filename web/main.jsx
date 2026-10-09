@@ -1,6 +1,6 @@
 import React,{useState,useEffect,useCallback,useRef,createContext,useContext,useLayoutEffect} from 'react';
 import {createRoot} from 'react-dom/client';
-import {createPortal,flushSync} from 'react-dom';
+import {createPortal} from 'react-dom';
 import {Heart,Flame,CalendarDays,MessageCircle,UserRound,SlidersHorizontal,ChevronLeft,ChevronRight,X,Star,Zap,Crown,MapPin,ShieldCheck,ArrowUpRight,Send,MoreHorizontal,Settings as SettingsIcon,Check,Plus,LoaderCircle,Gift,Globe,LogOut,Flag,Trash2,Lock,Search,Download,CheckCircle2,Sparkles,Coffee,Sun,Moon,Sunset,Smile,Image as ImageIcon,Pause,Play,ChevronDown,ArrowRight,Infinity as InfinityIcon,EyeOff,BadgeCheck,Compass,Music,Plane,Dumbbell,Film,PawPrint,RotateCcw} from 'lucide-react';
 import {api,post,setSession,download} from './api';
 import {en,errors} from './i18n';
@@ -31,18 +31,29 @@ function GiftsSoon({onClose}){const{t}=useApp();return <Sheet title={t('Пода
 function GiftCollection(){const{t,setModal}=useApp();return <button type="button" className="gift-collection" onClick={()=>setModal({type:'gifts'})}><Artwork name="referral-gift" size={64}/><span><strong>{t('Коллекция подарков')}</strong><small>{t('Здесь будут полученные подарки')}</small></span><span className="soon-pill">{t('Скоро')}</span></button>;}
 
 function Loading(){const{t}=useApp();return <div className="loading"><LoaderCircle className="spin"/><span>{t('Загрузка…')}</span></div>}
-const photoCache=new Map();
+const photoCache=new Map(),photoResolved=new Map();
 function photoSource(id){
  if(!photoCache.has(id)){
-  if(photoCache.size>80){const [key,promise]=photoCache.entries().next().value;photoCache.delete(key);promise.then(URL.revokeObjectURL).catch(()=>{});}
-  photoCache.set(id,api('/photos/'+id,{raw:true}).then(r=>r.blob()).then(URL.createObjectURL).catch(e=>{photoCache.delete(id);throw e;}));
+  if(photoCache.size>120){const [key,promise]=photoCache.entries().next().value;photoCache.delete(key);photoResolved.delete(key);promise.then(URL.revokeObjectURL).catch(()=>{});}
+  photoCache.set(id,api('/photos/'+id,{raw:true}).then(r=>r.blob()).then(URL.createObjectURL).then(url=>{photoResolved.set(id,url);return url;}).catch(e=>{photoCache.delete(id);throw e;}));
  }
  return photoCache.get(id);
 }
 function Photo({id,className='',alt=''}){
- const[url,setUrl]=useState('');const[loaded,setLoaded]=useState(false);
- useEffect(()=>{let alive=true;setUrl('');setLoaded(false);if(id)photoSource(id).then(url=>{if(alive)setUrl(url);}).catch(()=>{});return()=>{alive=false;};},[id]);
- return url?<img src={url} onLoad={()=>setLoaded(true)} decoding="async" loading={className.includes('cover')?'eager':'lazy'} className={`${className} photo-image ${loaded?'is-loaded':''}`} alt={alt} draggable={false}/>:<div className={'photo-placeholder '+className} aria-label={alt}><img src="/graphics/placeholders/photo-neutral.svg" width="300" height="300" alt=""/></div>;
+ const[url,setUrl]=useState(()=>photoResolved.get(id)||'');
+ const[loaded,setLoaded]=useState(()=>!!photoResolved.get(id));
+ const[renderedId,setRenderedId]=useState(id);
+ useEffect(()=>{
+  let alive=true;
+  const ready=photoResolved.get(id)||'';
+  setRenderedId(id);setUrl(ready);setLoaded(!!ready);
+  if(id&&!ready)photoSource(id).then(source=>{if(alive){setUrl(source);setLoaded(true);}}).catch(()=>{});
+  return()=>{alive=false;};
+ },[id]);
+ // A textless bounded placeholder avoids the enormous fallback SVG seen in Android.
+ // Keep already-decoded photos visible immediately on return to a visited tab.
+ if(id!==renderedId)return <div className={'photo-placeholder '+className} aria-label={alt}/>;
+ return url?<img src={url} onLoad={()=>setLoaded(true)} decoding="async" loading={className.includes('cover')?'eager':'lazy'} className={`${className} photo-image ${loaded?'is-loaded':''}`} alt={alt} draggable={false}/>:<div className={'photo-placeholder '+className} aria-label={alt}/>;
 }
 
 const sheetScrollLock={count:0,overflow:''};
@@ -54,7 +65,7 @@ function Sheet({title,children,onClose,className=''}){
 }
 
 function App(){
- const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_code?.startsWith('ru')?'ru':'en');const[auth,setAuth]=useState('loading');const[authAttempt,setAuthAttempt]=useState(0);const[me,setMe]=useState(null);const[tab,setTab]=useState('feed');const[page,setPage]=useState(null);const[toast,setToast]=useState('');const[modal,setModal]=useState(null);const[busy,setBusy]=useState(false);const[openChatId,setOpenChatId]=useState(null);const[profileView,setProfileView]=useState(null);const[chatOpen,setChatOpen]=useState(false);const[badges,setBadges]=useState({likes:0,chats:0});const[feedFilters,setFeedFilters]=useState(false);const[tabSlide,setTabSlide]=useState('');const transitionRef=useRef(null),tabTransitionSequence=useRef(0);
+ const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_code?.startsWith('ru')?'ru':'en');const[auth,setAuth]=useState('loading');const[authAttempt,setAuthAttempt]=useState(0);const[me,setMe]=useState(null);const[tab,setTab]=useState('feed');const[page,setPage]=useState(null);const[toast,setToast]=useState('');const[modal,setModal]=useState(null);const[busy,setBusy]=useState(false);const[openChatId,setOpenChatId]=useState(null);const[profileView,setProfileView]=useState(null);const[chatOpen,setChatOpen]=useState(false);const[badges,setBadges]=useState({likes:0,chats:0});const[feedFilters,setFeedFilters]=useState(false);const[tabSlide,setTabSlide]=useState('');const[visitedTabs,setVisitedTabs]=useState(()=>['feed']);
  const t=useCallback(s=>lang==='en'?(en[s]||s):s,[lang]);const refresh=useCallback(async()=>{const m=await api('/me');setMe(m);setLang(m.user.language);return m;},[]);
  const alert=useCallback(s=>setToast(s),[]);useEffect(()=>{if(toast){const timer=setTimeout(()=>setToast(''),4800);return()=>clearTimeout(timer);}},[toast]);
  const run=useCallback(async fn=>{setBusy(true);try{return await fn();}catch(e){alert(lang==='ru'?(errors[e.message]||e.message):(e.message.replaceAll('_',' ').toLowerCase()));}finally{setBusy(false);}},[lang,alert]);
@@ -67,55 +78,33 @@ function App(){
   const order=['feed','today','likes','chats','profile'];
   const from=order.indexOf(tab),to=order.indexOf(value);
   const direction=from>=0&&to>=0&&to!==from?(to>from?'left':'right'):'';
-  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const animate=!!(direction&&!page&&!chatOpen&&me?.profile?.moderation==='approved'&&!reducedMotion);
-  const sequence=++tabTransitionSequence.current;
-  // A rapid second tap must not leave a stale screenshot/animation behind.
-  if(transitionRef.current){
-   const previous=transitionRef.current;
-   transitionRef.current=null;
-   previous.skipTransition?.();
-  }
-  delete document.documentElement.dataset.veyraTabDirection;
-  delete document.documentElement.dataset.veyraTabNative;
-  const commit=()=>{if(sequence!==tabTransitionSequence.current)return;setTab(value);setChatOpen(false);setOpenChatId(null);};
-  if(animate&&typeof document.startViewTransition==='function'){
-   document.documentElement.dataset.veyraTabDirection=direction;
-   document.documentElement.dataset.veyraTabNative='true';
-   try{
-    const transition=document.startViewTransition(()=>{
-     if(sequence!==tabTransitionSequence.current)return;
-     flushSync(()=>{setTabSlide('');commit();});
-    });
-    transitionRef.current=transition;
-    const finish=()=>{
-     if(transitionRef.current!==transition)return;
-     transitionRef.current=null;
-     delete document.documentElement.dataset.veyraTabDirection;
-     delete document.documentElement.dataset.veyraTabNative;
-    };
-    transition.finished.then(finish,finish);
-   }catch{
-    delete document.documentElement.dataset.veyraTabDirection;
-    delete document.documentElement.dataset.veyraTabNative;
-    setTabSlide(direction);commit();
-   }
-  }else{
-   setTabSlide(animate?direction:'');
-   commit();
-  }
+  // Never animate the entire document: on Android it captured two headers and
+  // duplicated the bottom navigation. Only the newly active content moves.
+  setTabSlide(direction);
+  setVisitedTabs(current=>current.includes(value)?current:[...current,value]);
+  setTab(value);setChatOpen(false);setOpenChatId(null);
   tg?.HapticFeedback?.selectionChanged?.();
  };
  const openProfile=(profile,options={})=>setProfileView({profile,...options});
  const approved=me?.profile?.moderation==='approved';const ctx={t,lang,setLang,me,refresh,run,busy,alert,tab,setTab:switchTab,page,setPage,modal,setModal,openChatId,setOpenChatId,setChatOpen,setBadges,feedFilters,setFeedFilters,openProfile,closeProfile:()=>setProfileView(null)};
  const shell=isAdmin?'admin-app':chatOpen?'conversation-app':auth==='ok'&&!page&&tab==='feed'&&approved?'feed-app':'member-app';
- return <Context.Provider value={ctx}><div className={'app '+shell+(approved&&!page&&!chatOpen?' tab-ready':'')+(tabSlide?' tab-slide-'+tabSlide:'')} data-tab={tab}>
+ return <Context.Provider value={ctx}><div className={'app '+shell} data-tab={tab}>
  {location.pathname==='/legal'?<Legal/>:auth==='loading'?<div className="boot-screen"><Logo large animated/><Loading/></div>:auth==='error'?<section className="boot-screen"><Logo large/><h1>{t('Нет соединения')}</h1><p className="muted">{t('Проверь интернет и попробуй ещё раз.')}</p><Button className="primary" onClick={()=>setAuthAttempt(n=>n+1)}><RotateCcw size={18}/>{t('Попробовать ещё')}</Button></section>:auth!=='ok'?<Welcome/>:isAdmin?<Admin/>:!me?<Loading/>:<>
  {!chatOpen&&<header className={'topbar '+(approved&&!page&&tab==='feed'?'feed-topbar':'')}>
   {approved&&!page&&tab==='feed'&&<div className="feed-counter" aria-label="Super Likes"><VeyraIcon icon={Star} size={16}/><b>{me.user.superlikes||0}</b><button aria-label="Получить Super Likes" onClick={()=>setPage('premium')}><VeyraIcon icon={Plus} size={16}/></button></div>}
   <Logo/><div className="top-actions">{approved&&<><button className="premium-pill" onClick={()=>setPage('premium')}><VeyraIcon icon={Crown} size={15}/> {new Date(me.user.premium_until)>new Date()?'Premium':'PLUS'}</button><IconButton icon={!page&&tab==='feed'?SlidersHorizontal:SettingsIcon} label={!page&&tab==='feed'?t('Фильтры'):t('Настройки')} onClick={()=>!page&&tab==='feed'?setFeedFilters(true):setPage('settings')}/></>}</div>
  </header>}
- <main className={chatOpen?'conversation-main':''}><div className="view-enter" key={page||tab} onAnimationEnd={e=>{if(e.target===e.currentTarget&&e.animationName.startsWith('veyra-tab-enter'))setTabSlide('');}}>{page?<><button className="back text-button" onClick={()=>setPage(null)}><ChevronLeft size={19}/>{t('Назад')}</button>{page==='edit'?<ProfileForm/>:page==='premium'?<Premium/>:page==='boost'?<BoostPage app={ctx}/>:page==='settings'?<Settings/>:page==='support'?<Support/>:page==='referrals'?<Referrals/>:null}</>:(!me.profile||(me.profile.moderation==='draft'&&me.registration))?<Registration app={ctx} PhotoManager={PhotoManager}/>:!approved?<Onboarding/>:tab==='feed'?<Feed/>:tab==='today'?<Today/>:tab==='likes'?<Likes/>:tab==='chats'?<Chats/>:<Profile/>}</div></main>
+ <main className={chatOpen?'conversation-main':''}>
+  {approved&&<div className="view-enter veyra-tab-deck" hidden={!!page}>
+   {[['feed',Feed],['today',Today],['likes',Likes],['chats',Chats],['profile',Profile]].map(([key,Component])=>
+    <div key={key} className={'veyra-tab-pane'+(key===tab?' is-current '+(tabSlide?'slide-'+tabSlide:''):'')}
+     hidden={tab!==key} aria-hidden={tab!==key} onAnimationEnd={e=>{if(e.target===e.currentTarget&&e.animationName.startsWith('veyra-pane-in'))setTabSlide('');}}>
+     {visitedTabs.includes(key)&&<Component/>}
+    </div>)}
+  </div>}
+  {page?<div className="view-enter veyra-subpage" key={page}><button className="back text-button" onClick={()=>setPage(null)}><ChevronLeft size={19}/>{t('Назад')}</button>{page==='edit'?<ProfileForm/>:page==='premium'?<Premium/>:page==='boost'?<BoostPage app={ctx}/>:page==='settings'?<Settings/>:page==='support'?<Support/>:page==='referrals'?<Referrals/>:null}</div>
+  :!approved?<div className="view-enter">{(!me.profile||(me.profile.moderation==='draft'&&me.registration))?<Registration app={ctx} PhotoManager={PhotoManager}/>:<Onboarding/>}</div>:null}
+ </main>
  {!page&&approved&&!chatOpen&&<nav className="bottom-nav" aria-label={t('Навигация')}>{[['feed','Лента'],['today','Сегодня'],['likes','Лайки'],['chats','Чаты'],['profile','Профиль']].map(([key,label])=><button key={key} className={tab===key?'selected':''} onClick={()=>switchTab(key)} aria-label={t(label)} aria-current={tab===key?'page':undefined}><span className="nav-icon"><VeyraIcon name={key} size={24}/>{badges[key]>0&&<b className="nav-count">{badges[key]>99?'99+':badges[key]}</b>}</span><span>{t(label)}</span><i/></button>)}</nav>}
  </>}
  {modal?.type==='gifts'&&<GiftsSoon onClose={()=>setModal(null)}/>}
@@ -201,9 +190,10 @@ function Likes(){
 }
 
 function Chats(){
- const{t,lang,run,setTab,openChatId,setOpenChatId,setBadges}=useApp();const[rows,setRows]=useState(null);const[chat,setChat]=useState(null);const[search,setSearch]=useState('');
+ const{t,lang,tab,run,setTab,setChatOpen,openChatId,setOpenChatId,setBadges}=useApp();const[rows,setRows]=useState(null);const[chat,setChat]=useState(null);const[search,setSearch]=useState('');
  const load=useCallback(async()=>{const values=await api('/matches');values.sort((a,b)=>new Date(b.last?.created_at||b.created_at)-new Date(a.last?.created_at||a.created_at));setRows(values);setBadges(x=>{const count=values.reduce((n,m)=>n+m.unread,0);return x.chats===count?x:{...x,chats:count};});},[]);
- useEffect(()=>{run(load);const timer=setInterval(()=>{if(!document.hidden)load().catch(()=>{});},12000);return()=>clearInterval(timer);},[load]);
+ useEffect(()=>{if(tab!=='chats')return;run(load);const timer=setInterval(()=>{if(!document.hidden)load().catch(()=>{});},12000);return()=>clearInterval(timer);},[load,tab]);
+ useEffect(()=>{if(tab!=='chats'&&chat){setChat(null);setChatOpen(false);}},[tab]);
  useEffect(()=>{if(openChatId&&rows){const next=rows.find(m=>m.id===openChatId);if(next){setChat(next);setOpenChatId(null);}}},[openChatId,rows]);
  if(chat)return <Chat chat={chat} onBack={()=>{setChat(null);run(load);}}/>;
  const visible=rows?.filter(m=>(m.profile.name+' '+(m.last?.body||'')).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
