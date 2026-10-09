@@ -1,12 +1,10 @@
 import React,{useEffect,useState} from 'react';
 import {Bell,EyeOff,Globe,ShieldCheck,ChevronRight,Download,Trash2,LogOut,Star,Send,ArrowUpRight,Ticket,Lock,MessageCircle,Check,Users,Copy} from 'lucide-react';
 import {api,post,setSession,download} from './api';
-import {Artwork,SectionHeading,VeyraIcon} from './graphics';
+import {Artwork,SectionHeading,VeyraIcon,VeyraPanel} from './graphics';
 import {LocationSettings} from './content';
 
-function Panel({title,children,className=''}){
- return <section className={'account-panel '+className}>{title&&<h2>{title}</h2>}{children}</section>;
-}
+const Panel=VeyraPanel;
 
 export function AccountSettings({app,Sheet,PauseToggle}){
  const{t,lang,me,refresh,run,setLang,alert,busy}=app;

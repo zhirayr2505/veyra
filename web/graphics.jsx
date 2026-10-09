@@ -31,12 +31,23 @@ const veyraAliases={
  Music:'music',Plane:'travel',Dumbbell:'sport',PawPrint:'pets',
  Users:'users',Copy:'copy',LogOut:'logout',Pause:'pause',Play:'play',
  LoaderCircle:'loader',RotateCcw:'refresh',RotateCw:'refresh',
- Clock:'clock',ArrowUpRight:'external-link',Ticket:'receipt'
+ Clock:'clock',ArrowUpRight:'external-link',Ticket:'receipt',Mic:'mic',MicOff:'mic-off',Reply:'reply',CheckCheck:'check-check',Sticker:'sticker',Images:'images',ImagePlus:'photo',Pencil:'edit',Ban:'block',AlertCircle:'alert',Paperclip:'attachment',Smile:'smile',ArrowDown:'arrow-down',ArrowUp:'arrow-up',Grip:'more'
 };
-const veyraGlyphs=new Set('feed today likes chats profile like skip super-like boost premium filters location compass globe search back next chevron-down arrow-right external-link close plus check check-circle more settings send attachment smile photo camera upload download edit trash report lock shield reviewed incognito eye unlimited gift copy share logout pause play bell bell-off calendar sun sunset moon flame coffee walk dinner date cinema music travel sport pets users heart-handshake loader refresh offline alert help block clock read link dashboard chart clipboard receipt document'.split(' '));
+const veyraGlyphs=new Set('feed today likes chats profile like skip super-like boost premium filters location compass globe search back next chevron-down arrow-right external-link close plus check check-circle more settings send attachment smile photo camera upload download edit trash report lock shield reviewed incognito eye unlimited gift copy share logout pause play bell bell-off calendar sun sunset moon flame coffee walk dinner date cinema music travel sport pets users heart-handshake loader refresh offline alert help block clock read link dashboard chart clipboard receipt document mic mic-off reply check-check sticker images arrow-down arrow-up'.split(' '));
 export function VeyraIcon({name,icon:Icon,size=24,className='',...props}){
  const iconName=Icon?.displayName||Icon?.name||'';
  const glyph=name||veyraAliases[iconName];
  if(glyph&&veyraGlyphs.has(glyph))return <UIIcon name={glyph} size={size} className={'veyra-icon '+className} {...props}/>;
  return Icon?<Icon size={size} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className={'veyra-icon veyra-icon-fallback '+className} aria-hidden="true" {...props}/>:null;
+}
+
+/* Shared VEYRA primitives; the existing classes preserve tested styles and actions. */
+export function VeyraButton({children,type='button',className='',disabled=false,...props}){
+ return <button type={type} className={'button '+className} disabled={disabled} {...props}>{children}</button>;
+}
+export function VeyraPanel({title,children,className='',as:Tag='section',...props}){
+ return <Tag className={'account-panel '+className} {...props}>{title&&<h2>{title}</h2>}{children}</Tag>;
+}
+export function VeyraEmptyState({art='discover-cards',title,body,children,className=''}){
+ return <div className={'empty veyra-empty-feature '+className}><Artwork name={art} size={146}/>{title&&<h2>{title}</h2>}{body&&<p>{body}</p>}{children}</div>;
 }

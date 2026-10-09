@@ -35,3 +35,50 @@ body{background:var(--v-bg);color:var(--v-text)}
 .member-profile-screen .member-profile-chat,.member-profile-screen .member-profile-like{background:var(--v-accent)}
 @media(hover:hover){.app:not(.admin-app) .button:not(:disabled):hover,.app:not(.admin-app) .icon-button:not(:disabled):hover{border-color:var(--v-focus)}}
 @media(prefers-reduced-motion:reduce){.app:not(.admin-app) .button,.app:not(.admin-app) .icon-button{transition:none!important}}
+
+/* Midnight Atelier: editorial states shared by Likes, Chat and My Profile. */
+.app:not(.admin-app) .veyra-empty-feature{
+ margin:20px auto 10px;padding:26px 20px 28px;
+ border:1px solid var(--v-border);border-radius:var(--v-radius-panel);
+ background:radial-gradient(ellipse 70% 50% at 50% 7%,rgba(182,123,233,.11),transparent 85%),var(--v-surface);
+ text-align:center;align-items:center;max-width:440px;
+}
+.app:not(.admin-app) .veyra-empty-feature .artwork{
+ width:146px;height:146px;max-width:100%;margin:0 auto 6px;object-fit:contain;
+}
+.app:not(.admin-app) .veyra-empty-feature h2{
+ font-size:21px;line-height:1.25;letter-spacing:-.025em;margin:6px 0 9px;
+}
+.app:not(.admin-app) .veyra-empty-feature p{
+ color:var(--v-muted);font-size:13px;line-height:1.55;max-width:270px;margin:0 auto 17px;
+}
+.app:not(.admin-app) .veyra-empty-feature .button{min-width:150px;margin:auto}
+.app:not(.admin-app) .mc-header.chat-header{
+ background:rgba(18,19,29,.94);border-bottom-color:var(--v-border);
+ box-shadow:0 7px 25px rgba(0,0,0,.12);
+}
+.app:not(.admin-app) .mc-tool{
+ border-radius:13px;transition:background-color var(--v-fast) ease,transform var(--v-fast) var(--v-ease);
+}
+.app:not(.admin-app) .mc-tool:active:not(:disabled){
+ background:rgba(244,119,184,.10);transform:scale(.95);
+}
+.app:not(.admin-app) .mc-tool svg{stroke-width:1.8}
+.app:not(.admin-app) .mc-composer{border-color:var(--v-border)}
+.app:not(.admin-app) .like-tile{
+ border-color:var(--v-border);
+ transition:border-color var(--v-normal) ease,transform var(--v-fast) var(--v-ease);
+}
+.app:not(.admin-app) .like-tile:active{transform:scale(.985)}
+.app:not(.admin-app) .like-tile:focus-visible{border-color:var(--v-focus)}
+.app:not(.admin-app) .profile-statistics,.app:not(.admin-app) .boost-timer{
+ border-color:var(--v-border);border-radius:var(--v-radius-panel);
+}
+.app:not(.admin-app) .choice-emoji{
+ display:inline-flex;align-items:center;justify-content:center;line-height:1;
+}
+@media(prefers-reduced-motion:reduce){
+ .app:not(.admin-app) .mc-tool,.app:not(.admin-app) .like-tile{
+  transition:none!important;
+ }
+}

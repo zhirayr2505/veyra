@@ -7,7 +7,7 @@ import {en,errors} from './i18n';
 import './style.css';
 import './redesign.css';
 import './registration.css';
-import {Artwork,Brand,VeyraIcon,SectionHeading} from './graphics';
+import {Artwork,Brand,VeyraIcon,VeyraButton,SectionHeading} from './graphics';
 import {Registration} from './registration';
 import {MessagesChat} from './chat';
 import {PersonalProfile} from './profile';
@@ -21,7 +21,7 @@ import {AdminOperations} from './operations';
 import {TodayIdeas} from './content';
 const Context=createContext();const useApp=()=>useContext(Context);const tg=window.Telegram?.WebApp;const isAdmin=location.pathname.startsWith('/admin');
 const Logo=Brand;
-function Button({children,onClick,type='button',className='',disabled=false,...props}){return <button type={type} className={'button '+className} onClick={onClick} disabled={disabled} {...props}>{children}</button>}
+const Button=VeyraButton;
 function IconButton({icon:Icon,label,onClick,className='',disabled=false}){return <button type="button" className={'icon-button '+className} onClick={onClick} aria-label={label} title={label} disabled={disabled}><VeyraIcon icon={Icon} size={23}/></button>}
 function countNoun(count,lang,ru,en){return lang==='ru'?ru[{one:0,few:1,many:2}[new Intl.PluralRules('ru').select(count)]??2]:en[count===1?0:1];}
 function Empty({icon:Icon=Heart,title,body,children}){const art=Icon===Crown?'premium-crown':Icon===MessageCircle?'chat-bubbles':Icon===Sparkles?'today-coffee':Icon===ShieldCheck?'review-shield':'discover-cards';return <div className="empty"><Artwork name={art}/><h2>{title}</h2><p>{body}</p>{children}</div>}
