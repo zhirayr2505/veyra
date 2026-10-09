@@ -481,3 +481,39 @@ body{color-scheme:light}
 .vc-inbox-row button,.vc-courtship-confirm button{background:#f4effa;color:#8567a4;border:0}
 .vc-courtship-sheet>svg,.vc-courtship-price{color:#ed758e}
 .vc-courtship-confirm button:last-child{background:linear-gradient(120deg,#ff899b,#fb7087);border:0;color:#fff}
+
+/* The complete profile is a scrollable destination, not a fixed-CTA sheet. */
+.member-profile-screen .member-profile-inline-actions{
+ display:flex;align-items:center;justify-content:center;gap:10px;
+ padding:14px 14px 12px;flex-wrap:wrap;
+}
+.member-profile-screen .member-profile-icon-action{
+ display:grid;place-items:center;width:49px;height:49px;min-width:49px;
+ border-radius:50%;transition:transform .16s ease,box-shadow .16s ease;
+}
+.member-profile-screen .member-profile-icon-action:active{transform:scale(.94)}
+.member-profile-screen .member-profile-icon-action.is-like{
+ background:linear-gradient(130deg,#ff899c,#f8758a);
+ color:#fff;box-shadow:0 5px 16px #ec7a9136;
+}
+.member-profile-screen .member-profile-icon-action.is-spark{
+ background:#f1eafa;color:#9a67d1;
+}
+.member-profile-screen .member-profile-icon-action.is-prematch{
+ background:#f7f1fc;color:#8267aa;
+}
+.member-profile-screen .member-profile-compose{
+ display:flex;flex-direction:column;gap:9px;margin:4px 16px 16px;
+ background:#fff;border:1px solid #efe6f3;padding:15px;border-radius:21px;
+ color:#443650;
+}
+.member-profile-screen .member-profile-compose textarea{
+ width:100%;color:#443650;background:#faf7fc;border:1px solid #f0e6f2;
+ border-radius:13px;padding:12px;
+}
+.member-profile-screen .member-profile-compose .button.primary{
+ background:linear-gradient(120deg,#ff879a,#fa7087);color:#fff;border:0;
+ padding:12px;align-self:stretch;border-radius:15px;
+}
+.member-profile-screen .member-profile-compose small{color:#94899d;align-self:flex-end}
+.member-profile-screen .member-profile-page{scrollbar-color:#e8dff1 transparent}
