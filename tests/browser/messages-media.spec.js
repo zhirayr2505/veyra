@@ -8,6 +8,26 @@ test('Messages Media: actual recording, playback, photos, stickers and durable r
  const a=await browser.newPage({viewport:{width:390,height:844}}),b=await browser.newPage({viewport:{width:390,height:844}}),errors=[];a.on('pageerror',e=>errors.push(e.message));b.on('pageerror',e=>errors.push(e.message));await login(a,401);await login(b,402);
  // Permission denial is simulated; recording itself uses the browser MediaRecorder and fake microphone.
  await a.evaluate(()=>{window.originalGUM=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('denied','NotAllowedError');};});await button(a,'Записать голосовое').click();await expect(a.locator('.mm-mic-permission')).toBeVisible();await button(a,'Понятно').click();await a.evaluate(()=>navigator.mediaDevices.getUserMedia=window.originalGUM);
+ // Android Telegram may dispatch pointercancel while its permission sheet is open.
+ // Resolving getUserMedia afterward must still enter an editable locked recording.
+ await a.evaluate(()=>{
+  const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+  navigator.mediaDevices.getUserMedia=()=>new Promise((resolve,reject)=>{
+   window.releaseMicrophonePermission=()=>{
+    navigator.mediaDevices.getUserMedia=original;
+    original({audio:true}).then(resolve,reject);
+   };
+  });
+ });
+ let permissionPoint=await micDown(a);
+ await a.evaluate(()=>{
+  window.dispatchEvent(new PointerEvent('pointercancel',{pointerId:1,bubbles:true}));
+  window.releaseMicrophonePermission();
+ });
+ await a.mouse.up();
+ await expect(button(a,'Пауза записи')).toBeVisible();
+ await button(a,'Удалить запись').click();
+ await expect(a.locator('.mm-recording')).toHaveCount(0);
  let p=await micDown(a);await a.waitForTimeout(750);await a.mouse.move(p.x-110,p.y,{steps:5});await a.mouse.up();await expect(a.locator('.mm-recording')).toHaveCount(0);await expect(a.locator('.kind-voice')).toHaveCount(0);
  p=await micDown(a);await a.waitForTimeout(650);await a.mouse.move(p.x,p.y-95,{steps:5});await a.mouse.up();await expect(button(a,'Пауза записи')).toBeVisible();await a.waitForTimeout(1300);await button(a,'Пауза записи').click();await expect(button(a,'Продолжить запись')).toBeVisible();await a.screenshot({path:info.outputPath('media-recording.png')});await button(a,'Продолжить запись').click();await a.waitForTimeout(1600);await button(a,'Отправить голосовое').click();await expect(b.locator('.kind-voice')).toHaveCount(1,{timeout:15000});
  // Receiver plays the normalized stored file, not the sender's local recording.

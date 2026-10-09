@@ -1,6 +1,6 @@
 import React,{useState,useEffect,useCallback,useRef,createContext,useContext,useLayoutEffect} from 'react';
 import {createRoot} from 'react-dom/client';
-import {createPortal} from 'react-dom';
+import {createPortal,flushSync} from 'react-dom';
 import {Heart,Flame,CalendarDays,MessageCircle,UserRound,SlidersHorizontal,ChevronLeft,ChevronRight,X,Star,Zap,Crown,MapPin,ShieldCheck,ArrowUpRight,Send,MoreHorizontal,Settings as SettingsIcon,Check,Plus,LoaderCircle,Gift,Globe,LogOut,Flag,Trash2,Lock,Search,Download,CheckCircle2,Sparkles,Coffee,Sun,Moon,Sunset,Smile,Image as ImageIcon,Pause,Play,ChevronDown,ArrowRight,Infinity as InfinityIcon,EyeOff,BadgeCheck,Compass,Music,Plane,Dumbbell,Film,PawPrint,RotateCcw} from 'lucide-react';
 import {api,post,setSession,download} from './api';
 import {en,errors} from './i18n';
@@ -52,7 +52,7 @@ function Sheet({title,children,onClose,className=''}){
 }
 
 function App(){
- const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_code?.startsWith('ru')?'ru':'en');const[auth,setAuth]=useState('loading');const[authAttempt,setAuthAttempt]=useState(0);const[me,setMe]=useState(null);const[tab,setTab]=useState('feed');const[page,setPage]=useState(null);const[toast,setToast]=useState('');const[modal,setModal]=useState(null);const[busy,setBusy]=useState(false);const[openChatId,setOpenChatId]=useState(null);const[profileView,setProfileView]=useState(null);const[chatOpen,setChatOpen]=useState(false);const[badges,setBadges]=useState({likes:0,chats:0});const[feedFilters,setFeedFilters]=useState(false);
+ const[lang,setLang]=useState(tg?.initDataUnsafe?.user?.language_code?.startsWith('ru')?'ru':'en');const[auth,setAuth]=useState('loading');const[authAttempt,setAuthAttempt]=useState(0);const[me,setMe]=useState(null);const[tab,setTab]=useState('feed');const[page,setPage]=useState(null);const[toast,setToast]=useState('');const[modal,setModal]=useState(null);const[busy,setBusy]=useState(false);const[openChatId,setOpenChatId]=useState(null);const[profileView,setProfileView]=useState(null);const[chatOpen,setChatOpen]=useState(false);const[badges,setBadges]=useState({likes:0,chats:0});const[feedFilters,setFeedFilters]=useState(false);const[tabSlide,setTabSlide]=useState('');const transitionRef=useRef(null);
  const t=useCallback(s=>lang==='en'?(en[s]||s):s,[lang]);const refresh=useCallback(async()=>{const m=await api('/me');setMe(m);setLang(m.user.language);return m;},[]);
  const alert=useCallback(s=>setToast(s),[]);useEffect(()=>{if(toast){const timer=setTimeout(()=>setToast(''),4800);return()=>clearTimeout(timer);}},[toast]);
  const run=useCallback(async fn=>{setBusy(true);try{return await fn();}catch(e){alert(lang==='ru'?(errors[e.message]||e.message):(e.message.replaceAll('_',' ').toLowerCase()));}finally{setBusy(false);}},[lang,alert]);
@@ -60,11 +60,42 @@ function App(){
  useEffect(()=>{if(isAdmin||auth!=='ok'||me?.profile?.moderation!=='approved')return;let alive=true;const poll=()=>{if(document.hidden)return;Promise.all([api('/likes'),api('/matches')]).then(([likes,matches])=>{if(alive)setBadges({likes:likes.count,chats:matches.reduce((sum,m)=>sum+m.unread,0)});}).catch(()=>{});};poll();const timer=setInterval(poll,30000);return()=>{alive=false;clearInterval(timer);};},[auth,me?.profile?.moderation,tab]);
  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});},[page,tab]);
  useEffect(()=>{const viewport=window.visualViewport;const resize=()=>document.documentElement.style.setProperty('--visual-height',`${viewport?.height||window.innerHeight}px`);resize();viewport?.addEventListener('resize',resize);return()=>viewport?.removeEventListener('resize',resize);},[]);
- const switchTab=value=>{setTab(value);setChatOpen(false);setOpenChatId(null);tg?.HapticFeedback?.selectionChanged?.();};
+ const switchTab=value=>{
+  if(value===tab&&!page)return;
+  const order=['feed','today','likes','chats','profile'];
+  const from=order.indexOf(tab),to=order.indexOf(value);
+  const direction=from>=0&&to>=0&&to!==from?(to>from?'left':'right'):'';
+  const animate=!!(direction&&!page&&!chatOpen&&me?.profile?.moderation==='approved');
+  const commit=()=>{setTabSlide(animate?direction:'');setTab(value);setChatOpen(false);setOpenChatId(null);};
+  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if(animate&&!reducedMotion&&typeof document.startViewTransition==='function'&&!transitionRef.current){
+   document.documentElement.dataset.veyraTabDirection=direction;
+   document.documentElement.dataset.veyraTabNative='true';
+   try{
+    const transition=document.startViewTransition(()=>flushSync(commit));
+    transitionRef.current=transition;
+    transition.finished.finally(()=>{
+     if(transitionRef.current===transition){
+      transitionRef.current=null;
+      delete document.documentElement.dataset.veyraTabDirection;
+      delete document.documentElement.dataset.veyraTabNative;
+     }
+    }).catch(()=>{});
+   }catch{
+    delete document.documentElement.dataset.veyraTabDirection;
+    delete document.documentElement.dataset.veyraTabNative;
+    commit();
+   }
+  }else{
+   transitionRef.current?.skipTransition?.();
+   commit();
+  }
+  tg?.HapticFeedback?.selectionChanged?.();
+ };
  const openProfile=(profile,options={})=>setProfileView({profile,...options});
  const approved=me?.profile?.moderation==='approved';const ctx={t,lang,setLang,me,refresh,run,busy,alert,tab,setTab:switchTab,page,setPage,modal,setModal,openChatId,setOpenChatId,setChatOpen,setBadges,feedFilters,setFeedFilters,openProfile,closeProfile:()=>setProfileView(null)};
  const shell=isAdmin?'admin-app':chatOpen?'conversation-app':auth==='ok'&&!page&&tab==='feed'&&approved?'feed-app':'member-app';
- return <Context.Provider value={ctx}><div className={'app '+shell}>
+ return <Context.Provider value={ctx}><div className={'app '+shell+(approved&&!page&&!chatOpen?' tab-ready':'')+(tabSlide?' tab-slide-'+tabSlide:'')} data-tab={tab}>
  {location.pathname==='/legal'?<Legal/>:auth==='loading'?<div className="boot-screen"><Logo large animated/><Loading/></div>:auth==='error'?<section className="boot-screen"><Logo large/><h1>{t('Нет соединения')}</h1><p className="muted">{t('Проверь интернет и попробуй ещё раз.')}</p><Button className="primary" onClick={()=>setAuthAttempt(n=>n+1)}><RotateCcw size={18}/>{t('Попробовать ещё')}</Button></section>:auth!=='ok'?<Welcome/>:isAdmin?<Admin/>:!me?<Loading/>:<>
  {!chatOpen&&<header className={'topbar '+(approved&&!page&&tab==='feed'?'feed-topbar':'')}>
   {approved&&!page&&tab==='feed'&&<div className="feed-counter" aria-label="Super Likes"><VeyraIcon icon={Star} size={16}/><b>{me.user.superlikes||0}</b><button aria-label="Получить Super Likes" onClick={()=>setPage('premium')}><VeyraIcon icon={Plus} size={16}/></button></div>}

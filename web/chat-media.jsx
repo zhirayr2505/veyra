@@ -36,7 +36,7 @@ export function useVoiceRecording({onSend,onPermission,onError}){
    const id=e.pointerId;
    const onMove=event=>{if(event.pointerId===id)move(event);};
    const onUp=event=>{if(event.pointerId===id)release(event);};
-   const onCancel=event=>{if(event.pointerId===id){detachGesture();if(!live.current.locked)stop('cancel');}};
+   const onCancel=event=>{if(event.pointerId!==id)return;detachGesture();if(live.current.phase==='requesting'){if(gesture.current){gesture.current.down=false;gesture.current.locked=true;}update({locked:true});return;}if(!live.current.locked)stop('cancel');};
    window.addEventListener('pointermove',onMove,true);
    window.addEventListener('pointerup',onUp,true);
    window.addEventListener('pointercancel',onCancel,true);
@@ -47,7 +47,7 @@ export function useVoiceRecording({onSend,onPermission,onError}){
    };
   }
   try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}
-  if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){callbacks.current.onPermission('unsupported');return;}
+  if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){detachGesture();gesture.current=null;callbacks.current.onPermission('unsupported');return;}
   const gen=++generation.current;update({phase:'requesting',locked:false,elapsed:0,levels:[]});
   try{
    const source=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
@@ -74,7 +74,7 @@ export function useVoiceRecording({onSend,onPermission,onError}){
  function release(e){const g=gesture.current;if(g?.ended)return;if(g)g.ended=true;detachGesture();if(g){const dx=(e?.clientX??g.x)-g.x,dy=(e?.clientY??g.y)-g.y;if(dy<-65&&Math.abs(dy)>Math.abs(dx)){g.locked=true;update({locked:true});}g.down=false;}if(live.current.locked)return;if(live.current.phase==='requesting'){if(g)g.locked=true;update({locked:true});return;}if(live.current.phase==='recording'){if(duration()<.55){if(g)g.locked=true;update({locked:true});buzz();}else stop('send');}}
  function pause(){if(live.current.phase==='recording'){elapsed.current=duration();rec.current?.pause();update({phase:'paused',elapsed:elapsed.current});}else if(live.current.phase==='paused'){since.current=performance.now();rec.current?.resume();update({phase:'recording'});}buzz();}
  useEffect(()=>()=>{mounted.current=false;generation.current++;detachGesture();clearTimeout(cancelTimer.current);if(rec.current?.state!=='inactive')try{rec.current?.stop();}catch{}cleanup();},[]);
- return {...state,active:state.phase!=='idle',handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
+ return {...state,active:state.phase!=='idle',handlers:{onPointerDown:e=>{if(e.button===0){e.preventDefault();start(e);}},onPointerMove:move,onPointerUp:release,onPointerCancel:()=>{if(live.current.phase==='requesting'){if(gesture.current){gesture.current.down=false;gesture.current.locked=true;}update({locked:true});return;}if(!live.current.locked)stop('cancel');},onKeyDown:e=>{if((e.key==='Enter'||e.key===' ')&&live.current.phase==='idle'){e.preventDefault();start({clientX:0,clientY:0,currentTarget:e.currentTarget});if(gesture.current)gesture.current.down=false;}}},pause,cancel:()=>stop('cancel'),send:()=>stop('send')};
 }
 export function RecordingPanel({voice,L}){return <div className={'mm-recording '+(voice.phase==='cancelled'?'cancelled':'')} role="region" aria-label={L('Запись голосового','Voice recording')}>
  {voice.phase==='cancelled'?<span className="mm-cancelled"><VeyraIcon icon={Trash2} size={19}/>{L('Запись отменена','Recording cancelled')}</span>:<><div className="mm-record-top"><span className={'mm-record-dot '+(voice.phase==='paused'?'paused':'')}/><strong>{voice.phase==='requesting'?L('Доступ к микрофону…','Microphone access…'):clock(voice.elapsed)}</strong><div className="mm-live-wave" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{height:Math.max(3,(voice.levels.slice(-28)[i]||.06)*26)+'px'}}/>)}</div>{voice.locked?<VeyraIcon icon={Lock} size={14}/>:<span className="mm-lock-hint"><VeyraIcon icon={ArrowUp} size={13}/><VeyraIcon icon={Lock} size={13}/></span>}</div>

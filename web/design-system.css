@@ -369,3 +369,46 @@ body{background:var(--v-bg);color:var(--v-text)}
 }
 .app:not(.admin-app) .veyra-runtime-panel .veyra-runtime-hint{margin:6px 0 16px}
 .app:not(.admin-app) .veyra-runtime-panel .button{min-height:44px}
+
+
+/* Direction-aware primary tab navigation. The browser's View Transitions API
+   moves BOTH old and new content. A CSS-only entrance is the WebView fallback. */
+.app.tab-ready:not(.conversation-app)>main>.view-enter{
+ view-transition-name:veyra-tab;
+}
+@keyframes veyra-tab-old-left{to{transform:translateX(-100%);opacity:.88}}
+@keyframes veyra-tab-new-left{from{transform:translateX(100%);opacity:.88}to{transform:translateX(0);opacity:1}}
+@keyframes veyra-tab-old-right{to{transform:translateX(100%);opacity:.88}}
+@keyframes veyra-tab-new-right{from{transform:translateX(-100%);opacity:.88}to{transform:translateX(0);opacity:1}}
+:root[data-veyra-tab-direction="left"]::view-transition-old(veyra-tab){
+ animation:veyra-tab-old-left 280ms var(--v-ease) both;
+}
+:root[data-veyra-tab-direction="left"]::view-transition-new(veyra-tab){
+ animation:veyra-tab-new-left 280ms var(--v-ease) both;
+}
+:root[data-veyra-tab-direction="right"]::view-transition-old(veyra-tab){
+ animation:veyra-tab-old-right 280ms var(--v-ease) both;
+}
+:root[data-veyra-tab-direction="right"]::view-transition-new(veyra-tab){
+ animation:veyra-tab-new-right 280ms var(--v-ease) both;
+}
+@keyframes veyra-tab-enter-left{
+ from{transform:translateX(42%);opacity:.75}to{transform:translateX(0);opacity:1}
+}
+@keyframes veyra-tab-enter-right{
+ from{transform:translateX(-42%);opacity:.75}to{transform:translateX(0);opacity:1}
+}
+@media(prefers-reduced-motion:no-preference){
+ :root:not([data-veyra-tab-native]) .app.tab-ready.tab-slide-left>main>.view-enter{
+  animation:veyra-tab-enter-left 280ms var(--v-ease) both;
+ }
+ :root:not([data-veyra-tab-native]) .app.tab-ready.tab-slide-right>main>.view-enter{
+  animation:veyra-tab-enter-right 280ms var(--v-ease) both;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ :root::view-transition-old(veyra-tab),:root::view-transition-new(veyra-tab){animation:none!important}
+ :root .app.tab-ready>main>.view-enter{view-transition-name:none}
+}
+/* A microphone permission dialog may cause pointercancel in Telegram's Android WebView.
+   The recording hook latches pending requests instead of treating this as rejection. */
