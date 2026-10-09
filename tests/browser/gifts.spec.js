@@ -30,6 +30,22 @@ test('Gifts: chat sends a real gift and recipient sees it in collection',async({
   await b.getByRole('tab',{name:'Коллекция подарков'}).click();
   await expect(b.locator('.vg-collected').filter({hasText:'Искорка'})).toBeVisible({timeout:10000});
   await expect(b.locator('.vg-collected').filter({hasText:'Цвети, VEYRA!'})).toBeVisible();
+  // A matched member can send a PRIVATE courtship offer. The recipient sees
+  // it on a different device without refreshing, but nobody sees it publicly
+  // before consent AND a confirmed Telegram Stars payment.
+  await b.getByRole('tab',{name:'Анкета'}).click();
+  await a.locator('.chat-header .mc-person').click();
+  await expect(a.getByRole('dialog',{name:'Профиль пользователя'})).toBeVisible();
+  await expect(a.locator('.member-profile-inline-actions').getByRole('button',{name:'Перейти в чат'})).toBeVisible();
+  await expect(a.locator('.member-profile-inline-actions').getByRole('button',{name:'Подарить подарок'})).toBeVisible();
+  await expect(a.locator('.member-profile-footer')).toHaveCount(0);
+  await a.getByRole('button',{name:'Стать ухажёром'}).click();
+  await a.getByRole('button',{name:'Отправить предложение'}).click();
+  await expect(a.getByText('Ожидаем согласия.')).toBeVisible({timeout:10000});
+  await expect(b.locator('.vc-inbox-row')).toBeVisible({timeout:23000});
+  await b.locator('.vc-inbox-row').getByRole('button',{name:'Принять'}).click();
+  await expect(a.getByRole('button',{name:/Активировать ухаживание за/})).toBeVisible({timeout:25000});
+  await expect(a.locator('.vc-courtship-public')).toHaveCount(0);
   expect(errors).toEqual([]);
  }finally{await a.close();await b.close();}
 });
