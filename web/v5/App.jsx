@@ -10,6 +10,7 @@ import {Likes} from './Likes.jsx';
 import {Chats,Conversation} from './Chats.jsx';
 import {Premium,GiftPicker,GiftCollection,Filters,OwnProfile,Settings,Ranking,CourtshipInbox,openInvoice} from './Extras.jsx';
 import {Admin} from './Admin.jsx';
+import {ProfileEditor} from './ProfileEditor.jsx';
 const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -52,7 +53,7 @@ export function App(){
  {tab==='feed'&&<Discover onProfile={openMember} onMatch={matchFound} refreshTick={refreshTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>}
  {tab==='likes'&&<Likes onProfile={openMember} onChat={openChat} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/>}
  {tab==='chats'&&<Chats onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/>}
- {tab==='profile'&&<OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onAdmin={()=>location.assign('/admin')}/>}
+ {tab==='profile'&&<OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>location.assign('/admin')}/>}
  </div>
  </>
  }
@@ -62,6 +63,7 @@ export function App(){
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
  {overlay?.type==='filters'&&<Filters profile={me.profile} onClose={exitOverlay} onSave={()=>setRefreshTick(x=>x+1)}/>}
+ {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}
  {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={logout}/>}
  {overlay?.type==='ranking'&&<Ranking onClose={exitOverlay}/>}
  {overlay?.type==='courtship-inbox'&&<CourtshipInbox onClose={exitOverlay}/>}

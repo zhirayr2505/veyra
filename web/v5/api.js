@@ -23,3 +23,10 @@ export async function photoUrl(id){
 }
 export function clearPhotoCache(){for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
 export function photoOrder(ids){return request('/photos/order',{method:'PUT',body:{ids}});}
+
+export async function download(path,filename){
+ const r=await fetch('/api'+path,{headers:{Authorization:'Bearer '+bearer}});
+ if(!r.ok)throw Error('DOWNLOAD_FAILED');
+ const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
