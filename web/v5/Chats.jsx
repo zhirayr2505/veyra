@@ -1,4 +1,4 @@
-import React,{useState,useEffect,useRef} from 'react';
+import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {get,post,patch,request,getBearer} from './api.js';
 import {Header,Icon,Photo,Empty,Button,Spinner,Tabs,InlineAlert,Sheet} from './UI.jsx';
 export function Chats({onOpen,onProfile,refreshTick=0,active=true}){
@@ -21,35 +21,66 @@ function MessagePhoto({matchId,messageId}){
 }
 export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
  const [messages,setMessages]=useState([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[more,setMore]=useState(false),[before,setBefore]=useState(null),[stickerMode,setStickerMode]=useState(false),[stickers,setStickers]=useState([]),[selected,setSelected]=useState(null),[reply,setReply]=useState(null),[typing,setTyping]=useState(false);
- const scroll=useRef(null),first=useRef(true),autoScroll=useRef(true),syncRef=useRef(''),touchRef=useRef(null),input=useRef(null),photoInput=useRef(null),typingAt=useRef(0);
+ const scroll=useRef(null),first=useRef(true),autoScroll=useRef(true),syncRef=useRef(''),syncBusy=useRef(false),syncGeneration=useRef(0),scrollAnchor=useRef(null),touchRef=useRef(null),input=useRef(null),photoInput=useRef(null),typingAt=useRef(0);
  const merge=(existing,incoming)=>{const byId=new Map(existing.map(x=>[x.id,x]));for(const x of incoming){const old=byId.get(x.id);byId.set(x.id,x.deleted?{...old,...x}:({...old,...x}))}return [...byId.values()].sort((a,b)=>a.created_at===b.created_at?a.id.localeCompare(b.id):new Date(a.created_at)-new Date(b.created_at))};
  const fetchPage=async({older=false,initial=false}={})=>{
-  const qs=older&&before?'?before='+encodeURIComponent(before):!initial&&syncRef.current?'?since='+encodeURIComponent(syncRef.current):'';
-  const r=await get('/matches/'+matchId+'/messages'+qs);const rows=r.messages||[];
-  if(!older){const node=scroll.current;if(initial||node&&node.scrollHeight-node.scrollTop-node.clientHeight<120)autoScroll.current=true;}
-  if(older){setMessages(old=>merge(old,rows));setBefore(r.before);setMore(r.has_more)}
-  else {setMessages(old=>initial?rows:merge(old,rows));if(!syncRef.current||initial){setBefore(r.before);setMore(r.has_more)}if(r.sync_version)syncRef.current=String(r.sync_version);setTyping(!!r.typing)}
-  const unread=rows.filter(m=>String(m.sender)!==String(myId)&&!m.read_at&&!m.deleted).map(m=>m.id);
-  if(unread.length)post('/matches/'+matchId+'/read',{ids:unread.slice(0,100)}).catch(()=>{});
+  // Only one incremental sync at a time; a stale response cannot rewind the cursor.
+  if(!older&&syncBusy.current)return;
+  const generation=syncGeneration.current;
+  if(!older)syncBusy.current=true;
+  try{
+   let cursorVersion=initial?'':syncRef.current;
+   let oldest=null,moreHistory=false,typingState=null;
+   const collected=[],unread=[];
+   for(let page=0;page<(older||initial?1:4);page++){
+    const qs=older&&before?'?before='+encodeURIComponent(before):cursorVersion?'?since='+encodeURIComponent(cursorVersion):'';
+    const r=await get('/matches/'+matchId+'/messages'+qs);
+    if(generation!==syncGeneration.current)return;
+    const rows=r.messages||[];
+    collected.push(...rows);
+    if(page===0){oldest=r.before;moreHistory=!!r.has_more;}
+    typingState=!!r.typing;
+    unread.push(...rows.filter(m=>String(m.sender)!==String(myId)&&!m.read_at&&!m.deleted).map(m=>m.id));
+    if(r.sync_version&&(!cursorVersion||BigInt(r.sync_version)>BigInt(cursorVersion)))cursorVersion=String(r.sync_version);
+    if(older||initial||!r.sync_more||!rows.length)break;
+   }
+   if(generation!==syncGeneration.current)return;
+   if(!older){const node=scroll.current;if(initial||node&&node.scrollHeight-node.scrollTop-node.clientHeight<120)autoScroll.current=true;}
+   if(older){setMessages(old=>merge(old,collected));setBefore(oldest);setMore(moreHistory);}
+   else{
+    setMessages(old=>initial?collected:merge(old,collected));
+    if(!syncRef.current||initial){setBefore(oldest);setMore(moreHistory);}
+    if(cursorVersion)syncRef.current=cursorVersion;
+    setTyping(typingState);
+   }
+   if(unread.length){for(let i=0;i<unread.length;i+=100)post('/matches/'+matchId+'/read',{ids:unread.slice(i,i+100)}).catch(()=>{});}
+   setError('');
+  }finally{if(!older&&generation===syncGeneration.current)syncBusy.current=false;}
  };
- useEffect(()=>{let live=true;syncRef.current='';first.current=true;setMessages([]);setBefore(null);setMore(false);
- fetchPage({initial:true}).catch(e=>{if(live)setError(e.message)});
- get('/chat/stickers').then(r=>{if(live)setStickers(r.stickers||[])}).catch(()=>{});
- const poll=()=>{if(live&&!document.hidden)fetchPage().catch(e=>{if(live)setError('Не удалось обновить переписку: '+e.message)})};
- const timer=setInterval(poll,3500);const visible=()=>{if(!document.hidden)poll()};document.addEventListener('visibilitychange',visible);
- return()=>{live=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible)}},[matchId]);
- useEffect(()=>{if(!scroll.current)return;if(first.current||autoScroll.current){scroll.current.scrollTop=scroll.current.scrollHeight;first.current=false;autoScroll.current=false}},[messages.length,messages.at(-1)?.id]);
+ useEffect(()=>{let live=true;++syncGeneration.current;syncBusy.current=false;syncRef.current='';first.current=true;autoScroll.current=true;scrollAnchor.current=null;setMessages([]);setBefore(null);setMore(false);setError('');
+  fetchPage({initial:true}).catch(e=>{if(live)setError('Не удалось загрузить переписку: '+e.message)});
+  get('/chat/stickers').then(r=>{if(live)setStickers(r.stickers||[])}).catch(()=>{});
+  const poll=()=>{if(live&&!document.hidden)fetchPage().catch(e=>{if(live)setError('Не удалось обновить переписку: '+e.message)})};
+  const timer=setInterval(poll,3500);const visible=()=>{if(!document.hidden)poll()};document.addEventListener('visibilitychange',visible);
+  return()=>{live=false;++syncGeneration.current;clearInterval(timer);document.removeEventListener('visibilitychange',visible)};
+ },[matchId]);
+ useLayoutEffect(()=>{
+  if(!scroll.current)return;
+  if(scrollAnchor.current){const {height,top}=scrollAnchor.current;scroll.current.scrollTop=scroll.current.scrollHeight-height+top;scrollAnchor.current=null;return;}
+  if(first.current||autoScroll.current){scroll.current.scrollTop=scroll.current.scrollHeight;first.current=false;autoScroll.current=false;}
+ },[messages.length,messages.at(-1)?.id]);
+
  const send=async e=>{e.preventDefault();if(!body.trim()||busy)return;const txt=body.trim();autoScroll.current=true;setBody('');setBusy(true);setError('');
- try{await post('/matches/'+matchId+'/messages',{kind:'text',body:txt,client_id:crypto.randomUUID(),...(reply?{reply_to:reply.id}:{})});setReply(null);await fetchPage()}catch(e){setBody(txt);setError(e.message)}finally{setBusy(false)}};
- const sendSticker=async st=>{if(busy)return;autoScroll.current=true;setBusy(true);try{await post('/matches/'+matchId+'/messages',{kind:'sticker',sticker_id:st.id,client_id:crypto.randomUUID(),...(reply?{reply_to:reply.id}:{})});setStickerMode(false);setReply(null);await fetchPage()}catch(e){setError(e.message)}finally{setBusy(false)}};
- const sendPhoto=e=>{autoScroll.current=true;const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>12*1024*1024){setError('Фото должно быть JPG, PNG или WEBP до 12 МБ');return;}setBusy(true);setError('');const fd=new FormData();fd.append('kind','image');fd.append('client_id',crypto.randomUUID());fd.append('body','');if(reply)fd.append('reply_to',reply.id);fd.append('file',file);post('/matches/'+matchId+'/media',fd).then(async()=>{setReply(null);await fetchPage()}).catch(e=>setError(e.message)).finally(()=>setBusy(false));};
+ try{const sent=await post('/matches/'+matchId+'/messages',{kind:'text',body:txt,client_id:crypto.randomUUID(),...(reply?{reply_to:reply.id}:{})});if(sent?.id)setMessages(old=>merge(old,[sent]));setReply(null);await fetchPage()}catch(e){setBody(txt);setError(e.message)}finally{setBusy(false)}};
+ const sendSticker=async st=>{if(busy)return;autoScroll.current=true;setBusy(true);try{const sent=await post('/matches/'+matchId+'/messages',{kind:'sticker',sticker_id:st.id,client_id:crypto.randomUUID(),...(reply?{reply_to:reply.id}:{})});if(sent?.id)setMessages(old=>merge(old,[sent]));setStickerMode(false);setReply(null);await fetchPage()}catch(e){setError(e.message)}finally{setBusy(false)}};
+ const sendPhoto=e=>{autoScroll.current=true;const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>12*1024*1024){setError('Фото должно быть JPG, PNG или WEBP до 12 МБ');return;}setBusy(true);setError('');const fd=new FormData();fd.append('kind','image');fd.append('client_id',crypto.randomUUID());fd.append('body','');if(reply)fd.append('reply_to',reply.id);fd.append('file',file);post('/matches/'+matchId+'/media',fd).then(async sent=>{if(sent?.id)setMessages(old=>merge(old,[sent]));setReply(null);await fetchPage()}).catch(e=>setError(e.message)).finally(()=>setBusy(false));};
  const onTyping=e=>{setBody(e.target.value);const time=Date.now();if(e.target.value&&time-typingAt.current>4500){typingAt.current=time;post('/matches/'+matchId+'/typing',{typing:true}).catch(()=>{})}};
  const menu=(m)=>setSelected(m);
  const edit=async()=>{const text=window.prompt('Редактировать сообщение',selected.body)||'';if(!text.trim())return;try{await patch('/matches/'+matchId+'/messages/'+selected.id,{body:text});await fetchPage()}catch(e){setError(e.message)}setSelected(null)};
  const del=async(scope)=>{if(scope==='everyone'&&!window.confirm('Удалить сообщение у обоих?'))return;try{await request('/matches/'+matchId+'/messages/'+selected.id,{method:'DELETE',body:{scope}});await fetchPage()}catch(e){setError(e.message)}setSelected(null)};
- const older=async()=>{if(!more||!before)return;const node=scroll.current,h=node?.scrollHeight;try{await fetchPage({older:true});requestAnimationFrame(()=>{if(node)node.scrollTop=node.scrollHeight-h})}catch(e){setError(e.message)}};
+ const older=async()=>{if(!more||!before)return;const node=scroll.current;scrollAnchor.current=node?{height:node.scrollHeight,top:node.scrollTop}:null;try{await fetchPage({older:true})}catch(e){scrollAnchor.current=null;setError(e.message)}};
  return <div className="conversation"><div className="conversation-head"><button onClick={onBack} aria-label="Назад" className="quiet"><Icon name="back"/></button><button className="chat-user" onClick={()=>onProfile(partner?.id,matchId)}><Photo id={partner?.photos?.[0]} className="mini-avatar"/><span><b>{partner?.name||'мэтч'}</b><small>{typing?'печатает...':partner?.online?'в сети':'общайтесь с уважением'}</small></span></button><button className="quiet" title="Подарок" onClick={()=>onGift(partner)}><Icon name="gift" tone="pink"/></button></div>
- <div className="message-stream" ref={scroll}>{more&&<button className="history-more" onClick={older}>загрузить предыдущие сообщения</button>}{messages.map(m=><div key={m.id} className={'bubble '+(String(m.sender)===String(myId)?'mine':'theirs')} onContextMenu={e=>{e.preventDefault();menu(m)}} onTouchStart={()=>{touchRef.current=setTimeout(()=>menu(m),600)}} onTouchEnd={()=>clearTimeout(touchRef.current)} onTouchMove={()=>clearTimeout(touchRef.current)}>
+ <div className="message-stream" ref={scroll} role="log" aria-live="polite" aria-relevant="additions">{more&&<button className="history-more" onClick={older}>загрузить предыдущие сообщения</button>}{messages.map(m=><div key={m.id} className={'bubble '+(String(m.sender)===String(myId)?'mine':'theirs')} onContextMenu={e=>{e.preventDefault();menu(m)}} onTouchStart={()=>{touchRef.current=setTimeout(()=>menu(m),600)}} onTouchEnd={()=>clearTimeout(touchRef.current)} onTouchMove={()=>clearTimeout(touchRef.current)}>
  {m.deleted?<em>сообщение удалено</em>:<>{m.reply&&<div className="quoted-msg">↪ {m.reply.body||'фото или стикер'}</div>}{m.kind==='image'&&<MessagePhoto matchId={matchId} messageId={m.id}/>}
  {m.kind==='sticker'&&<img className="message-sticker" alt="Стикер" src={stickers.find(s=>s.id===m.sticker_id)?.src||''}/>}
  {m.body&&<span>{m.body}</span>}

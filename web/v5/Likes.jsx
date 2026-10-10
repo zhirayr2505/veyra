@@ -1,9 +1,9 @@
 import React,{useEffect,useState} from 'react';
 import {get} from './api.js';
 import {Header,Photo,Button,Tabs,Icon,Empty,Spinner} from './UI.jsx';
-export function Likes({onProfile,onChat,onPremium,refreshTick=0}){
+export function Likes({onProfile,onChat,onPremium,refreshTick=0,active=true}){
  const [tab,setTab]=useState('new'),[matches,setMatches]=useState([]),[incoming,setIncoming]=useState(null),[busy,setBusy]=useState(true),[error,setError]=useState('');
- useEffect(()=>{let live=true;const load=()=>Promise.all([get('/matches'),get('/likes')]).then(([m,l])=>{if(live){setMatches(m);setIncoming(l);setError('')}}).catch(e=>{if(live)setError('Не удалось обновить симпатии: '+e.message)}).finally(()=>{if(live)setBusy(false)});setBusy(true);load();const timer=setInterval(()=>{if(!document.hidden)load()},18000);const visible=()=>{if(!document.hidden)load()};document.addEventListener('visibilitychange',visible);return()=>{live=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible)}},[refreshTick]);
+ useEffect(()=>{if(!active)return;let live=true;const load=()=>Promise.all([get('/matches'),get('/likes')]).then(([m,l])=>{if(live){setMatches(m);setIncoming(l);setError('')}}).catch(e=>{if(live)setError('Не удалось обновить симпатии: '+e.message)}).finally(()=>{if(live)setBusy(false)});setBusy(true);load();const timer=setInterval(()=>{if(!document.hidden)load()},18000);const visible=()=>{if(!document.hidden)load()};document.addEventListener('visibilitychange',visible);return()=>{live=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible)}},[refreshTick,active]);
  const list=tab==='incoming'?(incoming?.profiles||[]):tab==='new'?matches.filter(m=>Date.now()-new Date(m.created_at).getTime()<48*3600000):matches;
  return <div className="page likes"><div className="title-line"><strong>симпатии</strong><Header side={<button className="quiet" onClick={onPremium}><Icon name="filters"/></button>}/></div><Tabs items={ [['new','новые'],['matches','мэтчи'],['incoming','входящие']] } value={tab} onChange={setTab}/>
  {error&&<div className="alert" role="alert">{error}</div>}
