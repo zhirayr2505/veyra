@@ -11,22 +11,24 @@ import {Chats,Conversation} from './Chats.jsx';
 import {Premium,GiftPicker,GiftCollection,Filters,OwnProfile,Settings,Ranking,CourtshipInbox,openInvoice} from './Extras.jsx';
 import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
+import {DeletedScreen} from './DeletedScreen.jsx';
+import {preloadBrandAssets,registerBrandWorker} from './preload.js';
 const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
- const [initializing,setInitializing]=useState(true),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState('');
+ const [initializing,setInitializing]=useState(true),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState(''),[deleted,setDeleted]=useState(false);
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
  const exitOverlay=()=>setOverlay(null);
- useEffect(()=>{let alive=true;(async()=>{try{
+ useEffect(()=>{let alive=true;registerBrandWorker();const warming=preloadBrandAssets();(async()=>{try{
   tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#fffdf8');tg?.setBackgroundColor?.('#fffdf8');
   if(!tg?.initData)throw Error('Открой VEYRA через официальный Telegram-бот @VeyraAppBot');
   const auth=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,scope:admin?'admin':'user'})});
   const j=await auth.json();if(!auth.ok)throw Error(j.error||'Не удалось войти через Telegram');
-  setBearer(j.token);const m=await get('/me');if(alive){setMe(m);setError('')}
+  setBearer(j.token);const m=await get('/me');await Promise.race([warming,new Promise(resolve=>setTimeout(resolve,3500))]);if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false}},[]);
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
   const active=!!(match||overlay||member||conversation);
@@ -34,7 +36,7 @@ export function App(){
   const goBack=()=>{if(match){setMatch(null);return;}if(overlay){setOverlay(null);return;}if(member){setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}return;}if(conversation)setConversation(null)};
   back.show?.();back.onClick(goBack);return()=>{back.offClick?.(goBack);back.hide?.()};
  },[match,overlay,member,conversation,returnChat]);
- const logout=async()=>{await post('/logout',{}).catch(()=>{});setBearer('');clearPhotoCache();setMe(null);setError('Открой VEYRA через официальный Telegram-бот');};
+ const accountDeleted=()=>{if(me?.user?.id)localStorage.removeItem('veyra.registration.v5.'+String(me.user.id));setBearer('');clearPhotoCache();setOverlay(null);setMember(null);setConversation(null);setMe(null);setError('');setDeleted(true)};
  const navigate=next=>{setError('');setMember(null);setConversation(null);setReturnChat(null);setOverlay(null);setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
  const openMember=(id,matchId=null)=>{if(!id)return;setError('');setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
  const openChat=async(id,person)=>{if(!id){setError('Чат пока недоступен');return;}setError('');setReturnChat(null);setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);if(!m?.profile)throw Error('Переписка больше недоступна');setConversation({id,partner:m.profile})}catch(e){setError(e.message)}};
@@ -44,6 +46,7 @@ export function App(){
  const status=me?.profile?.moderation;
  const ready=!!me?.profile&&status==='approved';
  if(initializing)return <div className="splash" aria-label="VEYRA загружается"><Logo width={206}/><div className="splash-progress"><span/></div></div>;
+ if(deleted)return <DeletedScreen onClose={()=>{if(tg?.close)tg.close();else window.location.assign('https://t.me/VeyraAppBot')}}/>;
  if(error&&!me)return <main className="access"><Logo width={188}/><h2>встретимся в Telegram</h2><p>{error}</p><Button onClick={()=>window.open('https://t.me/VeyraAppBot','_blank')}>открыть @VeyraAppBot</Button><button className="text-link" onClick={()=>location.reload()}>повторить</button></main>;
  if(adminMode)return <Admin onExit={()=>admin?location.assign('/'):setAdminMode(false)}/>;
  if(!ready&&(!me?.profile||status==='draft'||status==='rejected')){
@@ -57,7 +60,7 @@ export function App(){
  <div className="view-tab" hidden={tab!=='feed'}><Discover onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
  {visited.has('likes')&&<div className="view-tab" hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
- {visited.has('profile')&&<div className="view-tab" hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
+ {visited.has('profile')&&<div className="view-tab" hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onTestProfiles={async()=>{try{const r=await post('/owner/test-profiles/seed',{});setFeedTick(x=>x+1);setError('Тестовые анкеты готовы: '+r.count)}catch(e){setError('Ошибка создания тестовых анкет: '+e.message)}}} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
  </div>
  {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
@@ -68,7 +71,7 @@ export function App(){
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
  {overlay?.type==='filters'&&<Filters profile={me.profile} onClose={exitOverlay} onSave={()=>{setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
  {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}
- {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={logout}/>}
+ {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={accountDeleted}/>}
  {overlay?.type==='ranking'&&<Ranking onClose={exitOverlay}/>}
  {overlay?.type==='courtship-inbox'&&<CourtshipInbox onClose={exitOverlay}/>}
  {overlay?.type==='courtship-sent'&&<Sheet title="ухаживание" onClose={exitOverlay}><p className="tip">Предложение отправлено. Публичный статус и оплата появятся только после согласия получателя.</p><Button className="full" onClick={exitOverlay}>понятно</Button></Sheet>}

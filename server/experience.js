@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
-import {fail,premium} from './core.js';
+import {fail,premium,ownerMode} from './core.js';
 import {z,parse,id,uuid,short} from './validation.js';
 import {approved,ensurePair,pairLock,publicProfile,audit,notify} from './domain.js';
 
@@ -83,10 +83,10 @@ export function experienceRoutes(app,{db,rate,env}){
  app.post('/api/boost',async(req,res)=>{
   const result=await db.tx(async q=>{
    await approved(q,req.user.id);const u=await one(q,'SELECT * FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
-   if(new Date(u.boost_until)>new Date())fail(409,'BOOST_ACTIVE');
+   if(new Date(u.boost_until)>new Date()&&!ownerMode(u))fail(409,'BOOST_ACTIVE');
    const weekly=premium(u)&&(!u.weekly_boost_at||Date.now()-new Date(u.weekly_boost_at).getTime()>=7*86400000);
-   if(!weekly&&u.boosts<1)fail(402,'BOOST_REQUIRED');const stats=await profileStats(q,u.id);
-   const r=await one(q,"UPDATE users SET boost_until=now()+interval '30 minutes',boosts=boosts-$2,weekly_boost_at=CASE WHEN $3 THEN now() ELSE weekly_boost_at END WHERE id=$1 RETURNING boost_until",[u.id,weekly?0:1,weekly]);
+   if(!weekly&&u.boosts<1&&!ownerMode(u))fail(402,'BOOST_REQUIRED');const stats=await profileStats(q,u.id);
+   const r=await one(q,"UPDATE users SET boost_until=now()+interval '30 minutes',boosts=boosts-$2,weekly_boost_at=CASE WHEN $3 THEN now() ELSE weekly_boost_at END WHERE id=$1 RETURNING boost_until",[u.id,ownerMode(u)||weekly?0:1,weekly]);
    await q.query('INSERT INTO boost_runs(id,user_id,ends_at,source,views_before,likes_before) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),u.id,r.boost_until,weekly?'weekly':'credit',stats.views,stats.likes]);await audit(q,u.id,'boost.started',u.id,{source:weekly?'weekly':'credit'});return {ok:true,until:r.boost_until};
   });res.json(result);
  });

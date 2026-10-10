@@ -1,8 +1,15 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {photoUrl,cachedPhoto} from './api.js';
+import {Heart,MessageCircle,User,Gift,Camera,ArrowLeft,X,Crown,SlidersHorizontal,Send,ShieldCheck,Star,Undo2,Search,Settings,Plus,MoreHorizontal,MapPin,Sparkles,Layers,Check} from 'lucide-react';
 const base='/assets/veyra/';
 export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="veyra" src={base+'00_brand/veyra_logo.svg'}/>;}
-export function Icon({name,tone='dark',size=24}){return <img className="kit-icon" draggable="false" src={base+'01_icons/svg/'+tone+'/'+name+'.svg'} width={size} height={size} alt="" aria-hidden="true"/>;}
+const FALLBACKS={heart:Heart,heart_filled:Heart,chat:MessageCircle,chat_filled:MessageCircle,user:User,user_filled:User,gift:Gift,camera:Camera,back:ArrowLeft,close:X,crown:Crown,filters:SlidersHorizontal,send:Send,shield_check:ShieldCheck,star:Star,undo:Undo2,search:Search,settings:Settings,plus:Plus,more:MoreHorizontal,pin:MapPin,sparkle:Sparkles,cards:Layers,check:Check,verified:ShieldCheck};
+export function Icon({name,tone='dark',size=24}){
+ const [broken,setBroken]=useState(false);
+ useEffect(()=>setBroken(false),[name,tone]);
+ if(broken){const F=FALLBACKS[name]||Heart;return <F size={size} aria-hidden="true" color={tone==='white'?'#fff':tone==='pink'?'#ff126b':'#191d39'}/>}
+ return <img className="kit-icon" draggable="false" onError={()=>setBroken(true)} src={base+'01_icons/svg/'+tone+'/'+name+'.svg'} width={size} height={size} alt="" aria-hidden="true"/>;
+}
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
 export function Photo({id,className='',onClick,alt=''}){const element=useRef(null),[state,set]=useState(()=>({id,url:cachedPhoto(id),error:false}));
  useEffect(()=>{let live=true;const cached=cachedPhoto(id);set({id,url:cached,error:false});if(!id||cached)return;
