@@ -49,16 +49,17 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
  useEffect(()=>{
   if(!active||loadedKey.current===requestKey)return;
   loadedKey.current=requestKey;
-  let alive=true;const number=++requestNumber.current;
+  let alive=true,completed=false;const number=++requestNumber.current;
   setLoading(true);setError('');setPeople([]);setHasMore(false);setInterest('');
   get(queryFor(kind,filters,choice)).then(result=>{
    if(!alive||number!==requestNumber.current)return;
+   completed=true;
    const list=result.profiles||[];
    setPeople(list);setLimited(!!result.limited);
    setHasMore(list.length===PAGE_SIZE&&!result.limited);
   }).catch(e=>{if(alive&&number===requestNumber.current){loadedKey.current=null;setError('Не удалось загрузить анкеты: '+e.message)}})
    .finally(()=>{if(alive&&number===requestNumber.current)setLoading(false)});
-  return()=>{alive=false};
+  return()=>{alive=false;if(!completed&&loadedKey.current===requestKey)loadedKey.current=null};
  },[active,requestKey,choice,kind,filters]);
  const interestGroups=useMemo(()=>{
   const own=new Set((profile?.interests||[]).map(x=>String(x).toLowerCase()));
@@ -144,13 +145,13 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
 }
 export function DiscoveryHub({filters,profile,onProfile,onMatch,onPremium,onFilters,refreshTick=0}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed']));
- const [refresh,setRefresh]=useState(0),[reactionRefresh,setReactionRefresh]=useState(0);
+ const [refresh,setRefresh]=useState({feed:0,for_you:0,nearby:0}),[reactionRefresh,setReactionRefresh]=useState(0);
  const switchTab=next=>{feedback();setTab(next);setVisited(prev=>new Set([...prev,next]));};
  return <section className="vx-hub" aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
    <img className="vx-logo" src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA"/>
    <div className="vx-head-actions">
-    <button type="button" aria-label="Обновить подборку" title="Обновить подборку" onClick={()=>{feedback();setRefresh(v=>v+1)}}><RefreshCw size={20}/></button>
+    <button type="button" aria-label="Обновить подборку" title="Обновить подборку" onClick={()=>{feedback();setRefresh(v=>({...v,[tab]:v[tab]+1}))}}><RefreshCw size={20}/></button>
     <button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><SlidersHorizontal size={22}/></button>
    </div>
   </header>
@@ -160,13 +161,13 @@ export function DiscoveryHub({filters,profile,onProfile,onMatch,onPremium,onFilt
   </div>
   <div id="vx-panel-feed" className="vx-panel" role="tabpanel" aria-labelledby="vx-tab-feed" hidden={tab!=='feed'}>
    <Discover embedded filters={filters} onProfile={onProfile} onMatch={onMatch}
-    onPremium={onPremium} onFilters={onFilters} refreshTick={refreshTick+refresh+reactionRefresh}/>
+    onPremium={onPremium} onFilters={onFilters} refreshTick={refreshTick+refresh.feed+(tab==='feed'?reactionRefresh:0)}/>
   </div>
   {['for_you','nearby'].map(kind=>visited.has(kind)&&<div key={kind} id={'vx-panel-'+kind} className="vx-panel" role="tabpanel"
     aria-labelledby={'vx-tab-'+kind} hidden={tab!==kind}>
     <BrowseScene kind={kind} active={tab===kind} profile={profile} filters={filters} onProfile={onProfile}
      onMatch={onMatch} onPremium={onPremium} onFilters={onFilters}
-     onReaction={()=>setReactionRefresh(x=>x+1)} refreshTick={refresh+refreshTick}/>
+     onReaction={()=>setReactionRefresh(x=>x+1)} refreshTick={refresh[kind]+refreshTick}/>
    </div>)}
  </section>;
 }
