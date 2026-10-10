@@ -1,10 +1,10 @@
 import React,{useEffect,useState} from 'react';
-import {photoUrl} from './api.js';
+import {photoUrl,cachedPhoto} from './api.js';
 const base='/assets/veyra/';
 export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="veyra" src={base+'00_brand/veyra_logo.svg'}/>;}
 export function Icon({name,tone='dark',size=24}){return <img className="kit-icon" draggable="false" src={base+'01_icons/svg/'+tone+'/'+name+'.svg'} width={size} height={size} alt="" aria-hidden="true"/>;}
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
-export function Photo({id,className='',onClick,alt=''}){const[url,set]=useState('');useEffect(()=>{let ok=true;set('');photoUrl(id).then(x=>{if(ok)set(x)}).catch(()=>{});return()=>{ok=false}},[id]);return <div className={'photo-box '+className} onClick={onClick}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;}
+export function Photo({id,className='',onClick,alt=''}){const[url,set]=useState(()=>cachedPhoto(id));useEffect(()=>{let ok=true;set(cachedPhoto(id));photoUrl(id).then(x=>{if(ok)set(x)}).catch(()=>{});return()=>{ok=false}},[id]);return <div className={'photo-box '+className} onClick={onClick}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;}
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
 export function Empty({title,body,action}){return <section className="empty"><span className="empty-heart">♡</span><h3>{title}</h3><p>{body}</p>{action}</section>}
 export function Spinner(){return <span className="spinner" role="status" aria-label="Загрузка"/>;}
