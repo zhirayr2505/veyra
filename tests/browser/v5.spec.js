@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {initData,env} from '../helpers.js';
+import sharp from 'sharp';
 async function telegram(page,id,admin=false){
  await page.route('https://telegram.org/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:''}));
  await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){},openInvoice(){}}};},initData(id,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN));
@@ -28,7 +29,7 @@ test('V5 real match chat opens, sends and persists messages',async({page})=>{
  await expect(page.locator('.bubble').first()).toBeVisible();
  const msg='Привет VEYRA '+Date.now();
  await page.getByRole('textbox',{name:'Сообщение'}).fill(msg);
- await page.getByRole('button',{name:'Отправить'}).click();
+ await page.getByRole('button',{name:'Отправить',exact:true}).click();
  await expect(page.locator('.bubble.mine').filter({hasText:msg})).toBeVisible();
 });
 test('V5 new adult starts welcome and underage is blocked client-side',async({page})=>{
@@ -47,4 +48,16 @@ test('V5 admin bot signed auth opens private moderation queue',async({page})=>{
  await expect(page.getByRole('heading',{name:'панель VEYRA'})).toBeVisible();
  await page.getByRole('button',{name:'модерация'}).click();
  await expect(page.locator('.moderation-profile').first()).toBeVisible();
+});
+
+test('V5 real chat accepts authorized photo and kit sticker',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
+ await page.locator('.chat-tile').first().click();
+ const png=await sharp({create:{width:120,height:120,channels:3,background:{r:247,g:120,b:150}}}).png().toBuffer();
+ await page.locator('.conversation input[type=file]').setInputFiles({name:'hello.png',mimeType:'image/png',buffer:png});
+ await expect(page.locator('.bubble.mine .message-image').last()).toBeVisible();
+ await page.getByRole('button',{name:'Стикеры'}).click();
+ await page.locator('.sticker-tray button').first().click();
+ await expect(page.locator('.bubble.mine .message-sticker').last()).toBeVisible();
 });
