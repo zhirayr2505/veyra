@@ -19,6 +19,7 @@ import {StarsProvider,PaymentRegistry,createOrder,finalizeRefund} from './paymen
 import {botRoutes} from './bots.js';
 import {streamArchive,userDetail,usersCSV} from './exports.js';
 import {eraseAccount,reactivateDeleted} from './privacy.js';
+import {seedTestProfiles} from './test-profiles.js';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024,files:1}});
@@ -34,6 +35,7 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  app.use('/api',auth);
  app.use('/api/admin',guardAdmin(env));
  app.use('/api',async(req,res,next)=>{if(!req.path.startsWith('/admin')&&await flag(db,'maintenance'))fail(503,'MAINTENANCE');next();});
+ app.post('/api/owner/test-profiles/seed',async(req,res)=>{if(String(req.user.id)!==String(env.OWNER_TELEGRAM_ID)||!ownerMode(req.user))fail(403,'OWNER_ONLY');await approved(db,req.user.id);await rate('test-seed:'+req.user.id,5,3600);res.json(await seedTestProfiles(db,storage,env));});
  app.get('/api/me',async(req,res)=>{const u=req.user;const p=await one(db,'SELECT * FROM profiles WHERE user_id=$1',[u.id]);res.json({user:{id:u.id,created_at:u.created_at,username:u.username,first_name:u.first_name,language:u.language,premium_until:u.premium_until,boost_until:u.boost_until,superlikes:u.superlikes,prematches:u.prematches,boosts:u.boosts,notifications:u.notifications,invisible:u.invisible,paused:u.paused,referral_code:u.referral_code,admin_role:u.admin_role,owner_test:ownerMode(u)&&String(u.id)===String(env.OWNER_TELEGRAM_ID)},registration:await one(db,'SELECT step,data,updated_at FROM registration_drafts WHERE user_id=$1',[u.id]),profile:p,photos:(await db.query('SELECT id,position FROM photos WHERE user_id=$1 ORDER BY position,created_at',[u.id])).rows,usage:await one(db,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE',[u.id]),today:await one(db,'SELECT * FROM today WHERE user_id=$1 AND expires_at>now()',[u.id])});});
  app.post('/api/logout',async(req,res)=>{await db.query('DELETE FROM sessions WHERE hash=$1',[hash(req.get('Authorization').slice(7))]);res.json({ok:true});});
  registrationRoutes(app,{db,storage,upload,rate});

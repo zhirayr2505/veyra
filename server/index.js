@@ -5,6 +5,7 @@ import {createApp} from './app.js';
 import {storage as makeStorage,telegram,geo} from './integrations.js';
 import {drainOutbox} from './bots.js';
 import {setupBots} from '../scripts/setup-bots.js';
+import {seedTestProfiles} from './test-profiles.js';
 /** @type {Record<string,string>} */
 const env={USER_BOT_USERNAME:'VeyraAppBot',ADMIN_BOT_USERNAME:'VeyraAdminBot',OFFICIAL_CHANNEL_USERNAME:'VeyraDating',...process.env};
 for(const k of ['USER_BOT_TOKEN','ADMIN_BOT_TOKEN','OWNER_TELEGRAM_ID','DATABASE_URL','REDIS_URL','GEOAPIFY_API_KEY','SUPABASE_URL','SUPABASE_SECRET_KEY'])if(!env[k])throw Error('Missing environment variable: '+k);
@@ -18,7 +19,11 @@ console.log(JSON.stringify({event:'registration_v2',reset:registrationReset.stat
 const testProfiles={status:'disabled_for_production'};
 const deps={db,env,redis,storage,tg,geo:p=>geo(env,p),registrationReset,testProfiles};
 if(env.AUTO_SETUP_BOTS==='true')await setupBots(env);
-const app=createApp(deps);const server=app.listen(Number(env.PORT||3000),'0.0.0.0',()=>console.log('VEYRA listening'));
+const app=createApp(deps);
+// Owner-only synthetic QA fixtures are explicitly labelled and never served to real users.
+// Do not block HTTP startup on uploads or reseed when the audit marker is present.
+if(env.NODE_ENV==='production')seedTestProfiles(db,storage,env).then(x=>console.log(JSON.stringify({event:'owner_test_seed',status:x.status,count:x.count}))).catch(()=>console.error('Owner test fixture generation failed'));
+const server=app.listen(Number(env.PORT||3000),'0.0.0.0',()=>console.log('VEYRA listening'));
 let draining=false;const timer=setInterval(async()=>{if(draining)return;draining=true;try{await drainOutbox(deps);}catch{console.error('Outbox retry scheduled');}finally{draining=false;}},5000);timer.unref();
 setInterval(()=>db.query('DELETE FROM sessions WHERE expires_at<now()').catch(()=>{}),3600000).unref();
 async function shutdown(){clearInterval(timer);server.close(async()=>{await redis.quit();await db.close();process.exit(0);});setTimeout(()=>process.exit(1),10000).unref();}process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
