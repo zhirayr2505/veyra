@@ -55,9 +55,9 @@ test('Mobile design audit: capture all primary V5 screens and verify brand icon 
 
 test('Branded goodbye appears after successful deletion and Exit invokes Telegram close',async({page})=>{
  await login(page);
- await page.addInitScript(()=>{window.__veyraClosed=false;const tg=window.Telegram?.WebApp;if(tg)tg.close=()=>{window.__veyraClosed=true}});
  await page.route('**/api/account',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,deleted:true})}));
  await page.goto('/');
+ await page.evaluate(()=>{window.__veyraClosed=false;window.Telegram.WebApp.close=()=>{window.__veyraClosed=true}});
  await expect(page.locator('.bottom-nav')).toBeVisible();
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
