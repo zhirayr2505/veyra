@@ -9,12 +9,24 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0}){
  useEffect(()=>{let live=true;get('/reactions/last').then(x=>{if(live)setLast({...x,target:x.action?.target||null})}).catch(()=>{});return()=>{live=false}},[]);
  const fetchCard=async(nextMode=mode)=>{const seq=++ticket.current;setLoading(true);setCard(null);setError('');setIndex(0);try{const r=await get('/feed?mode='+nextMode);if(seq===ticket.current){setCard(r.profiles?.[0]||null);setLimited(!!r.limited)}}catch(e){if(seq===ticket.current)setError('Не удалось загрузить анкеты: '+e.message)}finally{if(seq===ticket.current)setLoading(false)}};
  useEffect(()=>{fetchCard(mode);return()=>{ticket.current++}},[mode,refreshTick]);
- const react=async kind=>{if(!card||busy)return;setBusy(true);setError('');try{const r=await post('/reactions',{target:String(card.id),kind});setLast(x=>({...x,target:String(card.id),can_undo:!r.matched}));if(r.matched)onMatch(r.match_id,card);await fetchCard()}catch(e){if(e.message.includes('LIMIT')||e.message.includes('REQUIRED'))onPremium();else setError(e.message)}finally{setBusy(false)}};
+ const react=async kind=>{if(!card||busy)return;setBusy(true);setError('');
+ try{
+  const r=await post('/reactions',{target:String(card.id),kind,next_mode:mode});
+  setLast(x=>({...x,target:String(card.id),can_undo:!r.matched}));
+  if(r.next){
+   ++ticket.current;
+   const nextCard=r.next.profiles?.[0]||null;
+   setCard(nextCard);setIndex(0);setLoading(false);setLimited(!!r.next.limited);
+   if(nextCard?.photos?.[0])photoUrl(nextCard.photos[0]).catch(()=>{});
+  }else await fetchCard();
+  if(r.matched)onMatch(r.match_id,card);
+ }catch(e){if(e.message.includes('LIMIT')||e.message.includes('REQUIRED'))onPremium();else setError(e.message)}finally{setBusy(false)}
+};
  const undo=async()=>{if(busy||!last?.can_undo||!last.target)return;setBusy(true);setError('');try{const r=await post('/reactions/undo',{target:String(last.target)});++ticket.current;setLoading(false);setLimited(false);setCard(r.profile);setIndex(0);setLast(x=>({...x,can_undo:false,target:null,free_undo_left:x.premium?x.free_undo_left:Math.max(0,x.free_undo_left-1)}))}catch(e){if(e.message.includes('PREMIUM_REQUIRED'))onPremium();else setError('Не удалось вернуть анкету: '+e.message)}finally{setBusy(false)}};
  let tx=useRef(null);
  return <section className="discover screen">
   <div className="feed-head"><span className="spark-badge"><Icon name="sparkle" tone="pink" size={17}/></span><div className="feed-logo"><img src="/assets/veyra/00_brand/veyra_logo.svg" width="99" alt="veyra"/></div><button className="icon-button" aria-label="Фильтры" onClick={onFilters}><Icon name="filters"/></button></div>
-  <Tabs items={modes} value={mode} onChange={setMode}/>
+  <Tabs items={modes} value={mode} onChange={next=>{if(!busy)setMode(next)}}/>
   <div className="feed-content">
    {loading&&!card?<div className="loading-photo"><Spinner/><span className="loading-caption">подбираем следующую анкету…</span></div>:card?<><div className="feed-photo" onTouchStart={e=>tx.current=e.touches[0]?.clientX} onTouchEnd={e=>{if(tx.current==null)return;const dx=e.changedTouches[0].clientX-tx.current;if(Math.abs(dx)>35)setIndex(i=>Math.max(0,Math.min((card.photos||[]).length-1,i+(dx<0?1:-1))));tx.current=null}}>
    <Photo id={card.photos?.[index]} className="hero-photo" alt={card.name}/>

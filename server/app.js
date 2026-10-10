@@ -49,7 +49,18 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  app.get('/api/geo',async(req,res)=>{await rate('geo:'+req.user.id,20);const p=req.query.q?{text:parse(short(100),req.query.q)}:{lat:parse(z.coerce.number().min(-90).max(90),req.query.lat),lon:parse(z.coerce.number().min(-180).max(180),req.query.lon)};res.json(await geo(p));});
  app.patch('/api/profile/visibility',async(req,res)=>{const b=parse(z.object({paused:z.boolean()}),req.body);await db.query('UPDATE users SET paused=$2 WHERE id=$1',[req.user.id,b.paused]);res.json({ok:true,paused:b.paused});});
  app.get('/api/feed',async(req,res)=>{if(req.query.today==='true'&&!await flag(db,'today'))fail(403,'FEATURE_DISABLED');res.json(await db.tx(async q=>{await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);return recommendations(q,await one(q,'SELECT * FROM users WHERE id=$1',[req.user.id]),req.query.today==='true',req.query.today==='true'?parse(z.coerce.number().int().min(1).max(6),req.query.limit||1):1,parse(z.enum(['discover','nearby','for_you']),req.query.mode||'discover'));}));});
- app.post('/api/reactions',async(req,res)=>{const b=parse(z.object({target:id,kind:z.enum(['pass','like','super']),message:z.string().trim().max(140).optional()}),req.body);res.json(await db.tx(q=>react(q,req.user.id,b.target,b.kind,b.message)));});
+ app.post('/api/reactions',async(req,res)=>{
+  const b=parse(z.object({target:id,kind:z.enum(['pass','like','super']),message:z.string().trim().max(140).optional(),next_mode:z.enum(['discover','nearby','for_you']).optional()}),req.body);
+  // Return the following card as part of the reaction response. A phone no longer
+  // needs to wait for a second /feed roundtrip after each pass or like.
+  res.json(await db.tx(async q=>{
+   const outcome=await react(q,req.user.id,b.target,b.kind,b.message);
+   if(!b.next_mode)return outcome;
+   const current=await one(q,'SELECT * FROM users WHERE id=$1',[req.user.id]);
+   const next=await recommendations(q,current,false,1,b.next_mode);
+   return {...outcome,next};
+  }));
+ });
  app.get('/api/likes',async(req,res)=>{await approved(db,req.user.id);const rows=(await db.query("SELECT r.* FROM reactions r JOIN profiles p ON p.user_id=r.actor JOIN users u ON u.id=r.actor WHERE r.target=$1 AND r.kind<>'pass' AND p.moderation='approved' AND u.status='active' AND NOT u.paused AND NOT EXISTS(SELECT 1 FROM blocks b WHERE (b.actor=$1 AND b.target=r.actor) OR (b.target=$1 AND b.actor=r.actor)) AND NOT EXISTS(SELECT 1 FROM reactions mine WHERE mine.actor=$1 AND mine.target=r.actor AND mine.kind<>'pass') AND NOT EXISTS(SELECT 1 FROM matches m WHERE (m.a=$1 AND m.b=r.actor) OR (m.b=$1 AND m.a=r.actor)) ORDER BY r.created_at DESC LIMIT 100",[req.user.id])).rows;res.json({count:rows.length,locked:!premium(req.user),profiles:premium(req.user)?await Promise.all(rows.map(async r=>({...await publicProfile(db,r.actor),reaction:r.kind,message:r.message}))):[]});});
  app.put('/api/today',async(req,res)=>{await approved(db,req.user.id);if(!await flag(db,'today'))fail(403,'FEATURE_DISABLED');const p=parse(z.object({activity:z.enum(['coffee','walk','dinner','cinema','ride','party','meet']),time_slot:z.enum(['now','evening','after21']),expires_at:z.string().datetime()}),req.body);const delta=new Date(p.expires_at).getTime()-Date.now();if(delta<60000||delta>24*3600000)fail(400,'INVALID_EXPIRY');await db.query('INSERT INTO today(user_id,activity,time_slot,expires_at) VALUES($1,$2,$3,$4) ON CONFLICT(user_id) DO UPDATE SET activity=$2,time_slot=$3,expires_at=$4',[req.user.id,p.activity,p.time_slot,p.expires_at]);res.json({ok:true});});
  app.delete('/api/today',async(req,res)=>{await db.query('DELETE FROM today WHERE user_id=$1',[req.user.id]);res.json({ok:true});});
