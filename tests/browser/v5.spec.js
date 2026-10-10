@@ -70,3 +70,15 @@ test('V5 undo submits actual target and restores the card',async({page})=>{
  await page.getByRole('button',{name:'Отменить последнее действие'}).click();
  await expect(page.locator('.feed-photo .hero-name')).toContainText(name.split(',')[0]);
 });
+
+test('V5 member uses full-screen navigation and returns to the same chat',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
+ await page.locator('.chat-tile').first().click();
+ await expect(page.locator('.conversation')).toBeVisible();
+ await page.locator('.conversation-head .chat-user').click();
+ await expect(page.locator('.member')).toBeVisible();
+ await expect(page.locator('.bottom-nav')).toHaveCount(0);
+ await page.locator('.member .top-header button.back').click();
+ await expect(page.locator('.conversation')).toBeVisible();
+});

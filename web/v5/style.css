@@ -27,3 +27,7 @@
 .ranking-progress{height:8px;border-radius:50px;overflow:hidden;background:#f8dce3}
 .ranking-progress>span{display:block;height:100%;background:linear-gradient(90deg,#ff4158,#ff1373);border-radius:50px;transition:width .3s}
 .ranking-completion p{font-size:11px;line-height:1.5;color:var(--muted);margin:10px 0 0}
+
+/* Member pages take the full screen; never overlay their actions with bottom navigation. */
+.subscreen:has(.member){padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.message-stream{overflow-anchor:none;scrollbar-width:thin}
