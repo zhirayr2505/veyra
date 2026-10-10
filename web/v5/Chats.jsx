@@ -1,10 +1,10 @@
 import React,{useState,useEffect,useRef} from 'react';
 import {get,post} from './api.js';
 import {Header,Icon,Photo,Empty,Button,Spinner,Tabs,InlineAlert} from './UI.jsx';
-export function Chats({onOpen,onProfile,refreshTick=0}){
+export function Chats({onOpen,onProfile,refreshTick=0,active=true}){
  const [list,setList]=useState([]),[tab,setTab]=useState('all'),[q,setQ]=useState(''),[busy,setBusy]=useState(true);
  const load=()=>get('/matches').then(setList).catch(()=>{}).finally(()=>setBusy(false));
- useEffect(()=>{load();const t=setInterval(()=>{if(!document.hidden)load()},14000);return()=>clearInterval(t)},[refreshTick]);
+ useEffect(()=>{load();const t=setInterval(()=>{if(active&&!document.hidden)load()},14000);return()=>clearInterval(t)},[refreshTick]);
  const filtered=list.filter(m=>(tab==='unread'?m.unread>0:true)&&(!q||m.profile?.name?.toLowerCase().includes(q.toLowerCase())));
  return <div className="page chats"><div className="title-line"><h1>чаты</h1><Header/></div><Tabs items={[['all','все'],['matches','мэтчи'],['unread','непрочитанные']]} value={tab} onChange={setTab}/><label className="search-chat"><Icon name="search" size={19}/><input placeholder="поиск" value={q} onChange={e=>setQ(e.target.value)}/></label>
  {busy&&list.length===0?<div className="center-loading"><Spinner/></div>:filtered.length===0?<Empty title="нет переписок" body="Взаимный лайк открывает чат. Общение начинается здесь."/>:

@@ -15,7 +15,8 @@ const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
  const [initializing,setInitializing]=useState(true),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState('');
- const [tab,setTab]=useState('feed'),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0);
+ const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0);
+ const [returnChat,setReturnChat]=useState(null);
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
@@ -28,9 +29,9 @@ export function App(){
   setBearer(j.token);const m=await get('/me');if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false}},[]);
  const logout=async()=>{await post('/logout',{}).catch(()=>{});setBearer('');clearPhotoCache();setMe(null);setError('Открой VEYRA через официальный Telegram-бот');};
- const navigate=next=>{setMember(null);setConversation(null);setOverlay(null);setTab(next);window.scrollTo(0,0)};
- const openMember=(id,matchId=null)=>{setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
- const openChat=async(id,person)=>{setMember(null);setOverlay(null);setTab('chats');if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);setConversation({id,partner:m?.profile})}catch(e){setError(e.message)}};
+ const navigate=next=>{setMember(null);setConversation(null);setOverlay(null);setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
+ const openMember=(id,matchId=null)=>{setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
+ const openChat=async(id,person)=>{setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);setConversation({id,partner:m?.profile})}catch(e){setError(e.message)}};
  const gift=person=>{if(person?.id)setOverlay({type:'gift',target:person})};
  const matchFound=(matchId,profile)=>{setMatch({id:matchId,profile});setRefreshTick(x=>x+1)};
  const courtship=async()=>{if(!member)return;try{const r=await post('/courtships/request',{target:String(member.id)});setOverlay({type:'courtship-sent',status:r.status})}catch(e){setError(e.message)}};
@@ -46,17 +47,14 @@ export function App(){
  if(status==='pending')return <Moderation profile={me.profile} refresh={refresh}/>;
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell">
- {conversation?<Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/>:
- member?<Member id={member.id} initialMatch={member.matchId} onBack={()=>setMember(null)} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/>:
- <>
- <div className="view-frame" key={tab}>
- {tab==='feed'&&<Discover onProfile={openMember} onMatch={matchFound} refreshTick={refreshTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>}
- {tab==='likes'&&<Likes onProfile={openMember} onChat={openChat} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/>}
- {tab==='chats'&&<Chats onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/>}
- {tab==='profile'&&<OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>location.assign('/admin')}/>}
+ <div className="view-frame" hidden={!!conversation||!!member}>
+ <div className="view-tab" hidden={tab!=='feed'}><Discover onProfile={openMember} onMatch={matchFound} refreshTick={refreshTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
+ {visited.has('likes')&&<div className="view-tab" hidden={tab!=='likes'}><Likes onProfile={openMember} onChat={openChat} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
+ {visited.has('chats')&&<div className="view-tab" hidden={tab!=='chats'}><Chats active={tab==='chats'} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
+ {visited.has('profile')&&<div className="view-tab" hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>location.assign('/admin')}/></div>}
  </div>
- </>
- }
+ {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/></div>}
+ {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><Icon name={icon+(tab===k&&['heart','chat','user'].includes(icon)?'_filled':'')} tone={tab===k?'pink':'dark'} size={23}/><span>{label}</span></button>)}</nav>}
  {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle">💜</span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
