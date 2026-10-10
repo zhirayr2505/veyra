@@ -50,16 +50,16 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  app.post('/api/profile/submit',async(req,res)=>{parse(z.object({consent:z.literal(true)}),req.body);await db.tx(async q=>{await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);if((await one(q,'SELECT count(*)::int AS n FROM photos WHERE user_id=$1',[req.user.id])).n<3)fail(400,'PHOTO_REQUIRED');const current=await one(q,'SELECT * FROM profiles WHERE user_id=$1',[req.user.id]);if(!current)fail(400,'PROFILE_REQUIRED');parse(profileSchema,{...current,birth_date:String(current.birth_date instanceof Date?current.birth_date.toISOString():current.birth_date).slice(0,10),consent:true});const p=await one(q,"UPDATE profiles SET moderation='pending',moderation_reason=NULL,accepted_terms_at=now() WHERE user_id=$1 AND moderation IN ('draft','rejected') RETURNING user_id",[req.user.id]);if(!p)fail(409,'ALREADY_SUBMITTED');await q.query('DELETE FROM registration_drafts WHERE user_id=$1',[req.user.id]);await notifyReview(q,env,req.user.id);});res.json({ok:true});});
  app.get('/api/geo',async(req,res)=>{await rate('geo:'+req.user.id,20);const p=req.query.q?{text:parse(short(100),req.query.q),autocomplete:req.query.autocomplete==='true'}:{lat:parse(z.coerce.number().min(-90).max(90),req.query.lat),lon:parse(z.coerce.number().min(-180).max(180),req.query.lon)};res.json(await geo(p));});
  app.patch('/api/profile/visibility',async(req,res)=>{const b=parse(z.object({paused:z.boolean()}),req.body);await db.query('UPDATE users SET paused=$2 WHERE id=$1',[req.user.id,b.paused]);res.json({ok:true,paused:b.paused});});
- app.get('/api/feed',async(req,res)=>{if(req.query.today==='true'&&!await flag(db,'today'))fail(403,'FEATURE_DISABLED');res.json(await db.tx(async q=>{await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);return recommendations(q,await one(q,'SELECT * FROM users WHERE id=$1',[req.user.id]),req.query.today==='true',req.query.today==='true'?parse(z.coerce.number().int().min(1).max(6),req.query.limit||1):1,parse(z.enum(['discover','nearby','for_you']),req.query.mode||'discover'));}));});
+ app.get('/api/feed',async(req,res)=>{if(req.query.today==='true'&&!await flag(db,'today'))fail(403,'FEATURE_DISABLED');res.json(await db.tx(async q=>{await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);return recommendations(q,await one(q,'SELECT * FROM users WHERE id=$1',[req.user.id]),req.query.today==='true',req.query.today==='true'?parse(z.coerce.number().int().min(1).max(6),req.query.limit||1):1,parse(z.enum(['discover','nearby','for_you']),req.query.mode||'discover'),{only_online:req.query.only_online==='true',common_interests:req.query.common_interests==='true'});}));});
  app.post('/api/reactions',async(req,res)=>{
-  const b=parse(z.object({target:id,kind:z.enum(['pass','like','super']),message:z.string().trim().max(140).optional(),next_mode:z.enum(['discover','nearby','for_you']).optional()}),req.body);
+  const b=parse(z.object({target:id,kind:z.enum(['pass','like','super']),message:z.string().trim().max(140).optional(),next_mode:z.enum(['discover','nearby','for_you']).optional(),only_online:z.boolean().optional(),common_interests:z.boolean().optional()}),req.body);
   // Return the following card as part of the reaction response. A phone no longer
   // needs to wait for a second /feed roundtrip after each pass or like.
   res.json(await db.tx(async q=>{
    const outcome=await react(q,req.user.id,b.target,b.kind,b.message);
    if(!b.next_mode)return outcome;
    const current=await one(q,'SELECT * FROM users WHERE id=$1',[req.user.id]);
-   const next=await recommendations(q,current,false,1,b.next_mode);
+   const next=await recommendations(q,current,false,1,b.next_mode,{only_online:b.only_online,common_interests:b.common_interests});
    return {...outcome,next};
   }));
  });

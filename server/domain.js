@@ -29,7 +29,7 @@ export async function publicProfiles(q,ids){
   WHERE p.user_id=ANY($1::bigint[])`,[ids.map(String)])).rows;
  return new Map(rows.map(p=>{p.test_profile=isTestProfile(p.id);if(p.test_profile){p.online=false;p.last_seen=null}p.photos=p.photos||[];return [String(p.id),p]}));
 }
-export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover'){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
+export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover',filters={}){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
@@ -43,11 +43,13 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  AND NOT EXISTS(SELECT 1 FROM reports WHERE (reporter=$1 AND target=p.user_id) OR (target=$1 AND reporter=p.user_id))
  AND NOT EXISTS(SELECT 1 FROM profile_hides WHERE actor=$1 AND target=p.user_id)
  AND ($10='' OR lower(p.city)=lower($10))
+  AND (NOT $11::boolean OR (NOT u.invisible AND u.last_seen>now()-interval '5 minutes'))
+  AND (NOT $12::boolean OR p.interests && $9::text[])
  AND NOT EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=p.user_id)
  AND NOT EXISTS(SELECT 1 FROM matches WHERE (a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id))
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||''])).rows;
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests])).rows;
  const candidates=rows.filter(x=>(process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former

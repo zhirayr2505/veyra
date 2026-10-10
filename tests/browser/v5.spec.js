@@ -228,14 +228,44 @@ test('V5 approved premium feed uses cyclic photo strips and opens the complete p
  const bars=page.locator('.discover .photo-bars button');
  const count=await bars.count();
  expect(count).toBeGreaterThan(0);
+ const before=await page.locator('.feed-photo .hero-name').innerText();
+ let reactionRequests=0;
+ page.on('request',request=>{if(new URL(request.url()).pathname==='/api/reactions')reactionRequests++});
  await bars.last().click();
- await page.getByRole('button',{name:'Следующее фото'}).click();
+ const card=page.locator('.feed-photo');
+ const box=await card.boundingBox();
+ const y=box.y+box.height*.43,x=box.x+box.width*.52;
+ await page.mouse.move(x,y);
+ await page.mouse.down();
+ await page.mouse.move(x-110,y,{steps:7});
+ await page.mouse.up();
  await expect(bars.first()).toHaveClass(/active/);
- await page.getByRole('button',{name:'Предыдущее фото'}).click();
+ await page.mouse.move(x,y);
+ await page.mouse.down();
+ await page.mouse.move(x+105,y,{steps:7});
+ await page.mouse.up();
  await expect(bars.last()).toHaveClass(/active/);
- await page.getByRole('button',{name:'Открыть профиль'}).click();
+ expect(reactionRequests).toBe(0);
+ await expect(page.locator('.feed-photo .hero-name')).toHaveText(before);
+ await page.locator('.feed-photo').click({position:{x:box.width*.5,y:box.height*.42}});
  await expect(page.locator('.member')).toBeVisible();
  await page.locator('.member .top-header button.back').click();
  await expect(page.locator('.feed-photo')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+
+test('VEYRA screenshot filters preserve real feed API parameters',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ const feedUrls=[];
+ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/feed')feedUrls.push(r.url())});
+ await page.getByRole('button',{name:'Фильтры'}).click();
+ await expect(page.getByRole('dialog',{name:'фильтры'})).toBeVisible();
+ await page.getByRole('button',{name:'Рядом'}).click();
+ await page.getByLabel('С общими интересами').check();
+ await page.getByRole('button',{name:'Показать анкеты'}).click();
+ await expect(page.getByRole('dialog',{name:'фильтры'})).toHaveCount(0);
+ await expect.poll(()=>feedUrls.some(url=>url.includes('mode=nearby')&&url.includes('common_interests=true'))).toBe(true);
+ expect(feedUrls.filter(url=>url.includes('mode=nearby')&&url.includes('common_interests=true'))).toHaveLength(1);
 });
