@@ -136,6 +136,14 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.photo-footnote')).toContainText('Загружено 7 из 7',{timeout:45000});
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
  await expect(page.locator('.thumb-order')).toHaveCount(0);
+ const dragged=page.locator('.photo-slot').nth(1),drop=page.locator('.photo-slot').nth(3);
+ const a=await dragged.boundingBox(),b=await drop.boundingBox();
+ await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.waitForTimeout(430);
+ await expect(page.locator('.photo-drag-ghost')).toBeVisible();
+ await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8});
+ await expect(page.locator('.photo-slot.drag-origin')).toHaveCount(1);
+ await page.mouse.up();
+ await expect(page.locator('.photo-drag-ghost')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeVisible();
  await page.getByRole('button',{name:'посмотреть анкету'}).click();
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(7);

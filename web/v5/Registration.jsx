@@ -1,4 +1,4 @@
-import React,{useState,useEffect,useRef} from 'react';
+import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Heart,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder} from './api.js';
 import {Button,Logo,Icon,Photo,InlineAlert,Spinner,Header} from './UI.jsx';
@@ -28,7 +28,7 @@ export function Registration({me,refresh}){
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
- const photoInput=useRef(null),dragRef=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),uploadRunning=useRef(false);
+ const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
@@ -76,26 +76,34 @@ export function Registration({me,refresh}){
  const before=photos,arr=[...photos],moved=arr.splice(from,1)[0];arr.splice(to,0,moved);setPhotos(arr);
  try{await photoOrder(arr.map(p=>p.id))}catch(e){setPhotos(before);fail(e)}
  };
+ const captureDragLayout=()=>new Map(Array.from(document.querySelectorAll('.registration-v7 .photo-slot[data-photo-id]')).map(el=>[el.dataset.photoId,el.getBoundingClientRect()]));
+ useLayoutEffect(()=>{const before=dragLayoutRects.current;if(!before||!dragVisual)return;dragLayoutRects.current=null;
+  for(const el of document.querySelectorAll('.registration-v7 .photo-slot[data-photo-id]')){const previous=before.get(el.dataset.photoId),now=el.getBoundingClientRect();if(!previous)continue;
+   const dx=previous.left-now.left,dy=previous.top-now.top;if(Math.abs(dx)+Math.abs(dy)<2)continue;
+   el.animate?.([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate(0,0)'}],{duration:260,easing:'cubic-bezier(.2,.75,.2,1)'});
+  }
+ },[dragOver]);
  const dragTarget=(x,y)=>{const target=document.elementFromPoint(x,y)?.closest?.('[data-slot-index]');return target?Number(target.dataset.slotIndex):-1};
  const dragStart=(e,i)=>{if(uploading||busy||(e.pointerType==='mouse'&&e.button!==0))return;
   const rect=e.currentTarget.getBoundingClientRect();
-  const state={index:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null};
+  const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null};
   state.timer=setTimeout(()=>{if(dragRef.current!==state)return;state.active=true;state.node.setPointerCapture?.(state.id);setDragVisual({index:i,x:state.x,y:state.y,width:state.width,height:state.height});setDragOver(i);window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()},320);
   dragRef.current=state;
  };
  const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
   if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);dragRef.current=null}return}
-  e.preventDefault();setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null);const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length)setDragOver(old=>{if(old!==target)window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.();return target});
+  e.preventDefault();setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null);const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()}
  };
  const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);dragRef.current=null;
-  if(!s.active)return;e.preventDefault();const target=dragTarget(e.clientX,e.clientY);setDragVisual(null);setDragOver(-1);
+  if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
   if(target>=0&&target<photos.length&&target!==s.index)reorder(s.index,target);
  };
- const dragCancel=()=>{if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current=null;setDragVisual(null);setDragOver(-1)};
+ const dragCancel=()=>{if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current=null;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1)};
  const swipeEnd=e=>{if(swipeX.current==null)return;const delta=e.changedTouches[0].clientX-swipeX.current;swipeX.current=null;if(Math.abs(delta)>45)setPhotoIndex(i=>Math.min(photos.length-1,Math.max(0,i+(delta<0?1:-1))))};
  const remove=i=>work(async()=>{await request('/photos/'+photos[i].id,{method:'DELETE'});setPhotos(old=>old.filter((_,j)=>j!==i));await refresh()});
  const send=()=>work(async()=>{if(photos.length<MIN_PHOTOS)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});localStorage.removeItem(draftKey);await refresh()});
- const display=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
+ const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
+ const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
  if(preview)return <main className="page registration registration-v7 registration-preview">
   <div className="step-top"><button className="quiet" aria-label="Назад к фотографиям" onClick={()=>setPreview(false)}><Icon name="back"/></button><small>так тебя увидят другие</small><span/></div>
@@ -155,7 +163,7 @@ export function Registration({me,refresh}){
     <p className="tip">Фото с настоящим лицом, без чужих людей. Зажми фотографию и перетащи в нужное место.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
-      return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual?.index===i?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} draggable={false}
+      return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
        onContextMenu={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
        onPointerMove={dragMove} onPointerUp={dragFinish} onPointerCancel={dragCancel}
        tabIndex={!loading?0:-1} aria-label={'Фотография '+(i+1)+', перетащи для смены позиции'}
