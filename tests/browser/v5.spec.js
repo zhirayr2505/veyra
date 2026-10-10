@@ -133,3 +133,11 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
  await expect(page.locator('.thumb-order')).toHaveCount(0);
 });
+
+test('V5 server account reset cannot resurrect a stale cached registration step',async({page})=>{
+ await telegram(page,23);
+ await page.addInitScript(()=>{localStorage.setItem('veyra.registration.v5.23',JSON.stringify({step:5,data:{name:'OLD CACHED NAME',city:'OLD CACHED CITY'}}))});
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
+ await expect(page.locator('input[placeholder="Как тебя зовут?"]')).toHaveValue('');
+});
