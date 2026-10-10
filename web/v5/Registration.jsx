@@ -26,7 +26,7 @@ export function Registration({me,refresh}){
  const photoInput=useRef(null),dragFrom=useRef(null),hintTimer=useRef(null),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
- useEffect(()=>{localStorage.removeItem('veyra.registration.v5');const saved=localStorage.getItem(draftKey);if(saved&&!me?.registration){try{const d=JSON.parse(saved);setF(old=>({...old,...d.data}));setStep(Math.min(5,Math.max(1,d.step||1)));if(d.data?.city)setCityEdit(false)}catch{localStorage.removeItem(draftKey)}}return()=>clearTimeout(hintTimer.current)},[draftKey]);
+ useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>clearTimeout(hintTimer.current)},[draftKey]);
  useEffect(()=>{localStorage.setItem(draftKey,JSON.stringify({step,data:f}))},[draftKey,step,f]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);

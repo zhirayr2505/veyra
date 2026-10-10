@@ -136,3 +136,5 @@
 .view-tab:not([hidden])[data-enter="right"]{animation:veyraViewEnterReverse .28s cubic-bezier(.2,.75,.24,1) both}
 @keyframes veyraViewEnterReverse{from{opacity:.45;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){.view-tab:not([hidden])[data-enter="right"]{animation:none}}
+
+.photo-slot:not(.photo-slot-add){touch-action:none}
