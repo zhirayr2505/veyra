@@ -61,3 +61,12 @@ test('V5 real chat accepts authorized photo and kit sticker',async({page})=>{
  await page.locator('.sticker-tray button').first().click();
  await expect(page.locator('.bubble.mine .message-sticker').last()).toBeVisible();
 });
+
+test('V5 undo submits actual target and restores the card',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ const name=await page.locator('.feed-photo .hero-name').innerText();
+ await page.getByRole('button',{name:'Пропустить'}).click();
+ await page.getByRole('button',{name:'Отменить последнее действие'}).click();
+ await expect(page.locator('.feed-photo .hero-name')).toContainText(name.split(',')[0]);
+});

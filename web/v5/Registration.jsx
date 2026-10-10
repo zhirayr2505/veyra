@@ -6,14 +6,15 @@ const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,ma
 const age=b=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return 0;const d=new Date(b+'T00:00:00Z'),n=new Date();if(Number.isNaN(+d))return 0;let y=n.getUTCFullYear()-d.getUTCFullYear();if(n.getUTCMonth()<d.getUTCMonth()||(n.getUTCMonth()===d.getUTCMonth()&&n.getUTCDate()<d.getUTCDate()))y--;return y;};
 export function Registration({me,refresh}){
  const start=me?.registration?.data||{};
+ const draftKey='veyra.registration.v5.'+String(me?.user?.id||'anonymous');
  const [step,setStep]=useState(Math.min(5,Math.max(1,me?.registration?.step||1)));
  const[f,setF]=useState({...empty,...start,...(me?.profile||{}),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
  const[photos,setPhotos]=useState(me?.photos||[]);
  const[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false);
  const photoInput=useRef(null),touch=useRef(null);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
- useEffect(()=>{const draft=localStorage.getItem('veyra.registration.v5');if(draft&&!me?.registration){try{const d=JSON.parse(draft);setF(old=>({...old,...d.data}));setStep(d.step||1)}catch{}}},[]);
- useEffect(()=>{localStorage.setItem('veyra.registration.v5',JSON.stringify({step,data:f}))},[step,f]);
+ useEffect(()=>{localStorage.removeItem('veyra.registration.v5');const draft=localStorage.getItem(draftKey);if(draft&&!me?.registration){try{const d=JSON.parse(draft);setF(old=>({...old,...d.data}));setStep(d.step||1)}catch{localStorage.removeItem(draftKey)}}},[draftKey]);
+ useEffect(()=>{localStorage.setItem(draftKey,JSON.stringify({step,data:f}))},[draftKey,step,f]);
  const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message);
  const work=async fn=>{if(busy)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{if(step===1){if(!f.name.trim()||!f.gender)throw Error('Укажи имя и пол');if(age(f.birth_date)<18||age(f.birth_date)>110)throw Error('VEYRA доступна с 18 лет');}if(step===2&&(!f.city||!f.country||f.lat==null||f.lon==null))throw Error('Выбери город из списка');if(step===3&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>110))throw Error('Проверь предпочтения поиска');};
@@ -23,7 +24,7 @@ export function Registration({me,refresh}){
  const upload=files=>work(async()=>{for(const file of [...files].slice(0,10-photos.length)){if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5e6)throw Error('Фото должно быть JPG, PNG или WEBP не больше 5 МБ');const fd=new FormData();fd.append('photo',file);const added=await post('/photos',fd);setPhotos(old=>[...old,{id:added.id,position:old.length}]);}await refresh()});
  const swap=async(from,to)=>{if(to<0||to>=photos.length)return;const a=[...photos];[a[from],a[to]]=[a[to],a[from]];setPhotos(a);try{await photoOrder(a.map(p=>p.id))}catch(e){setPhotos(photos);fail(e)}};
  const remove=i=>work(async()=>{await request('/photos/'+photos[i].id,{method:'DELETE'});setPhotos(x=>x.filter((_,j)=>j!==i));await refresh()});
- const send=()=>work(async()=>{if(photos.length<3)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});localStorage.removeItem('veyra.registration.v5');await refresh()});
+ const send=()=>work(async()=>{if(photos.length<3)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});localStorage.removeItem(draftKey);await refresh()});
  if(preview)return <div className="page"><Header back={()=>setPreview(false)}/><h1>Твоя анкета</h1><div className="preview-card"><Photo className="preview-photo" id={photos[0]?.id}/><h2>{f.name}, {age(f.birth_date)}</h2><p>{f.city}, {f.country}</p><p>{f.bio}</p><p>{f.interests.join(' · ')}</p></div><Button className="full" onClick={()=>setPreview(false)}>вернуться к фото</Button></div>;
  return <div className="page registration">
   <div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>setStep(Math.max(1,step-1))}><Icon name="back"/></button><small>шаг {step} из 5</small><span/></div>
