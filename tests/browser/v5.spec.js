@@ -24,6 +24,10 @@ test('V5 signed Telegram startup, persistent tabs, and real discovery',async({pa
 test('V5 real match chat opens, sends and persists messages',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
+ await expect(page.locator('.ve-chat-tabs [role=tab]')).toHaveCount(2);
+ await page.locator('.ve-pin-button').first().click();
+ await expect(page.locator('.ve-chat-tile.ve-pinned').first()).toBeVisible();
+ await page.locator('.ve-pin-button.is-pinned').first().click();
  await page.locator('.chat-tile').first().click();
  await expect(page.locator('.conversation')).toBeVisible();
  await expect(page.locator('.bubble').first()).toBeVisible();
@@ -55,6 +59,7 @@ test('V5 real chat accepts authorized photo and kit sticker',async({page})=>{
  const png=await sharp({create:{width:120,height:120,channels:3,background:{r:247,g:120,b:150}}}).png().toBuffer();
  await page.locator('.conversation input[type=file]').setInputFiles({name:'hello.png',mimeType:'image/png',buffer:png});
  await expect(page.locator('.bubble.mine .message-image').last()).toBeVisible();
+ await page.getByRole('button',{name:'Вложения'}).click();
  await page.getByRole('button',{name:'Стикеры'}).click();
  await page.locator('.sticker-tray button').first().click();
  await expect(page.locator('.bubble.mine .message-sticker').last()).toBeVisible();
