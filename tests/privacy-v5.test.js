@@ -28,7 +28,7 @@ test('deleted account shows clean registration on next Telegram sign-in, with co
   assert.ok(notice.rows.some(x=>x.text?.includes('аккаунт VEYRA удалён')));
   const fresh=await sign();assert.equal(fresh.status,200,JSON.stringify(fresh.body));
   const me=await request(app).get('/api/me').set('Authorization','Bearer '+fresh.body.token);
-  assert.equal(me.status,200);assert.equal(me.body.profile,null);assert.equal(me.body.registration,null);assert.equal(me.body.photos.length,0);
+  assert.equal(me.status,200);assert.equal(me.body.profile,undefined);assert.equal(me.body.registration,undefined);assert.equal(me.body.photos.length,0);
  }finally{await db.close()}
 });
 
