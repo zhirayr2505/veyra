@@ -57,9 +57,9 @@ export async function revokePaidGift(q,order){
  const gift=await one(q,"UPDATE gifts SET status='revoked' WHERE order_id=$1 AND status='delivered' RETURNING *",[order.id]);
  if(gift)await audit(q,order.user_id,'gift.refunded',gift.id,{recipient:gift.recipient});
 }
-export function giftsRoutes(app,{db,rate,tg}){
+export function giftsRoutes(app,{db,rate,tg,env}){
  app.get('/api/gifts/catalog',async(req,res)=>{
-  res.json({gifts:giftCatalog,payments_enabled:!!await flag(db,'payments'),free_daily_limit:1});
+  const owner=String(req.user.id)===String(env.OWNER_TELEGRAM_ID);res.json({gifts:giftCatalog,payments_enabled:owner||!!await flag(db,'payments'),owner_free:owner,free_daily_limit:owner?null:1});
  });
  app.get('/api/gifts/collection/me',async(req,res)=>{
   await approved(db,req.user.id);
@@ -82,6 +82,7 @@ export function giftsRoutes(app,{db,rate,tg}){
    client_id:uuid
   }).strict(),req.body);
   const gift=giftByKey.get(gift_key);
+  const owner=String(req.user.id)===String(env.OWNER_TELEGRAM_ID);
   if(!gift)fail(404,'GIFT_NOT_FOUND');
   await rate('gift:'+req.user.id,20,3600);
   const result=await db.tx(async q=>{
@@ -93,18 +94,18 @@ export function giftsRoutes(app,{db,rate,tg}){
    }
    await ensurePair(q,req.user.id,target);
    let order=null;
-   if(gift.stars===0){
+   if(gift.stars===0&&!owner){
     const already=await one(q,"SELECT count(*)::int AS n FROM gifts WHERE sender=$1 AND stars=0 AND status='delivered' AND created_at>=now()-interval '24 hours'",[req.user.id]);
     if(already.n>=1)fail(429,'FREE_GIFT_LIMIT');
-   }else{
+   }else if(!owner){
     if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');
     order=await one(q,"INSERT INTO orders(id,user_id,sku,total,kind,amount,first_only) VALUES($1,$2,NULL,$3,'gift',1,false) RETURNING *",[randomUUID(),req.user.id,gift.stars]);
    }
    const row=await one(q,`INSERT INTO gifts(id,sender,recipient,gift_key,stars,note,client_id,order_id,status,delivered_at)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-    [randomUUID(),req.user.id,target,gift.key,gift.stars,note,client_id,order?.id||null,order?'pending':'delivered',order?null:new Date()]);
+    [randomUUID(),req.user.id,target,gift.key,owner?0:gift.stars,note,client_id,order?.id||null,order?'pending':'delivered',order?null:new Date()]);
    if(!order){
-    await audit(q,req.user.id,'gift.delivered',row.id,{recipient:target,key:gift.key,stars:0});
+    await audit(q,req.user.id,'gift.delivered',row.id,{recipient:target,key:gift.key,stars:0,owner_test:owner});
     await notify(q,target,'🎁 Тебе подарили '+gift.name+' в VEYRA! Открой профиль → Коллекция подарков.');
    }
    return {row,order,duplicate:false};
