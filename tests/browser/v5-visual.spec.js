@@ -1,0 +1,40 @@
+import {test,expect} from '@playwright/test';
+import {mkdir} from 'node:fs/promises';
+import {initData,env} from '../helpers.js';
+async function login(page,id=10){
+ await page.route('https://telegram.org/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:''}));
+ await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){},openInvoice(){},BackButton:{onClick(){},offClick(){},show(){},hide(){}}}}},initData(id,env.USER_BOT_TOKEN));
+}
+test('Mobile design audit: capture all primary V5 screens and verify brand icon loading',async({page})=>{
+ await login(page);
+ await mkdir('test-results/veyra-visual',{recursive:true});
+ const broken=[];const crashes=[];
+ page.on('pageerror',e=>crashes.push(e.message));
+ page.on('response',r=>{if(r.status()===404&&r.url().includes('/assets/veyra/'))broken.push(r.url())});
+ await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await page.waitForFunction(()=>[...document.querySelectorAll('img.kit-icon')].every(x=>x.complete&&x.naturalWidth>0));
+ await page.screenshot({path:'test-results/veyra-visual/01-feed.png',fullPage:true});
+ await page.locator('.feed-photo .hero-name').click();
+ await expect(page.locator('.member')).toBeVisible();
+ await page.screenshot({path:'test-results/veyra-visual/02-member.png',fullPage:true});
+ await page.locator('.member .back').click();
+ await page.locator('.bottom-nav').getByRole('button',{name:'симпатии'}).click();
+ await expect(page.locator('.likes')).toBeVisible();
+ await page.screenshot({path:'test-results/veyra-visual/03-likes.png',fullPage:true});
+ await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
+ await expect(page.locator('.chat-tile').first()).toBeVisible();
+ await page.screenshot({path:'test-results/veyra-visual/04-chats.png',fullPage:true});
+ await page.locator('.chat-tile').first().click();
+ await expect(page.locator('.conversation')).toBeVisible();
+ await page.screenshot({path:'test-results/veyra-visual/05-conversation.png',fullPage:true});
+ await page.locator('.conversation-head').getByRole('button',{name:'Назад'}).click();
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await expect(page.locator('.own-profile')).toBeVisible();
+ await page.screenshot({path:'test-results/veyra-visual/06-own-profile.png',fullPage:true});
+ await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
+ await expect(page.getByRole('dialog',{name:'настройки'})).toBeVisible();
+ await page.screenshot({path:'test-results/veyra-visual/07-settings.png',fullPage:true});
+ expect(broken).toEqual([]);expect(crashes).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+});
