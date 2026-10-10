@@ -1,9 +1,13 @@
-import React,{useState,useEffect,useRef} from 'react';
+import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
+import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Heart,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder} from './api.js';
 import {Button,Logo,Icon,Photo,InlineAlert,Spinner,Header} from './UI.jsx';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3;
 const interests=['музыка','путешествия','кино','спорт','книги','кофе','технологии','животные','фото','прогулки','искусство','вкусная еда','танцы','йога','мода'];
+const interestIcons=[Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt];
+const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
+const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:''};
 const age=b=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return 0;const d=new Date(b+'T00:00:00Z'),n=new Date();if(Number.isNaN(+d))return 0;let y=n.getUTCFullYear()-d.getUTCFullYear();if(n.getUTCMonth()<d.getUTCMonth()||(n.getUTCMonth()===d.getUTCMonth()&&n.getUTCDate()<d.getUTCDate()))y--;return y;};
 const progress=(value,min,max)=>Math.max(0,Math.min(100,100*(value-min)/(max-min)));
@@ -19,14 +23,16 @@ function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),
 export function Registration({me,refresh}){
  const start=me?.registration?.data||{},draftKey='veyra.registration.v5.'+String(me?.user?.id||'anonymous');
  const [step,setStep]=useState(Math.min(5,Math.max(1,me?.registration?.step||1))),[direction,setDirection]=useState('forward');
- const [f,setF]=useState({...empty,...start,...(me?.profile||{}),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
+ const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
- const [busy,setBusy]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false);
- const photoInput=useRef(null),dragFrom=useRef(null),hintTimer=useRef(null),uploadRunning=useRef(false);
+ const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0);
+ const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
+ const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
- useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>clearTimeout(hintTimer.current)},[draftKey]);
+ const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
+ useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer)}},[draftKey]);
  useEffect(()=>{localStorage.setItem(draftKey,JSON.stringify({step,data:f}))},[draftKey,step,f]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
@@ -35,7 +41,7 @@ export function Registration({me,refresh}){
  const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message);
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{if(step===1){if(!f.name.trim()||!f.gender)throw Error('Укажи имя и пол');if(age(f.birth_date)<18||age(f.birth_date)>110)throw Error('VEYRA доступна с 18 лет')}
- if(step===2&&(!f.city||!f.country||f.lat==null||f.lon==null))throw Error('Выбери реальный город из предложенного списка');
+ if(step===2&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери реальный город из предложенного списка');
  if(step===3&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь возраст и предпочтения поиска')};
  const go=(n,dir)=>{setDirection(dir);setStep(Math.min(5,Math.max(1,n)));window.scrollTo({top:0,behavior:'instant'})};
  const next=()=>work(async()=>{valid();const data={...f,min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
@@ -43,8 +49,8 @@ export function Registration({me,refresh}){
   go(step+1,'forward');
  });
  const choosePlace=p=>{setF(old=>({...old,city:p.city,country:p.country,lat:p.lat,lon:p.lon}));setPlaces([]);setQuery('');setCityEdit(false);setError('')};
- const locate=()=>{setError('');if(!navigator.geolocation){setCityEdit(true);setError('Геолокация недоступна. Выбери город из списка.');return}
- navigator.geolocation.getCurrentPosition(pos=>work(async()=>{const found=await get('/geo?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude);if(!found.length)throw Error('Не удалось определить город');choosePlace(found[0])}),()=>{setCityEdit(true);setError('Разрешение на геолокацию не получено. Выбери город вручную.')},{enableHighAccuracy:false,timeout:12000,maximumAge:90000});
+ const locate=()=>{if(locating||busy)return;setError('');setLocating(true);if(!navigator.geolocation){setLocating(false);setCityEdit(true);setError('Геолокация недоступна. Выбери город из списка.');return}
+ navigator.geolocation.getCurrentPosition(async pos=>{try{const found=await get('/geo?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude);if(!found.length)throw Error('Не удалось определить город');choosePlace(found[0]);navigator.vibrate?.(15)}catch(e){fail(e);setCityEdit(true)}finally{setLocating(false)}},()=>{setLocating(false);setCityEdit(true);setError('Разрешение на геолокацию не получено. Выбери город вручную.')},{enableHighAccuracy:false,timeout:12000,maximumAge:90000});
  };
  const upload=async fileList=>{if(uploadRunning.current||busy)return;const files=Array.from(fileList||[]);const remaining=MAX_PHOTOS-photos.length;
  if(!remaining){toast('Можно добавить максимум 7 фото');return}
@@ -57,7 +63,7 @@ export function Registration({me,refresh}){
  setJobs(initial);
  try{for(const item of initial){
   setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'loading'}:x));
-  try{const fd=new FormData();fd.append('photo',item.file);const result=await post('/photos',fd);
+  try{const fd=new FormData();fd.append('photo',item.file);let result;for(let attempt=0;attempt<2;attempt++){try{result=await post('/photos',fd);break}catch(e){if(attempt||!(/fetch|network|HTTP_502|HTTP_503|HTTP_504/i.test(e.message)))throw e;await new Promise(resolve=>setTimeout(resolve,850))}}
    setPhotos(old=>[...old,{id:result.id,position:old.length}]);
    setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'done',serverId:result.id}:x));
   }catch(e){setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'failed'}:x));setError('Не удалось загрузить «'+item.file.name+'»: '+e.message)}
@@ -70,46 +76,86 @@ export function Registration({me,refresh}){
  const before=photos,arr=[...photos],moved=arr.splice(from,1)[0];arr.splice(to,0,moved);setPhotos(arr);
  try{await photoOrder(arr.map(p=>p.id))}catch(e){setPhotos(before);fail(e)}
  };
- const pointerUp=e=>{const from=dragFrom.current;dragFrom.current=null;if(from==null)return;
-  const els=document.elementsFromPoint(e.clientX,e.clientY),slot=els.map(el=>el.closest?.('[data-slot-index]')).find(el=>el&&Number(el.dataset.slotIndex)!==from);
-  if(slot)reorder(from,+slot.dataset.slotIndex);
+ const captureDragLayout=()=>new Map(Array.from(document.querySelectorAll('.registration-v7 .photo-slot[data-photo-id]')).map(el=>[el.dataset.photoId,el.getBoundingClientRect()]));
+ useLayoutEffect(()=>{const before=dragLayoutRects.current;if(!before||!dragVisual)return;dragLayoutRects.current=null;
+  for(const el of document.querySelectorAll('.registration-v7 .photo-slot[data-photo-id]')){const previous=before.get(el.dataset.photoId),now=el.getBoundingClientRect();if(!previous)continue;
+   const dx=previous.left-now.left,dy=previous.top-now.top;if(Math.abs(dx)+Math.abs(dy)<2)continue;
+   el.animate?.([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate(0,0)'}],{duration:260,easing:'cubic-bezier(.2,.75,.2,1)'});
+  }
+ },[dragOver]);
+ const dragTarget=(x,y)=>{const target=document.elementFromPoint(x,y)?.closest?.('[data-slot-index]');return target?Number(target.dataset.slotIndex):-1};
+ const dragStart=(e,i)=>{if(uploading||busy||(e.pointerType==='mouse'&&e.button!==0))return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null};
+  state.timer=setTimeout(()=>{if(dragRef.current!==state)return;state.active=true;state.node.setPointerCapture?.(state.id);setDragVisual({index:i,x:state.x,y:state.y,width:state.width,height:state.height});setDragOver(i);window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()},320);
+  dragRef.current=state;
  };
+ const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
+  if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);dragRef.current=null}return}
+  e.preventDefault();setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null);const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()}
+ };
+ const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);dragRef.current=null;
+  if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
+  if(target>=0&&target<photos.length&&target!==s.index)reorder(s.index,target);
+ };
+ const dragCancel=()=>{if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current=null;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1)};
+ const swipeEnd=e=>{if(swipeX.current==null)return;const delta=e.changedTouches[0].clientX-swipeX.current;swipeX.current=null;if(Math.abs(delta)>45)setPhotoIndex(i=>Math.min(photos.length-1,Math.max(0,i+(delta<0?1:-1))))};
  const remove=i=>work(async()=>{await request('/photos/'+photos[i].id,{method:'DELETE'});setPhotos(old=>old.filter((_,j)=>j!==i));await refresh()});
  const send=()=>work(async()=>{if(photos.length<MIN_PHOTOS)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});localStorage.removeItem(draftKey);await refresh()});
- const display=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
+ const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
+ const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
- if(preview)return <div className="page"><Header back={()=>setPreview(false)}/><h1>Твоя анкета</h1><div className="preview-card"><Photo className="preview-photo" id={photos[0]?.id}/><h2>{f.name}, {age(f.birth_date)}</h2><p>{f.city}, {f.country}</p><p>{f.bio}</p><p>{f.interests.join(' · ')}</p></div><Button className="full" onClick={()=>setPreview(false)}>вернуться к фото</Button></div>;
- return <div className="page registration registration-v6">
+ if(preview)return <main className="page registration registration-v7 registration-preview">
+  <div className="step-top"><button className="quiet" aria-label="Назад к фотографиям" onClick={()=>setPreview(false)}><Icon name="back"/></button><small>так тебя увидят другие</small><span/></div>
+  <div className="center-logo"><Logo width={136}/></div>
+  <h1>твоя анкета</h1><p className="subheading">Первое впечатление начинается здесь ✨</p>
+  <div className="preview-surface">
+   <div className="preview-gallery" onTouchStart={e=>swipeX.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
+    <div className="preview-gallery-track" style={{transform:'translate3d(-'+(photoIndex*100)+'%,0,0)'}}>{photos.map((p,i)=><div className="preview-gallery-slide" key={p.id}><Photo id={p.id} className="preview-photo" alt={'Фото '+(i+1)}/></div>)}</div>
+    <div className="preview-fade"/><div className="preview-count">{photoIndex+1} / {photos.length}</div>
+    {photos.length>1&&<><button className="preview-arrow left" aria-label="Предыдущее фото" disabled={!photoIndex} onClick={()=>setPhotoIndex(i=>Math.max(0,i-1))}><ChevronLeft size={22}/></button><button className="preview-arrow right" aria-label="Следующее фото" disabled={photoIndex===photos.length-1} onClick={()=>setPhotoIndex(i=>Math.min(photos.length-1,i+1))}><ChevronRight size={22}/></button></>}
+    <div className="preview-dots">{photos.map((p,i)=><button key={p.id} aria-label={'Фото '+(i+1)} className={i===photoIndex?'active':''} onClick={()=>setPhotoIndex(i)}/>)}</div>
+   </div>
+   <div className="preview-identity"><div><h2>{f.name}, {age(f.birth_date)}</h2><p><MapPin size={16}/>{f.city}, {f.country}</p></div><span className="preview-heart"><Heart size={23} fill="currentColor"/></span></div>
+   {f.bio?.trim()&&<section className="preview-section"><h3>обо мне</h3><p>{f.bio}</p></section>}
+   {f.interests.length>0&&<section className="preview-section"><h3>интересы</h3><div className="preview-interest-list">{f.interests.map(v=><span key={v}>{v}</span>)}</div></section>}
+   <section className="preview-section"><h3>ищу</h3><p>{f.goal==='relationship'?'Серьёзные отношения':f.goal==='dating'?'Свидания':f.goal==='friends'?'Друзей':'Общение и новые знакомства'}</p></section>
+  </div>
+  <InlineAlert>{error}</InlineAlert>
+  <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Check size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(5,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
+ </main>;
+ return <div className="page registration registration-v6 registration-v7">
   <div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><small>шаг {step} из 5</small><span/></div>
+  <div className="center-logo"><Logo width={136}/></div>
   <div className="progress" aria-label={'Шаг '+step+' из 5'}>{[1,2,3,4,5].map(n=><span key={n} className={n<=step?'done':''}/>)}</div>
-  <div className="center-logo"><Logo width={128}/></div>
   <div className={'registration-step '+direction} key={step}>
    <h1>{['расскажите о себе','где вы ищете?','кого хотите встретить?','ваши интересы','добавьте фото'][step-1]}</h1>
    <p className="subheading">{['Начнём знакомство с тебя','Будем показывать людей из твоего города','Настрой комфортный поиск','Что делает тебя тобой?','Главная слева, ещё шесть справа · максимум 7'][step-1]}</p>
    {step===1&&<div className="fields">
-    <label>Имя<input maxLength={50} value={f.name} onChange={e=>change('name',e.target.value)} placeholder="Как тебя зовут?"/></label>
-    <label>Дата рождения<input type="date" max={new Date().toISOString().slice(0,10)} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
-    <p className="field-label">Пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} className={'choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}>{v}</button>)}</div>
+    <label className="registration-name-field">Имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как тебя зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
+    <label>Дата рождения<input type="date" min="1900-01-01" max={adultDate()} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
+    <p className="field-label">Пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/assets/veyra/03_registration/'+k+'.svg'}/>{v}</button>)}</div>
    </div>}
    {step===2&&<div className="fields">
-    {selectedCity&&!cityEdit?<div className="location-card">
-     <span className="location-mark"><Icon name="pin" tone="pink" size={32}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(true);setQuery('')}}>изменить город</button>
-    </div>:<><Button onClick={locate} disabled={busy}><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</Button>
-     <p className="or">или найди свой город</p>
-     <div className="city-search"><Icon name="search" size={19}/><input aria-label="Поиск города" autoComplete="off" placeholder="Начни вводить название города" value={query} onChange={e=>{setQuery(e.target.value);setF(old=>({...old,city:'',country:'',lat:null,lon:null}))}}/>{searching&&<span className="city-spinner"/>}</div>
+    {selectedCity&&<div className="location-card">
+     <span className="location-mark"><Icon name="pin" tone="pink" size={32}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
+    </div>}
+    {!selectedCity&&<Button className="locate-button" onClick={locate} disabled={locating||busy}>{locating?<><span className="spinner-ring"/> определяем город…</>:<><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</>}</Button>}
+    {(cityEdit||!selectedCity)&&<><p className="or">{selectedCity?'выбери другой город':'или найди свой город'}</p>
+     <div className="city-search"><Icon name="search" size={21}/><input aria-label="Поиск города" autoComplete="off" placeholder="Начни вводить название города" value={query} onChange={e=>{setQuery(e.target.value)}}/>{searching&&<span className="city-spinner"/>}</div>
      {places.length>0&&<div className="city-results" role="listbox" aria-label="Результаты поиска городов">{places.map((p,i)=><button type="button" role="option" aria-selected="false" key={p.label+'-'+i} onClick={()=>choosePlace(p)}><Icon name="pin" tone="pink" size={17}/><span><b>{p.city}</b><small>{p.country}</small></span></button>)}</div>}
      {!searching&&query.trim().length>=2&&!places.length&&<p className="city-empty">Не нашли такой город. Проверь написание.</p>}
     </>}
     {selectedCity&&<div className="distance-control"><div className="range-labels"><span>Радиус поиска</span><strong>{f.radius_km>=20000?'весь мир':f.radius_km+' км'}</strong></div>
       <Slider min={5} max={500} step={5} label="Радиус поиска" value={Math.min(500,f.radius_km)} onChange={v=>change('radius_km',v)}/>
       <div className="range-ends"><span>5 км</span><span>500 км</span></div>
-      <label className="checkline"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/>Искать по всему миру</label>
+      <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Check size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
    </div>}
    {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}>{v}</button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
-   {step===4&&<div className="fields"><p className="field-label">Интересы <span>{f.interests.length}/7</span></p><div className="interest-grid">{interests.map(v=><button key={v} className={'tag '+(f.interests.includes(v)?'selected':'')} onClick={()=>change('interests',f.interests.includes(v)?f.interests.filter(x=>x!==v):f.interests.length<7?[...f.interests,v]:f.interests)}>{v}</button>)}</div>
+   {step===4&&<div className="fields"><p className="field-label">Интересы <span>{f.interests.length}/7</span></p><div className="interest-grid">{interests.map(v=><button key={v} className={'tag interest-tag '+(f.interests.includes(v)?'selected':'')} aria-pressed={f.interests.includes(v)} onClick={()=>change('interests',f.interests.includes(v)?f.interests.filter(x=>x!==v):f.interests.length<7?[...f.interests,v]:f.interests)}>{React.createElement(interestIcons[interests.indexOf(v)],{size:16,strokeWidth:2})}<span>{v}</span></button>)}</div>
     <label>О себе<textarea maxLength={1000} value={f.bio} onChange={e=>change('bio',e.target.value)} placeholder="Люблю вечерние прогулки, хорошее кино и живое общение"/></label>
     <label>Цель знакомства<select value={f.goal} onChange={e=>change('goal',e.target.value)}><option value="relationship">отношения</option><option value="dating">свидания</option><option value="friends">дружба</option><option value="unsure">пока не знаю</option></select></label>
    </div>}
@@ -117,12 +163,9 @@ export function Registration({me,refresh}){
     <p className="tip">Фото с настоящим лицом, без чужих людей. Зажми фотографию и перетащи в нужное место.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
-      return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')} data-slot-index={i} draggable={!uploading&&!busy&&!loading}
-       onDragStart={e=>{if(uploading||busy){e.preventDefault();return}dragFrom.current=i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i))}}
-       onDragOver={e=>{if(!uploading&&!busy)e.preventDefault()}} onDrop={e=>{e.preventDefault();const from=dragFrom.current;dragFrom.current=null;if(from!=null)reorder(from,i)}}
-       onPointerDown={e=>{if(e.target.closest('button')||uploading||busy)return;dragFrom.current=i;e.currentTarget.setPointerCapture?.(e.pointerId);e.currentTarget.classList.add('dragging')}}
-       onPointerUp={e=>{e.currentTarget.classList.remove('dragging');pointerUp(e)}}
-       onPointerCancel={e=>{e.currentTarget.classList.remove('dragging');dragFrom.current=null}}
+      return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
+       onContextMenu={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
+       onPointerMove={dragMove} onPointerUp={dragFinish} onPointerCancel={dragCancel}
        tabIndex={!loading?0:-1} aria-label={'Фотография '+(i+1)+', перетащи для смены позиции'}
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<Photo id={item.id}/>}
@@ -135,12 +178,12 @@ export function Registration({me,refresh}){
     </div>
     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
     <p className="photo-footnote">{uploading?'Загружаем фотографии по очереди…':'Загружено '+photos.length+' из '+MAX_PHOTOS+' · минимум '+MIN_PHOTOS}</p>
-    {photos.length>0&&!uploading&&<button className="text-link" onClick={()=>setPreview(true)}>посмотреть анкету</button>}
-    <label className="checkline"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>Мне 18+, согласен с правилами и политикой конфиденциальности</label>
+    <label className="checkline registration-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span className="custom-check"><Check size={15}/></span><span>Мне 18+, согласен с правилами и политикой конфиденциальности</span></label>
    </div>}
   </div>
+  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={uploading||(step===5&&(photos.length<MIN_PHOTOS||!consent))} onClick={step===5?send:next}>{step===5?'отправить на проверку':step===4?'добавить фото':'далее'}</Button>}</div>
+  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===5&&photos.length<MIN_PHOTOS)} onClick={step===5?()=>{setPhotoIndex(0);setError('');setPreview(true)}:next}>{step===5?'посмотреть анкету':step===4?'добавить фото':step===3?'рассказать о себе':step===2?'выбрать город':'далее'}</Button>}</div>
  </div>;
 }
