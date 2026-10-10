@@ -1,6 +1,7 @@
 let bearer='';
 const photos=new Map(),inflight=new Map();
 export function setBearer(token){bearer=token||'';}
+export function getBearer(){return bearer;}
 export async function request(path,{method='GET',body,signal}={}){
  const form=body instanceof FormData;
  const res=await fetch('/api'+path,{method,signal,headers:{...(bearer?{Authorization:'Bearer '+bearer}:{}),...(!form&&body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:form?body:JSON.stringify(body)});
