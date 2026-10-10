@@ -80,7 +80,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[index,setIndex]=useState(0);
  const [refresh,setRefresh]=useState(0),[motion,setMotion]=useState('');
  const [last,setLast]=useState({can_undo:false,free_undo_left:0,premium:false,target:null});
- const requestToken=useRef(0),pointer=useRef(null),ignoreTapUntil=useRef(0),entranceTimer=useRef(null);
+ const requestToken=useRef(0),pointer=useRef(null),ignoreSwipeClick=useRef(false),entranceTimer=useRef(null);
  const photos=card?.photos||[];
  useEffect(()=>()=>clearTimeout(entranceTimer.current),[]);
  const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests;
@@ -103,6 +103,8 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   haptic('photo');setIndex(current=>(current+step+photos.length)%photos.length);
  };
  const onPointerDown=e=>{
+  // A fresh pointer press is always intentional, even immediately after a swipe.
+  ignoreSwipeClick.current=false;
   if(!card||busy||e.button!==0||e.target.closest('button'))return;
   pointer.current={id:e.pointerId,x:e.clientX,y:e.clientY,started:false};
  };
@@ -119,13 +121,15 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   pointer.current=null;
   if(p.started){
    // Synthetic click events can arrive well after touchend on Android.
-   ignoreTapUntil.current=Date.now()+450;
+   ignoreSwipeClick.current=true;
    const dx=e.clientX-p.x;
    if(Math.abs(dx)>38)changePhoto(dx<0?1:-1);
   }
  };
+ const onPointerCancel=e=>{if(pointer.current?.id===e.pointerId)pointer.current=null;};
  const onCardClick=e=>{
-  if(Date.now()<ignoreTapUntil.current||busy||e.target.closest('button'))return;
+  if(ignoreSwipeClick.current){ignoreSwipeClick.current=false;return;}
+  if(busy||e.target.closest('button'))return;
   onProfile(card.id);
  };
  const react=async kind=>{
@@ -192,7 +196,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
     card?<React.Fragment>
      <div key={String(card.id)} className={'feed-photo'+(motion?' feed-motion-'+motion:'')}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
+      onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
       onClick={onCardClick} aria-label={'Открыть профиль: '+card.name}>
       <FeedPicture key={card.id} card={card} index={index}/>
       <div className="feed-image-shade" aria-hidden="true"/>
