@@ -1,6 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {chatMediaRoutes} from './chat-media.js';
 import stickers from '../shared/chat-stickers.json' with {type:'json'};
+import {giftCatalog} from './gifts.js';
 import {one} from './db.js';
 import {fail} from './core.js';
 import {z,parse,uuid,short} from './validation.js';
@@ -45,7 +46,9 @@ export function chatRoutes(app,{db,rate,env,storage}){
  app.get('/api/matches',async(req,res)=>{
   await approved(db,req.user.id);
   const uid=String(req.user.id);
-  const rows=(await db.query(`SELECT m.*,(m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND (m.a=$1 OR m.b=$1) ORDER BY m.created_at DESC LIMIT 100`,[uid])).rows;
+  const rows=(await db.query(`SELECT m.*,
+    EXISTS(SELECT 1 FROM chat_pins cp WHERE cp.match_id=m.id AND cp.user_id=$1) AS pinned,
+    (m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND (m.a=$1 OR m.b=$1) ORDER BY m.created_at DESC LIMIT 100`,[uid])).rows;
   if(!rows.length)return res.json([]);
   const other=m=>String(m.a)===uid?String(m.b):String(m.a);
   const ids=rows.map(m=>String(m.id));
@@ -54,6 +57,8 @@ export function chatRoutes(app,{db,rate,env,storage}){
   const [profiles,metaRows]=await Promise.all([
    publicProfiles(db,[...new Set(rows.map(other))]),
    db.query(`SELECT mx.id,
+      EXISTS(SELECT 1 FROM chat_presence cp WHERE cp.match_id=mx.id AND cp.user_id=
+       (CASE WHEN mx.a=$2 THEN mx.b ELSE mx.a END) AND cp.seen_at>now()-interval '45 seconds') AS online,
       (SELECT row_to_json(last_message) FROM
        (SELECT msg.body,msg.kind,msg.sticker_id,msg.created_at,msg.sender,msg.edited_at
         FROM messages msg WHERE msg.match_id=mx.id AND msg.deleted_at IS NULL
@@ -72,9 +77,37 @@ export function chatRoutes(app,{db,rate,env,storage}){
   const result=rows.flatMap(m=>{
    const profile=profiles.get(other(m));if(!profile)return [];
    const item=meta.get(String(m.id))||{},block=String(item.block_actor||'');
-   return [{...m,profile,blocked_by_me:block===uid,unavailable:!!item.block_actor,last:item.last||null,unread:item.unread||0}];
+   return [{...m,profile:{...profile,online:!!item.online},blocked_by_me:block===uid,unavailable:!!item.block_actor,last:item.last||null,unread:item.unread||0}];
   });
   res.json(result);
+ });
+ // Per-user pins are private and never reorder another member's conversations.
+ app.patch('/api/matches/:id/pin',async(req,res)=>{
+  const mid=parse(uuid,req.params.id),uid=req.user.id;
+  const {pinned}=parse(z.object({pinned:z.boolean()}).strict(),req.body);
+  await db.tx(async q=>{
+   await access(q,mid,uid);
+   if(pinned)await q.query('INSERT INTO chat_pins(match_id,user_id) VALUES($1,$2) ON CONFLICT(match_id,user_id) DO UPDATE SET pinned_at=now()',[mid,uid]);
+   else await q.query('DELETE FROM chat_pins WHERE match_id=$1 AND user_id=$2',[mid,uid]);
+  });
+  res.json({ok:true,pinned});
+ });
+ // Delivered gifts are real events in the existing conversation, not fake messages.
+ // They remain stored in gifts (the existing payment/collection source of truth).
+ app.get('/api/matches/:id/gifts',async(req,res)=>{
+  const mid=parse(uuid,req.params.id),uid=req.user.id;
+  const gifts=await db.tx(async q=>{
+   const m=await access(q,mid,uid);
+   if(m.unavailable)fail(403,'CHAT_UNAVAILABLE');
+   return (await q.query(`SELECT g.id,g.sender::text AS sender,g.recipient::text AS recipient,g.gift_key,g.note,
+     g.delivered_at::text AS delivered_at
+     FROM gifts g WHERE g.status='delivered'
+      AND ((g.sender=$1 AND g.recipient=$2) OR (g.sender=$2 AND g.recipient=$1))
+     ORDER BY g.delivered_at DESC,g.id DESC LIMIT 80`,[uid,m.other])).rows;
+  });
+  const catalog=new Map(giftCatalog.map(g=>[g.key,g]));
+  res.json({gifts:gifts.map(g=>({...g,name:catalog.get(g.gift_key)?.name||'Подарок',
+    emoji:catalog.get(g.gift_key)?.emoji||'🎁'}))});
  });
  app.post('/api/matches/:id/seen',async(req,res)=>{
   const mid=parse(uuid,req.params.id),uid=String(req.user.id);

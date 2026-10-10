@@ -18,3 +18,31 @@ test('soft-delete hides content, quotes, search and list preview while preservin
 test('tuple pagination handles identical timestamps, bounded search and jumping to history',async()=>{const stamp='2026-01-01T12:00:00.123456Z';for(let i=0;i<115;i++)await db.query('INSERT INTO messages(id,match_id,sender,body,client_id,created_at) VALUES($1,$2,10,$3,$4,$5)',[randomUUID(),mid,'Пагинация '+i,randomUUID(),stamp]);const seen=new Set();let cursor='',count=0;do{const d=(await call(11,'get',`/matches/${mid}/messages${cursor?'?before='+cursor:''}`)).body;assert.ok(d.messages.length<=50);for(const m of d.messages){assert.ok(!seen.has(m.id));seen.add(m.id);}count++;cursor=d.has_more?d.before:'';}while(cursor&&count<8);assert.equal(seen.size,(await one(db,'SELECT count(*)::int AS n FROM messages WHERE match_id=$1 AND deleted_at IS NULL',[mid])).n);const search=(await call(11,'get',`/matches/${mid}/search?q=Пагинация`)).body;assert.equal(search.results.length,30);assert.equal(search.has_more,true);const around=(await call(11,'get',`/matches/${mid}/messages?around=${search.results[15].id}`)).body;assert.ok(around.messages.some(m=>m.id===search.results[15].id));assert.ok(around.messages.length<=50);assert.equal((await call(11,'get',`/matches/${mid}/messages?before=oops`)).status,400);});
 test('sync backlog does not skip mutations when delivery receipts advance revisions',async()=>{const baseline=(await call(10,'get',`/matches/${mid}/messages`)).body.sync_version;for(let i=0;i<110;i++)await db.query('INSERT INTO messages(id,match_id,sender,body,client_id) VALUES($1,$2,11,$3,$4)',[randomUUID(),mid,'Backlog '+i,randomUUID()]);let since=baseline,seen=new Set();for(let i=0;i<5;i++){const d=(await call(10,'get',`/matches/${mid}/messages?since=${since}`)).body;assert.ok(d.messages.length<=100);for(const m of d.messages)if(m.body?.startsWith('Backlog'))seen.add(m.id);since=d.sync_version;if(!d.sync_more)break;}assert.equal(seen.size,110);});
 test('typing expires, block denies sends and can be undone, report captures server context',async()=>{await call(10,'post',`/matches/${mid}/typing`,{typing:true});assert.equal((await call(11,'get',`/matches/${mid}/messages?since=9999999`)).body.typing,true);await db.query("UPDATE chat_presence SET typing_until=now()-interval '1 second'");assert.equal((await call(11,'get',`/matches/${mid}/messages?since=9999999`)).body.typing,false);const a=await send(10,'Контекст жалобы');assert.equal((await call(11,'post',`/matches/${mid}/report`,{reason:'fraud',message_id:a.id,details:'Подозрительное предложение'})).status,200);const report=await one(db,"SELECT chat_context FROM reports WHERE reason='fraud'");assert.equal(report.chat_context.reported.body,a.body);await call(11,'post','/blocks',{target:'10'});assert.equal((await call(10,'post',`/matches/${mid}/messages`,{body:'Blocked',client_id:randomUUID()})).status,403);const state=(await call(11,'get',`/matches/${mid}/messages`)).body;assert.equal(state.blocked_by_me,true);assert.equal(state.unavailable,true);assert.equal((await call(11,'get','/matches')).body.find(m=>m.id===mid).blocked_by_me,true);await call(11,'delete','/blocks/10');await send(10,'После разблокировки');assert.ok(await one(db,'SELECT id FROM messages WHERE id=$1',[a.id]));});
+
+test('chat pins are private, removable and require match membership',async()=>{
+ const start=await call(10,'get','/matches');
+ assert.equal(start.status,200);
+ assert.equal(start.body.find(m=>m.id===mid).pinned,false);
+ const pinned=await call(10,'patch','/matches/'+mid+'/pin',{pinned:true});
+ assert.equal(pinned.status,200,JSON.stringify(pinned.body));
+ assert.equal(pinned.body.pinned,true);
+ const mine=await call(10,'get','/matches'),theirs=await call(11,'get','/matches');
+ assert.equal(mine.body.find(m=>m.id===mid).pinned,true);
+ assert.equal(theirs.body.find(m=>m.id===mid).pinned,false);
+ assert.equal((await call(12,'patch','/matches/'+mid+'/pin',{pinned:true})).status,404);
+ assert.equal((await call(10,'patch','/matches/'+mid+'/pin',{pinned:'yes'})).status,400);
+ assert.equal((await call(10,'patch','/matches/'+mid+'/pin',{pinned:false})).status,200);
+ assert.equal((await call(10,'get','/matches')).body.find(m=>m.id===mid).pinned,false);
+});
+test('conversation gift events come only from actual delivered gifts to the pair',async()=>{
+ const giftId=randomUUID(),clientId=randomUUID();
+ await db.query("INSERT INTO gifts(id,sender,recipient,gift_key,stars,note,client_id,status,delivered_at) VALUES($1,10,11,'spark',0,'Для тебя',$2,'delivered',now())",[giftId,clientId]);
+ const result=await call(10,'get','/matches/'+mid+'/gifts');
+ assert.equal(result.status,200,JSON.stringify(result.body));
+ assert.equal(result.body.gifts.find(g=>g.id===giftId)?.name,'Искорка');
+ assert.equal(result.body.gifts.find(g=>g.id===giftId)?.emoji,'✨');
+ assert.equal(result.body.gifts.find(g=>g.id===giftId)?.note,'Для тебя');
+ assert.equal((await call(11,'get','/matches/'+mid+'/gifts')).body.gifts.some(g=>g.id===giftId),true);
+ assert.equal((await call(12,'get','/matches/'+mid+'/gifts')).status,404);
+ assert.equal((await call(10,'get','/matches/'+second+'/gifts')).body.gifts.some(g=>g.id===giftId),false);
+});
