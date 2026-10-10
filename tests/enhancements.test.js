@@ -89,7 +89,7 @@ test('privileged bot commands reject support role and duplicate grants',async()=
  assert.equal((await one(db,'SELECT boosts FROM users WHERE id=11')).boosts,2);
 });
 test('three-photo onboarding and bulk moderation rolls back stale revisions',async()=>{
- await user(db,14,{moderation:'draft'});await db.query('DELETE FROM photos WHERE user_id=14 AND position>0');
+ await user(db,14,{moderation:'draft'});await db.query("UPDATE profiles SET name='Тест' WHERE user_id=14");await db.query('DELETE FROM photos WHERE user_id=14 AND position>0');
  for(let i=1;i<=2;i++)await db.query("INSERT INTO photos(id,user_id,object_key,position) VALUES(gen_random_uuid(),14,$1,$2)",['fixture14/'+i,i]);
  tokens[14]=(await request(app).post('/api/auth').send({initData:initData(14)})).body.token;
  assert.equal((await auth(request(app).post('/api/profile/submit'),14).send({consent:true})).status,200);
