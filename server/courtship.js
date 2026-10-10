@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
-import {fail} from './core.js';
+import {fail,ownerMode} from './core.js';
 import {z,parse,id,uuid} from './validation.js';
 import {approved,ensurePair,pairLock,flag,audit,notify} from './domain.js';
 import {StarsProvider} from './payments.js';
@@ -104,6 +104,13 @@ export function courtshipRoutes(app,{db,rate,tg}){
    if(!c)fail(404,'COURTSHIP_NOT_FOUND');
    if(!['accepted','payment_pending'].includes(c.status))fail(409,'COURTSHIP_NOT_ACCEPTED');
    await ensurePair(q,c.sender,c.recipient);await matched(q,c.sender,c.recipient);
+   if(ownerMode(req.user)){
+    if(c.status==='payment_pending')fail(409,'COURTSHIP_PAYMENT_PENDING');
+    const active=await one(q,`UPDATE courtships SET status='active',activated_at=now(),expires_at=now()+interval '30 days',order_id=NULL WHERE id=$1 RETURNING id`,[cid]);
+    await audit(q,req.user.id,'owner.test.courtship',cid,{recipient:c.recipient,free:true});
+    await notify(q,c.recipient,'💜 Тестовый статус ухажёра активирован в VEYRA.');
+    return {owner_test:true,id:active.id};
+   }
    if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');
    if(c.status==='payment_pending'){
     const pending=await one(q,'SELECT * FROM orders WHERE id=$1',[c.order_id]);
@@ -116,7 +123,7 @@ export function courtshipRoutes(app,{db,rate,tg}){
    await q.query("UPDATE courtships SET status='payment_pending',order_id=$2 WHERE id=$1",[cid,row.id]);
    return row;
   });
-  const url=await new StarsProvider(tg).invoice({...order,title:'VEYRA · Ухажёр на '+COURTSHIP_DAYS+' дней'});
+  if(order.owner_test)return res.json({status:'active',owner_test:true,stars:0,days:COURTSHIP_DAYS});const url=await new StarsProvider(tg).invoice({...order,title:'VEYRA · Ухажёр на '+COURTSHIP_DAYS+' дней'});
   res.json({status:'payment_required',order_id:order.id,invoice_url:url,stars:COURTSHIP_STARS,days:COURTSHIP_DAYS});
  });
  app.get('/api/courtships/:id/status',async(req,res)=>{

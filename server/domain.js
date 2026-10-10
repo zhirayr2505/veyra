@@ -1,7 +1,7 @@
 import {isTestProfile} from './test-profile-ids.js';
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
-import {fail,premium} from './core.js';
+import {fail,premium,ownerMode} from './core.js';
 export const flag=async(q,k)=>{const f=await one(q,'SELECT * FROM feature_flags WHERE key=$1',[k]);return f?.enabled;};
 export const audit=(q,actor,action,subject,metadata={})=>q.query('INSERT INTO audit_log(actor,action,subject,metadata) VALUES($1,$2,$3,$4)',[actor,action,String(subject),JSON.stringify(metadata)]);
 export async function notify(q,recipient,text,bot='user',markup){if(isTestProfile(recipient))return;await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),bot,recipient,JSON.stringify({text,...(markup?{reply_markup:markup}:{})})]);}
@@ -101,8 +101,8 @@ export async function react(q,actor,target,kind,message){
  const repeat=old&&old.kind!=='pass';
  if(!repeat){
   const d=await usage(q,actor);if(kind!=='pass'&&!premium(u)&&d.likes>=15)fail(429,'LIKE_LIMIT');
-  if(kind==='super'){if(premium(u)&&d.superlikes<3)await q.query('UPDATE daily_usage SET superlikes=superlikes+1 WHERE user_id=$1 AND day=CURRENT_DATE',[actor]);else{if(u.superlikes<1)fail(402,'SUPERLIKE_REQUIRED');await q.query('UPDATE users SET superlikes=superlikes-1 WHERE id=$1',[actor]);}}
-  if(message){if(kind==='pass')fail(400,'INVALID_MESSAGE');if(u.prematches<1)fail(402,'PREMATCH_REQUIRED');await q.query('UPDATE users SET prematches=prematches-1 WHERE id=$1',[actor]);}
+  if(kind==='super'&&!ownerMode(u)){if(premium(u)&&d.superlikes<3)await q.query('UPDATE daily_usage SET superlikes=superlikes+1 WHERE user_id=$1 AND day=CURRENT_DATE',[actor]);else{if(u.superlikes<1)fail(402,'SUPERLIKE_REQUIRED');await q.query('UPDATE users SET superlikes=superlikes-1 WHERE id=$1',[actor]);}}
+  if(message){if(kind==='pass')fail(400,'INVALID_MESSAGE');if(!ownerMode(u)){if(u.prematches<1)fail(402,'PREMATCH_REQUIRED');await q.query('UPDATE users SET prematches=prematches-1 WHERE id=$1',[actor]);}}
   await q.query('INSERT INTO reactions(actor,target,kind,message) VALUES($1,$2,$3,$4) ON CONFLICT(actor,target) DO UPDATE SET kind=EXCLUDED.kind,message=EXCLUDED.message,created_at=now()',[actor,target,kind,message||null]);
   if(kind==='pass')return {matched:false};
   await q.query('UPDATE daily_usage SET likes=likes+1 WHERE user_id=$1 AND day=CURRENT_DATE',[actor]);

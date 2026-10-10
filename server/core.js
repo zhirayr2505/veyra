@@ -18,7 +18,8 @@ export function verifyInitData(raw,botToken,now=Date.now()){
 }
 export function ageAt(birth,now=new Date()) {const b=new Date(birth+'T00:00:00Z');let a=now.getUTCFullYear()-b.getUTCFullYear();if(now.getUTCMonth()<b.getUTCMonth()||(now.getUTCMonth()===b.getUTCMonth()&&now.getUTCDate()<b.getUTCDate()))a--;return a;}
 export function validBirth(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===s&&ageAt(s)>=18&&ageAt(s)<=110;}
-export const premium=u=>new Date(u.premium_until)>new Date();
+export const ownerMode=u=>u?.admin_role==='owner'&&u?.status==='active';
+export const premium=u=>ownerMode(u)||new Date(u?.premium_until)>new Date();
 export function normalizeRedis(raw){let s=raw.trim();if(s.startsWith('redis-cli')){const m=s.match(/-u\s+['"]?(rediss?:\/\/[^\s'"]+)/);if(!m)throw Error('REDIS_URL must be a Redis URL');s=m[1];if(raw.includes('--tls'))s=s.replace(/^redis:/,'rediss:');}return s;}
 export const safeCSV=v=>'"'+String(v??'').replace(/^[=+@\-\t\r]/,"'$&").replaceAll('"','""')+'"';
 export const webhookSecret=(botToken)=>createHmac('sha256',botToken).update('veyra-webhook-v1').digest('hex');
