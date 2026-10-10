@@ -267,4 +267,5 @@ test('VEYRA screenshot filters preserve real feed API parameters',async({page})=
  await page.getByRole('button',{name:'Показать анкеты'}).click();
  await expect(page.getByRole('dialog',{name:'фильтры'})).toHaveCount(0);
  await expect.poll(()=>feedUrls.some(url=>url.includes('mode=nearby')&&url.includes('common_interests=true'))).toBe(true);
+ expect(feedUrls.filter(url=>url.includes('mode=nearby')&&url.includes('common_interests=true'))).toHaveLength(1);
 });

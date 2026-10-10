@@ -70,7 +70,7 @@ export function App(){
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
- {overlay?.type==='filters'&&<FeedFilters profile={me.profile} filters={feedFilters} onClose={exitOverlay} onSave={async next=>{setFeedFilters(next);await refresh();setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
+ {overlay?.type==='filters'&&<FeedFilters profile={me.profile} filters={feedFilters} onClose={exitOverlay} onSave={async next=>{await refresh();setFeedFilters(next);setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
  {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}
  {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={logout}/>}
  {overlay?.type==='ranking'&&<Ranking onClose={exitOverlay}/>}
