@@ -124,8 +124,12 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await page.getByRole('button',{name:'выбрать город'}).click();
  await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
+ await expect(page.locator('.looking-choice img')).toHaveCount(3);
+ await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/looking_all\.svg/);
  await page.getByRole('button',{name:'рассказать о себе'}).click();
  await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
+ await page.locator('.interest-tag').first().click();
+ await page.locator('.interest-tag').nth(1).click();
  await page.getByRole('button',{name:'добавить фото'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
  await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
@@ -146,9 +150,18 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.photo-drag-ghost')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeVisible();
  await page.getByRole('button',{name:'посмотреть анкету'}).click();
- await expect(page.locator('.preview-gallery-slide')).toHaveCount(7);
- await page.getByRole('button',{name:'Следующее фото'}).click();
- await expect(page.locator('.preview-count')).toHaveText('2 / 7');
+ await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
+ await expect(page.locator('.preview-dots button')).toHaveCount(7);
+ await expect(page.locator('.preview-count')).toHaveCount(0);
+ await expect(page.locator('.preview-card-chips svg')).toHaveCount(2);
+ await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
+ for(let n=0;n<7;n++){
+  await page.getByRole('button',{name:'Следующее фото'}).click();
+  await expect(page.locator('.preview-dots button').nth((n+1)%7)).toHaveAttribute('aria-current','true');
+ }
+ await expect(page.locator('.preview-dots button').first()).toHaveClass(/active/);
+ await page.getByRole('button',{name:'Предыдущее фото'}).click();
+ await expect(page.locator('.preview-dots button').last()).toHaveClass(/active/);
  await page.getByRole('button',{name:'редактировать'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
 });
@@ -178,8 +191,30 @@ test('V7 registration keeps call-to-action pinned and interest icons visible',as
  await expect(page.locator('.city-search')).toHaveCount(0);
  await page.getByRole('button',{name:'изменить город'}).click();
  await expect(page.locator('.city-search')).toBeVisible();
+ await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toBeVisible();
  await page.getByRole('button',{name:'скрыть поиск'}).click();
+ await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toHaveCount(0);
  await page.getByRole('button',{name:'выбрать город'}).click();
  await page.getByRole('button',{name:'рассказать о себе'}).click();
  await expect(page.locator('.interest-tag svg')).toHaveCount(15);
+});
+
+
+test('V8 manual city can be corrected using device location without leaving the page',async({page,context})=>{
+ await context.grantPermissions(['geolocation'],{origin:'http://127.0.0.1:3100'});
+ await context.setGeolocation({latitude:45.035,longitude:38.975});
+ await page.route('**/api/geo?lat=*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{city:'Краснодар',country:'Россия',lat:45.035,lon:38.975,label:'Краснодар, Россия'}])}));
+ await telegram(page,25);await page.goto('/');
+ await page.getByLabel('Дата рождения').fill('1998-05-12');
+ await page.getByRole('button',{name:'мужчина'}).click();
+ await page.getByRole('button',{name:'далее'}).click();
+ await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
+ await page.locator('.city-results button').first().click();
+ await expect(page.locator('.location-card')).toContainText('Paris');
+ await page.getByRole('button',{name:'изменить город'}).click();
+ const navCount=await page.evaluate(()=>performance.getEntriesByType('navigation').length);
+ await page.getByRole('button',{name:'использовать моё местоположение'}).click();
+ await expect(page.locator('.location-card')).toContainText('Краснодар');
+ await expect(page.locator('.city-search')).toHaveCount(0);
+ expect(await page.evaluate(()=>performance.getEntriesByType('navigation').length)).toBe(navCount);
 });

@@ -230,3 +230,54 @@
 .registration-preview .preview-actions .btn.outline{background:#fff;box-shadow:none;border:1px solid #ffd0dd;color:#f21665;min-height:47px}
 @media(max-width:360px){.registration-v7{padding-left:14px;padding-right:14px}.registration-v7 .registration-actions{padding-left:14px;padding-right:14px}.registration-v7 .gender-choice{gap:5px;font-size:13px}.gender-choice img{width:21px;height:21px}}
 @media(prefers-reduced-motion:reduce){.registration-v7 .progress span::after,.preview-gallery-track,.photo-drag-ghost{animation:none;transition:none}}
+
+
+/* Registration v8 — the final preview is one immersive discovery card. */
+.registration-preview .preview-surface.preview-dating-card{
+ background:#171627;border:3px solid #fff;border-radius:29px;
+ box-shadow:0 16px 46px rgba(25,15,41,.19),0 0 0 1px #f7dbe5;
+ overflow:hidden;margin:0 0 26px;isolation:isolate
+}
+.registration-preview .preview-gallery{height:clamp(390px,60dvh,580px);aspect-ratio:auto;overflow:hidden;background:#1d1526}
+.registration-preview .preview-gallery-track{height:100%;width:100%;display:flex;will-change:transform}
+.registration-preview .preview-gallery-slide{flex:0 0 100%;min-width:100%;height:100%;overflow:hidden}
+.registration-preview .preview-gallery-slide .photo-box{height:100%;width:100%}
+.registration-preview .preview-gallery-slide .photo-box img{object-fit:cover;height:100%;width:100%}
+.registration-preview .preview-fade{z-index:1;inset:0;height:100%;
+ background:linear-gradient(180deg,rgba(9,7,24,.13) 0%,transparent 31%,rgba(13,10,26,.16) 47%,rgba(15,10,27,.84) 79%,rgba(15,10,27,.98) 100%)
+}
+.registration-preview .preview-card-flag{position:absolute;top:16px;left:15px;z-index:3;
+ background:rgba(18,13,31,.48);border:1px solid rgba(255,255,255,.3);color:#fff;
+ backdrop-filter:blur(11px);border-radius:40px;font-size:11px;font-weight:700;padding:8px 12px}
+.registration-preview .preview-card-caption{position:absolute;bottom:35px;left:18px;right:17px;z-index:3;
+ display:flex;flex-direction:column;align-items:flex-start;gap:7px;color:#fff;text-align:left;pointer-events:none}
+.registration-preview .preview-card-caption h2{margin:0;font-size:clamp(26px,7vw,34px);line-height:1.1;letter-spacing:-.7px;
+ text-shadow:0 2px 10px #09041570;max-width:100%;overflow-wrap:anywhere}
+.registration-preview .preview-card-location{display:flex;align-items:center;gap:5px;margin:0;
+ color:#fff;opacity:.94;font-size:13px;font-weight:600}
+.registration-preview .preview-card-bio{font-size:12px;line-height:1.4;margin:0;display:-webkit-box;
+ -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;color:#fffdfa;opacity:.95}
+.registration-preview .preview-card-chips{display:flex;flex-wrap:wrap;gap:5px;margin:3px 0 0;max-width:100%}
+.registration-preview .preview-card-chips span{display:inline-flex;align-items:center;gap:5px;
+ padding:6px 9px;border-radius:50px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.24);
+ color:#fff;font-weight:600;font-size:10px;backdrop-filter:blur(5px);white-space:nowrap}
+.registration-preview .preview-card-chips svg{flex:none;color:#fff}
+.registration-preview .preview-card-goal{display:flex;align-items:center;gap:5px;margin:2px 0 0;
+ font-size:11px;color:#ffdce8;font-weight:700}
+.registration-preview .preview-arrow{z-index:4;width:37px;height:37px;background:#20122d85;
+ border:1px solid #fff6;top:43%;box-shadow:0 5px 14px #0004}
+.registration-preview .preview-arrow:active{transform:translateY(-50%) scale(.92)}
+.registration-preview .preview-dots{z-index:5;left:15px;right:15px;bottom:13px;transform:none;
+ display:flex;gap:5px;justify-content:stretch}
+.registration-preview .preview-dots button,.registration-preview .preview-dots button.active{
+ flex:1 1 0;min-width:0;width:0;height:4px;border-radius:99px;transition:background .18s ease;
+ background:#ffffff79;box-shadow:0 1px 4px #0002}
+.registration-preview .preview-dots button.active{background:#fff}
+.registration-v7 .looking-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:6px;min-height:82px;padding:12px 5px;border-radius:21px;transition:background .2s,border-color .2s,transform .18s}
+.registration-v7 .looking-choice img{width:32px;height:32px;object-fit:contain;transition:transform .18s ease,filter .18s ease}
+.registration-v7 .looking-choice.selected img{filter:invert(31%) sepia(90%) saturate(4043%) hue-rotate(319deg) brightness(101%) contrast(106%);transform:scale(1.09)}
+.registration-v7 .looking-choice:active{transform:scale(.97)}
+.registration-v7 .looking-choice span{font-size:12px;white-space:nowrap;font-weight:700}
+@media(max-width:365px){.registration-v7 .looking-choice{min-height:76px}.registration-v7 .looking-choice img{width:28px;height:28px}.registration-v7 .looking-choice span{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.registration-preview .preview-gallery-track{transition:none!important}}
