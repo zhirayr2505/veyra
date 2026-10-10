@@ -4,7 +4,7 @@ import stickers from '../shared/chat-stickers.json' with {type:'json'};
 import {one} from './db.js';
 import {fail} from './core.js';
 import {z,parse,uuid,short} from './validation.js';
-import {approved,pairLock,publicProfile,notify} from './domain.js';
+import {approved,pairLock,publicProfile,publicProfiles,notify} from './domain.js';
 
 const visible=`m.deleted_at IS NULL AND NOT EXISTS(SELECT 1 FROM message_hides h WHERE h.message_id=m.id AND h.user_id=$2)`;
 const fields=`m.id,m.match_id,m.sender,m.body,m.client_id,m.kind,m.sticker_id,(SELECT jsonb_build_object('mime',mm.mime,'size',mm.size_bytes,'width',mm.width,'height',mm.height,'duration',mm.duration,'waveform',mm.waveform) FROM message_media mm WHERE mm.message_id=m.id) AS media,m.created_at::text AS created_at,m.read_at,m.delivered_at,m.edited_at,m.reply_to,m.deleted_at,m.chat_revision::text AS revision,
@@ -42,10 +42,39 @@ const emojiSchema=z.string().max(32).refine(s=>[...new Intl.Segmenter('en',{gran
 export function chatRoutes(app,{db,rate,env,storage}){
  chatMediaRoutes(app,{db,rate,env,storage,access,serialize,record,fields});
  app.get('/api/chat/stickers',(req,res)=>res.json(stickers));
- app.get('/api/matches',async(req,res)=>{await approved(db,req.user.id);const rows=(await db.query('SELECT * FROM matches WHERE active AND (a=$1 OR b=$1) ORDER BY created_at DESC LIMIT 100',[req.user.id])).rows;const result=[];
- for(const m of rows){const other=String(m.a)===String(req.user.id)?m.b:m.a;const profile=await publicProfile(db,other);if(!profile)continue;
- const block=await one(db,'SELECT actor FROM blocks WHERE (actor=$1 AND target=$2) OR (actor=$2 AND target=$1) ORDER BY (actor=$1) DESC LIMIT 1',[req.user.id,other]);
- result.push({...m,profile,blocked_by_me:String(block?.actor)===String(req.user.id),unavailable:!!block,last:await one(db,`SELECT m.body,m.kind,m.sticker_id,m.created_at,m.sender,m.edited_at FROM messages m WHERE m.match_id=$1 AND ${visible} ORDER BY m.created_at DESC,m.id DESC LIMIT 1`,[m.id,req.user.id]),unread:(await one(db,`SELECT count(*)::int AS n FROM messages m WHERE m.match_id=$1 AND m.sender<>$2 AND m.read_at IS NULL AND ${visible}`,[m.id,req.user.id])).n});}res.json(result);
+ app.get('/api/matches',async(req,res)=>{
+  await approved(db,req.user.id);
+  const uid=String(req.user.id);
+  const rows=(await db.query('SELECT * FROM matches WHERE active AND (a=$1 OR b=$1) ORDER BY created_at DESC LIMIT 100',[uid])).rows;
+  if(!rows.length)return res.json([]);
+  const other=m=>String(m.a)===uid?String(m.b):String(m.a);
+  const ids=rows.map(m=>String(m.id));
+  // Previous implementation sent 3-4 sequential SQL queries per match.
+  // Gather message preview, unread count and block status in one batch query.
+  const [profiles,metaRows]=await Promise.all([
+   publicProfiles(db,[...new Set(rows.map(other))]),
+   db.query(`SELECT mx.id,
+      (SELECT row_to_json(last_message) FROM
+       (SELECT msg.body,msg.kind,msg.sticker_id,msg.created_at,msg.sender,msg.edited_at
+        FROM messages msg WHERE msg.match_id=mx.id AND msg.deleted_at IS NULL
+        AND NOT EXISTS(SELECT 1 FROM message_hides h WHERE h.message_id=msg.id AND h.user_id=$2)
+        ORDER BY msg.created_at DESC,msg.id DESC LIMIT 1) last_message) AS last,
+      (SELECT count(*)::int FROM messages msg
+        WHERE msg.match_id=mx.id AND msg.sender<>$2 AND msg.read_at IS NULL AND msg.deleted_at IS NULL
+        AND NOT EXISTS(SELECT 1 FROM message_hides h WHERE h.message_id=msg.id AND h.user_id=$2)) AS unread,
+      (SELECT b.actor FROM blocks b
+       WHERE (b.actor=$2 AND b.target=(CASE WHEN mx.a=$2 THEN mx.b ELSE mx.a END))
+       OR (b.target=$2 AND b.actor=(CASE WHEN mx.a=$2 THEN mx.b ELSE mx.a END))
+       ORDER BY (b.actor=$2) DESC LIMIT 1) AS block_actor
+     FROM matches mx WHERE mx.id=ANY($1::uuid[])`,[ids,uid])
+  ]);
+  const meta=new Map(metaRows.rows.map(x=>[String(x.id),x]));
+  const result=rows.flatMap(m=>{
+   const profile=profiles.get(other(m));if(!profile)return [];
+   const item=meta.get(String(m.id))||{},block=String(item.block_actor||'');
+   return [{...m,profile,blocked_by_me:block===uid,unavailable:!!item.block_actor,last:item.last||null,unread:item.unread||0}];
+  });
+  res.json(result);
  });
  app.get('/api/matches/:id/messages',async(req,res)=>{const mid=parse(uuid,req.params.id),uid=req.user.id;const before=req.query.before?decode(req.query.before):null;const after=req.query.after?decode(req.query.after):null;const since=req.query.since===undefined?null:parse(z.string().regex(/^\d{1,19}$/),req.query.since);const around=req.query.around?parse(uuid,req.query.around):null;
  res.json(await db.tx(async q=>{const m=await access(q,mid,uid);let rows,more,newer=false;const args=[mid,uid];
