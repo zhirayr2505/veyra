@@ -120,10 +120,10 @@ export function Registration({me,refresh}){
     </div>
     <div className="preview-fade"/>
     <span className="preview-card-flag">твоя карточка</span>
-    {photos.length>1&&<><button type="button" className="preview-arrow left" aria-label="Предыдущее фото" onClick={()=>advancePhoto(-1)}><ChevronLeft size={23}/></button><button type="button" className="preview-arrow right" aria-label="Следующее фото" onClick={()=>advancePhoto(1)}><ChevronRight size={23}/></button></>}
+    {photos.length>1&&<><button type="button" className="preview-arrow left" aria-label="Предыдущее фото" onClick={()=>advancePhoto(-1)}><Icon name="chevron-left" tone="dark" size={23}/></button><button type="button" className="preview-arrow right" aria-label="Следующее фото" onClick={()=>advancePhoto(1)}><Icon name="chevron-right" tone="dark" size={23}/></button></>}
     <div className="preview-card-caption">
      <h2>{f.name}, {age(f.birth_date)}</h2>
-     <p className="preview-card-location"><MapPin size={16} aria-hidden="true"/>{f.city}, {f.country}</p>
+     <p className="preview-card-location"><Icon name="pin" tone="white" size={16}/>{f.city}, {f.country}</p>
      {f.bio?.trim()&&<p className="preview-card-bio">{f.bio}</p>}
      {f.interests.length>0&&<div className="preview-card-chips" aria-label="Интересы">{f.interests.map(value=><span key={value}><InterestSymbol value={value} size={14}/>{value}</span>)}</div>}
      <p className="preview-card-goal">✨ {f.goal==='relationship'?'Ищу серьёзные отношения':f.goal==='dating'?'Открыт(а) к свиданиям':f.goal==='friends'?'Ищу друзей':'Открыт(а) к общению'}</p>
@@ -132,7 +132,7 @@ export function Registration({me,refresh}){
    </div>
   </div>
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Check size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(5,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
+  <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Icon name="check" tone="white" size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(5,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
  </main>;
  return <div className="page registration registration-v6 registration-v7">
   <div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><small>шаг {step} из 5</small><span/></div>
@@ -159,7 +159,7 @@ export function Registration({me,refresh}){
     {selectedCity&&<div className="distance-control"><div className="range-labels"><span>Радиус поиска</span><strong>{f.radius_km>=20000?'весь мир':f.radius_km+' км'}</strong></div>
       <Slider min={5} max={500} step={5} label="Радиус поиска" value={Math.min(500,f.radius_km)} onChange={v=>change('radius_km',v)}/>
       <div className="range-ends"><span>5 км</span><span>500 км</span></div>
-      <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Check size={15}/></span><span>Искать по всему миру</span></label>
+      <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
    </div>}
    {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/assets/veyra/05_premium_icons/gender/'+k+'.svg'}/><span>{v}</span></button>)}</div>
@@ -188,7 +188,7 @@ export function Registration({me,refresh}){
     </div>
     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
     <p className="photo-footnote">{uploading?'Загружаем фотографии по очереди…':'Загружено '+photos.length+' из '+MAX_PHOTOS+' · минимум '+MIN_PHOTOS}</p>
-    <label className="checkline registration-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span className="custom-check"><Check size={15}/></span><span>Мне 18+, согласен с правилами и политикой конфиденциальности</span></label>
+    <label className="checkline registration-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Мне 18+, согласен с правилами и политикой конфиденциальности</span></label>
    </div>}
   </div>
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}

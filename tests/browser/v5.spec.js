@@ -10,7 +10,7 @@ test('V5 signed Telegram startup, persistent tabs, and real discovery',async({pa
  await telegram(page,10);await page.goto('/');
  await expect(page.locator('.feed-photo')).toBeVisible();
  await expect(page.locator('.bottom-nav button')).toHaveCount(4);
- await page.getByRole('button',{name:'Фильтры'}).click();
+ await page.getByRole('button',{name:'Фильтры',exact:true}).click();
  await expect(page.getByRole('dialog',{name:'фильтры'})).toBeVisible();
  await page.getByRole('button',{name:'Закрыть'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
@@ -272,7 +272,7 @@ test('VEYRA screenshot filters preserve real feed API parameters',async({page})=
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/feed')feedUrls.push(r.url())});
  await page.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby')).toBeVisible();
- await page.getByRole('button',{name:'Фильтры'}).click();
+ await page.getByRole('button',{name:'Фильтры',exact:true}).click();
  await expect(page.getByRole('dialog',{name:'фильтры'})).toBeVisible();
  await page.getByLabel('С общими интересами').check();
  await page.getByRole('button',{name:'Показать анкеты'}).click();

@@ -33,3 +33,28 @@ test('premium icon system covers every tab, shortcut and three tones',()=>{
   assert.ok(existsSync(new URL('../public/graphics/illustrations/'+art+'-512.webp',import.meta.url)));
  }
 });
+
+test('approved refined duotone pack is complete and wired in every core screen',()=>{
+ const path=new URL('../public/assets/veyra/05_premium_icons/',import.meta.url);
+ for(const tone of ['dark','pink','white']){
+  for(const name of ['home','home_filled','heart','heart_filled','chat','chat_filled','user','user_filled','crown','gift','star','settings','filters','search','verified','refresh']){
+   const asset=new URL(tone+'/'+name+'.svg',path);
+   assert.ok(existsSync(asset),asset.href);
+   const source=readFileSync(asset,'utf8');
+   assert.match(source,/^<svg[^>]*xmlns=/);
+   assert.doesNotMatch(source,/<linearGradient\b|<radialGradient\b|<filter\b|javascript:|<script\b/i);
+  }
+ }
+ for(const name of ['match','incoming','chat','discover','nearby','profile','gift','default']){
+  const asset=new URL('../public/assets/veyra/06_duotone_art/'+name+'.svg',import.meta.url);
+  assert.ok(existsSync(asset),asset.href);
+  const source=readFileSync(asset,'utf8');
+  assert.match(source,/^<svg[^>]*xmlns=/);
+  assert.doesNotMatch(source,/<linearGradient\b|<radialGradient\b|<filter\b|javascript:|<script\b/i);
+ }
+ const ui=readFileSync(new URL('../web/v5/UI.jsx',import.meta.url),'utf8');
+ assert.ok(ui.includes('/06_duotone_art/'));
+ const discovery=readFileSync(new URL('../web/v5/Discover.jsx',import.meta.url),'utf8');
+ assert.ok(discovery.includes('/06_duotone_art/discover.svg'));
+ assert.doesNotMatch(discovery,/\/graphics\/illustrations\/discover-cards-512\.webp/);
+});
