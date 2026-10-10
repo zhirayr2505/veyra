@@ -79,3 +79,6 @@
 @media(prefers-reduced-motion:reduce){
  .discover .feed-photo,.discover .feed-action-circle,.discover .feed-picture-current{transition:none;animation:none}
 }
+
+/* Keep the existing tab-entry slide inside the viewport when returning from a profile. */
+.app-shell .view-frame:has(.discover){overflow-x:clip}
