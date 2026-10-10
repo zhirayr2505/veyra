@@ -1,11 +1,12 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
-import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Heart,Check} from 'lucide-react';
+import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder} from './api.js';
-import {Button,Logo,Icon,Photo,InlineAlert,Spinner,Header} from './UI.jsx';
+import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3;
 const interests=['музыка','путешествия','кино','спорт','книги','кофе','технологии','животные','фото','прогулки','искусство','вкусная еда','танцы','йога','мода'];
 const interestIcons=[Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt];
+function InterestSymbol({value,size=16}){const Symbol=interestIcons[interests.indexOf(String(value).toLowerCase())];return Symbol?<Symbol size={size} strokeWidth={2} aria-hidden="true"/>:null;}
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
 const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:''};
@@ -26,9 +27,9 @@ export function Registration({me,refresh}){
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
- const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0);
+ const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
- const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),uploadRunning=useRef(false);
+ const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
@@ -99,27 +100,37 @@ export function Registration({me,refresh}){
   if(target>=0&&target<photos.length&&target!==s.index)reorder(s.index,target);
  };
  const dragCancel=()=>{if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current=null;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1)};
- const swipeEnd=e=>{if(swipeX.current==null)return;const delta=e.changedTouches[0].clientX-swipeX.current;swipeX.current=null;if(Math.abs(delta)>45)setPhotoIndex(i=>Math.min(photos.length-1,Math.max(0,i+(delta<0?1:-1))))};
+ const advancePhoto=direction=>{if(photos.length<2||slideBusy.current)return;slideBusy.current=true;setSlideStep(direction)};
+ const finishPhotoSlide=e=>{if(e.target!==e.currentTarget||e.propertyName!=='transform'||!slideStep)return;setPhotoIndex(i=>(i+slideStep+photos.length)%photos.length);setSlideStep(0);slideBusy.current=false};
+ const selectPhoto=i=>{if(slideBusy.current)return;setPhotoIndex(i)};
+ const swipeEnd=e=>{if(swipeX.current==null)return;const delta=e.changedTouches[0].clientX-swipeX.current;swipeX.current=null;if(Math.abs(delta)>45)advancePhoto(delta<0?1:-1)};
  const remove=i=>work(async()=>{await request('/photos/'+photos[i].id,{method:'DELETE'});setPhotos(old=>old.filter((_,j)=>j!==i));await refresh()});
  const send=()=>work(async()=>{if(photos.length<MIN_PHOTOS)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});localStorage.removeItem(draftKey);await refresh()});
  const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
+ const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <main className="page registration registration-v7 registration-preview">
   <div className="step-top"><button className="quiet" aria-label="Назад к фотографиям" onClick={()=>setPreview(false)}><Icon name="back"/></button><small>так тебя увидят другие</small><span/></div>
   <div className="center-logo"><Logo width={136}/></div>
   <h1>твоя анкета</h1><p className="subheading">Первое впечатление начинается здесь ✨</p>
-  <div className="preview-surface">
-   <div className="preview-gallery" onTouchStart={e=>swipeX.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
-    <div className="preview-gallery-track" style={{transform:'translate3d(-'+(photoIndex*100)+'%,0,0)'}}>{photos.map((p,i)=><div className="preview-gallery-slide" key={p.id}><Photo id={p.id} className="preview-photo" alt={'Фото '+(i+1)}/></div>)}</div>
-    <div className="preview-fade"/><div className="preview-count">{photoIndex+1} / {photos.length}</div>
-    {photos.length>1&&<><button className="preview-arrow left" aria-label="Предыдущее фото" disabled={!photoIndex} onClick={()=>setPhotoIndex(i=>Math.max(0,i-1))}><ChevronLeft size={22}/></button><button className="preview-arrow right" aria-label="Следующее фото" disabled={photoIndex===photos.length-1} onClick={()=>setPhotoIndex(i=>Math.min(photos.length-1,i+1))}><ChevronRight size={22}/></button></>}
-    <div className="preview-dots">{photos.map((p,i)=><button key={p.id} aria-label={'Фото '+(i+1)} className={i===photoIndex?'active':''} onClick={()=>setPhotoIndex(i)}/>)}</div>
+  <div className="preview-surface preview-dating-card">
+   <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>swipeX.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
+    <div className="preview-gallery-track" onTransitionEnd={finishPhotoSlide} style={{transform:'translate3d(-'+((slideStep+1)*100)+'%,0,0)',transition:slideStep?'transform .36s cubic-bezier(.2,.8,.2,1)':'none'}}>
+     {galleryPhotos.map((p,i)=><div className="preview-gallery-slide" key={p.id+'-'+i}><Photo id={p.id} className="preview-photo" alt={'Фото '+(i===0?(photoIndex-1+photos.length)%photos.length+1:i===1?photoIndex+1:(photoIndex+1)%photos.length+1)}/></div>)}
+    </div>
+    <div className="preview-fade"/>
+    <span className="preview-card-flag">твоя карточка</span>
+    {photos.length>1&&<><button type="button" className="preview-arrow left" aria-label="Предыдущее фото" onClick={()=>advancePhoto(-1)}><ChevronLeft size={23}/></button><button type="button" className="preview-arrow right" aria-label="Следующее фото" onClick={()=>advancePhoto(1)}><ChevronRight size={23}/></button></>}
+    <div className="preview-card-caption">
+     <h2>{f.name}, {age(f.birth_date)}</h2>
+     <p className="preview-card-location"><MapPin size={16} aria-hidden="true"/>{f.city}, {f.country}</p>
+     {f.bio?.trim()&&<p className="preview-card-bio">{f.bio}</p>}
+     {f.interests.length>0&&<div className="preview-card-chips" aria-label="Интересы">{f.interests.map(value=><span key={value}><InterestSymbol value={value} size={14}/>{value}</span>)}</div>}
+     <p className="preview-card-goal">✨ {f.goal==='relationship'?'Ищу серьёзные отношения':f.goal==='dating'?'Открыт(а) к свиданиям':f.goal==='friends'?'Ищу друзей':'Открыт(а) к общению'}</p>
+    </div>
+    {photos.length>1&&<div className="preview-dots" role="group" aria-label="Фотографии анкеты">{photos.map((p,i)=><button type="button" key={p.id} aria-label={'Фото '+(i+1)} aria-current={i===photoIndex?'true':undefined} className={i===photoIndex?'active':''} onClick={()=>selectPhoto(i)}/>)}</div>}
    </div>
-   <div className="preview-identity"><div><h2>{f.name}, {age(f.birth_date)}</h2><p><MapPin size={16}/>{f.city}, {f.country}</p></div><span className="preview-heart"><Heart size={23} fill="currentColor"/></span></div>
-   {f.bio?.trim()&&<section className="preview-section"><h3>обо мне</h3><p>{f.bio}</p></section>}
-   {f.interests.length>0&&<section className="preview-section"><h3>интересы</h3><div className="preview-interest-list">{f.interests.map(v=><span key={v}>{v}</span>)}</div></section>}
-   <section className="preview-section"><h3>ищу</h3><p>{f.goal==='relationship'?'Серьёзные отношения':f.goal==='dating'?'Свидания':f.goal==='friends'?'Друзей':'Общение и новые знакомства'}</p></section>
   </div>
   <InlineAlert>{error}</InlineAlert>
   <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Check size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(5,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
@@ -140,7 +151,7 @@ export function Registration({me,refresh}){
     {selectedCity&&<div className="location-card">
      <span className="location-mark"><Icon name="pin" tone="pink" size={32}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
     </div>}
-    {!selectedCity&&<Button className="locate-button" onClick={locate} disabled={locating||busy}>{locating?<><span className="spinner-ring"/> определяем город…</>:<><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</>}</Button>}
+    {(!selectedCity||cityEdit)&&<Button className="locate-button" onClick={locate} disabled={locating||busy}>{locating?<><span className="spinner-ring"/> определяем город…</>:<><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</>}</Button>}
     {(cityEdit||!selectedCity)&&<><p className="or">{selectedCity?'выбери другой город':'или найди свой город'}</p>
      <div className="city-search"><Icon name="search" size={21}/><input aria-label="Поиск города" autoComplete="off" placeholder="Начни вводить название города" value={query} onChange={e=>{setQuery(e.target.value)}}/>{searching&&<span className="city-spinner"/>}</div>
      {places.length>0&&<div className="city-results" role="listbox" aria-label="Результаты поиска городов">{places.map((p,i)=><button type="button" role="option" aria-selected="false" key={p.label+'-'+i} onClick={()=>choosePlace(p)}><Icon name="pin" tone="pink" size={17}/><span><b>{p.city}</b><small>{p.country}</small></span></button>)}</div>}
@@ -152,10 +163,10 @@ export function Registration({me,refresh}){
       <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Check size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
    </div>}
-   {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}>{v}</button>)}</div>
+   {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/assets/veyra/03_registration/looking_'+k+'.svg'}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
-   {step===4&&<div className="fields"><p className="field-label">Интересы <span>{f.interests.length}/7</span></p><div className="interest-grid">{interests.map(v=><button key={v} className={'tag interest-tag '+(f.interests.includes(v)?'selected':'')} aria-pressed={f.interests.includes(v)} onClick={()=>change('interests',f.interests.includes(v)?f.interests.filter(x=>x!==v):f.interests.length<7?[...f.interests,v]:f.interests)}>{React.createElement(interestIcons[interests.indexOf(v)],{size:16,strokeWidth:2})}<span>{v}</span></button>)}</div>
+   {step===4&&<div className="fields"><p className="field-label">Интересы <span>{f.interests.length}/7</span></p><div className="interest-grid">{interests.map(v=><button key={v} className={'tag interest-tag '+(f.interests.includes(v)?'selected':'')} aria-pressed={f.interests.includes(v)} onClick={()=>change('interests',f.interests.includes(v)?f.interests.filter(x=>x!==v):f.interests.length<7?[...f.interests,v]:f.interests)}><InterestSymbol value={v}/><span>{v}</span></button>)}</div>
     <label>О себе<textarea maxLength={1000} value={f.bio} onChange={e=>change('bio',e.target.value)} placeholder="Люблю вечерние прогулки, хорошее кино и живое общение"/></label>
     <label>Цель знакомства<select value={f.goal} onChange={e=>change('goal',e.target.value)}><option value="relationship">отношения</option><option value="dating">свидания</option><option value="friends">дружба</option><option value="unsure">пока не знаю</option></select></label>
    </div>}
@@ -184,6 +195,6 @@ export function Registration({me,refresh}){
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===5&&photos.length<MIN_PHOTOS)} onClick={step===5?()=>{setPhotoIndex(0);setError('');setPreview(true)}:next}>{step===5?'посмотреть анкету':step===4?'добавить фото':step===3?'рассказать о себе':step===2?'выбрать город':'далее'}</Button>}</div>
+  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===5&&photos.length<MIN_PHOTOS)} onClick={step===5?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===5?'посмотреть анкету':step===4?'добавить фото':step===3?'рассказать о себе':step===2?'выбрать город':'далее'}</Button>}</div>
  </div>;
 }
