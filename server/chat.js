@@ -45,7 +45,7 @@ export function chatRoutes(app,{db,rate,env,storage}){
  app.get('/api/matches',async(req,res)=>{
   await approved(db,req.user.id);
   const uid=String(req.user.id);
-  const rows=(await db.query('SELECT m.*,(m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND (m.a=$1 OR m.b=$1) ORDER BY m.created_at DESC LIMIT 100',[uid])).rows;
+  const rows=(await db.query(`SELECT m.*,(m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND (m.a=$1 OR m.b=$1) ORDER BY m.created_at DESC LIMIT 100`,[uid])).rows;
   if(!rows.length)return res.json([]);
   const other=m=>String(m.a)===uid?String(m.b):String(m.a);
   const ids=rows.map(m=>String(m.id));
