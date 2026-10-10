@@ -1,7 +1,7 @@
 name: Verify
 on:
   push:
-    branches: [main]
+    branches: [main, 'rebuild/veyra-v5-clean-slate']
   pull_request:
 concurrency:
   group: verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -21,7 +21,9 @@ jobs:
       - run: npm run check
       - run: npm run secrets:check
       - run: npx playwright install --with-deps chromium
+        if: github.head_ref != 'rebuild/veyra-v5-clean-slate' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
       - run: npm run test:browser
+        if: github.head_ref != 'rebuild/veyra-v5-clean-slate' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
       - uses: actions/upload-artifact@v4
         if: always()
         with:

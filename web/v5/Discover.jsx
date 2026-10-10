@@ -1,7 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {get,post,request} from './api.js';
 import {Button,Header,Icon,Photo,Tabs,Empty,Sheet,InlineAlert,Spinner} from './UI.jsx';
-const modes=[['discover','для вас'],['nearby','рядом'],['for_you','онлайн']];
+const modes=[['discover','для вас'],['nearby','рядом'],['for_you','по интересам']];
 export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0}){
  const [mode,setMode]=useState('discover'),[card,setCard]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[limited,setLimited]=useState(false),[index,setIndex]=useState(0);
  const ticket=useRef(0);
