@@ -9,7 +9,7 @@ async function login(page,id=10){
 async function capture(page,label){
  const screenshot=await page.screenshot({path:'test-results/veyra-visual/'+label+'.png',fullPage:true});
  // Small synthetic-fixture-only thumbnail lets maintainers inspect the CI-rendered interface.
- if(['01-feed','02-member','04-chats','05-conversation','06-own-profile'].includes(label)){
+ if(['01-feed','02-member','04-chats','05-conversation','06-own-profile','08-goodbye'].includes(label)){
   const jpg=await sharp(screenshot).resize({width:320}).jpeg({quality:39}).toBuffer();
   console.log('VEYRA_VISUAL_'+label+'='+jpg.toString('base64'));
  }
@@ -51,4 +51,22 @@ test('Mobile design audit: capture all primary V5 screens and verify brand icon 
  await capture(page,'07-settings');
  expect(broken).toEqual([]);expect(crashes).toEqual([]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+});
+
+test('Branded goodbye appears after successful deletion and Exit invokes Telegram close',async({page})=>{
+ await login(page);
+ await page.addInitScript(()=>{window.__veyraClosed=false;const tg=window.Telegram?.WebApp;if(tg)tg.close=()=>{window.__veyraClosed=true}});
+ await page.route('**/api/account',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,deleted:true})}));
+ await page.goto('/');
+ await expect(page.locator('.bottom-nav')).toBeVisible();
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
+ page.once('dialog',dialog=>dialog.accept());
+ await page.getByRole('button',{name:'удалить аккаунт'}).click();
+ await expect(page.locator('.deleted-screen')).toBeVisible();
+ await expect(page.locator('.deleted-screen')).toContainText('Твой аккаунт VEYRA удалён');
+ await mkdir('test-results/veyra-visual',{recursive:true});
+ await capture(page,'08-goodbye');
+ await page.getByRole('button',{name:'Выйти из приложения'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__veyraClosed)).toBe(true);
 });
