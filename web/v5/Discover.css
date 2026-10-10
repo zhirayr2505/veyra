@@ -85,3 +85,8 @@
 @media(prefers-reduced-motion:reduce){
  .discover .feed-photo,.discover .feed-picture-current,.discover .feed-flash,.discover .feed-load-cards img{animation:none!important;transition:none!important}
 }
+
+/* DiscoveryHub supplies the shared VEYRA header + segment navigation. */
+.discover.screen.discover-embedded{padding:0 0 8px;min-height:0;max-width:none;background:transparent;overflow:visible}
+.discover.discover-embedded .feed-photo{height:clamp(320px,calc(100dvh - 294px - env(safe-area-inset-top) - env(safe-area-inset-bottom)),670px)}
+@media(max-height:690px){.discover.discover-embedded .feed-photo{height:clamp(288px,calc(100dvh - 260px - env(safe-area-inset-top)),485px)}}

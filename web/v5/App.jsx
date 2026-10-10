@@ -4,7 +4,7 @@ import {Logo,Icon,Header,Button,Sheet,Empty,Spinner,InlineAlert} from './UI.jsx'
 import {Welcome} from './Welcome.jsx';
 import {Registration} from './Registration.jsx';
 import {Moderation} from './Moderation.jsx';
-import {Discover} from './Discover.jsx';
+import {DiscoveryHub} from './DiscoveryHub.jsx';
 import {FeedFilters} from './FeedFilters.jsx';
 import {Member} from './Member.jsx';
 import {Likes} from './Likes.jsx';
@@ -58,7 +58,7 @@ export function App(){
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell">
  <div className="view-frame" hidden={!!conversation||!!member}>
- <div className="view-tab" data-enter={tabDirection} hidden={tab!=='feed'}><Discover filters={feedFilters} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
+ <div className="view-tab" data-enter={tabDirection} hidden={tab!=='feed'}><DiscoveryHub filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
  {visited.has('profile')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}

@@ -73,7 +73,7 @@ function FeedState({kind,onRetry,onFilters,onPremium}){
   {!isLoading&&<Button className="full" onClick={isError?onRetry:isLimited?onPremium:onFilters}>{isError?'Попробовать ещё раз':isLimited?'Открыть Premium':'Изменить фильтры'}</Button>}
  </div>;
 }
-export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={}}){
+export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false}){
  const mode=filters.mode||'discover';
  const onlyOnline=!!filters.only_online,commonInterests=!!filters.common_interests;
  const [card,setCard]=useState(null),[loading,setLoading]=useState(true),[limited,setLimited]=useState(false);
@@ -87,7 +87,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
 
  useEffect(()=>{let alive=true;get('/reactions/last').then(r=>{
   if(alive)setLast({...r,target:r.action?.target||null});
- }).catch(()=>{});return()=>{alive=false}},[]);
+ }).catch(()=>{});return()=>{alive=false}},[refreshTick]);
  useEffect(()=>{
   let alive=true;const seq=++requestToken.current;
   setLoading(true);setCard(null);setLimited(false);setError('');setIndex(0);setMotion('');
@@ -183,14 +183,14 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const distance=card?.distance_km;
  const location=[card?.city,distance!==undefined&&distance!==null&&Number.isFinite(Number(distance))?Math.round(Number(distance))+' км':null].filter(Boolean).join(' · ');
  const undoAvailable=!!last.target&&last.can_undo;
- return <section className="discover screen" aria-label="Лента знакомств">
-  <header className="feed-head">
+ return <section className={'discover screen'+(embedded?' discover-embedded':'')} aria-label="Лента знакомств">
+  {!embedded&&<header className="feed-head">
    <img src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA" className="feed-brand"/>
    <div className="feed-head-right">
     <span className="feed-mode-name">{mode==='nearby'?'рядом':mode==='for_you'?'по интересам':'для вас'}</span>
     <button className="icon-button" type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={23}/></button>
    </div>
-  </header>
+  </header>}
   <div className="feed-content" aria-busy={busy}>
    {loading&&!card?<FeedState kind="loading"/>:
     card?<React.Fragment>

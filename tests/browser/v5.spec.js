@@ -265,9 +265,10 @@ test('VEYRA screenshot filters preserve real feed API parameters',async({page})=
  await expect(page.locator('.feed-photo')).toBeVisible();
  const feedUrls=[];
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/feed')feedUrls.push(r.url())});
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ await expect(page.locator('.vx-nearby')).toBeVisible();
  await page.getByRole('button',{name:'Фильтры'}).click();
  await expect(page.getByRole('dialog',{name:'фильтры'})).toBeVisible();
- await page.getByRole('button',{name:'Рядом'}).click();
  await page.getByLabel('С общими интересами').check();
  await page.getByRole('button',{name:'Показать анкеты'}).click();
  await expect(page.getByRole('dialog',{name:'фильтры'})).toHaveCount(0);
@@ -297,4 +298,52 @@ test('VEYRA next feed profile visibly enters after button reaction and undo rest
  await expect(page.getByRole('button',{name:'Отменить последнее действие'})).toBeEnabled();
  await page.getByRole('button',{name:'Отменить последнее действие'}).click();
  await expect(card.locator('.hero-name')).toContainText(firstName.split(',')[0]);
+});
+
+
+test('VEYRA top discovery modes are distinct, persistent, and open genuine member profiles',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await telegram(page,10);await page.goto('/');
+ const tabs=page.getByRole('tablist',{name:'Способы знакомств'});
+ await expect(tabs.getByRole('tab')).toHaveCount(3);
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await expect(page.locator('.bottom-nav button')).toHaveCount(4);
+ await tabs.getByRole('tab',{name:'Для вас'}).click();
+ await expect(page.locator('.vx-for_you .vx-people .vx-person').first()).toBeVisible();
+ await expect(page.locator('.vx-collections .vx-collection').first()).toBeVisible();
+ await expect(page.locator('.feed-photo')).toBeHidden();
+ const collection=page.locator('.vx-collection').first();
+ await collection.click();
+ await expect(collection).toHaveClass(/chosen/);
+ await page.locator('.vx-for_you .vx-person-open').first().click();
+ await expect(page.locator('.member')).toBeVisible();
+ await page.locator('.member .top-header button.back').click();
+ await expect(page.locator('.vx-for_you .vx-people')).toBeVisible();
+ await tabs.getByRole('tab',{name:'Рядом'}).click();
+ await expect(page.locator('.vx-nearby .vx-people .vx-person').first()).toBeVisible();
+ await expect(page.locator('.vx-nearby .vx-person-caption small').first()).toContainText('км');
+ await expect(page.locator('.feed-photo')).toBeHidden();
+ await tabs.getByRole('tab',{name:'Лента'}).click();
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ expect(errors).toEqual([]);
+});
+
+test('VEYRA nearby sends a genuine like with button only and keeps bottom navigation intact',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ const likes=[];
+ let backgroundFeedRequests=0;
+ page.on('request',request=>{
+  const url=new URL(request.url());
+  if(url.pathname==='/api/reactions'&&request.method()==='POST')likes.push(request.postDataJSON());
+  if(url.pathname==='/api/feed'&&url.searchParams.get('mode')==='discover')backgroundFeedRequests++;
+ });
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ await expect(page.locator('.vx-nearby .vx-person-like').first()).toBeVisible();
+ const before=backgroundFeedRequests;
+ await page.locator('.vx-nearby .vx-person-like').first().click();
+ await expect.poll(()=>likes.length).toBe(1);
+ expect(backgroundFeedRequests).toBe(before);
+ expect(likes[0].kind).toBe('like');
+ await expect(page.locator('.bottom-nav button')).toHaveCount(4);
 });
