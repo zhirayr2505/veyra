@@ -29,9 +29,9 @@ export function App(){
   setBearer(j.token);const m=await get('/me');if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false}},[]);
  const logout=async()=>{await post('/logout',{}).catch(()=>{});setBearer('');clearPhotoCache();setMe(null);setError('Открой VEYRA через официальный Telegram-бот');};
- const navigate=next=>{setMember(null);setConversation(null);setOverlay(null);setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
- const openMember=(id,matchId=null)=>{setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
- const openChat=async(id,person)=>{setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);setConversation({id,partner:m?.profile})}catch(e){setError(e.message)}};
+ const navigate=next=>{setError('');setMember(null);setConversation(null);setReturnChat(null);setOverlay(null);setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
+ const openMember=(id,matchId=null)=>{if(!id)return;setError('');setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
+ const openChat=async(id,person)=>{if(!id){setError('Чат пока недоступен');return;}setError('');setReturnChat(null);setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);setConversation({id,partner:m?.profile})}catch(e){setError(e.message)}};
  const gift=person=>{if(person?.id)setOverlay({type:'gift',target:person})};
  const matchFound=(matchId,profile)=>{setMatch({id:matchId,profile});setRefreshTick(x=>x+1)};
  const courtship=async()=>{if(!member)return;try{const r=await post('/courtships/request',{target:String(member.id)});setOverlay({type:'courtship-sent',status:r.status})}catch(e){setError(e.message)}};
