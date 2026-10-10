@@ -20,6 +20,7 @@ export function OwnProfile({me,refresh,onPremium,onCollection,onSettings,onRanki
  <section className="info-block"><h3>мои фото</h3><div className="photo-gallery-mini">{me.photos?.map(x=><Photo id={x.id} key={x.id}/>)}</div></section>
  <Button kind="outline" className="full" onClick={onCourtship}>💜 предложения ухаживания</Button>
  {me.user?.admin_role&&<Button onClick={onAdmin}>панель модератора</Button>}
+ {me.user?.admin_role==='owner'&&<OwnerTestTools/>}
  </div>;
 }
 export function Settings({me,onClose,refresh,onDeleted}){const [lang,setLang]=useState(me.user?.language||'ru'),[notifications,setNotifications]=useState(!!me.user?.notifications),[invisible,setInvisible]=useState(!!me.user?.invisible),[paused,setPaused]=useState(!!me.user?.paused),[err,setErr]=useState(''),[supportOpen,setSupportOpen]=useState(false);
@@ -39,3 +40,8 @@ export function Ranking({onClose}){const [stats,set]=useState(null),[err,setErr]
 }
 export function CourtshipInbox({onClose}){const [items,set]=useState([]),[err,setErr]=useState('');const load=()=>get('/courtships/inbox').then(x=>set(x)).catch(e=>setErr(e.message));useEffect(()=>{load()},[]);const respond=async(id,accept)=>{try{await post('/courtships/'+id+'/respond',{accept});load()}catch(e){setErr(e.message)}};
  const stop=async id=>{if(!window.confirm('Завершить ухаживание и убрать публичный статус?'))return;try{await post('/courtships/'+id+'/stop',{});load()}catch(e){setErr(e.message)}};return <Sheet title="ухажёры" onClose={onClose}>{!items.length?<Empty title="пока нет предложений" body="Когда кто-то предложит ухаживание, ты решишь — принимать или нет."/>:items.map(x=><div className="proposal" key={x.id}><span>{x.sender_name||'Пользователь'} · {x.status}</span>{x.status==='pending'&&<div className="row"><Button onClick={()=>respond(x.id,true)}>принять</Button><Button kind="outline" onClick={()=>respond(x.id,false)}>отклонить</Button></div>}{x.status==='active'&&<Button kind="outline" onClick={()=>stop(x.id)}>убрать статус</Button>}</div>)}<InlineAlert>{err}</InlineAlert></Sheet>}
+
+function OwnerTestTools(){const [busy,setBusy]=useState(false),[notice,setNotice]=useState('');
+ const seed=async()=>{setBusy(true);setNotice('');try{const r=await post('/owner/seed-test-profiles',{});setNotice('Тестовые анкеты: '+(r.count||0)+'. Открой ленту. Все они помечены как тестовые.')}catch(e){setNotice('Ошибка: '+e.message)}finally{setBusy(false)}};
+ return <section className="owner-test-tools"><h3>Режим владельца · 0 ⭐</h3><p>Premium, подарки, Искры и ухаживание доступны для тестирования без настоящих списаний.</p><Button kind="outline" className="full" onClick={seed} disabled={busy}>{busy?'создаём анкеты…':'создать 6 тестовых анкет'}</Button>{notice&&<p role="status">{notice}</p>}</section>;
+}
