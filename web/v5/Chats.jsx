@@ -13,11 +13,28 @@ export function Chats({onOpen,onProfile,refreshTick=0,active=true}){
  </div>;
 }
 function MessagePhoto({matchId,messageId}){
- const[url,setUrl]=useState('');
- useEffect(()=>{let live=true;let obj=null;fetch('/api/matches/'+matchId+'/messages/'+messageId+'/media',{headers:{Authorization:'Bearer '+getBearer()}})
-  .then(r=>{if(!r.ok)throw Error('IMAGE_UNAVAILABLE');return r.blob()}).then(b=>{obj=URL.createObjectURL(b);if(live)setUrl(obj);else URL.revokeObjectURL(obj)}).catch(()=>{});
- return()=>{live=false;if(obj)URL.revokeObjectURL(obj)}},[matchId,messageId]);
- return url?<img className="message-image" src={url} alt="Отправленное фото" loading="lazy" decoding="async"/>:<span className="message-image-placeholder">▧ фото</span>;
+ const [attempt,setAttempt]=useState(0),[state,setState]=useState({url:'',failed:false});
+ const frame=useRef(null);
+ useEffect(()=>{
+  let live=true,obj='',observer;
+  const controller=new AbortController();
+  setState({url:'',failed:false});
+  const load=()=>fetch('/api/matches/'+encodeURIComponent(matchId)+'/messages/'+encodeURIComponent(messageId)+'/media',{
+   headers:{Authorization:'Bearer '+getBearer()},signal:controller.signal
+  }).then(r=>{if(!r.ok)throw Error('IMAGE_UNAVAILABLE');return r.blob()})
+   .then(b=>{obj=URL.createObjectURL(b);if(live)setState({url:obj,failed:false});else URL.revokeObjectURL(obj)})
+   .catch(()=>{if(live&&!controller.signal.aborted)setState({url:'',failed:true})});
+  if(frame.current&&typeof IntersectionObserver!=='undefined'){
+   observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}},{rootMargin:'170px'});
+   observer.observe(frame.current);
+  }else load();
+  return()=>{live=false;controller.abort();observer?.disconnect();if(obj)URL.revokeObjectURL(obj)};
+ },[matchId,messageId,attempt]);
+ return <span className="message-image-frame" ref={frame}>
+  {state.url?<img className="message-image" src={state.url} alt="Отправленное фото" loading="lazy" decoding="async"/>:
+   state.failed?<button type="button" className="message-image-retry" onClick={()=>setAttempt(n=>n+1)}>↻ фото не открылось · повторить</button>:
+    <span className="message-image-placeholder">▧ загружаем фото…</span>}
+ </span>;
 }
 export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
  const [messages,setMessages]=useState([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[more,setMore]=useState(false),[before,setBefore]=useState(null),[stickerMode,setStickerMode]=useState(false),[stickers,setStickers]=useState([]),[selected,setSelected]=useState(null),[reply,setReply]=useState(null),[typing,setTyping]=useState(false);
