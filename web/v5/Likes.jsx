@@ -86,7 +86,7 @@ export function Likes({onProfile,onChat,onMatch,onPremium,refreshTick=0,active=t
     {rows.length>0&&<div className="likes-count-line"><span>Ваши мэтчи</span><span>{rows.length}</span></div>}
     {rows.length===0?<Empty art="match" title="Здесь начнётся ваша история" body="Когда симпатия окажется взаимной, здесь появится человек, с которым можно общаться." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
     <div className="likes-gallery">{rows.map(m=><PersonCard key={m.id} person={m.profile} match={m} onProfile={onProfile} onChat={onChat} onSeen={seen}/>)}</div>}
-   </>:count===0?<Empty art="match" title="Пока нет входящих симпатий" body="Когда кто-нибудь поставит тебе лайк, он появится здесь. Никаких выдуманных уведомлений." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
+   </>:count===0?<Empty art="incoming" title="Пока нет входящих симпатий" body="Когда кто-нибудь поставит тебе лайк, он появится здесь. Никаких выдуманных уведомлений." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
    incoming?.locked?<Locked count={count} onPremium={onPremium}/>:
    <><div className="likes-count-line"><span>Входящие симпатии</span><span>{count}</span></div>
     <div className="likes-gallery">{(incoming?.profiles||[]).map(p=><PersonCard key={p.id} person={p} onProfile={onProfile} onLike={like} processing={processing===String(p.id)}/>)}</div>

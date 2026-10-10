@@ -14,6 +14,7 @@ import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
 import './VisualPolish.css';
+import './VeyraRebuild.css';
 const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -66,7 +67,7 @@ export function App(){
  </div>
  {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
- {!conversation&&!member&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><Icon name={icon+(tab===k&&['heart','chat','user'].includes(icon)?'_filled':'')} tone={tab===k?'pink':'dark'} size={23}/><span>{label}</span></button>)}</nav>}
+ {!conversation&&!member&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={25}/></span><span className="nav-label">{label}</span></button>)}</nav>}
  {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><DetailIcon name="match" size={64}/></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}

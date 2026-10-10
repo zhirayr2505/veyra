@@ -14,3 +14,22 @@ test('branded SVG assets exist and contain safe markup',()=>{
 test('registration and filtering have matching gender art',()=>{
  for(const name of ['man','woman','all'])assert.ok(existsSync(new URL('gender-'+name+'.svg',dir)));
 });
+
+test('premium icon system covers every tab, shortcut and three tones',()=>{
+ const iconNames=['cards','cards_filled','heart','heart_filled','chat','chat_filled','user','user_filled','crown','gift','star','settings','filters','refresh','search','check','checks','camera','send','back','close','more','pin','plus','shield_check','sparkle','verified','undo','online','people','reply','down','match','missing-photo','views'];
+ const root=new URL('../public/assets/veyra/05_premium_icons/',import.meta.url);
+ for(const tone of ['pink','dark','white'])for(const name of iconNames){
+  const url=new URL(tone+'/'+name+'.svg',root);
+  assert.ok(existsSync(url),tone+'/'+name);
+  const content=readFileSync(url,'utf8');
+  assert.match(content,/^<svg[^>]+xmlns=/);
+  assert.doesNotMatch(content,/<script\\b|onload=|javascript:/i);
+ }
+ for(const name of ['music','travel','cinema','sport','books','coffee','technology','pets','camera','walk','food','art','dance','yoga','fashion']){
+  assert.ok(existsSync(new URL('interests/'+name+'.svg',root)));
+ }
+ for(const name of ['man','woman','all'])assert.ok(existsSync(new URL('gender/'+name+'.svg',root)));
+ for(const art of ['discover-cards','match-hearts','chat-bubbles','review-shield','referral-gift']){
+  assert.ok(existsSync(new URL('../public/graphics/illustrations/'+art+'-512.webp',import.meta.url)));
+ }
+});
