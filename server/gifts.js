@@ -68,7 +68,7 @@ export function giftsRoutes(app,{db,rate,tg}){
  app.get('/api/gifts/collection/:id',async(req,res)=>{
   const target=parse(id,req.params.id);
   await ensurePair(db,req.user.id,target);
-  res.json(await collection(db,target));
+  const data=await collection(db,target);res.json({...data,items:data.items.map(({sender_name,note,stars,...row})=>({...row,gift:row.gift?{key:row.gift.key,name:row.gift.name,emoji:row.gift.emoji,rarity:row.gift.rarity}:null}))});
  });
  app.get('/api/gifts/status/:id',async(req,res)=>{
   const giftId=parse(uuid,req.params.id);

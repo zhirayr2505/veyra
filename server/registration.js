@@ -33,7 +33,7 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
   await db.tx(async q=>{await saveProfile(q,req.user.id,p);await q.query('INSERT INTO registration_drafts(user_id,step,data) VALUES($1,5,$2) ON CONFLICT(user_id) DO UPDATE SET step=5,data=$2,updated_at=now()',[req.user.id,JSON.stringify(p)]);});res.json({ok:true});
  });
  app.put('/api/photos/order',async(req,res)=>{
-  const {ids}=parse(z.object({ids:z.array(uuid).min(1).max(6)}),req.body);
+  const {ids}=parse(z.object({ids:z.array(uuid).min(1).max(10)}),req.body);
   await db.tx(async q=>{
    await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
    const owned=(await q.query('SELECT id FROM photos WHERE user_id=$1',[req.user.id])).rows.map(p=>p.id);

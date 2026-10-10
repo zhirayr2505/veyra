@@ -39,7 +39,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
  ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||''])).rows;
- const candidates=rows.filter(x=>p.radius_km===20000||x.distance<=p.radius_km).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
+ const candidates=rows.filter(x=>(process.env.NODE_ENV!=='production'||!isTestProfile(x.user_id))&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
  // N+1 loop multiplied network latency on Render/Supabase for every card.

@@ -1,5 +1,4 @@
 import {database,migrate} from './db.js';
-import {seedTestProfiles} from './test-profiles.js';
 import {createClient} from 'redis';
 import {normalizeRedis} from './core.js';
 import {createApp} from './app.js';
@@ -16,8 +15,7 @@ const tg=(bot,method,body)=>telegram(bot==='admin'?env.ADMIN_BOT_TOKEN:env.USER_
 // The explicitly requested launch reset was a one-time operation. Never replay on deploy.
 const registrationReset={status:'retired'};
 console.log(JSON.stringify({event:'registration_v2',reset:registrationReset.status}));
-const testProfiles=await seedTestProfiles(db,storage,env).catch(()=>({status:'failed'}));
-console.log(JSON.stringify({event:'test_profiles',...testProfiles}));
+const testProfiles={status:'disabled_for_production'};
 const deps={db,env,redis,storage,tg,geo:p=>geo(env,p),registrationReset,testProfiles};
 if(env.AUTO_SETUP_BOTS==='true')await setupBots(env);
 const app=createApp(deps);const server=app.listen(Number(env.PORT||3000),'0.0.0.0',()=>console.log('VEYRA listening'));
