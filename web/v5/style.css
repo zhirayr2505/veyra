@@ -130,3 +130,9 @@
 @keyframes veyraDimIn{from{opacity:0}to{opacity:1}}@keyframes veyraSheetIn{from{opacity:.6;transform:translateY(34px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 .subscreen{animation:veyraSheetIn .25s ease-out both}
 @media(prefers-reduced-motion:reduce){.registration-step.forward,.registration-step.backward,.view-tab:not([hidden]),.overlay,.overlay .sheet,.subscreen,.location-mark,.registration-toast{animation:none!important}.photo-slot{transition:none}}
+
+.splash-copy{font-size:12px;letter-spacing:.02em;color:var(--muted);font-weight:600}
+.view-tab:not([hidden])[data-enter="left"]{animation:veyraViewEnter .28s cubic-bezier(.2,.75,.24,1) both}
+.view-tab:not([hidden])[data-enter="right"]{animation:veyraViewEnterReverse .28s cubic-bezier(.2,.75,.24,1) both}
+@keyframes veyraViewEnterReverse{from{opacity:.45;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.view-tab:not([hidden])[data-enter="right"]{animation:none}}

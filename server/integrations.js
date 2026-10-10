@@ -58,4 +58,17 @@ export function storage(env){const base=env.SUPABASE_URL.replace(/\/$/,'')+'/sto
  async get(key){const r=await fetch(base+'/object/authenticated/'+bucket+'/'+key,{headers,signal:AbortSignal.timeout(15000)});if(!r.ok)fail(404,'PHOTO_NOT_FOUND');return Buffer.from(await r.arrayBuffer());},
  async remove(key){const r=await fetch(base+'/object/'+bucket,{method:'DELETE',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({prefixes:[key]})});if(!r.ok)throw Error('STORAGE_DELETE_FAILED');}
  };}
-export async function geo(env,params){const u=new URL('https://api.geoapify.com/v1/geocode/'+(params.text?'search':'reverse'));for(const[k,v]of Object.entries(params))u.searchParams.set(k,v);u.searchParams.set('apiKey',env.GEOAPIFY_API_KEY);u.searchParams.set('format','json');u.searchParams.set('limit','6');const r=await fetch(u,{signal:AbortSignal.timeout(10000)});if(!r.ok)fail(503,'GEO_UNAVAILABLE');return (await r.json()).results.map(x=>({city:x.city||x.town||x.village||x.name||x.county,country:x.country,lat:x.lat,lon:x.lon,label:x.formatted})).filter(x=>x.city&&x.country);}
+export async function geo(env,params){
+ const byText=!!params.text;
+ const u=new URL('https://api.geoapify.com/v1/geocode/'+(byText?(params.autocomplete?'autocomplete':'search'):'reverse'));
+ if(byText){u.searchParams.set('text',params.text);u.searchParams.set('type','city');}
+ else{u.searchParams.set('lat',String(params.lat));u.searchParams.set('lon',String(params.lon));}
+ u.searchParams.set('apiKey',env.GEOAPIFY_API_KEY);
+ u.searchParams.set('format','json');
+ u.searchParams.set('lang','ru');
+ u.searchParams.set('limit','8');
+ const r=await fetch(u,{signal:AbortSignal.timeout(10000)});
+ if(!r.ok)fail(503,'GEO_UNAVAILABLE');
+ const response=await r.json();
+ return (response.results||[]).map(x=>({city:x.city||x.town||x.village||x.municipality||x.name,country:x.country,lat:x.lat,lon:x.lon,label:x.formatted})).filter(x=>x.city&&x.country&&Number.isFinite(x.lat)&&Number.isFinite(x.lon));
+}
