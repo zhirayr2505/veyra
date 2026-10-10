@@ -1,12 +1,11 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder} from './api.js';
-import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
+import {Button,Logo,Icon,Photo,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3;
 const interests=['музыка','путешествия','кино','спорт','книги','кофе','технологии','животные','фото','прогулки','искусство','вкусная еда','танцы','йога','мода'];
-const interestIcons=[Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt];
-function InterestSymbol({value,size=16}){const Symbol=interestIcons[interests.indexOf(String(value).toLowerCase())];return Symbol?<Symbol size={size} strokeWidth={2} aria-hidden="true"/>:null;}
+function InterestSymbol({value,size=16}){return <InterestIcon name={value} size={size}/>;}
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
 const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:''};
@@ -145,7 +144,7 @@ export function Registration({me,refresh}){
    {step===1&&<div className="fields">
     <label className="registration-name-field">Имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как тебя зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
     <label>Дата рождения<input type="date" min="1900-01-01" max={adultDate()} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
-    <p className="field-label">Пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/assets/veyra/03_registration/'+k+'.svg'}/>{v}</button>)}</div>
+    <p className="field-label">Пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/assets/veyra/04_details/gender-'+k+'.svg'}/>{v}</button>)}</div>
    </div>}
    {step===2&&<div className="fields">
     {selectedCity&&<div className="location-card">
@@ -163,7 +162,7 @@ export function Registration({me,refresh}){
       <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Check size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
    </div>}
-   {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/assets/veyra/03_registration/looking_'+k+'.svg'}/><span>{v}</span></button>)}</div>
+   {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/assets/veyra/04_details/gender-'+k+'.svg'}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
    {step===4&&<div className="fields"><p className="field-label">Интересы <span>{f.interests.length}/7</span></p><div className="interest-grid">{interests.map(v=><button key={v} className={'tag interest-tag '+(f.interests.includes(v)?'selected':'')} aria-pressed={f.interests.includes(v)} onClick={()=>change('interests',f.interests.includes(v)?f.interests.filter(x=>x!==v):f.interests.length<7?[...f.interests,v]:f.interests)}><InterestSymbol value={v}/><span>{v}</span></button>)}</div>
@@ -181,8 +180,8 @@ export function Registration({me,refresh}){
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<Photo id={item.id}/>}
         {i===0&&<span className="cover-label">главное фото</span>}
-        {loading?<span className={'upload-state '+item.status}>{item.status==='done'?<Icon name="check" tone="white" size={23}/>:item.status==='failed'?'!':<span className="spinner-ring"/>}</span>:
-        <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}>×</button>}
+        {loading?<span className={'upload-state '+item.status}>{item.status==='done'?<Icon name="check" tone="white" size={23}/>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="spinner-ring"/>}</span>:
+        <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button>}
        </div>:<button key={'empty'+i} className={'photo-slot photo-slot-add '+(i===0?'primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}>
         <Icon name={i===0?'camera':'plus'} tone="pink" size={i===0?31:23}/>{i===0&&<span>главное фото</span>}
        </button>})}

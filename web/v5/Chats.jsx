@@ -1,6 +1,6 @@
 import React,{useState,useEffect,useRef,useLayoutEffect,useMemo,useCallback} from 'react';
 import {get,post,patch,put,request,getBearer} from './api.js';
-import {Logo,Icon,Photo,Empty,Spinner,InlineAlert,Sheet} from './UI.jsx';
+import {Logo,Icon,DetailIcon,Photo,Empty,Spinner,InlineAlert,Sheet} from './UI.jsx';
 
 const haptic=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{}};
 const clock=value=>value?new Date(value).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'';
@@ -12,10 +12,10 @@ const shortTime=value=>{
   day.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
 };
 const preview=m=>{
- if(!m.last)return 'Вы понравились друг другу 💗';
- if(m.last.kind==='image')return '📷 Фото'+(m.last.body?' · '+m.last.body:'');
- if(m.last.kind==='sticker')return '💜 Стикер';
- if(m.last.kind==='voice')return '🎤 Голосовое сообщение';
+ if(!m.last)return 'Вы понравились друг другу';
+ if(m.last.kind==='image')return 'Фото'+(m.last.body?' · '+m.last.body:'');
+ if(m.last.kind==='sticker')return 'Стикер';
+ if(m.last.kind==='voice')return 'Голосовое сообщение';
  return m.last.body||'Сообщение';
 };
 
@@ -55,14 +55,14 @@ export function Chats({onOpen,refreshTick=0,active=true}){
  return <div className="page chats veyra-chats">
   <div className="ve-chats-brand"><Logo width={151}/></div>
   <h1>Чаты</h1>
-  <label className="search-chat ve-chat-search"><Icon name="search" size={20}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск собеседников" aria-label="Поиск чатов"/>{q&&<button className="ve-clear" onClick={()=>setQ('')} aria-label="Очистить поиск" type="button">×</button>}</label>
+  <label className="search-chat ve-chat-search"><Icon name="search" size={20}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск собеседников" aria-label="Поиск чатов"/>{q&&<button className="ve-clear" onClick={()=>setQ('')} aria-label="Очистить поиск" type="button"><Icon name="close" size={16}/></button>}</label>
   <div className="ve-chat-tabs" role="tablist" aria-label="Фильтр чатов">{[['all','Все'],['unread','Непрочитанные']].map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} className={tab===key?'selected':''} onClick={()=>{haptic();setTab(key)}}>{label}</button>)}</div>
   {error&&<div className="alert" role="alert">{error} <button className="text-link" onClick={load}>Повторить</button></div>}
-  {busy&&list.length===0?<div className="center-loading"><Spinner/></div>:filtered.length===0&&!error?<Empty title={q?'Ничего не найдено':tab==='unread'?'Всё прочитано':'Пока нет переписок'} body={q?'Попробуй другое имя.':tab==='unread'?'Новых сообщений пока нет.':'После взаимной симпатии вы сможете общаться здесь.'}/>:<div className="chat-list ve-chat-list">
+  {busy&&list.length===0?<div className="center-loading"><Spinner/></div>:filtered.length===0&&!error?<Empty art="chat" title={q?'Ничего не найдено':tab==='unread'?'Всё прочитано':'Пока нет переписок'} body={q?'Попробуй другое имя.':tab==='unread'?'Новых сообщений пока нет.':'После взаимной симпатии вы сможете общаться здесь.'}/>:<div className="chat-list ve-chat-list">
    {filtered.map(m=><div className={'chat-tile ve-chat-tile '+(m.pinned?'ve-pinned':'')} key={m.id} role="button" tabIndex={0} onClick={()=>{haptic();onOpen(m.id,m.profile)}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOpen(m.id,m.profile)}}}>
     <span className="ve-avatar-wrap"><Photo id={m.profile?.photos?.[0]} className="chat-avatar"/>{m.profile?.online&&<i className="ve-online-dot" aria-label="В сети"/>}</span>
     <span className="chat-preview">
-     {m.pinned&&<span className="ve-pinned-caption">✦ Закреплённый чат</span>}
+     {m.pinned&&<span className="ve-pinned-caption"><Icon name="pin" tone="pink" size={12}/> Закреплённый чат</span>}
      <span className="chat-preview-head"><b>{m.profile?.name||'Собеседник'}{m.profile?.age?', '+m.profile.age:''}</b><small>{shortTime(m.last?.created_at||m.created_at)}</small></span>
      <span className="ve-chat-second"><span className="ve-chat-last">{preview(m)}</span>{m.unread>0&&<span className="unread">{m.unread>99?'99+':m.unread}</span>}</span>
     </span>
@@ -90,7 +90,7 @@ function MessagePhoto({matchId,messageId,onView}){
  },[matchId,messageId,attempt]);
  return <span className="message-image-frame" ref={frame}>
   {state.url?<button type="button" className="ve-image-open" onClick={()=>onView(state.url)} aria-label="Открыть фото на весь экран"><img className="message-image" src={state.url} alt="Фотография в переписке" loading="lazy" decoding="async"/></button>:
-   state.failed?<button type="button" className="message-image-retry" onClick={()=>setAttempt(n=>n+1)}>↻ Фото не открылось · Повторить</button>:
+   state.failed?<button type="button" className="message-image-retry" onClick={()=>setAttempt(n=>n+1)}><DetailIcon name="refresh" size={16}/> Фото не открылось · Повторить</button>:
    <span className="message-image-placeholder">Загружаем фото…</span>}
  </span>;
 }
@@ -265,8 +265,8 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
      const earlier=timeline[i-1]&&new Date(timeline[i-1].created_at).toDateString()===new Date(m.created_at).toDateString();
      return <React.Fragment key={m.id}>{!earlier&&<div className="ve-day-stamp">{date}</div>}
       {m.eventType==='gift'?<div className={'ve-gift-event '+(mine?'gift-mine':'gift-theirs')}>
-       <div className="ve-gift-top">🎁 {mine?'Вы отправили подарок':'Вам отправили подарок'}</div>
-       <div className="ve-gift-content"><span className="ve-gift-emoji">{m.emoji||'🎁'}</span><span><strong>{m.name}</strong>{m.note&&<small>{m.note}</small>}<span className="ve-gift-time">{clock(m.created_at)}</span></span></div>
+       <div className="ve-gift-top"><Icon name="gift" tone="pink" size={16}/> {mine?'Вы отправили подарок':'Вам отправили подарок'}</div>
+       <div className="ve-gift-content"><span className="ve-gift-emoji">{m.emoji||<Icon name="gift" tone="pink" size={37}/>}</span><span><strong>{m.name}</strong>{m.note&&<small>{m.note}</small>}<span className="ve-gift-time">{clock(m.created_at)}</span></span></div>
        <button type="button" onClick={()=>onProfile(partner?.id,matchId)}>Посмотреть профиль</button>
       </div>:<div className={'ve-message-row '+(mine?'mine':'theirs')}>
        <div className={'bubble '+(mine?'mine':'theirs')+(m.kind==='image'?' ve-photo-bubble':'')}
@@ -274,24 +274,24 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
         onTouchStart={()=>{clearTimeout(touchTimer.current);touchTimer.current=setTimeout(()=>openActions(m),550)}}
         onTouchEnd={()=>clearTimeout(touchTimer.current)}
         onTouchMove={()=>clearTimeout(touchTimer.current)}>
-        {!m.deleted&&<button className="ve-message-actions" type="button" aria-label="Действия с сообщением" onClick={()=>openActions(m)}>···</button>}
+        {!m.deleted&&<button className="ve-message-actions" type="button" aria-label="Действия с сообщением" onClick={()=>openActions(m)}><Icon name="more" tone={mine?"white":"dark"} size={18}/></button>}
         {m.deleted?<em>Сообщение удалено</em>:<>
          {m.reply&&<div className="quoted-msg"><strong>{m.reply.unavailable?'Сообщение недоступно':m.reply.name||'Ответ'}</strong><span>{m.reply.unavailable?'Сообщение недоступно':m.reply.body||'Фото или стикер'}</span></div>}
          {m.kind==='image'&&<MessagePhoto matchId={matchId} messageId={m.id} onView={setViewer}/>}
          {m.kind==='sticker'&&<img className="message-sticker" alt="Стикер" src={stickers.find(s=>s.id===m.sticker_id)?.src||''}/>}
          {m.body&&<span className="ve-bubble-text">{m.body}</span>}
         </>}
-        <small className="ve-message-time">{m.edited_at&&'изм. · '}{clock(m.created_at)}{mine&&<span className="ve-receipt" title={m.read_at?'Прочитано':m.delivered_at?'Доставлено':'Отправлено'}>{m.read_at?'✓✓':m.delivered_at?'✓✓':'✓'}</span>}</small>
+        <small className="ve-message-time">{m.edited_at&&'изм. · '}{clock(m.created_at)}{mine&&<span className={"ve-receipt ve-receipt-"+(m.read_at?"read":m.delivered_at?"delivered":"sent")} title={m.read_at?"Прочитано":m.delivered_at?"Доставлено":"Отправлено"}><DetailIcon name={m.read_at||m.delivered_at?"checks":"check"} size={15}/></span>}</small>
        </div>
        {!!m.reactions?.length&&!m.deleted&&<div className="ve-reactions">{m.reactions.map(r=><button key={r.emoji} type="button" className={r.mine?'own':''} onClick={()=>{setSelected(m);haptic()}} aria-label={'Реакция '+r.emoji+' '+r.count}>{r.emoji} {r.count}</button>)}</div>}
       </div>}</React.Fragment>
     })}
     {typing&&<div className="ve-typing-bubble"><span/><span/><span/><small>{partner?.name||'Собеседник'} печатает…</small></div>}
    </div>
-   {showLatest&&<button type="button" className="ve-scroll-latest" onClick={bottom} aria-label="К последним сообщениям">↓</button>}
+   {showLatest&&<button type="button" className="ve-scroll-latest" onClick={bottom} aria-label="К последним сообщениям"><DetailIcon name="down" size={19}/></button>}
   </div>
   {error&&<InlineAlert>{error}</InlineAlert>}
-  {reply&&<div className="reply-composer"><span><b>↪ Ответ на сообщение</b><small>{reply.body||'Фото или стикер'}</small></span><button type="button" aria-label="Отменить ответ" onClick={()=>setReply(null)}>×</button></div>}
+  {reply&&<div className="reply-composer"><span><b><DetailIcon name="reply" size={16}/> Ответ на сообщение</b><small>{reply.body||'Фото или стикер'}</small></span><button type="button" aria-label="Отменить ответ" onClick={()=>setReply(null)}><Icon name="close" size={17}/></button></div>}
   {stickerMode&&<div className="sticker-tray">{stickers.map(st=><button type="button" key={st.id} title={st.label} disabled={busy} onClick={()=>sendSticker(st)}><img loading="lazy" src={st.src} alt={st.label}/></button>)}</div>}
   {attachments&&<div className="ve-attachment-tray"><button type="button" onClick={()=>photoInput.current?.click()}><Icon name="camera" tone="pink"/> Фото</button><button type="button" onClick={()=>{setStickerMode(v=>!v);setAttachments(false)}}><Icon name="sparkle" tone="pink"/> Стикеры</button><button type="button" onClick={()=>{setAttachments(false);onGift(partner)}}><Icon name="gift" tone="pink"/> Подарок</button></div>}
   <form className="message-composer ve-message-composer" onSubmit={send}>
@@ -304,7 +304,7 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
   </form>
   {selected&&<Sheet title="Сообщение" onClose={()=>setSelected(null)}>
    {!selected.deleted&&<div className="ve-emoji-reactions">{['❤️','😍','🥰','😂','🔥','👍'].map(emoji=><button type="button" key={emoji} onClick={()=>chooseReaction(emoji)}>{emoji}</button>)}</div>}
-   {!selected.deleted&&<button className="menu-item" onClick={()=>{setReply(selected);setSelected(null);input.current?.focus()}}>↪ Ответить</button>}
+   {!selected.deleted&&<button className="menu-item" onClick={()=>{setReply(selected);setSelected(null);input.current?.focus()}}><DetailIcon name="reply" size={18}/> Ответить</button>}
    {selected.body&&!selected.deleted&&<button className="menu-item" onClick={()=>{navigator.clipboard?.writeText(selected.body).catch(()=>{});setSelected(null)}}>Копировать текст</button>}
    {String(selected.sender)===String(myId)&&['text','image'].includes(selected.kind)&&!selected.deleted&&<button className="menu-item" onClick={edit}>Редактировать</button>}
    {String(selected.sender)===String(myId)&&<button className="menu-item" onClick={()=>del('me')}>Удалить у меня</button>}
@@ -313,7 +313,7 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
   </Sheet>}
   {menu&&<Sheet title="Настройки переписки" onClose={()=>setMenu(false)}>
    <button className="menu-item" onClick={()=>{setMenu(false);onProfile(partner?.id,matchId)}}>Посмотреть профиль</button>
-   <button className="menu-item" onClick={()=>{setMenu(false);onGift(partner)}}>🎁 Отправить подарок</button>
+   <button className="menu-item" onClick={()=>{setMenu(false);onGift(partner)}}><Icon name="gift" tone="pink" size={18}/> Отправить подарок</button>
    <button className="menu-item" onClick={()=>{setMenu(false);setReport(true)}}>Пожаловаться</button>
    <button className="menu-item danger" onClick={block}>Заблокировать</button>
   </Sheet>}
@@ -322,6 +322,6 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
    <div className="ve-report-options">{[['spam','Спам'],['harassment','Оскорбления или угрозы'],['fraud','Мошенничество'],['explicit','Неприемлемый контент'],['fake','Фейковый профиль'],['other','Другое']].map(([key,label])=><label key={key}><input type="radio" name="chat-report" checked={reportReason===key} onChange={()=>setReportReason(key)}/>{label}</label>)}</div>
    <button className="btn primary full" type="button" disabled={reportBusy} onClick={submitReport}>Отправить жалобу</button>
   </Sheet>}
-  {viewer&&<div className="ve-media-viewer" role="dialog" aria-modal="true" aria-label="Просмотр фотографии" onClick={()=>setViewer('')}><button type="button" className="ve-viewer-close" aria-label="Закрыть">×</button><img src={viewer} alt="Фото в полном размере" onClick={e=>e.stopPropagation()}/></div>}
+  {viewer&&<div className="ve-media-viewer" role="dialog" aria-modal="true" aria-label="Просмотр фотографии" onClick={()=>setViewer('')}><button type="button" className="ve-viewer-close" aria-label="Закрыть"><Icon name="close" tone="white" size={22}/></button><img src={viewer} alt="Фото в полном размере" onClick={e=>e.stopPropagation()}/></div>}
  </div>;
 }

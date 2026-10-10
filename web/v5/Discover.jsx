@@ -1,13 +1,9 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
 import {get,post,photoUrl,cachedPhoto} from './api.js';
-import {Button,Icon,InlineAlert,Spinner} from './UI.jsx';
+import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
 import './Discover.css';
 
-const interestIcons={'музыка':Music2,'путешествия':Plane,'кино':Clapperboard,'спорт':Dumbbell,
- 'книги':BookOpen,'кофе':Coffee,'технологии':MonitorSmartphone,'животные':PawPrint,'фото':Camera,
- 'прогулки':Footprints,'искусство':Palette,'вкусная еда':UtensilsCrossed,'танцы':Headphones,
- 'йога':Flower2,'мода':Shirt};
 const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
 function haptic(kind){const feedback=window.Telegram?.WebApp?.HapticFeedback;try{
  if(kind==='like'||kind==='super')feedback?.notificationOccurred?.('success');
@@ -17,9 +13,7 @@ async function decodePhoto(url){if(!url||typeof Image==='undefined')return;
  const image=new Image();image.src=url;
  if(typeof image.decode==='function')await image.decode().catch(()=>{});
 }
-function Interest({name}){const IconComponent=interestIcons[String(name).toLowerCase()];
- return <span className="feed-interest">{IconComponent&&<IconComponent size={14} strokeWidth={2} aria-hidden="true"/>}<span>{name}</span></span>;
-}
+function Interest({name}){return <span className="feed-interest"><InterestIcon name={name} size={14}/><span>{name}</span></span>;}
 function FeedPicture({card,index}){
  const photos=card.photos||[],id=photos[index],profileId=card.id;
  const [state,setState]=useState(()=>({profileId,src:cachedPhoto(id),previous:'',failed:!id}));
@@ -206,7 +200,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <button className="feed-info-button" type="button" aria-label="Открыть профиль" onClick={()=>onProfile(card.id)}><Icon name="user" tone="white" size={22}/></button>
       <div className="hero-info">
        {card.online&&<span className="feed-online"><span className="feed-online-dot"/>в сети</span>}
-       <div className="feed-name-line"><button className="hero-name" onClick={()=>onProfile(card.id)} type="button">{card.name}, {card.age}</button><ShieldCheck className="feed-checked" size={20} aria-label="Анкета прошла модерацию"/></div>
+       <div className="feed-name-line"><button className="hero-name" onClick={()=>onProfile(card.id)} type="button">{card.name}, {card.age}</button><Icon name="verified" tone="white" size={20} className="feed-checked"/></div>
        {location&&<p className="feed-location"><MapPin size={14} strokeWidth={2.5} aria-hidden="true"/>{location}</p>}
        {card.bio&&<p className="hero-bio">{card.bio}</p>}
        {!!card.interests?.length&&<div className="hero-tags">{card.interests.slice(0,5).map(x=><Interest key={x} name={x}/>)}</div>}
@@ -218,7 +212,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
      <div className="feed-actions">
       <button type="button" className="feed-action action-undo" disabled={busy||!undoAvailable} aria-label="Отменить последнее действие" title={last.can_undo&&!last.premium&&last.free_undo_left<=0?'Лимит бесплатных отмен исчерпан':'Отменить последнее действие'} onClick={undo}><span className="feed-action-circle"><Icon name="undo" tone="dark" size={24}/></span></button>
       <button type="button" className="feed-action action-pass" disabled={busy} aria-label="Пропустить" title="Пропустить" onClick={()=>react('pass')}><span className="feed-action-circle"><Icon name="close" tone="pink" size={29}/></span></button>
-      <button type="button" className="feed-action action-super" disabled={busy} aria-label="Суперлайк" title="Суперлайк" onClick={()=>react('super')}><span className="feed-action-circle"><Star size={27} strokeWidth={1.8} fill="currentColor" aria-hidden="true"/></span></button>
+      <button type="button" className="feed-action action-super" disabled={busy} aria-label="Суперлайк" title="Суперлайк" onClick={()=>react('super')}><span className="feed-action-circle"><Icon name="star" tone="pink" size={27}/></span></button>
       <button type="button" className="feed-action action-like" disabled={busy} aria-label="Нравится" title="Нравится" onClick={()=>react('like')}><span className="feed-action-circle"><Icon name="heart_filled" tone="white" size={30}/></span></button>
      </div>
     </React.Fragment>:<FeedState kind={error?'error':limited?'limit':'empty'} onRetry={()=>setRefresh(i=>i+1)} onFilters={onFilters} onPremium={onPremium}/>}

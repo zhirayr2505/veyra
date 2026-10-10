@@ -77,16 +77,16 @@ export function Likes({onProfile,onChat,onMatch,onPremium,refreshTick=0,active=t
    <button type="button" className="likes-head-button premium" onClick={onPremium} aria-label="VEYRA Premium"><Icon name="crown" tone="pink" size={21}/></button>
    <button type="button" className={'likes-head-button '+(onlineFirst?'chosen':'')} onClick={()=>{haptic();setOnlineFirst(x=>!x)}} aria-label={onlineFirst?'Показать новые мэтчи сначала':'Показать сначала онлайн'} aria-pressed={onlineFirst}><Icon name="filters" tone={onlineFirst?'pink':'dark'} size={20}/></button>
   </div>}/>
-  <div className="likes-hero"><h1>Симпатии</h1><p>{tab==='matches'?'Взаимные симпатии — начни общение 💕':'Люди, которым ты понравился 💌'}</p></div>
-  <Tabs items={[['matches','Мэтчи 💕'],['incoming','Входящие 💌']]} value={tab} onChange={next=>{haptic();setTab(next)}}/>
+  <div className="likes-hero"><h1>Симпатии</h1><p>{tab==='matches'?'Взаимные симпатии — начни общение':'Люди, которым ты понравился'}</p></div>
+  <Tabs items={[['matches','Мэтчи'],['incoming','Входящие']]} value={tab} onChange={next=>{haptic();setTab(next)}}/>
   <div className="likes-content" role="tabpanel" aria-label={tab==='matches'?'Мэтчи':'Входящие'}>
   {error&&<div className="likes-inline-error" role="alert">{error}<button onClick={()=>setRetry(x=>x+1)}>Повторить</button></div>}
   {busy?<div className="likes-loading"><Spinner/><span>Загружаем симпатии…</span></div>:
    tab==='matches'?<>
     {rows.length>0&&<div className="likes-count-line"><span>Ваши мэтчи</span><span>{rows.length}</span></div>}
-    {rows.length===0?<Empty title="Здесь начнётся ваша история" body="Когда симпатия окажется взаимной, здесь появится человек, с которым можно общаться." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
+    {rows.length===0?<Empty art="match" title="Здесь начнётся ваша история" body="Когда симпатия окажется взаимной, здесь появится человек, с которым можно общаться." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
     <div className="likes-gallery">{rows.map(m=><PersonCard key={m.id} person={m.profile} match={m} onProfile={onProfile} onChat={onChat} onSeen={seen}/>)}</div>}
-   </>:count===0?<Empty title="Пока нет входящих симпатий" body="Когда кто-нибудь поставит тебе лайк, он появится здесь. Никаких выдуманных уведомлений." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
+   </>:count===0?<Empty art="match" title="Пока нет входящих симпатий" body="Когда кто-нибудь поставит тебе лайк, он появится здесь. Никаких выдуманных уведомлений." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
    incoming?.locked?<Locked count={count} onPremium={onPremium}/>:
    <><div className="likes-count-line"><span>Входящие симпатии</span><span>{count}</span></div>
     <div className="likes-gallery">{(incoming?.profiles||[]).map(p=><PersonCard key={p.id} person={p} onProfile={onProfile} onLike={like} processing={processing===String(p.id)}/>)}</div>
