@@ -32,10 +32,8 @@ test('V5 real match chat opens, sends and persists messages',async({page})=>{
  await page.getByRole('button',{name:'Отправить',exact:true}).click();
  await expect(page.locator('.bubble.mine').filter({hasText:msg})).toBeVisible();
 });
-test('V5 new adult starts welcome and underage is blocked client-side',async({page})=>{
+test('V5 newly signed adult opens registration immediately and rejects an underage date',async({page})=>{
  await telegram(page,20);await page.goto('/');
- await expect(page.getByRole('heading',{name:/знакомства/})).toBeVisible();
- await page.getByRole('button',{name:'начать знакомиться'}).click();
  await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
  await page.getByRole('textbox',{name:'Имя'}).fill('Test Adult');
  await page.getByLabel('Дата рождения').fill('2017-01-01');
@@ -104,4 +102,34 @@ test('V5 like/pass immediately returns the next card in one API request',async({
  await page.getByRole('button',{name:'Пропустить'}).click();
  await expect(page.locator('.feed-photo .hero-name')).not.toHaveText(first);
  expect(feedRequests).toBe(before);
+});
+
+test('V5 onboarding animates, autocompletes a verified city and uploads only seven preview photos',async({page})=>{
+ await telegram(page,22);await page.goto('/');
+ await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
+ await page.getByRole('textbox',{name:'Имя'}).fill('Seven Photos Test');
+ await page.getByLabel('Дата рождения').fill('1998-05-12');
+ await page.getByRole('button',{name:'мужчина'}).click();
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'где вы ищете?'})).toBeVisible();
+ await expect(page.locator('.registration-step.forward')).toBeVisible();
+ await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
+ await expect(page.locator('.city-results button').first()).toBeVisible();
+ await page.locator('.city-results button').first().click();
+ await expect(page.locator('.location-card')).toContainText('Paris');
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
+ await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
+ await page.getByRole('button',{name:'добавить фото'}).click();
+ await expect(page.locator('.photo-slot')).toHaveCount(7);
+ await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
+ const png=await sharp({create:{width:120,height:120,channels:3,background:{r:238,g:131,b:155}}}).png().toBuffer();
+ const files=Array.from({length:8},(_,i)=>({name:'test'+i+'.png',mimeType:'image/png',buffer:png}));
+ await page.locator('input[type=file]').setInputFiles(files);
+ await expect(page.locator('.registration-toast')).toContainText('максимум 7 фото');
+ await expect(page.locator('.photo-footnote')).toContainText('Загружено 7 из 7',{timeout:45000});
+ await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
+ await expect(page.locator('.thumb-order')).toHaveCount(0);
 });
