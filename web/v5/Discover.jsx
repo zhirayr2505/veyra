@@ -193,8 +193,6 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <div className="photo-bars" aria-label="Фотографии анкеты">{photos.map((id,i)=><button
        type="button" key={id} aria-label={'Фото '+(i+1)} aria-current={index===i?'true':undefined}
        className={index===i?'active':''} onClick={()=>setIndex(i)}/>)}</div>
-      <button className="feed-photo-tap feed-photo-tap-left" type="button" aria-label="Предыдущее фото" onClick={()=>changePhoto(-1)}/>
-      <button className="feed-photo-tap feed-photo-tap-right" type="button" aria-label="Следующее фото" onClick={()=>changePhoto(1)}/>
       <button className="feed-info-button" type="button" aria-label="Открыть профиль" onClick={()=>onProfile(card.id)}><Icon name="user" tone="white" size={22}/></button>
       <div className="hero-info">
        {card.online&&<span className="feed-online"><span className="feed-online-dot"/>в сети</span>}
