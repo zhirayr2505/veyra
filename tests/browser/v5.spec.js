@@ -218,3 +218,24 @@ test('V8 manual city can be corrected using device location without leaving the 
  await expect(page.locator('.city-search')).toHaveCount(0);
  expect(await page.evaluate(()=>performance.getEntriesByType('navigation').length)).toBe(navCount);
 });
+
+
+test('V5 approved premium feed uses cyclic photo strips and opens the complete profile',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await expect(page.locator('.discover .photo-bars')).toBeVisible();
+ await expect(page.locator('.discover .feed-action')).toHaveCount(4);
+ const bars=page.locator('.discover .photo-bars button');
+ const count=await bars.count();
+ expect(count).toBeGreaterThan(0);
+ await bars.last().click();
+ await page.getByRole('button',{name:'Следующее фото'}).click();
+ await expect(bars.first()).toHaveClass(/active/);
+ await page.getByRole('button',{name:'Предыдущее фото'}).click();
+ await expect(bars.last()).toHaveClass(/active/);
+ await page.getByRole('button',{name:'Открыть профиль'}).click();
+ await expect(page.locator('.member')).toBeVisible();
+ await page.locator('.member .top-header button.back').click();
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
