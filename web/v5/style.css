@@ -31,3 +31,21 @@
 /* Member pages take the full screen; never overlay their actions with bottom navigation. */
 .subscreen:has(.member){padding-bottom:calc(12px + env(safe-area-inset-bottom))}
 .message-stream{overflow-anchor:none;scrollbar-width:thin}
+
+/* Native-feeling support correspondence and recoverable photo loading. */
+.message-image-frame{display:block;min-width:145px;min-height:36px}
+.message-image-placeholder{display:block;min-height:34px;color:inherit;opacity:.65}
+.message-image-retry{border:0;background:#ffffff29;color:inherit;text-align:left;padding:9px 5px;font-weight:600;font-size:11px;border-radius:9px}
+.support{display:flex;flex-direction:column;gap:14px;padding-bottom:12px}
+.support-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.support-head h3{font-size:16px;margin:0}
+.support-history,.support-thread{display:flex;flex-direction:column;gap:9px;max-height:40vh;overflow-y:auto}
+.support-ticket{border:1px solid var(--stroke);border-radius:15px;background:#fff;padding:13px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.support-ticket>strong{font-size:13px}.support-ticket>span{font-size:11px;color:var(--pink)}.support-ticket>small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.support-message{border-radius:14px;padding:12px 13px;max-width:92%;background:#fff;border:1px solid #f0e7ec;align-self:flex-end;overflow-wrap:anywhere}
+.support-message.staff{background:#fff0f4;border-color:#ffd2df;align-self:flex-start}
+.support-message strong{font-size:10px;color:var(--pink)}.support-message p{font-size:13px;line-height:1.5;margin:7px 0 0;white-space:pre-wrap}
+.support-resolve{align-self:center}
+.error-recovery{min-height:100dvh;background:var(--milk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;text-align:center;padding:25px;color:var(--ink)}
+.error-recovery>span{font-size:76px;color:var(--pink);line-height:1}.error-recovery h1{font-size:24px;margin:0}
+.error-recovery p{line-height:1.6;color:var(--muted);max-width:350px}.error-recovery .btn{min-width:200px}.error-hint{font-size:12px}

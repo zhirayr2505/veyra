@@ -82,3 +82,14 @@ test('V5 member uses full-screen navigation and returns to the same chat',async(
  await page.locator('.member .top-header button.back').click();
  await expect(page.locator('.conversation')).toBeVisible();
 });
+
+test('V5 support requests use the real authenticated ticket API',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
+ await page.getByRole('button',{name:/помощь и поддержка/}).click();
+ await expect(page.getByRole('dialog',{name:'Поддержка VEYRA'})).toBeVisible();
+ await page.getByPlaceholder('Расскажи, что произошло').fill('Проверка обращения из мини-приложения');
+ await page.getByRole('button',{name:'отправить обращение'}).click();
+ await expect(page.locator('.support-thread')).toContainText('Проверка обращения из мини-приложения');
+});
