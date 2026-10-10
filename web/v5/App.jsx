@@ -1,6 +1,6 @@
 import React,{useEffect,useState,useCallback} from 'react';
 import {get,post,setBearer,clearPhotoCache} from './api.js';
-import {Logo,Icon,Header,Button,Sheet,Empty,Spinner,InlineAlert} from './UI.jsx';
+import {Logo,Icon,DetailIcon,Header,Button,Sheet,Empty,Spinner,InlineAlert} from './UI.jsx';
 import {Welcome} from './Welcome.jsx';
 import {Registration} from './Registration.jsx';
 import {Moderation} from './Moderation.jsx';
@@ -13,6 +13,7 @@ import {Premium,GiftPicker,GiftCollection,OwnProfile,Settings,Ranking,CourtshipI
 import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
+import './VisualPolish.css';
 const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -47,7 +48,7 @@ export function App(){
  const courtship=async()=>{if(!member)return;try{const r=await post('/courtships/request',{target:String(member.id)});setOverlay({type:'courtship-sent',status:r.status})}catch(e){setError(e.message)}};
  const status=me?.profile?.moderation;
  const ready=!!me?.profile&&status==='approved';
- if(deleted)return <main className="deleted-screen"><div className="deleted-glow"/><div className="deleted-content"><Logo width={190}/><div className="deleted-heart">♡</div><h1>Нам жаль, что ты уходишь</h1><p>Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.</p><p className="deleted-note">Мы будем рады встретиться снова 💗</p><Button className="full" onClick={()=>{if(tg?.close)tg.close();else window.location.assign('https://t.me/VeyraAppBot')}}>Выйти из приложения</Button></div></main>;
+ if(deleted)return <main className="deleted-screen"><div className="deleted-glow"/><div className="deleted-content"><Logo width={190}/><div className="deleted-heart">♡</div><h1>Нам жаль, что ты уходишь</h1><p>Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.</p><p className="deleted-note">Мы будем рады встретиться снова</p><Button className="full" onClick={()=>{if(tg?.close)tg.close();else window.location.assign('https://t.me/VeyraAppBot')}}>Выйти из приложения</Button></div></main>;
  if(initializing)return <div className="splash" aria-label="VEYRA загружается"><Logo width={206}/><div className="splash-progress"><span/></div><p className="splash-copy">Подготавливаем VEYRA · {assetPercent}%</p></div>;
  if(error&&!me)return <main className="access"><Logo width={188}/><h2>встретимся в Telegram</h2><p>{error}</p><Button onClick={()=>window.open('https://t.me/VeyraAppBot','_blank')}>открыть @VeyraAppBot</Button><button className="text-link" onClick={()=>location.reload()}>повторить</button></main>;
  if(adminMode)return <Admin onExit={()=>admin?location.assign('/'):setAdminMode(false)}/>;
@@ -66,7 +67,7 @@ export function App(){
  {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><Icon name={icon+(tab===k&&['heart','chat','user'].includes(icon)?'_filled':'')} tone={tab===k?'pink':'dark'} size={23}/><span>{label}</span></button>)}</nav>}
- {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle">💜</span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
+ {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><DetailIcon name="match" size={64}/></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}

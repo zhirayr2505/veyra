@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Check,MapPin,Mars,UsersRound,Venus,X} from 'lucide-react';
+import {Check,MapPin,X} from 'lucide-react';
 import {get,patch} from './api.js';
 import {Button,InlineAlert,Sheet} from './UI.jsx';
 import './FeedFilters.css';
@@ -50,9 +50,9 @@ export function FeedFilters({profile,filters,onClose,onSave}){
    <section className="feed-filter-group">
     <h3>Кого показывать</h3>
     <div className="feed-filter-genders">
-     {[['woman','Женщин',Venus],['man','Мужчин',Mars],['all','Всех',UsersRound]].map(([key,label,Symbol])=>
+     {[['woman','Женщин'],['man','Мужчин'],['all','Всех']].map(([key,label])=>
       <button type="button" key={key} aria-pressed={selected(key)} className={'feed-filter-gender '+(selected(key)?'selected':'')}
-       onClick={()=>setP('looking_for',key==='all'?allGenders:[key])}><Symbol size={24} strokeWidth={1.9} aria-hidden="true"/><span>{label}</span></button>)}
+       onClick={()=>setP('looking_for',key==='all'?allGenders:[key])}><img className="veyra-gender-symbol" src={"/assets/veyra/04_details/gender-"+key+".svg"} width="35" height="35" alt="" aria-hidden="true"/><span>{label}</span></button>)}
     </div>
    </section>
    <section className="feed-filter-group">

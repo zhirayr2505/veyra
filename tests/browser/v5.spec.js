@@ -130,7 +130,7 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
  await expect(page.locator('.looking-choice img')).toHaveCount(3);
- await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/looking_all\.svg/);
+ await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/gender-all\.svg/);
  await page.getByRole('button',{name:'рассказать о себе'}).click();
  await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
  await page.locator('.interest-tag').first().click();
@@ -158,7 +158,7 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
  await expect(page.locator('.preview-count')).toHaveCount(0);
- await expect(page.locator('.preview-card-chips svg')).toHaveCount(2);
+ await expect(page.locator('.preview-card-chips img.veyra-interest-icon')).toHaveCount(2);
  await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
  for(let n=0;n<7;n++){
   await page.getByRole('button',{name:'Следующее фото'}).click();
@@ -201,7 +201,7 @@ test('V7 registration keeps call-to-action pinned and interest icons visible',as
  await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toHaveCount(0);
  await page.getByRole('button',{name:'выбрать город'}).click();
  await page.getByRole('button',{name:'рассказать о себе'}).click();
- await expect(page.locator('.interest-tag svg')).toHaveCount(15);
+ await expect(page.locator('.interest-tag img.veyra-interest-icon')).toHaveCount(15);
 });
 
 

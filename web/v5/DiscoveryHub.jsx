@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,ChevronRight,Clapperboard,Coffee,Compass,Heart,MapPin,Music2,PawPrint,Plane,RefreshCw,SlidersHorizontal,Sparkles,Star,UsersRound,Dumbbell} from 'lucide-react';
 import {get,post} from './api.js';
-import {Button,Icon,Photo,Spinner,InlineAlert} from './UI.jsx';
+import {Button,Icon,DetailIcon,Photo,Spinner,InlineAlert} from './UI.jsx';
 import {Discover} from './Discover.jsx';
 import './DiscoveryHub.css';
 
@@ -105,7 +105,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
     <section className="vx-personal-head">
      <div className="vx-feature-label"><Sparkles size={18} fill="currentColor" aria-hidden="true"/><div><b>Специально для тебя</b><p>Знакомства по вашим интересам и предпочтениям</p></div></div>
      {!!people.length&&<Portraits people={people} onProfile={onProfile}/>}
-     <div className="vx-feature-mark" aria-hidden="true">✦</div>
+     <div className="vx-feature-mark" aria-hidden="true"><Icon name="sparkle" tone="pink" size={25}/></div>
     </section>
     <div className="vx-section-title"><h2>Твои подборки</h2><small>На основе общих интересов</small></div>
     {!!interestGroups.length&&<div className="vx-collections">
@@ -123,7 +123,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
     <div className="vx-section-title vx-feature-list-heading"><h2>{interest?'Любят '+interest.toLowerCase():'Вам могут понравиться'}</h2>{interest&&<button type="button" onClick={()=>setInterest('')}>Все <ArrowRight size={13}/></button>}</div>
    </React.Fragment>:
    <React.Fragment>
-    <div className="vx-section-title vx-nearby-title"><div><h2>Люди рядом</h2><small><MapPin size={14} aria-hidden="true"/>{profile?.city||'По вашей геолокации'} · примерное расстояние</small></div><button type="button" className="vx-nearby-filter" aria-label="Изменить расстояние" onClick={onFilters}><SlidersHorizontal size={19}/></button></div>
+    <div className="vx-section-title vx-nearby-title"><div><h2>Люди рядом</h2><small><MapPin size={14} aria-hidden="true"/>{profile?.city||'По вашей геолокации'} · примерное расстояние</small></div><button type="button" className="vx-nearby-filter" aria-label="Изменить расстояние" onClick={onFilters}><Icon name="filters" tone="pink" size={19}/></button></div>
     {!!people.length&&<section className="vx-nearby-strip"><div className="vx-section-title"><h3>Познакомься поближе</h3><span>{people.length} {people.length===1?'анкета':'анкет'}</span></div><Portraits people={people} onProfile={onProfile}/></section>}
     <div className="vx-filter-pills" role="group" aria-label="Фильтры рядом">{[['all','Все'],['online','В сети'],['common','Общие интересы']].map(([key,label])=><button type="button" key={key} className={choice===key?'chosen':''} aria-pressed={choice===key} onClick={()=>{feedback();setChoice(key)}}>{label}</button>)}</div>
    </React.Fragment>}
@@ -131,10 +131,10 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
    <React.Fragment>
     {visible.length?<div className="vx-people" aria-label={isPersonal?'Подборка анкет':'Анкеты рядом'}>{visible.map(p=><BrowsePerson person={p} key={p.id} onProfile={onProfile} onLike={like} busy={pending.includes(String(p.id))}/>)}</div>:
      <div className="vx-state vx-minor-empty"><Sparkles size={34}/><p>В этой подборке пока нет новых анкет</p><Button kind="outline" onClick={()=>setInterest('')}>Все анкеты</Button></div>}
-    {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>{moreBusy?'Загружаем…':'Показать ещё'} <RefreshCw size={17}/></button>}
+    {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>{moreBusy?'Загружаем…':'Показать ещё'} <DetailIcon name="refresh" size={17}/></button>}
     {limited&&<p className="vx-quota">Лимит просмотров на сегодня достигнут. <button type="button" onClick={onPremium}>VEYRA Premium</button></p>}
    </React.Fragment>:
-   <div className="vx-state vx-empty"><UsersRound size={42} strokeWidth={1.4}/>
+   <div className="vx-state vx-empty"><DetailIcon name="people" size={48}/>
     <h3>{limited?'Лимит просмотров исчерпан':'Пока нет подходящих анкет'}</h3>
     <p>{limited?'Продолжить знакомства можно с VEYRA Premium.':'Попробуй изменить город, возраст или расстояние. Все профили проходят модерацию.'}</p>
     <Button onClick={limited?onPremium:onFilters}>{limited?'Открыть Premium':'Изменить фильтры'}</Button>
@@ -151,8 +151,8 @@ export function DiscoveryHub({filters,profile,onProfile,onMatch,onPremium,onFilt
   <header className="vx-head">
    <img className="vx-logo" src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA"/>
    <div className="vx-head-actions">
-    <button type="button" aria-label="Обновить подборку" title="Обновить подборку" onClick={()=>{feedback();setRefresh(v=>({...v,[tab]:v[tab]+1}))}}><RefreshCw size={20}/></button>
-    <button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><SlidersHorizontal size={22}/></button>
+    <button type="button" aria-label="Обновить подборку" title="Обновить подборку" onClick={()=>{feedback();setRefresh(v=>({...v,[tab]:v[tab]+1}))}}><DetailIcon name="refresh" size={20}/></button>
+    <button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={22}/></button>
    </div>
   </header>
   <div className="vx-tabs" role="tablist" aria-label="Способы знакомств">
