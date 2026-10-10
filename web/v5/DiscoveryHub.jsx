@@ -134,7 +134,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
     {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>{moreBusy?'Загружаем…':'Показать ещё'} <DetailIcon name="refresh" size={17}/></button>}
     {limited&&<p className="vx-quota">Лимит просмотров на сегодня достигнут. <button type="button" onClick={onPremium}>VEYRA Premium</button></p>}
    </React.Fragment>:
-   <div className="vx-state vx-empty"><img src="/graphics/illustrations/discover-cards-512.webp" className="vx-state-illustration" alt="" loading="lazy" decoding="async"/>
+   <div className="vx-state vx-empty"><img src="/assets/veyra/06_duotone_art/nearby.svg" className="vx-state-illustration" alt="" loading="lazy" decoding="async"/>
     <h3>{limited?'Лимит просмотров исчерпан':'Пока нет подходящих анкет'}</h3>
     <p>{limited?'Продолжить знакомства можно с VEYRA Premium.':'Попробуй изменить город, возраст или расстояние. Все профили проходят модерацию.'}</p>
     <Button onClick={limited?onPremium:onFilters}>{limited?'Открыть Premium':'Изменить фильтры'}</Button>

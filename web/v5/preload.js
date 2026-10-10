@@ -3,10 +3,10 @@
 const base='/assets/veyra/05_premium_icons/';
 const paths=[
  '/assets/veyra/00_brand/veyra_logo.svg',
- ...['cards','heart','chat','user'].flatMap(name=>[base+'dark/'+name+'.svg',base+'pink/'+name+'_filled.svg']),
+ ...['home','heart','chat','user'].flatMap(name=>[base+'dark/'+name+'.svg',base+'pink/'+name+'_filled.svg']),
  base+'pink/filters.svg',base+'pink/refresh.svg',base+'dark/search.svg'
 ];
-const version='veyra.brand.cache.20261011.premium';
+const version='veyra.brand.cache.20261011.refined-duotone';
 let inflight;
 export function preloadBrandAssets(onProgress=()=>{}){
  if(inflight)return inflight;

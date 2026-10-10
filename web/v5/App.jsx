@@ -16,7 +16,7 @@ import {preloadBrandAssets} from './preload.js';
 import './VisualPolish.css';
 import './VeyraRebuild.css';
 const tg=window.Telegram?.WebApp;
-const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
+const nav=[['feed','home','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
  const [initializing,setInitializing]=useState(true),[assetPercent,setAssetPercent]=useState(0),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState(''),[deleted,setDeleted]=useState(false);
  const [tab,setTab]=useState('feed'),[tabDirection,setTabDirection]=useState('left'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
