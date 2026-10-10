@@ -1,0 +1,36 @@
+/* Scoped premium filter sheet for the VEYRA feed only. */
+.sheet:has(.feed-filter-sheet){max-width:530px;max-height:94dvh;background:#fffdfb;padding-top:19px}
+.sheet:has(.feed-filter-sheet) .sheet-head{padding-bottom:8px}
+.sheet:has(.feed-filter-sheet) .sheet-head h2{text-transform:capitalize;font-size:19px;letter-spacing:-.4px}
+.feed-filter-sheet{position:relative;padding-bottom:5px}
+.feed-filter-reset{position:absolute;right:2px;top:-50px;padding:12px 4px;border:0;background:transparent;color:#f03467;font-weight:700;font-size:12px;transform:translateY(42px)}
+.feed-filter-group{padding:15px 0;border-bottom:1px solid #f1ebed}
+.feed-filter-group h3{font-size:14px;letter-spacing:-.15px;margin:0 0 11px;font-weight:800}
+.feed-filter-heading{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.feed-filter-heading>span{color:#797786;font-size:12px;font-weight:650}
+.feed-filter-genders{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.feed-filter-gender{min-height:78px;border:1px solid #f3e7eb;border-radius:17px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;background:#f9f5f6;color:#85828d}
+.feed-filter-gender.selected{color:#f5236a;border:1.5px solid #fe4c78;background:linear-gradient(145deg,#fff2f5,#fff9f8);box-shadow:0 5px 17px #f94a7218}
+.feed-filter-gender>span{font-size:12px;font-weight:750}
+.feed-filter-group input[type=range]{width:100%;height:21px;accent-color:#f83c6f;margin:6px 0}
+.feed-filter-two-range{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.feed-filter-two-range label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:#8c8995}
+.feed-filter-toggle{min-height:55px;display:flex!important;flex-direction:row!important;align-items:center;justify-content:space-between;gap:12px;position:relative;font-size:13px!important;font-weight:650!important}
+.feed-filter-toggle>span:first-child{display:flex;flex-direction:column;gap:3px}
+.feed-filter-toggle small{font-size:11px;line-height:1.35;color:#a2a0a8;font-weight:400}
+.feed-filter-toggle input{position:absolute;right:2px;top:15px;opacity:0;width:44px;height:26px;cursor:pointer}
+.feed-filter-switch{width:46px;height:27px;display:inline-block;flex:none;border-radius:999px;background:#e7e1e4;position:relative;transition:background .16s}
+.feed-filter-switch:after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;background:#fff;border-radius:50%;box-shadow:0 1px 4px #0002;transition:transform .16s}
+.feed-filter-toggle input:checked+.feed-filter-switch{background:linear-gradient(120deg,#ff597b,#fd2a72)}
+.feed-filter-toggle input:checked+.feed-filter-switch:after{transform:translateX(19px)}
+.feed-filter-toggle input:focus-visible+.feed-filter-switch{outline:2px solid #fc3e70;outline-offset:2px}
+.feed-filter-city{border:1px solid #f0e5e9;background:#f9f6f6;display:flex;align-items:center;gap:9px;padding:0 13px;border-radius:15px;min-height:48px;color:#98919c}
+.feed-filter-city input{min-width:0;flex:1;border:0!important;box-shadow:none!important;background:transparent!important;outline:0!important;font-size:13px;padding:10px 1px!important;min-height:42px!important}
+.feed-filter-city>button{border:0;background:none;color:#97929a;padding:5px}
+.feed-filter-city-options{display:flex;flex-direction:column;border-radius:13px;background:white;box-shadow:0 5px 22px #00000014;margin-top:5px;overflow:hidden}
+.feed-filter-city-options button{display:flex;gap:8px;align-items:center;padding:11px 12px;border:0;border-bottom:1px solid #f4e9ee;background:white;color:#333;text-align:left;font-size:12px}
+.feed-filter-modes{display:flex;gap:6px;padding:4px;background:#f7f4f5;border-radius:999px}
+.feed-filter-modes button{flex:1;border:0;border-radius:999px;background:transparent;min-height:36px;font-size:11px;font-weight:700;color:#89818c}
+.feed-filter-modes button.active{background:linear-gradient(120deg,#ff5a75,#fa2474);color:white}
+.feed-filter-hint{display:flex;align-items:center;gap:7px;color:#9a8b94;line-height:1.5;font-size:11px;margin:9px 0 0}
+.feed-filter-submit{margin:19px 0 3px}
