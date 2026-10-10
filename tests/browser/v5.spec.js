@@ -238,6 +238,11 @@ test('V5 approved premium feed uses cyclic photo strips and opens the complete p
  await page.mouse.move(x,y);
  await page.mouse.down();
  await page.mouse.move(x-110,y,{steps:7});
+ const during=await card.boundingBox();
+ expect(Math.abs(during.x-box.x)).toBeLessThan(1);
+ expect(Math.abs(during.y-box.y)).toBeLessThan(1);
+ expect(Math.abs(during.width-box.width)).toBeLessThan(1);
+ expect(Math.abs(during.height-box.height)).toBeLessThan(1);
  await page.mouse.up();
  await expect(bars.first()).toHaveClass(/active/);
  await page.mouse.move(x,y);
@@ -268,4 +273,28 @@ test('VEYRA screenshot filters preserve real feed API parameters',async({page})=
  await expect(page.getByRole('dialog',{name:'фильтры'})).toHaveCount(0);
  await expect.poll(()=>feedUrls.some(url=>url.includes('mode=nearby')&&url.includes('common_interests=true'))).toBe(true);
  expect(feedUrls.filter(url=>url.includes('mode=nearby')&&url.includes('common_interests=true'))).toHaveLength(1);
+});
+
+
+test('VEYRA next feed profile visibly enters after button reaction and undo restores prior card',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ const card=page.locator('.feed-photo');
+ await expect(card).toBeVisible();
+ const firstName=await card.locator('.hero-name').innerText();
+ await page.evaluate(()=>{
+  window.__veyraNewCardAnimation=false;
+  const root=document.querySelector('.feed-content');
+  const observer=new MutationObserver(()=>{
+   const node=root.querySelector('.feed-photo.feed-motion-enter');
+   if(node&&getComputedStyle(node).animationName.includes('veyraCardEnter'))window.__veyraNewCardAnimation=true;
+  });
+  observer.observe(root,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});
+  window.__veyraFeedObserver=observer;
+ });
+ await page.getByRole('button',{name:'Пропустить'}).click();
+ await expect(card.locator('.hero-name')).not.toHaveText(firstName);
+ expect(await page.evaluate(()=>window.__veyraNewCardAnimation)).toBe(true);
+ await expect(page.getByRole('button',{name:'Отменить последнее действие'})).toBeEnabled();
+ await page.getByRole('button',{name:'Отменить последнее действие'}).click();
+ await expect(card.locator('.hero-name')).toContainText(firstName.split(',')[0]);
 });

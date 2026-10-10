@@ -8,18 +8,17 @@
 .discover .icon-button{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:50%;background:#fff;border:1px solid #ffe5e9;box-shadow:0 5px 16px #d8566410}
 .discover .feed-content{display:flex;flex-direction:column;align-items:stretch;min-width:0}
 .discover .feed-photo{position:relative;isolation:isolate;overflow:hidden;width:100%;height:clamp(340px,calc(100dvh - 247px - env(safe-area-inset-top) - env(safe-area-inset-bottom)),690px);min-height:340px;border-radius:24px;background:#f1e3e7;touch-action:pan-y;user-select:none;box-shadow:0 12px 31px #3523381d;transition:transform .28s cubic-bezier(.2,.8,.24,1),opacity .28s ease,filter .28s ease}
-.discover .feed-photo-moving{transform:translate3d(var(--photo-drag),0,0)!important;transition:none}
 .discover .feed-photo.feed-motion-exit-pass{animation:veyraPass .31s ease-in forwards}
 .discover .feed-photo.feed-motion-exit-like{animation:veyraLike .31s ease-in forwards}
 .discover .feed-photo.feed-motion-exit-super{animation:veyraSuper .31s ease-in forwards}
-.discover .feed-photo.feed-motion-enter{animation:veyraCardEnter .24s cubic-bezier(.15,.8,.28,1) both}
+.discover .feed-photo.feed-motion-enter{animation:veyraCardEnter .42s cubic-bezier(.16,.82,.24,1) both}
 @keyframes veyraPass{0%{opacity:1;transform:translate(0,0) rotate(0)}45%{opacity:.95}100%{opacity:0;transform:translate(-56px,16px) rotate(-6deg)}}
 @keyframes veyraLike{0%{opacity:1;transform:scale(1)}40%{opacity:1;transform:translateY(-6px) scale(.985)}100%{opacity:0;transform:translateY(-35px) scale(.95)}}
 @keyframes veyraSuper{0%{opacity:1;transform:scale(1)}40%{opacity:1;transform:scale(1.025)}100%{opacity:0;transform:translateY(-54px) scale(.92)}}
-@keyframes veyraCardEnter{from{opacity:0;transform:translateY(17px) scale(.973)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes veyraCardEnter{0%{opacity:0;transform:translateY(26px) scale(.94);filter:blur(3px)}65%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 .discover .feed-picture{position:absolute;inset:0;overflow:hidden}
 .discover .feed-picture>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
-.discover .feed-picture-current{animation:veyraImageReveal .21s ease-out both}
+.discover .feed-picture-current{animation:veyraImageReveal .24s ease-out both}
 @keyframes veyraImageReveal{from{opacity:0}to{opacity:1}}
 .discover .feed-picture-skeleton{position:absolute;inset:0;background:linear-gradient(110deg,#f5dfe7,#fff0f1,#f3dce5);background-size:200% 100%;animation:shimmer 1.6s linear infinite}
 .discover .feed-picture-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:#a67683}
