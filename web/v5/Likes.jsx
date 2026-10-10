@@ -29,7 +29,7 @@ function PersonCard({person,match,onProfile,onChat,onLike,onSeen,processing}){
 function Locked({count,onPremium}){
  const visible=Math.min(6,count);
  return <>
-  <div className="likes-count-line"><span>Тебе понравились</span><span>{count}</span></div>
+  <div className="likes-count-line"><span>Входящие симпатии</span><span>{count}</span></div>
   <div className="likes-locked-intro"><span><Icon name="crown" tone="pink" size={25}/></span><div><strong>{count===1?'Кто-то заметил тебя':'Тобой заинтересовались'}</strong><p>Посмотри входящие симпатии с Premium</p></div></div>
   <div className="likes-gallery">{Array.from({length:visible},(_,i)=><div key={i} className="likes-person likes-private-card" aria-label="Анкета скрыта — необходим Premium"><div className="likes-private-glow"/><div className="likes-private-center"><LockKeyhole size={24}/><span className="likes-private-chip"><Icon name="crown" tone="pink" size={12}/> Premium</span><small>Открой, кто тебя лайкнул</small></div></div>)}</div>
   {count>visible&&<p className="likes-overflow">И ещё {count-visible}</p>}
@@ -88,7 +88,7 @@ export function Likes({onProfile,onChat,onMatch,onPremium,refreshTick=0,active=t
     <div className="likes-gallery">{rows.map(m=><PersonCard key={m.id} person={m.profile} match={m} onProfile={onProfile} onChat={onChat} onSeen={seen}/>)}</div>}
    </>:count===0?<Empty title="Пока нет входящих симпатий" body="Когда кто-нибудь поставит тебе лайк, он появится здесь. Никаких выдуманных уведомлений." action={<Button kind="soft" onClick={()=>setRetry(x=>x+1)}>Обновить</Button>}/>:
    incoming?.locked?<Locked count={count} onPremium={onPremium}/>:
-   <><div className="likes-count-line"><span>Тебе понравились</span><span>{count}</span></div>
+   <><div className="likes-count-line"><span>Входящие симпатии</span><span>{count}</span></div>
     <div className="likes-gallery">{(incoming?.profiles||[]).map(p=><PersonCard key={p.id} person={p} onProfile={onProfile} onLike={like} processing={processing===String(p.id)}/>)}</div>
    </>}
   </div>
