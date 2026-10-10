@@ -93,3 +93,15 @@ test('V5 support requests use the real authenticated ticket API',async({page})=>
  await page.getByRole('button',{name:'отправить обращение'}).click();
  await expect(page.locator('.support-thread')).toContainText('Проверка обращения из мини-приложения');
 });
+
+test('V5 like/pass immediately returns the next card in one API request',async({page})=>{
+ await telegram(page,10);let feedRequests=0;
+ page.on('request',request=>{if(new URL(request.url()).pathname==='/api/feed')feedRequests++});
+ await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ const first=await page.locator('.feed-photo .hero-name').innerText();
+ const before=feedRequests;
+ await page.getByRole('button',{name:'Пропустить'}).click();
+ await expect(page.locator('.feed-photo .hero-name')).not.toHaveText(first);
+ expect(feedRequests).toBe(before);
+});

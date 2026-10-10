@@ -15,7 +15,7 @@ const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
  const [initializing,setInitializing]=useState(true),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState('');
- const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0);
+ const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
  const admin=location.pathname.startsWith('/admin');
@@ -54,7 +54,7 @@ export function App(){
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell">
  <div className="view-frame" hidden={!!conversation||!!member}>
- <div className="view-tab" hidden={tab!=='feed'}><Discover onProfile={openMember} onMatch={matchFound} refreshTick={refreshTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
+ <div className="view-tab" hidden={tab!=='feed'}><Discover onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
  {visited.has('likes')&&<div className="view-tab" hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
  {visited.has('profile')&&<div className="view-tab" hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
@@ -66,7 +66,7 @@ export function App(){
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
- {overlay?.type==='filters'&&<Filters profile={me.profile} onClose={exitOverlay} onSave={()=>setRefreshTick(x=>x+1)}/>}
+ {overlay?.type==='filters'&&<Filters profile={me.profile} onClose={exitOverlay} onSave={()=>{setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
  {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}
  {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={logout}/>}
  {overlay?.type==='ranking'&&<Ranking onClose={exitOverlay}/>}
