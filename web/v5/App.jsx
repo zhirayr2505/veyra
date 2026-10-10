@@ -11,10 +11,11 @@ import {Chats,Conversation} from './Chats.jsx';
 import {Premium,GiftPicker,GiftCollection,Filters,OwnProfile,Settings,Ranking,CourtshipInbox,openInvoice} from './Extras.jsx';
 import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
+import {preloadBrandAssets} from './preload.js';
 const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
- const [initializing,setInitializing]=useState(true),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState('');
+ const [initializing,setInitializing]=useState(true),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState(''),[deleted,setDeleted]=useState(false);
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
@@ -23,10 +24,11 @@ export function App(){
  const exitOverlay=()=>setOverlay(null);
  useEffect(()=>{let alive=true;(async()=>{try{
   tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#fffdf8');tg?.setBackgroundColor?.('#fffdf8');
+  const brandReady=preloadBrandAssets();
   if(!tg?.initData)throw Error('Открой VEYRA через официальный Telegram-бот @VeyraAppBot');
   const auth=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,scope:admin?'admin':'user'})});
   const j=await auth.json();if(!auth.ok)throw Error(j.error||'Не удалось войти через Telegram');
-  setBearer(j.token);const m=await get('/me');if(alive){setMe(m);setError('')}
+  setBearer(j.token);const m=await get('/me');await brandReady;if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false}},[]);
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
   const active=!!(match||overlay||member||conversation);
@@ -34,7 +36,7 @@ export function App(){
   const goBack=()=>{if(match){setMatch(null);return;}if(overlay){setOverlay(null);return;}if(member){setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}return;}if(conversation)setConversation(null)};
   back.show?.();back.onClick(goBack);return()=>{back.offClick?.(goBack);back.hide?.()};
  },[match,overlay,member,conversation,returnChat]);
- const logout=async()=>{await post('/logout',{}).catch(()=>{});setBearer('');clearPhotoCache();setMe(null);setError('Открой VEYRA через официальный Telegram-бот');};
+ const logout=()=>{setBearer('');clearPhotoCache();setMe(null);setError('');setDeleted(true);try{Object.keys(localStorage).filter(k=>k.startsWith('veyra.registration.')).forEach(k=>localStorage.removeItem(k))}catch{}};
  const navigate=next=>{setError('');setMember(null);setConversation(null);setReturnChat(null);setOverlay(null);setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
  const openMember=(id,matchId=null)=>{if(!id)return;setError('');setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
  const openChat=async(id,person)=>{if(!id){setError('Чат пока недоступен');return;}setError('');setReturnChat(null);setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);if(!m?.profile)throw Error('Переписка больше недоступна');setConversation({id,partner:m.profile})}catch(e){setError(e.message)}};
@@ -43,6 +45,7 @@ export function App(){
  const courtship=async()=>{if(!member)return;try{const r=await post('/courtships/request',{target:String(member.id)});setOverlay({type:'courtship-sent',status:r.status})}catch(e){setError(e.message)}};
  const status=me?.profile?.moderation;
  const ready=!!me?.profile&&status==='approved';
+ if(deleted)return <main className="deleted-screen"><div className="deleted-glow"/><div className="deleted-content"><Logo width={190}/><div className="deleted-heart">♡</div><h1>Нам жаль, что ты уходишь</h1><p>Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.</p><p className="deleted-note">Мы будем рады встретиться снова 💗</p><Button className="full" onClick={()=>{if(tg?.close)tg.close();else window.location.assign('https://t.me/VeyraAppBot')}}>Выйти из приложения</Button></div></main>;
  if(initializing)return <div className="splash" aria-label="VEYRA загружается"><Logo width={206}/><div className="splash-progress"><span/></div></div>;
  if(error&&!me)return <main className="access"><Logo width={188}/><h2>встретимся в Telegram</h2><p>{error}</p><Button onClick={()=>window.open('https://t.me/VeyraAppBot','_blank')}>открыть @VeyraAppBot</Button><button className="text-link" onClick={()=>location.reload()}>повторить</button></main>;
  if(adminMode)return <Admin onExit={()=>admin?location.assign('/'):setAdminMode(false)}/>;

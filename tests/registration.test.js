@@ -15,7 +15,7 @@ test('registration advances only for adults, persists private draft across sessi
  assert.equal((await auth(request(app).put('/api/registration')).send({step:3,data:{...f,lat:null}})).status,400);
  assert.equal((await auth(request(app).put('/api/registration')).send({step:4,data:f})).status,200);
  token=(await request(app).post('/api/auth').send({initData:initData(200)})).body.token;
- const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.registration.step,4);assert.equal(me.registration.data.name,f.name);assert.equal(me.profile,undefined);
+ const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.registration.step,4);assert.equal(me.registration.data.name,f.name);assert.equal(me.profile,null);
  assert.equal((await auth(request(app).put('/api/registration/profile')).send({...f,max_age:17})).status,400);
  assert.equal((await auth(request(app).put('/api/registration/profile')).send(f)).status,200);
  assert.equal((await one(db,'SELECT accepted_terms_at FROM profiles WHERE user_id=200')).accepted_terms_at,null);
@@ -70,7 +70,7 @@ test('launch reset clears profiles and sessions, preserves purchases and accepte
 
  assert.equal((await auth(request(app).get('/api/me'))).status,401);
  token=(await request(app).post('/api/auth').send({initData:initData(200)})).body.token;
- const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.profile,undefined);assert.equal(me.registration,undefined);
+ const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.profile,null);assert.equal(me.registration,null);
  assert.equal((await applyRegistrationReset(db,target)).status,'completed');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,2);
  assert.equal(me.user.first_name,'Tester');
  assert.equal((await one(db,"SELECT count(*)::int AS n FROM audit_log WHERE action='registration.reset' AND subject=$1",[RESET_ID])).n,1);

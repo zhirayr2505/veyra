@@ -41,7 +41,7 @@ export async function revokePaidCourtship(q,order){
  const c=await one(q,"UPDATE courtships SET status='revoked',expires_at=now() WHERE order_id=$1 AND status='active' RETURNING *",[order.id]);
  if(c)await audit(q,c.sender,'courtship.refunded',c.id,{recipient:c.recipient});
 }
-export function courtshipRoutes(app,{db,rate,tg}){
+export function courtshipRoutes(app,{db,rate,tg,env}){
  app.get('/api/courtships/profile/:target',async(req,res)=>{
   const target=req.params.target==='me'?String(req.user.id):parse(id,req.params.target);
   if(String(target)===String(req.user.id))await approved(db,req.user.id);
@@ -104,6 +104,7 @@ export function courtshipRoutes(app,{db,rate,tg}){
    if(!c)fail(404,'COURTSHIP_NOT_FOUND');
    if(!['accepted','payment_pending'].includes(c.status))fail(409,'COURTSHIP_NOT_ACCEPTED');
    await ensurePair(q,c.sender,c.recipient);await matched(q,c.sender,c.recipient);
+   if(String(req.user.id)===String(env.OWNER_TELEGRAM_ID)){await q.query("UPDATE courtships SET status='active',activated_at=now(),expires_at=now()+interval '30 days',order_id=NULL WHERE id=$1",[cid]);await audit(q,req.user.id,'owner.test.courtship',cid,{stars_charged:0});await notify(q,c.recipient,'💜 Предложение об ухаживании принято и активировано в VEYRA.');return {owner_free:true};}
    if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');
    if(c.status==='payment_pending'){
     const pending=await one(q,'SELECT * FROM orders WHERE id=$1',[c.order_id]);
@@ -116,6 +117,7 @@ export function courtshipRoutes(app,{db,rate,tg}){
    await q.query("UPDATE courtships SET status='payment_pending',order_id=$2 WHERE id=$1",[cid,row.id]);
    return row;
   });
+  if(order.owner_free){res.json({status:'active',stars_charged:0,days:COURTSHIP_DAYS});return;}
   const url=await new StarsProvider(tg).invoice({...order,title:'VEYRA · Ухажёр на '+COURTSHIP_DAYS+' дней'});
   res.json({status:'payment_required',order_id:order.id,invoice_url:url,stars:COURTSHIP_STARS,days:COURTSHIP_DAYS});
  });
