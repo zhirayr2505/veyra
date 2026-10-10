@@ -78,10 +78,11 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const onlyOnline=!!filters.only_online,commonInterests=!!filters.common_interests;
  const [card,setCard]=useState(null),[loading,setLoading]=useState(true),[limited,setLimited]=useState(false);
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[index,setIndex]=useState(0);
- const [refresh,setRefresh]=useState(0),[motion,setMotion]=useState(''),[dragX,setDragX]=useState(0);
+ const [refresh,setRefresh]=useState(0),[motion,setMotion]=useState('');
  const [last,setLast]=useState({can_undo:false,free_undo_left:0,premium:false,target:null});
- const requestToken=useRef(0),pointer=useRef(null),ignoreTap=useRef(false);
+ const requestToken=useRef(0),pointer=useRef(null),ignoreTapUntil=useRef(0),entranceTimer=useRef(null);
  const photos=card?.photos||[];
+ useEffect(()=>()=>clearTimeout(entranceTimer.current),[]);
  const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests;
 
  useEffect(()=>{let alive=true;get('/reactions/last').then(r=>{
@@ -89,7 +90,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  }).catch(()=>{});return()=>{alive=false}},[]);
  useEffect(()=>{
   let alive=true;const seq=++requestToken.current;
-  setLoading(true);setCard(null);setLimited(false);setError('');setIndex(0);setMotion('');setDragX(0);
+  setLoading(true);setCard(null);setLimited(false);setError('');setIndex(0);setMotion('');
   get('/feed?'+filtersQuery).then(result=>{
    if(alive&&seq===requestToken.current){setCard(result.profiles?.[0]||null);setLimited(!!result.limited)}
   }).catch(e=>{if(alive&&seq===requestToken.current)setError(e.message)})
@@ -111,25 +112,25 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   if(!p.started&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){
    p.started=true;try{e.currentTarget.setPointerCapture(e.pointerId)}catch{}
   }
-  if(p.started)setDragX(Math.max(-58,Math.min(58,dx)));
+  // Card remains fixed; only a completed horizontal gesture changes the photograph.
  };
  const onPointerUp=e=>{
   const p=pointer.current;if(!p||p.id!==e.pointerId)return;
-  pointer.current=null;setDragX(0);
+  pointer.current=null;
   if(p.started){
-   ignoreTap.current=true;
+   // Synthetic click events can arrive well after touchend on Android.
+   ignoreTapUntil.current=Date.now()+450;
    const dx=e.clientX-p.x;
    if(Math.abs(dx)>38)changePhoto(dx<0?1:-1);
-   setTimeout(()=>{ignoreTap.current=false},120);
   }
  };
  const onCardClick=e=>{
-  if(ignoreTap.current||busy||e.target.closest('button'))return;
+  if(Date.now()<ignoreTapUntil.current||busy||e.target.closest('button'))return;
   onProfile(card.id);
  };
  const react=async kind=>{
   if(!card||busy)return;
-  const current=card;setBusy(true);setError('');setMotion('exit-'+kind);haptic(kind);
+  const current=card;clearTimeout(entranceTimer.current);setBusy(true);setError('');setMotion('exit-'+kind);haptic(kind);
   try{
    const [result]=await Promise.all([
     post('/reactions',{target:String(current.id),kind,next_mode:mode,only_online:onlyOnline,common_interests:commonInterests}),
@@ -146,7 +147,9 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
    ++requestToken.current;
    setCard(following);setIndex(0);setLimited(!!next.limited);
    setLast(old=>({...old,target:String(current.id),can_undo:!result.matched}));
-   setMotion('enter');setTimeout(()=>setMotion(''),260);
+   // A keyed incoming card mounts fresh so its entrance animation always runs.
+   setMotion(following?'enter':'');
+   entranceTimer.current=setTimeout(()=>setMotion(''),440);
    if(result.matched)onMatch(result.match_id,current);
   }catch(e){
    setMotion('');
@@ -155,14 +158,18 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   }finally{setBusy(false)}
  };
  const undo=async()=>{
-  if(busy||!last.can_undo||!last.target||(!last.premium&&last.free_undo_left<=0))return;
-  setBusy(true);setError('');haptic('undo');
+  if(busy||!last.can_undo||!last.target)return;
+  if(!last.premium&&last.free_undo_left<=0){
+   setError('Бесплатная отмена на сегодня уже использована. С Premium можно возвращать анкеты без ограничений.');
+   onPremium();return;
+  }
+  clearTimeout(entranceTimer.current);setBusy(true);setError('');haptic('undo');
   try{
    const r=await post('/reactions/undo',{target:String(last.target)});
    if(r.profile?.photos?.[0])await Promise.race([photoUrl(r.profile.photos[0]).then(decodePhoto).catch(()=>{}),wait(550)]);
    ++requestToken.current;
    setCard(r.profile);setIndex(0);setLimited(false);setLoading(false);
-   setMotion('enter');setTimeout(()=>setMotion(''),260);
+   setMotion('enter');entranceTimer.current=setTimeout(()=>setMotion(''),440);
    setLast(old=>({...old,can_undo:false,target:null,free_undo_left:old.premium?old.free_undo_left:Math.max(0,old.free_undo_left-1)}));
   }catch(e){
    if(e.message.includes('PREMIUM_REQUIRED'))onPremium();
@@ -171,7 +178,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  };
  const distance=card?.distance_km;
  const location=[card?.city,distance!==undefined&&distance!==null&&Number.isFinite(Number(distance))?Math.round(Number(distance))+' км':null].filter(Boolean).join(' · ');
- const undoAvailable=last.can_undo&&(last.premium||last.free_undo_left>0);
+ const undoAvailable=!!last.target&&last.can_undo;
  return <section className="discover screen" aria-label="Лента знакомств">
   <header className="feed-head">
    <img src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA" className="feed-brand"/>
@@ -183,8 +190,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   <div className="feed-content" aria-busy={busy}>
    {loading&&!card?<FeedState kind="loading"/>:
     card?<React.Fragment>
-     <div className={'feed-photo'+(motion?' feed-motion-'+motion:'')+(dragX?' feed-photo-moving':'')}
-      style={dragX?{'--photo-drag':dragX+'px'}:undefined}
+     <div key={String(card.id)} className={'feed-photo'+(motion?' feed-motion-'+motion:'')}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       onClick={onCardClick} aria-label={'Открыть профиль: '+card.name}>
@@ -206,7 +212,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       {motion==='exit-super'&&<div className="feed-flash feed-flash-super" aria-hidden="true"><Star size={76} fill="white"/><b>Суперлайк!</b></div>}
      </div>
      <div className="feed-actions">
-      <button type="button" className="feed-action action-undo" disabled={busy||!undoAvailable} aria-label="Отменить последнее действие" title="Отменить последнее действие" onClick={undo}><span className="feed-action-circle"><Icon name="undo" tone="dark" size={24}/></span></button>
+      <button type="button" className="feed-action action-undo" disabled={busy||!undoAvailable} aria-label="Отменить последнее действие" title={last.can_undo&&!last.premium&&last.free_undo_left<=0?'Лимит бесплатных отмен исчерпан':'Отменить последнее действие'} onClick={undo}><span className="feed-action-circle"><Icon name="undo" tone="dark" size={24}/></span></button>
       <button type="button" className="feed-action action-pass" disabled={busy} aria-label="Пропустить" title="Пропустить" onClick={()=>react('pass')}><span className="feed-action-circle"><Icon name="close" tone="pink" size={29}/></span></button>
       <button type="button" className="feed-action action-super" disabled={busy} aria-label="Суперлайк" title="Суперлайк" onClick={()=>react('super')}><span className="feed-action-circle"><Star size={27} strokeWidth={1.8} fill="currentColor" aria-hidden="true"/></span></button>
       <button type="button" className="feed-action action-like" disabled={busy} aria-label="Нравится" title="Нравится" onClick={()=>react('like')}><span className="feed-action-circle"><Icon name="heart_filled" tone="white" size={30}/></span></button>
