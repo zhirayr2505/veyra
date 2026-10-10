@@ -45,11 +45,13 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  AND ($10='' OR lower(p.city)=lower($10))
   AND (NOT $11::boolean OR (NOT u.invisible AND u.last_seen>now()-interval '5 minutes'))
   AND (NOT $12::boolean OR p.interests && $9::text[])
- AND NOT EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=p.user_id)
+ AND NOT p.user_id=ANY($13::bigint[])
+  AND ($14::text='' OR EXISTS(SELECT 1 FROM unnest(p.interests) i WHERE lower(i)=lower($14)))
+  AND NOT EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=p.user_id)
  AND NOT EXISTS(SELECT 1 FROM matches WHERE (a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id))
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests])).rows;
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||''])).rows;
  const candidates=rows.filter(x=>(process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
@@ -79,6 +81,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   const card=byId.get(String(candidate.user_id));
   if(!card)return null;
   card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);
+   card.shared_interests=Number(candidate.shared)||0;
   return card;
  }).filter(Boolean);
  return {profiles,limited:false};

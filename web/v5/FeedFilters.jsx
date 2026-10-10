@@ -82,14 +82,6 @@ export function FeedFilters({profile,filters,onClose,onSave}){
       <MapPin size={16}/><span>{place.city}{place.country?' · '+place.country:''}</span></button>)}</div>}
    </section>
    <section className="feed-filter-group">
-    <h3>Рекомендации</h3>
-    <div className="feed-filter-modes">
-     {[['discover','Для вас'],['nearby','Рядом'],['for_you','По интересам']].map(([key,label])=>
-      <button type="button" key={key} aria-pressed={p.mode===key} className={p.mode===key?'active':''}
-       onClick={()=>setP('mode',key)}>{label}</button>)}
-    </div>
-   </section>
-   <section className="feed-filter-group">
     <h3>Дополнительные фильтры</h3>
     <label className="feed-filter-toggle"><span><b>Сейчас онлайн</b><small>Показывать тех, кто недавно был в приложении</small></span>
      <input type="checkbox" checked={p.only_online} onChange={e=>setP('only_online',e.target.checked)}/><span className="feed-filter-switch"/></label>
