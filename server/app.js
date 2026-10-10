@@ -88,7 +88,7 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  });
  adminRoutes(app,{db,env,payments,storage,rate});botRoutes(app,{db,env,tg});
  app.use('/api',(req,res)=>res.status(404).json({error:'NOT_FOUND'}));
- app.use(express.static(fileURLToPath(new URL('../dist/',import.meta.url))));app.get('/{*path}',(req,res)=>res.sendFile(fileURLToPath(new URL('../dist/index.html',import.meta.url))));
+ app.use(express.static(fileURLToPath(new URL('../dist/',import.meta.url)),{setHeaders(res,path){if(/\/assets\/veyra\/|\/graphics\/brand\//.test(path))res.setHeader('Cache-Control','public, max-age=86400');else if(/\/assets\/[^/]+\.(?:js|css|woff2?)$/.test(path))res.setHeader('Cache-Control','public, max-age=31536000, immutable');else if(path.endsWith('/sw.js'))res.setHeader('Cache-Control','no-cache');}}));app.get('/{*path}',(req,res)=>res.sendFile(fileURLToPath(new URL('../dist/index.html',import.meta.url))));
  app.use((err,req,res,next)=>{const status=err.status||((err.code==='LIMIT_FILE_SIZE')?413:500);if(status>=500)console.error(JSON.stringify({event:'request_failed',path:req.path,code:err.code||err.name}));if(res.headersSent){res.destroy();return;}res.status(status).json({error:status>=500?'SERVER_ERROR':err.message});});return app;
 }
 async function exchangeView(q,m,user){const mine=String(m.a)===String(user)?m.a_exchange:m.b_exchange;const mutual=m.a_exchange&&m.b_exchange;if(!mutual)return {requested:mine,mutual:false};const other=String(m.a)===String(user)?m.b:m.a;const u=await one(q,'SELECT username FROM users WHERE id=$1',[other]);return {requested:mine,mutual:true,username:u.username||null};}

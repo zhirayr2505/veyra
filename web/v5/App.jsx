@@ -12,6 +12,7 @@ import {Premium,GiftPicker,GiftCollection,Filters,OwnProfile,Settings,Ranking,Co
 import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {DeletedScreen} from './DeletedScreen.jsx';
+import {preloadBrandAssets,registerBrandWorker} from './preload.js';
 const tg=window.Telegram?.WebApp;
 const nav=[['feed','cards','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -22,12 +23,12 @@ export function App(){
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
  const exitOverlay=()=>setOverlay(null);
- useEffect(()=>{let alive=true;(async()=>{try{
+ useEffect(()=>{let alive=true;registerBrandWorker();const warming=preloadBrandAssets();(async()=>{try{
   tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#fffdf8');tg?.setBackgroundColor?.('#fffdf8');
   if(!tg?.initData)throw Error('Открой VEYRA через официальный Telegram-бот @VeyraAppBot');
   const auth=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,scope:admin?'admin':'user'})});
   const j=await auth.json();if(!auth.ok)throw Error(j.error||'Не удалось войти через Telegram');
-  setBearer(j.token);const m=await get('/me');if(alive){setMe(m);setError('')}
+  setBearer(j.token);const m=await get('/me');await Promise.race([warming,new Promise(resolve=>setTimeout(resolve,3500))]);if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false}},[]);
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
   const active=!!(match||overlay||member||conversation);
