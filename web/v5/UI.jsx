@@ -2,7 +2,10 @@ import React,{useEffect,useState,useRef} from 'react';
 import {photoUrl,cachedPhoto} from './api.js';
 const base='/assets/veyra/';
 export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="veyra" src={base+'00_brand/veyra_logo.svg'}/>;}
-export function Icon({name,tone='dark',size=24}){return <img className="kit-icon" draggable="false" src={base+'01_icons/svg/'+tone+'/'+name+'.svg'} width={size} height={size} alt="" aria-hidden="true"/>;}
+export function Icon({name,tone='dark',size=24,className=''}){return <img className={'kit-icon '+className} draggable="false" src={base+'01_icons/svg/'+tone+'/'+name+'.svg'} width={size} height={size} alt="" aria-hidden="true"/>;}
+export function DetailIcon({name,size=20,className=''}){return <img className={'veyra-detail-icon '+className} src={base+'04_details/'+name+'.svg'} alt="" aria-hidden="true" draggable="false" width={size} height={size}/>;}
+const interestSlugs={'музыка':'music','путешествия':'travel','кино':'cinema','спорт':'sport','книги':'books','кофе':'coffee','технологии':'technology','животные':'pets','фото':'camera','прогулки':'walk','искусство':'art','вкусная еда':'food','танцы':'dance','йога':'yoga','мода':'fashion'};
+export function InterestIcon({name,size=16}){const slug=interestSlugs[String(name||'').toLowerCase()];return slug?<img className="veyra-interest-icon" src={base+'04_details/interest-'+slug+'.svg'} width={size} height={size} alt="" aria-hidden="true" draggable="false"/>:null;}
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
 export function Photo({id,className='',onClick,alt=''}){const element=useRef(null),[state,set]=useState(()=>({id,url:cachedPhoto(id),error:false}));
  useEffect(()=>{let live=true;const cached=cachedPhoto(id);set({id,url:cached,error:false});if(!id||cached)return;
@@ -13,10 +16,10 @@ export function Photo({id,className='',onClick,alt=''}){const element=useRef(nul
   return()=>{live=false;observer?.disconnect()};
  },[id]);
  const url=state.id===id?state.url:'',failed=!id||state.id===id&&state.error;
- return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно">♡</span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
+ return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><DetailIcon name="missing-photo" size={27}/></span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
 }
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
-export function Empty({title,body,action}){return <section className="empty"><span className="empty-heart">♡</span><h3>{title}</h3><p>{body}</p>{action}</section>}
+export function Empty({title,body,action,art="default"}){const illustration=["match","chat","profile","discover","default"].includes(art)?art:"default";return <section className="empty"><span className="veyra-empty-art" aria-hidden="true"><img src={base+"04_details/empty-"+illustration+".svg"} alt="" loading="lazy"/></span><h3>{title}</h3><p>{body}</p>{action}</section>}
 export function Spinner(){return <span className="spinner" role="status" aria-label="Загрузка"/>;}
 export function Header({back,side}){return <header className="top-header">{back?<button className="quiet back" aria-label="Назад" onClick={back}><Icon name="back"/></button>:<span className="header-spacer"/>}<Logo/>{side||<span className="header-spacer"/>}</header>}
 export function Tabs({items,value,onChange}){return <div className="tabs" role="tablist">{items.map(([k,label])=><button role="tab" aria-selected={value===k} className={value===k?'chosen':''} key={k} onClick={()=>onChange(k)}>{label}</button>)}</div>}

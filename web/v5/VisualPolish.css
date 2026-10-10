@@ -1,0 +1,32 @@
+/* VEYRA visual polish — maintain layout and business logic */
+.veyra-detail-icon,.veyra-interest-icon,.veyra-gender-symbol{display:inline-block;vertical-align:middle;flex:none;object-fit:contain;pointer-events:none}
+.veyra-interest-icon{filter:drop-shadow(0 1px 2px #f6538320)}
+.interest-grid .tag,.registration-v7 .interest-tag{display:inline-flex;align-items:center;gap:7px}
+.feed-interest .veyra-interest-icon{filter:drop-shadow(0 1px 4px #0005)}
+.feed-filter-gender .veyra-gender-symbol{transition:transform .22s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 3px 6px #ff588230)}
+.feed-filter-gender.selected .veyra-gender-symbol,.gender-choice.selected img,.looking-choice.selected img{transform:scale(1.09);filter:drop-shadow(0 3px 7px #ff527449)}
+.feed-filter-gender:active .veyra-gender-symbol,.choice:active img{transform:scale(.95)}
+.veyra-empty-art{width:124px;height:112px;display:grid;place-items:center;margin:2px auto 8px;filter:drop-shadow(0 10px 18px #f34f7930)}
+.veyra-empty-art img{width:100%;height:100%;object-fit:contain;animation:veyra-art-arrive .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes veyra-art-arrive{from{opacity:0;transform:translateY(10px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
+.photo-unavailable .veyra-detail-icon{opacity:.8}
+.ve-pinned-caption,.ve-gift-top,.reply-composer b,.menu-item{display:flex;align-items:center;gap:6px}
+.ve-receipt{display:inline-flex;align-items:center;letter-spacing:normal!important;font-size:inherit!important;margin-left:2px;padding:0!important;line-height:1}
+.ve-receipt .veyra-detail-icon{width:15px;height:15px}
+.ve-receipt-read{filter:drop-shadow(0 0 3px #84d4ef70)}.ve-receipt-delivered{opacity:.82}
+.ve-message-actions .kit-icon{opacity:.87}
+.ve-scroll-latest{display:grid;place-items:center}.ve-scroll-latest .veyra-detail-icon{width:19px;height:19px}
+.ve-image-open,.ve-message-actions,.ve-emoji-reactions button,.ve-chat-tile,.likes-photo-action,.feed-action,.member-icon-control,.feed-filter-gender{transition:transform .18s ease,background-color .2s ease,box-shadow .2s ease,opacity .2s ease}
+.ve-image-open:active,.ve-message-actions:active,.ve-emoji-reactions button:active,.likes-photo-action:active,.feed-action:active,.member-icon-control:active,.feed-filter-gender:active{transform:scale(.96)}
+.member-feed-profile .profile-badges span{display:inline-flex;align-items:center;gap:4px}
+.member-feed-profile .info-block h3{display:flex;gap:8px;align-items:center}
+.member-feed-profile .member-summary-online{display:inline-flex;gap:4px;align-items:center}
+.member-feed-profile .interest-grid .tag{display:inline-flex;align-items:center;gap:7px}
+.ranking-metric>span,.ranking-hero>span{display:grid;place-items:center}
+.match-sparkle{display:grid;place-items:center;filter:drop-shadow(0 8px 18px #ff599454)}
+.match-sparkle .veyra-detail-icon{animation:veyra-match-appear .5s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes veyra-match-appear{from{opacity:0;transform:translateY(9px) scale(.72) rotate(-8deg)}to{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+:where(.choice,.feed-filter-gender,.feed-action,.likes-photo-action,.member-icon-control,.ve-pin-button,.ve-composer-tool,.ve-message-actions,.ve-scroll-latest,.ve-emoji-reactions button,.bottom-nav button):focus-visible{outline:2px solid #fc5383;outline-offset:3px}
+@media(hover:hover){.feed-filter-gender:hover,.member-icon-control:not(:disabled):hover,.ve-chat-tile:hover{box-shadow:0 9px 25px #e85b811d}}
+@media(max-width:360px){.veyra-empty-art{width:108px;height:100px}.member-feed-profile .interest-grid .tag{font-size:11px}.ve-gift-top{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.veyra-empty-art img,.match-sparkle .veyra-detail-icon{animation:none!important}.ve-image-open,.ve-message-actions,.ve-emoji-reactions button,.ve-chat-tile,.likes-photo-action,.feed-action,.member-icon-control,.feed-filter-gender,.veyra-gender-symbol{transition:none!important}}
