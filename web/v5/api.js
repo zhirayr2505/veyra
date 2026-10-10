@@ -1,0 +1,25 @@
+let bearer='';
+const photos=new Map(),inflight=new Map();
+export function setBearer(token){bearer=token||'';}
+export async function request(path,{method='GET',body,signal}={}){
+ const form=body instanceof FormData;
+ const res=await fetch('/api'+path,{method,signal,headers:{...(bearer?{Authorization:'Bearer '+bearer}:{}),...(!form&&body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:form?body:JSON.stringify(body)});
+ if(!res.ok){const j=await res.json().catch(()=>({}));throw Error(j.error||('HTTP_'+res.status));}
+ return res.status===204?null:res.json();
+}
+export const get=path=>request(path);
+export const post=(path,body)=>request(path,{method:'POST',body});
+export const put=(path,body)=>request(path,{method:'PUT',body});
+export const patch=(path,body)=>request(path,{method:'PATCH',body});
+export async function photoUrl(id){
+ if(!id)return '';
+ if(photos.has(id))return photos.get(id);
+ if(inflight.has(id))return inflight.get(id);
+ const promise=fetch('/api/photos/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+bearer}})
+  .then(r=>{if(!r.ok)throw Error('PHOTO_UNAVAILABLE');return r.blob()})
+  .then(blob=>{const url=URL.createObjectURL(blob);photos.set(id,url);return url})
+  .finally(()=>inflight.delete(id));
+ inflight.set(id,promise);return promise;
+}
+export function clearPhotoCache(){for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
+export function photoOrder(ids){return request('/photos/order',{method:'PUT',body:{ids}});}

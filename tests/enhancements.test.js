@@ -88,8 +88,9 @@ test('privileged bot commands reject support role and duplicate grants',async()=
  const command=message(1,'/boost 11 2',502);for(let i=0;i<2;i++)assert.equal((await request(app).post('/webhooks/admin').set('X-Telegram-Bot-Api-Secret-Token',secret).send(command)).status,200);
  assert.equal((await one(db,'SELECT boosts FROM users WHERE id=11')).boosts,2);
 });
-test('single-photo onboarding is valid and bulk moderation rolls back stale revisions',async()=>{
+test('three-photo onboarding and bulk moderation rolls back stale revisions',async()=>{
  await user(db,14,{moderation:'draft'});await db.query('DELETE FROM photos WHERE user_id=14 AND position>0');
+ for(let i=1;i<=2;i++)await db.query("INSERT INTO photos(id,user_id,object_key,position) VALUES(gen_random_uuid(),14,$1,$2)",['fixture14/'+i,i]);
  tokens[14]=(await request(app).post('/api/auth').send({initData:initData(14)})).body.token;
  assert.equal((await auth(request(app).post('/api/profile/submit'),14).send({consent:true})).status,200);
  await user(db,15,{moderation:'pending'});

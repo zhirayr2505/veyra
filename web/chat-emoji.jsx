@@ -1,6 +1,0 @@
-import React from 'react';
-import Picker from 'emoji-picker-react';
-import ru from 'emoji-picker-react/dist/data/emojis-ru.json';
-import {Clock,Smile,PawPrint,Utensils,Plane, Trophy,Lightbulb,Hash,Flag} from 'lucide-react';
-const categories=[['suggested','Недавние','Recent',Clock],['smileys_people','Смайлы и люди','Smileys & people',Smile],['animals_nature','Животные и природа','Animals & nature',PawPrint],['food_drink','Еда и напитки','Food & drink',Utensils],['activities','Активности','Activities',Trophy],['travel_places','Путешествия','Travel',Plane],['objects','Объекты','Objects',Lightbulb],['symbols','Символы','Symbols',Hash],['flags','Флаги','Flags',Flag]];
-export default function ChatEmoji({lang,onPick}){return <Picker theme="dark" emojiStyle="native" width="100%" height="100%" autoFocusSearch={false} emojiData={lang==='ru'?ru:undefined} suggestedEmojisMode="recent" skinTonesDisabled={false} searchPlaceholder={lang==='ru'?'Найти эмодзи':'Search emoji'} previewConfig={{showPreview:false}} categories={categories.map(([category,r,e])=>({category,name:lang==='ru'?r:e}))} categoryIcons={Object.fromEntries(categories.map(([key,,,Icon])=>[key,<Icon key={key} size={19}/>]))} onEmojiClick={d=>onPick(d.emoji)}/>;}
