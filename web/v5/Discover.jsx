@@ -1,10 +1,11 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {get,post,request} from './api.js';
+import {get,post,photoUrl} from './api.js';
 import {Button,Header,Icon,Photo,Tabs,Empty,Sheet,InlineAlert,Spinner} from './UI.jsx';
 const modes=[['discover','для вас'],['nearby','рядом'],['for_you','по интересам']];
 export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0}){
  const [mode,setMode]=useState('discover'),[card,setCard]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[limited,setLimited]=useState(false),[index,setIndex]=useState(0),[last,setLast]=useState({can_undo:false,free_undo_left:0,premium:false,target:null});
  const ticket=useRef(0);
+ useEffect(()=>{const id=card?.photos?.[index+1];if(id)photoUrl(id).catch(()=>{})},[card,index]);
  useEffect(()=>{let live=true;get('/reactions/last').then(x=>{if(live)setLast({...x,target:x.action?.target||null})}).catch(()=>{});return()=>{live=false}},[]);
  const fetchCard=async(nextMode=mode)=>{const seq=++ticket.current;setLoading(true);setCard(null);setError('');setIndex(0);try{const r=await get('/feed?mode='+nextMode);if(seq===ticket.current){setCard(r.profiles?.[0]||null);setLimited(!!r.limited)}}catch(e){if(seq===ticket.current)setError('Не удалось загрузить анкеты: '+e.message)}finally{if(seq===ticket.current)setLoading(false)}};
  useEffect(()=>{fetchCard(mode);return()=>{ticket.current++}},[mode,refreshTick]);

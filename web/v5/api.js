@@ -1,6 +1,6 @@
-let bearer='';
+let bearer='',cacheGeneration=0;
 const photos=new Map(),inflight=new Map();
-export function setBearer(token){bearer=token||'';}
+export function setBearer(token){if(bearer!==(token||'')){clearPhotoCache();bearer=token||'';}}
 export function getBearer(){return bearer;}
 export async function request(path,{method='GET',body,signal}={}){
  const form=body instanceof FormData;
@@ -16,14 +16,15 @@ export async function photoUrl(id){
  if(!id)return '';
  if(photos.has(id)){const url=photos.get(id);photos.delete(id);photos.set(id,url);while(photos.size>64){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url;}
  if(inflight.has(id))return inflight.get(id);
+ const generation=cacheGeneration;
  const promise=fetch('/api/photos/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+bearer}})
   .then(r=>{if(!r.ok)throw Error('PHOTO_UNAVAILABLE');return r.blob()})
-  .then(blob=>{const url=URL.createObjectURL(blob);photos.set(id,url);return url})
+  .then(blob=>{const url=URL.createObjectURL(blob);if(generation!==cacheGeneration){URL.revokeObjectURL(url);throw Error('SESSION_CHANGED')}photos.set(id,url);while(photos.size>96){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url})
   .finally(()=>inflight.delete(id));
  inflight.set(id,promise);return promise;
 }
 export function cachedPhoto(id){return photos.get(id)||'';}
-export function clearPhotoCache(){for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
+export function clearPhotoCache(){cacheGeneration++;for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
 export function photoOrder(ids){return request('/photos/order',{method:'PUT',body:{ids}});}
 
 export async function download(path,filename){
