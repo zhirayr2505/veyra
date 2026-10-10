@@ -43,9 +43,9 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
  const isPersonal=kind==='for_you';
  const [people,setPeople]=useState([]),[loading,setLoading]=useState(false),[error,setError]=useState('');
  const [limited,setLimited]=useState(false),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
- const [choice,setChoice]=useState('all'),[interest,setInterest]=useState(''),[pending,setPending]=useState([]);
+ const [choice,setChoice]=useState('all'),[interest,setInterest]=useState(''),[pending,setPending]=useState([]),[retry,setRetry]=useState(0);
  const loadedKey=useRef(null),requestNumber=useRef(0);
- const requestKey=[kind,!!filters?.only_online,!!filters?.common_interests,choice,refreshTick].join(':');
+ const requestKey=[kind,!!filters?.only_online,!!filters?.common_interests,choice,refreshTick,retry].join(':');
  useEffect(()=>{
   if(!active||loadedKey.current===requestKey)return;
   loadedKey.current=requestKey;
@@ -96,7 +96,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
    else setError('Не удалось отправить симпатию: '+e.message);
   }finally{setPending(old=>old.filter(x=>x!==id))}
  };
- const reset=()=>{loadedKey.current=null;requestNumber.current++;setChoice('all');setInterest('');setPeople([]);setError('')};
+ const reset=()=>{loadedKey.current=null;setInterest('');setError('');setRetry(n=>n+1)};
  const title=isPersonal?'Для вас':'Рядом с вами';
  return <div className={'vx-browse vx-'+kind} aria-label={title}>
   {isPersonal?
