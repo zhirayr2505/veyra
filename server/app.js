@@ -39,8 +39,8 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  app.post('/api/logout',async(req,res)=>{await db.query('DELETE FROM sessions WHERE hash=$1',[hash(req.get('Authorization').slice(7))]);res.json({ok:true});});
  registrationRoutes(app,{db,storage,upload,rate});
  experienceRoutes(app,{db,rate,env});
- giftsRoutes(app,{db,rate,tg});
- courtshipRoutes(app,{db,rate,tg});
+ giftsRoutes(app,{db,rate,tg,env});
+ courtshipRoutes(app,{db,rate,tg,env});
  operationsRoutes(app,{db,rate,env});
  contentRoutes(app,{db,rate});
  app.put('/api/profile',async(req,res)=>{const p=parse(profileSchema,req.body);await db.tx(q=>saveProfile(q,req.user.id,p,true));res.json({ok:true});});

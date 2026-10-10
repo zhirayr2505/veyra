@@ -7,7 +7,7 @@ import {one} from '../server/db.js';
 test('deleted Telegram member can sign up again without restoring their old photos or conversations',async()=>{
  const db=await testDB();try{
  await user(db,60);await user(db,61);const app=createApp(deps(db));
- const auth=async id=60=>(await request(app).post('/api/auth').send({initData:initData(id)})).body.token;
+ const auth=async (id=60)=>(await request(app).post('/api/auth').send({initData:initData(id)})).body.token;
  const first=await auth();assert.ok(first);
  const before=await request(app).get('/api/me').set('Authorization','Bearer '+first);assert.ok(before.body.profile);
  const del=await request(app).delete('/api/account').set('Authorization','Bearer '+first).send({confirm:'DELETE'});
