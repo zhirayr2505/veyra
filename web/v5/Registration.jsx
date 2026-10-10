@@ -7,7 +7,7 @@ const MAX_PHOTOS=7,MIN_PHOTOS=3;
 const interests=['музыка','путешествия','кино','спорт','книги','кофе','технологии','животные','фото','прогулки','искусство','вкусная еда','танцы','йога','мода'];
 const interestIcons=[Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt];
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
-const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return now.toLocaleDateString('en-CA').split('/').join('-')};
+const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:''};
 const age=b=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return 0;const d=new Date(b+'T00:00:00Z'),n=new Date();if(Number.isNaN(+d))return 0;let y=n.getUTCFullYear()-d.getUTCFullYear();if(n.getUTCMonth()<d.getUTCMonth()||(n.getUTCMonth()===d.getUTCMonth()&&n.getUTCDate()<d.getUTCDate()))y--;return y;};
 const progress=(value,min,max)=>Math.max(0,Math.min(100,100*(value-min)/(max-min)));

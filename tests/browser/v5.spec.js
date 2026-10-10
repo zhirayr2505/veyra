@@ -107,7 +107,11 @@ test('V5 like/pass immediately returns the next card in one API request',async({
 test('V5 onboarding animates, autocompletes a verified city and uploads only seven preview photos',async({page})=>{
  await telegram(page,22);await page.goto('/');
  await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
- await page.getByRole('textbox',{name:'Имя'}).fill('Seven Photos Test');
+ await expect(page.getByRole('textbox',{name:'Имя'})).toHaveValue('Tester');
+ await page.getByRole('textbox',{name:'Имя'}).fill('Seven Photos Test!123');
+ await expect(page.getByRole('textbox',{name:'Имя'})).toHaveValue('Seven Photos Test');
+ await expect(page.locator('.name-feedback')).toBeVisible();
+ await expect(page.locator('.gender-choice img')).toHaveCount(2);
  await page.getByLabel('Дата рождения').fill('1998-05-12');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
@@ -117,10 +121,10 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.city-results button').first()).toBeVisible();
  await page.locator('.city-results button').first().click();
  await expect(page.locator('.location-card')).toContainText('Paris');
- await page.getByRole('button',{name:'далее'}).click();
+ await page.getByRole('button',{name:'выбрать город'}).click();
  await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
- await page.getByRole('button',{name:'далее'}).click();
+ await page.getByRole('button',{name:'рассказать о себе'}).click();
  await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
  await page.getByRole('button',{name:'добавить фото'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
@@ -132,6 +136,13 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.photo-footnote')).toContainText('Загружено 7 из 7',{timeout:45000});
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
  await expect(page.locator('.thumb-order')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeVisible();
+ await page.getByRole('button',{name:'посмотреть анкету'}).click();
+ await expect(page.locator('.preview-gallery-slide')).toHaveCount(7);
+ await page.getByRole('button',{name:'Следующее фото'}).click();
+ await expect(page.locator('.preview-count')).toHaveText('2 / 7');
+ await page.getByRole('button',{name:'редактировать'}).click();
+ await expect(page.locator('.photo-slot')).toHaveCount(7);
 });
 
 test('V5 server account reset cannot resurrect a stale cached registration step',async({page})=>{
@@ -139,5 +150,28 @@ test('V5 server account reset cannot resurrect a stale cached registration step'
  await page.addInitScript(()=>{localStorage.setItem('veyra.registration.v5.23',JSON.stringify({step:5,data:{name:'OLD CACHED NAME',city:'OLD CACHED CITY'}}))});
  await page.goto('/');
  await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
- await expect(page.locator('input[placeholder="Как тебя зовут?"]')).toHaveValue('');
+ await expect(page.locator('input[placeholder="Как тебя зовут?"]')).toHaveValue('Tester');
+});
+
+
+test('V7 registration keeps call-to-action pinned and interest icons visible',async({page})=>{
+ await telegram(page,24);await page.goto('/');
+ await expect(page.locator('.registration-actions')).toBeVisible();
+ const box=await page.locator('.registration-actions').boundingBox();
+ expect(Math.abs((box.y+box.height)-page.viewportSize().height)).toBeLessThan(3);
+ await page.getByRole('textbox',{name:'Имя'}).fill('Мария💗123');
+ await expect(page.getByRole('textbox',{name:'Имя'})).toHaveValue('Мария');
+ await page.getByLabel('Дата рождения').fill('1998-05-12');
+ await page.getByRole('button',{name:'женщина'}).click();
+ await page.getByRole('button',{name:'далее'}).click();
+ await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
+ await page.locator('.city-results button').first().click();
+ await expect(page.locator('.location-card')).toContainText('Paris');
+ await expect(page.locator('.city-search')).toHaveCount(0);
+ await page.getByRole('button',{name:'изменить город'}).click();
+ await expect(page.locator('.city-search')).toBeVisible();
+ await page.getByRole('button',{name:'скрыть поиск'}).click();
+ await page.getByRole('button',{name:'выбрать город'}).click();
+ await page.getByRole('button',{name:'рассказать о себе'}).click();
+ await expect(page.locator('.interest-tag svg')).toHaveCount(15);
 });

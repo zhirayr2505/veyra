@@ -138,3 +138,95 @@
 @media(prefers-reduced-motion:reduce){.view-tab:not([hidden])[data-enter="right"]{animation:none}}
 
 .photo-slot:not(.photo-slot-add){touch-action:none}
+
+
+/* VEYRA registration v7: grounded viewport controls, fluid step completion, native-feeling interactions. */
+.registration-v7{display:flex;flex-direction:column;min-height:100dvh;max-width:440px;padding:calc(12px + env(safe-area-inset-top)) 18px calc(136px + env(safe-area-inset-bottom));overflow-x:clip}
+.registration-v7 .center-logo{margin:10px auto 13px}
+.registration-v7 .center-logo .logo{max-height:59px;object-fit:contain}
+.registration-v7 .progress{width:calc(100% - 48px);height:5px;margin:0 auto 39px;gap:5px}
+.registration-v7 .progress span{height:5px;position:relative;overflow:hidden;background:#fbe0e7;border-radius:50px}
+.registration-v7 .progress span::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(100deg,#ff4058,#ff126b);transform-origin:left;transform:scaleX(0);transition:transform .46s cubic-bezier(.15,.8,.25,1)}
+.registration-v7 .progress span.done::after{transform:scaleX(1)}
+.registration-v7 .registration-step{flex:1;min-height:auto}
+.registration-v7 h1{font-size:clamp(24px,6vw,29px);line-height:1.2;letter-spacing:-1px;margin-bottom:9px}
+.registration-v7 .subheading{font-size:13px;line-height:1.4;margin-bottom:32px}
+.registration-v7 .fields{gap:19px}
+.registration-v7 .fields>label{font-size:13px;gap:9px}
+.registration-v7 .fields input:not([type=range]):not([type=checkbox]),.registration-v7 .fields select,.registration-v7 .fields textarea{border-radius:19px;min-height:57px;font-size:15px;padding:15px 17px;transition:border-color .16s,box-shadow .16s}
+.registration-v7 .fields input:focus,.registration-v7 .fields select:focus,.registration-v7 .fields textarea:focus{box-shadow:0 0 0 3px #ff1a6a12}
+.registration-name-field{position:relative}
+.name-feedback{align-self:flex-start;background:#22213a;color:#fff;box-shadow:0 12px 28px #18122e24;border-radius:12px;padding:9px 12px;max-width:100%;font-size:12px;font-weight:600;animation:nameBalloon .18s ease both;position:relative;z-index:1}
+.name-feedback::before{content:"";position:absolute;top:-5px;left:22px;background:#22213a;width:10px;height:10px;transform:rotate(45deg)}
+@keyframes nameBalloon{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.registration-v7 .gender-choice{display:flex;gap:10px;align-items:center;justify-content:center;min-height:56px;border-radius:19px;font-size:14px}
+.gender-choice img{width:23px;height:23px;transition:transform .2s ease}
+.gender-choice.selected img{transform:scale(1.12)}
+.registration-v7 .step-top{flex:none}
+.registration-v7 .registration-actions{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,440px);margin:0;display:flex;flex-direction:column;gap:10px;min-height:0;padding:12px 19px calc(14px + env(safe-area-inset-bottom));border-top:1px solid rgba(248,229,235,.5);background:linear-gradient(0deg,#fffdf8 75%,#fffdf8f2 93%,#fffdf800 100%);box-shadow:0 -12px 26px #fffdf8df;z-index:20}
+.registration-v7 .registration-actions .btn{min-height:57px;font-size:15px;border-radius:25px}
+.registration-v7 .registration-actions .btn:disabled{box-shadow:none}
+.registration-v7 .location-card{padding:20px 14px 14px;gap:5px;border-radius:23px;box-shadow:0 7px 25px rgba(49,25,36,.055)}
+.registration-v7 .location-mark{height:59px;width:59px;box-shadow:0 0 0 6px #ffe9f066;margin-bottom:6px}
+.registration-v7 .location-mark .kit-icon{width:27px;height:27px}
+.registration-v7 .location-card h2{font-size:27px}
+.registration-v7 .location-card p{font-size:12px}
+.registration-v7 .location-change{margin-top:5px;font-size:12px;padding:6px}
+.registration-v7 .or{font-size:12px;margin:4px 0}
+.registration-v7 .city-search{width:100%;min-height:58px;border:1px solid #eadce1;border-radius:19px;gap:11px;padding:0 15px;background:#fff;box-shadow:0 7px 19px #281d3307;transition:border-color .2s,box-shadow .2s}
+.registration-v7 .city-search:focus-within{border-color:#ff70a0;box-shadow:0 0 0 3px #ff1a6a0d}
+.registration-v7 .fields .city-search input:not([type=range]):not([type=checkbox]){font-size:14px;min-width:0;flex:1;width:0;height:56px;min-height:0;outline:none;border:0;border-radius:0;box-shadow:none;padding:0;background:transparent}
+.registration-v7 .city-search .kit-icon{flex:none}
+.registration-v7 .locate-button{min-height:57px;padding:12px;font-size:14px;white-space:normal}
+.registration-v7 .locate-button .spinner-ring{height:20px;width:20px;border-width:2px}
+.registration-v7 .distance-control{margin-top:2px}
+.registration-v7 .registration-check{position:relative;display:flex;align-items:center;gap:10px;font-weight:500;line-height:1.5;padding:4px 0}
+.registration-v7 .registration-check input[type=checkbox]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;z-index:2}
+.registration-v7 .registration-check .custom-check{display:grid;place-items:center;width:23px;height:23px;flex:none;border:1.8px solid #c8c3ce;border-radius:7px;background:white;color:transparent;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.registration-v7 .registration-check input:checked+.custom-check{background:#ff176d;border-color:#ff176d;color:white}
+.registration-v7 .registration-check input:focus-visible+.custom-check{outline:2px solid #ff176d;outline-offset:3px}
+.registration-v7 .registration-check input:checked+.custom-check svg{animation:checkPop .22s ease both}
+@keyframes checkPop{from{transform:scale(.5)}to{transform:scale(1)}}
+.registration-v7 .interest-grid{gap:9px}
+.registration-v7 .interest-tag{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:9px 12px;border-radius:15px;font-size:12px;transition:transform .18s ease,background .2s ease,border-color .2s ease}
+.registration-v7 .interest-tag svg{flex:none;opacity:.82}
+.registration-v7 .interest-tag.selected svg{opacity:1;stroke:#e42a62}
+.registration-v7 .interest-tag:active{transform:scale(.97)}
+.registration-v7 .photo-layout{margin-top:1px}
+.registration-v7 .photo-slot:not(.photo-slot-add){touch-action:none;cursor:grab}
+.registration-v7 .photo-slot-add{touch-action:manipulation}
+.registration-v7 .photo-slot.drag-origin{opacity:.14;transform:scale(.92);border:2px dashed #ff5a94;background:#ffe9f1}
+.registration-v7 .photo-slot.drop-target{transform:scale(.92);box-shadow:0 0 0 3px #ff1a6a59,0 9px 22px #ff156c24;background:#ffe6f0}
+.registration-v7 .photo-slot.drag-origin .thumb-delete{pointer-events:none}
+.photo-drag-ghost{position:fixed;z-index:1000;pointer-events:none;overflow:hidden;border-radius:17px;transform:scale(1.14) rotate(2deg);box-shadow:0 22px 44px rgba(19,11,38,.30),0 0 0 3px #fff,0 0 0 5px #ff3e8a;transition:transform .15s ease;animation:dragLift .2s cubic-bezier(.15,.85,.2,1) both;will-change:left,top}
+.photo-drag-ghost .photo-box,.photo-drag-ghost .photo-box img{width:100%;height:100%;object-fit:cover}
+@keyframes dragLift{from{transform:scale(1) rotate(0deg)}to{transform:scale(1.14) rotate(2deg)}}
+.registration-v7 .photo-footnote{margin-top:4px}
+.registration-preview .preview-surface{overflow:hidden;background:white;border:1px solid #f2e4e8;border-radius:25px;box-shadow:0 14px 34px #24142a14;margin-bottom:20px;animation:profileRise .32s ease both}
+@keyframes profileRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.preview-gallery{position:relative;overflow:hidden;background:#f9e4ec;width:100%;aspect-ratio:4 / 4.5;touch-action:pan-y}
+.preview-gallery-track{height:100%;display:flex;transition:transform .36s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.preview-gallery-slide{width:100%;height:100%;flex:0 0 100%;overflow:hidden}
+.preview-gallery-slide .photo-box,.preview-gallery-slide .photo-box img{width:100%;height:100%;object-fit:cover}
+.preview-fade{position:absolute;bottom:0;left:0;right:0;height:28%;background:linear-gradient(transparent,#19132e8a);pointer-events:none}
+.preview-count{position:absolute;top:15px;right:15px;padding:7px 11px;background:#16122c8a;backdrop-filter:blur(6px);border-radius:99px;color:#fff;font-size:12px;font-weight:700}
+.preview-arrow{position:absolute;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:38px;height:38px;border:1px solid #fff8;border-radius:50%;background:#21193280;color:white;backdrop-filter:blur(5px)}
+.preview-arrow.left{left:10px}.preview-arrow.right{right:10px}
+.preview-arrow:disabled{opacity:0;pointer-events:none}
+.preview-dots{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:5px}
+.preview-dots button{width:18px;height:4px;border:0;border-radius:5px;padding:0;background:#ffffff85;transition:width .25s ease,background .25s ease}
+.preview-dots button.active{background:#fff;width:27px}
+.preview-identity{padding:19px 17px 15px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.preview-identity h2{font-size:27px;line-height:1.2;margin:0 0 9px;letter-spacing:-.7px}
+.preview-identity p{margin:0;display:flex;align-items:center;gap:5px;color:#77778a;font-size:13px}
+.preview-heart{width:48px;height:48px;display:grid;place-items:center;flex:none;background:linear-gradient(110deg,#ff4060,#ff126b);border-radius:50%;color:white;box-shadow:0 9px 21px #ff126b44}
+.preview-section{padding:14px 18px 19px;border-top:1px solid #f4edf0}
+.preview-section h3{margin:0 0 9px;font-size:14px}
+.preview-section p{margin:0;font-size:14px;line-height:1.55;color:#67677b;white-space:pre-wrap}
+.preview-interest-list{display:flex;flex-wrap:wrap;gap:7px}
+.preview-interest-list span{border-radius:99px;background:#fff1f5;color:#e52d70;padding:8px 11px;font-size:12px;font-weight:600}
+.registration-preview{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
+.registration-preview .preview-actions{gap:8px}
+.registration-preview .preview-actions .btn.outline{background:#fff;box-shadow:none;border:1px solid #ffd0dd;color:#f21665;min-height:47px}
+@media(max-width:360px){.registration-v7{padding-left:14px;padding-right:14px}.registration-v7 .registration-actions{padding-left:14px;padding-right:14px}.registration-v7 .gender-choice{gap:5px;font-size:13px}.gender-choice img{width:21px;height:21px}}
+@media(prefers-reduced-motion:reduce){.registration-v7 .progress span::after,.preview-gallery-track,.photo-drag-ghost{animation:none;transition:none}}
