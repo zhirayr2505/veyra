@@ -1,0 +1,81 @@
+/* VEYRA main discovery screen, isolated from registration v8 and other tabs. */
+.discover.screen{max-width:600px;padding:calc(7px + env(safe-area-inset-top)) 16px calc(86px + env(safe-area-inset-bottom));overflow-x:clip;background:radial-gradient(ellipse 70% 32% at 95% 2%,#fff0f2 0%,transparent 90%),var(--milk)}
+.discover .feed-head{min-height:58px;position:relative;display:flex;justify-content:space-between;align-items:center}
+.discover .feed-logo{position:absolute;left:50%;transform:translateX(-50%);height:42px;display:flex;align-items:center;justify-content:center}
+.discover .feed-logo img{height:auto;max-height:39px;width:112px;object-fit:contain}
+.discover .spark-badge,.discover .icon-button{width:43px;height:43px;min-width:43px;min-height:43px;border-radius:50%;border:1px solid #f0e9ed;background:#fff;box-shadow:0 3px 11px #221e3608}
+.discover .spark-badge{border:none;background:linear-gradient(135deg,#fff2f4,#fff9f7)}
+.discover .tabs{min-height:55px;margin:9px 0 14px;padding:5px;gap:4px;border-radius:999px;background:#fff;box-shadow:0 5px 22px #47283b0a;border:1px solid #f0e8e9}
+.discover .tabs button{min-height:43px;font-size:clamp(11px,2.9vw,14px);font-weight:750;color:#777b90;letter-spacing:-.2px}
+.discover .tabs .chosen{color:white;background:linear-gradient(108deg,#ff4c5b,#fa2276);box-shadow:0 5px 14px #fc376021}
+.discover .feed-content{width:100%;min-width:0}
+.discover .feed-photo{isolation:isolate;position:relative;width:100%;height:clamp(350px,calc(100dvh - 291px - env(safe-area-inset-top) - env(safe-area-inset-bottom)),690px);min-height:350px;border-radius:29px;overflow:hidden;touch-action:pan-y;background:#f5e7ec;box-shadow:0 16px 38px #3c2b4022;transition:transform .22s cubic-bezier(.2,.8,.25,1),opacity .22s;user-select:none}
+.discover .feed-photo.feed-dragging{transition:none}
+.discover .feed-photo.feed-motion-like{transform:translate3d(32px,0,0) rotate(3deg);opacity:.8}
+.discover .feed-photo.feed-motion-pass{transform:translate3d(-32px,0,0) rotate(-3deg);opacity:.8}
+.discover .feed-photo.feed-motion-super{transform:scale(1.025);box-shadow:0 18px 45px #ff529438}
+.discover .feed-photo.feed-motion-undo{transform:scale(.985)}
+.discover .feed-picture{position:absolute;inset:0;overflow:hidden}
+.discover .feed-picture>img{display:block;position:absolute;width:100%;height:100%;inset:0;object-fit:cover;object-position:center;pointer-events:none}
+.discover .feed-picture-current{animation:veyraFeedImage .25s ease-out both}
+@keyframes veyraFeedImage{from{opacity:0}to{opacity:1}}
+.discover .feed-picture-skeleton{position:absolute;inset:0;background:linear-gradient(100deg,#f6e5eb,#fff3f2,#f3dee7);background-size:220% 100%;animation:shimmer 1.5s linear infinite}
+.discover .feed-picture-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#9e7180;background:linear-gradient(125deg,#fce8ed,#fff2ee)}
+.discover .feed-image-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,10,20,.13) 0%,transparent 24%,transparent 40%,rgba(10,5,18,.18) 55%,rgba(12,7,21,.89) 100%);z-index:1;pointer-events:none}
+.discover .feed-more{position:absolute;top:15px;right:14px;z-index:6;width:44px;height:44px;border:0;border-radius:50%;background:#282437ae;color:#fff;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(12px)}
+.discover .feed-more:active,.discover .feed-profile-link:active{transform:scale(.94)}
+.discover .feed-photo-tap{position:absolute;z-index:2;border:0;background:transparent;top:7%;bottom:34%;width:27%;padding:0}
+.discover .feed-photo-tap-left{left:0}.discover .feed-photo-tap-right{right:0}
+.discover .hero-info{position:absolute;left:23px;right:19px;bottom:37px;z-index:5;display:flex;flex-direction:column;align-items:flex-start;pointer-events:none;color:#fff;text-shadow:0 1px 9px #0008}
+.discover .hero-info>*{pointer-events:auto}
+.discover .feed-online{display:inline-flex;gap:8px;align-items:center;background:#113b37dd;border-radius:999px;padding:7px 11px;margin-bottom:9px;font-weight:700;font-size:12px;backdrop-filter:blur(6px)}
+.discover .feed-online-dot{width:9px;height:9px;border-radius:50%;background:#3fe5ab;box-shadow:0 0 0 3px #38dfa722;flex:none}
+.discover .feed-name-line{width:100%;display:flex;justify-content:space-between;align-items:center;gap:7px}
+.discover .hero-name{font-size:clamp(27px,7.5vw,37px);font-weight:820;line-height:1.1;letter-spacing:-1px;text-shadow:0 3px 10px #0005;max-width:calc(100% - 55px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.discover .feed-profile-link{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#302b40ad;color:white;border:0;backdrop-filter:blur(8px);flex:none}
+.discover .feed-location{display:flex;align-items:center;gap:7px;font-size:13px;margin:9px 0 0;line-height:1.4;max-width:100%}
+.discover .feed-location span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.discover .hero-bio{font-size:clamp(13px,3.5vw,15px);font-weight:450;line-height:1.45;margin:12px 0 0;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;max-width:100%}
+.discover .hero-tags{display:flex;flex-wrap:nowrap;gap:7px;overflow:hidden;max-width:100%;width:100%;margin-top:13px}
+.discover .feed-interest{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;max-width:45%;min-height:29px;padding:6px 10px;background:#5d5663b8;border:1px solid #fff8;border-radius:999px;font-size:11px;font-weight:680;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;backdrop-filter:blur(11px)}
+.discover .feed-interest>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.discover .feed-interest svg{flex:none}
+.discover .photo-bars{position:absolute;z-index:6;top:auto;bottom:12px;left:22px;right:22px;display:flex;align-items:center;gap:7px}
+.discover .photo-bars button{height:4px;min-height:4px;min-width:0;flex:1;border-radius:99px;background:#ffffff83;padding:0;box-shadow:0 1px 3px #0005}
+.discover .photo-bars button.active{background:#fff;box-shadow:0 1px 6px #ffffff50}
+.discover .feed-drag-feedback{position:absolute;z-index:8;top:18%;left:50%;transform:translateX(-50%) rotate(-6deg);border:3px solid #fff;border-radius:17px;padding:10px 16px;font-weight:820;font-size:22px;white-space:nowrap;color:#fff;text-shadow:0 2px 9px #0006;pointer-events:none}
+.discover .feed-drag-feedback.positive{background:#f32471cc}.discover .feed-drag-feedback.negative{background:#444355cc}
+.discover .feed-actions{display:flex;align-items:flex-start;justify-content:space-around;gap:5px;width:100%;padding:18px 0 1px}
+.discover .feed-action{border:0;background:transparent;min-width:0;flex:1;display:flex;align-items:center;flex-direction:column;gap:8px;padding:0 1px;color:#85889d;cursor:pointer;box-shadow:none}
+.discover .feed-action-circle{width:clamp(53px,14.8vw,66px);height:clamp(53px,14.8vw,66px);border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 8px 23px #48304414;transition:transform .17s ease,box-shadow .17s ease}
+.discover .feed-action:active .feed-action-circle{transform:scale(.9)}
+.discover .action-pass .feed-action-circle{background:#fff1f3}
+.discover .action-like .feed-action-circle{width:clamp(67px,18vw,80px);height:clamp(67px,18vw,80px);background:linear-gradient(135deg,#ff5160,#fb197c);box-shadow:0 9px 22px #fb2d7436}
+.discover .action-super .feed-action-circle{color:#ff9840}
+.discover .feed-action-label{font-size:clamp(10px,2.9vw,12px);font-weight:750;white-space:nowrap;line-height:1.1;letter-spacing:-.15px}
+.discover .feed-action:disabled{opacity:.38;cursor:not-allowed}
+.discover .feed-action:disabled .feed-action-circle{box-shadow:0 4px 10px #4433440b}
+.discover .feed-state{min-height:clamp(350px,calc(100dvh - 270px),660px);padding:45px 25px;background:linear-gradient(155deg,#fffaf9,#fff4f6);border:1px solid #f6e8ed;border-radius:29px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:10px}
+.discover .feed-state-symbol{height:103px;width:103px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 30%,#fff,#ffe1ea);margin-bottom:14px;box-shadow:0 14px 32px #ff7ca021}
+.discover .feed-state h2{font-size:22px;line-height:1.2;margin:0;letter-spacing:-.4px}
+.discover .feed-state p{font-size:13px;line-height:1.6;color:var(--muted);max-width:275px;margin:0 0 18px}
+.discover .feed-state .btn{max-width:280px}
+.discover .feed-state-loading{background:transparent;border:0}
+.discover .feed-state-loading .feed-state-symbol{background:#fff0f4}
+@media(max-width:370px){
+ .discover.screen{padding-left:11px;padding-right:11px}
+ .discover .feed-photo{border-radius:24px}
+ .discover .hero-info{left:17px;right:15px}
+ .discover .feed-interest{font-size:10px;padding:5px 8px}
+ .discover .feed-action-label{font-size:10px}
+}
+@media(max-height:690px){
+ .discover .feed-photo{height:clamp(320px,calc(100dvh - 252px),430px);min-height:320px}
+ .discover .feed-actions{padding-top:11px;gap:3px}
+ .discover .feed-action{gap:5px}
+ .discover .feed-online{margin-bottom:4px}
+ .discover .hero-info{bottom:29px}
+}
+@media(prefers-reduced-motion:reduce){
+ .discover .feed-photo,.discover .feed-action-circle,.discover .feed-picture-current{transition:none;animation:none}
+}
