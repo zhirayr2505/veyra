@@ -33,3 +33,27 @@ test('Telegram owner gets no-charge premium resources after signed re-registrati
  assert.equal(product.body.owner_free,true);assert.equal(product.body.enabled,true);
  }finally{await db.close();}
 });
+
+test('ordinary user cannot access synthetic profiles; owner can retry a match after test reset',async()=>{
+ const {react}=await import('../server/domain.js');
+ const {TEST_PROFILE_IDS}=await import('../server/test-profile-ids.js');
+ const id=TEST_PROFILE_IDS[0],db=await testDB();
+ try{
+  await user(db,1);await user(db,71);await user(db,id);
+  const app=createApp(deps(db));
+  const auth=async id=>(await request(app).post('/api/auth').send({initData:initData(id)})).body.token;
+  const owner=await auth(1),regular=await auth(71);
+  assert.equal((await request(app).post('/api/reactions').set('Authorization','Bearer '+regular).send({target:id,kind:'like'})).status,403);
+  assert.equal((await request(app).post('/api/owner/reset-test-interactions').set('Authorization','Bearer '+regular).send({})).status,403);
+  const match=await db.tx(q=>react(q,'1',id,'like'));assert.equal(match.matched,true);
+  const send=await request(app).post('/api/matches/'+match.match_id+'/messages').set('Authorization','Bearer '+owner).send({kind:'text',body:'Тестовое сообщение',client_id:'a787e9d3-5e6d-4270-a553-13053b246a89'});
+  assert.equal(send.status,200);
+  const simulated=await one(db,'SELECT body FROM messages WHERE match_id=$1 AND sender=$2 ORDER BY created_at DESC LIMIT 1',[match.match_id,id]);
+  assert.match(simulated.body,/Тестов/iu);
+  const reset=await request(app).post('/api/owner/reset-test-interactions').set('Authorization','Bearer '+owner).send({});
+  assert.equal(reset.status,200);assert.equal(reset.body.reset_matches,1);
+  assert.equal((await one(db,'SELECT count(*)::int AS n FROM matches')).n,0);
+  assert.equal((await one(db,'SELECT count(*)::int AS n FROM reactions WHERE actor=1 OR target=1')).n,0);
+  assert.equal((await db.tx(q=>react(q,'1',id,'like'))).matched,true);
+ }finally{await db.close()}
+});

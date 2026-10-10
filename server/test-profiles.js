@@ -11,7 +11,7 @@ export async function seedTestProfiles(db,storage,env){
  try{return await db.tx(async q=>{
   await q.query("SELECT key FROM feature_flags WHERE key='registrations' FOR UPDATE");
   if(await one(q,"SELECT 1 FROM audit_log WHERE action='test_profiles.seed' AND subject=$1",[SEED])){
-   const pending=(await q.query("SELECT r.actor,r.target,r.kind FROM reactions r JOIN users u ON u.id=r.actor JOIN profiles p ON p.user_id=u.id WHERE r.target=ANY($1::bigint[]) AND r.actor<>ALL($1::bigint[]) AND r.kind<>'pass' AND u.status='active' AND p.moderation='approved' AND NOT EXISTS(SELECT 1 FROM matches m WHERE m.a=least(r.actor,r.target) AND m.b=greatest(r.actor,r.target)) AND NOT EXISTS(SELECT 1 FROM blocks b WHERE b.actor=r.actor AND b.target=r.target OR b.actor=r.target AND b.target=r.actor)",[TEST_PROFILE_IDS])).rows;
+   const pending=(await q.query("SELECT r.actor,r.target,r.kind FROM reactions r JOIN users u ON u.id=r.actor JOIN profiles p ON p.user_id=u.id WHERE r.target=ANY($1::bigint[]) AND r.actor<>ALL($1::bigint[]) AND r.kind<>'pass' AND u.status='active' AND u.admin_role='owner' AND p.moderation='approved' AND NOT EXISTS(SELECT 1 FROM matches m WHERE m.a=least(r.actor,r.target) AND m.b=greatest(r.actor,r.target)) AND NOT EXISTS(SELECT 1 FROM blocks b WHERE b.actor=r.actor AND b.target=r.target OR b.actor=r.target AND b.target=r.actor)",[TEST_PROFILE_IDS])).rows;
    for(const r of pending)await react(q,String(r.actor),String(r.target),r.kind);
    return {status:'completed',count:TEST_PROFILE_IDS.length};
   }

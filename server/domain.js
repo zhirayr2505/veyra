@@ -16,7 +16,16 @@ export async function notifyReview(q,env,userId){
 export async function approved(q,id){const p=await one(q,"SELECT p.* FROM profiles p JOIN users u ON u.id=p.user_id WHERE user_id=$1 AND u.status='active'",[id]);if(p?.moderation!=='approved')fail(403,'PROFILE_NOT_APPROVED');return p;}
 export async function pairLock(q,a,b){const ids=[BigInt(a),BigInt(b)].sort((x,y)=>x<y?-1:1);await q.query('SELECT id FROM users WHERE id=$1 OR id=$2 ORDER BY id FOR UPDATE',[...ids.map(String)]);}
 export const blocked=async(q,a,b)=>!!await one(q,'SELECT 1 FROM blocks WHERE (actor=$1 AND target=$2) OR (actor=$2 AND target=$1)',[a,b]);
-export async function ensurePair(q,a,b){if(String(a)===String(b))fail(400,'SELF_ACTION');await approved(q,a);await approved(q,b);if(await blocked(q,a,b))fail(403,'BLOCKED');}
+export async function ensurePair(q,a,b){
+ if(String(a)===String(b))fail(400,'SELF_ACTION');
+ if(isTestProfile(a)||isTestProfile(b)){
+  const real=isTestProfile(a)?b:a;
+  const u=await one(q,'SELECT admin_role FROM users WHERE id=$1',[real]);
+  if(u?.admin_role!=='owner')fail(403,'TEST_PROFILE_OWNER_ONLY');
+ }
+ await approved(q,a);await approved(q,b);
+ if(await blocked(q,a,b))fail(403,'BLOCKED');
+}
 export async function activeMatch(q,id,user,lock=false){const m=await one(q,`SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2) AND active=true ${lock?'FOR UPDATE':''}`,[id,user]);if(!m)fail(404,'MATCH_NOT_FOUND');const other=String(m.a)===String(user)?m.b:m.a;await ensurePair(q,user,other);return {...m,other};}
 export async function usage(q,id){await q.query('INSERT INTO daily_usage(user_id) VALUES($1) ON CONFLICT DO NOTHING',[id]);return one(q,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE FOR UPDATE',[id]);}
 export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}

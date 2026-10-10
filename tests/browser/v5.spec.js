@@ -105,3 +105,29 @@ test('V5 like/pass immediately returns the next card in one API request',async({
  await expect(page.locator('.feed-photo .hero-name')).not.toHaveText(first);
  expect(feedRequests).toBe(before);
 });
+
+test('V5 brand icons render without broken URLs or sideways overflow on all main tabs',async({page})=>{
+ await telegram(page,10);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await expect(page.locator('.feed-photo')).toBeVisible();
+ const check=async()=>{
+  await page.locator('.kit-icon:visible,.logo:visible').evaluateAll(images=>Promise.all(images.map(img=>img.decode().catch(()=>{}))));
+  const broken=await page.locator('.kit-icon:visible,.logo:visible').evaluateAll(images=>images.filter(img=>!img.complete||img.naturalWidth<1).map(img=>img.getAttribute('src')));
+  expect(broken).toEqual([]);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ };
+ await check();
+ for(const name of ['симпатии','чаты','профиль','лента']){await page.locator('.bottom-nav').getByRole('button',{name}).click();await check();}
+ expect(errors).toEqual([]);
+});
+test('V5 account deletion renders farewell and reopening starts fresh onboarding',async({page})=>{
+ await telegram(page,30);await page.goto('/');await expect(page.locator('.feed-photo')).toBeVisible();
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
+ page.once('dialog',dialog=>dialog.accept());
+ await page.getByRole('button',{name:'удалить аккаунт'}).click();
+ await expect(page.getByRole('heading',{name:'Нам жаль, что ты уходишь'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Выйти из приложения'})).toBeVisible();
+ await page.reload();
+ await expect(page.getByRole('heading',{name:/знакомства/})).toBeVisible();
+});

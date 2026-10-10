@@ -34,6 +34,30 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  app.use('/api',auth);
  app.use('/api/admin',guardAdmin(env));
  app.post('/api/owner/seed-test-profiles',async(req,res)=>{if(String(req.user.id)!==String(env.OWNER_TELEGRAM_ID))fail(403,'OWNER_ONLY');await approved(db,req.user.id);res.json(await seedTestProfiles(db,storage,env));});
+ app.post('/api/owner/reset-test-interactions',async(req,res)=>{
+  if(String(req.user.id)!==String(env.OWNER_TELEGRAM_ID))fail(403,'OWNER_ONLY');
+  await approved(db,req.user.id);
+  const {TEST_PROFILE_IDS}=await import('./test-profile-ids.js');
+  const tests=TEST_PROFILE_IDS.map(String);
+  const result=await db.tx(async q=>{
+   const uid=req.user.id;
+   await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[uid]);
+   const ids=(await q.query('SELECT id FROM matches WHERE (a=$1 AND b=ANY($2::bigint[])) OR (b=$1 AND a=ANY($2::bigint[]))',[uid,tests])).rows.map(r=>r.id);
+   if(ids.length){
+    await q.query('INSERT INTO storage_gc(object_key) SELECT mm.object_key FROM message_media mm JOIN messages m ON m.id=mm.message_id WHERE m.match_id=ANY($1::uuid[]) ON CONFLICT DO NOTHING',[ids]);
+    await q.query('DELETE FROM courtships WHERE match_id=ANY($1::uuid[])',[ids]);
+    await q.query('DELETE FROM messages WHERE match_id=ANY($1::uuid[])',[ids]);
+    await q.query('DELETE FROM matches WHERE id=ANY($1::uuid[])',[ids]);
+   }
+   await q.query('DELETE FROM gifts WHERE (sender=$1 AND recipient=ANY($2::bigint[])) OR (recipient=$1 AND sender=ANY($2::bigint[]))',[uid,tests]);
+   await q.query('DELETE FROM reactions WHERE (actor=$1 AND target=ANY($2::bigint[])) OR (target=$1 AND actor=ANY($2::bigint[]))',[uid,tests]);
+   await q.query('DELETE FROM impressions WHERE viewer=$1 AND target=ANY($2::bigint[])',[uid,tests]);
+   await q.query('DELETE FROM profile_hides WHERE actor=$1 AND target=ANY($2::bigint[])',[uid,tests]);
+   await audit(q,uid,'owner.test.reset',uid,{test_profiles:tests.length,matches:ids.length});
+   return {ok:true,reset_matches:ids.length,profiles:tests.length};
+  });
+  res.json(result);
+ });
  app.use('/api',async(req,res,next)=>{if(!req.path.startsWith('/admin')&&await flag(db,'maintenance'))fail(503,'MAINTENANCE');next();});
  app.get('/api/me',async(req,res)=>{const u=req.user;const p=await one(db,'SELECT * FROM profiles WHERE user_id=$1',[u.id]);res.json({user:{id:u.id,created_at:u.created_at,username:u.username,first_name:u.first_name,language:u.language,premium_until:u.premium_until,boost_until:u.boost_until,superlikes:u.superlikes,prematches:u.prematches,boosts:u.boosts,notifications:u.notifications,invisible:u.invisible,paused:u.paused,referral_code:u.referral_code,admin_role:u.admin_role},registration:(await one(db,'SELECT step,data,updated_at FROM registration_drafts WHERE user_id=$1',[u.id]))||null,profile:p||null,photos:(await db.query('SELECT id,position FROM photos WHERE user_id=$1 ORDER BY position,created_at',[u.id])).rows,usage:await one(db,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE',[u.id]),today:await one(db,'SELECT * FROM today WHERE user_id=$1 AND expires_at>now()',[u.id])});});
  app.post('/api/logout',async(req,res)=>{await db.query('DELETE FROM sessions WHERE hash=$1',[hash(req.get('Authorization').slice(7))]);res.json({ok:true});});
@@ -98,12 +122,22 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
    await q.query('DELETE FROM impressions WHERE viewer=$1 OR target=$1',[uid]);
    await q.query('DELETE FROM reactions WHERE actor=$1 OR target=$1',[uid]);
    await q.query('DELETE FROM message_reactions WHERE user_id=$1',[uid]);
+   await q.query('DELETE FROM message_hides WHERE user_id=$1',[uid]);
+   await q.query('DELETE FROM chat_presence WHERE user_id=$1',[uid]);
+   await q.query('DELETE FROM content_interests WHERE user_id=$1',[uid]);
+   await q.query('DELETE FROM boost_runs WHERE user_id=$1',[uid]);
+   await q.query('DELETE FROM promo_redemptions WHERE user_id=$1',[uid]);
+   await q.query('DELETE FROM gifts WHERE sender=$1 OR recipient=$1',[uid]);
+   await q.query('DELETE FROM courtships WHERE sender=$1 OR recipient=$1',[uid]);
+   await q.query('DELETE FROM support_messages WHERE sender=$1',[uid]);
+   await q.query('UPDATE users SET referrer_id=NULL WHERE referrer_id=$1',[uid]);
+   await q.query('DELETE FROM outbox WHERE recipient=$1',[uid]);
    await q.query('DELETE FROM tickets WHERE user_id=$1',[uid]);
    await q.query('DELETE FROM blocks WHERE actor=$1 OR target=$1',[uid]);
    await q.query('DELETE FROM reports WHERE reporter=$1 OR target=$1',[uid]);
    await q.query('DELETE FROM profile_hides WHERE actor=$1 OR target=$1',[uid]);
    await q.query('DELETE FROM daily_usage WHERE user_id=$1',[uid]);
-   await q.query('UPDATE matches SET active=false,a_exchange=false,b_exchange=false WHERE a=$1 OR b=$1',[uid]);
+   await q.query('DELETE FROM matches WHERE a=$1 OR b=$1',[uid]);
    await q.query("UPDATE users SET status='deleted',username=NULL,first_name='',notifications=false,paused=true,invisible=false,premium_until=NULL,boost_until=NULL,superlikes=0,prematches=0,boosts=0 WHERE id=$1",[uid]);
    await audit(q,uid,'privacy.delete',uid);
    // The outbox worker explicitly permits only this confirmation for deleted accounts.

@@ -61,3 +61,5 @@
 @media(prefers-reduced-motion:reduce){.deleted-glow,.deleted-heart{animation:none}}
 
 .owner-test-tools{margin:20px 0;padding:16px;border:1px solid #ffd2de;border-radius:19px;background:#fff8fa}.owner-test-tools h3{color:var(--pink);font-size:16px}.owner-test-tools p{font-size:12px;line-height:1.55;color:var(--muted)}
+
+.owner-test-tools .btn+.btn{margin-top:10px}.owner-test-tools .btn{font-size:13px;padding:11px 15px}
