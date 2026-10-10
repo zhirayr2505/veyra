@@ -1,10 +1,12 @@
 import React,{useEffect,useState,useRef} from 'react';
+import {MapPin,ShieldCheck} from 'lucide-react';
+import './MemberFeed.css';
 import {get,post} from './api.js';
 import {openInvoice,GiftCollection} from './Extras.jsx';
 import {Header,Icon,Photo,Button,Sheet,Empty,InlineAlert,Spinner} from './UI.jsx';
 export function Member({id,onBack,onChat,onMatch,onGift,onPremium,initialMatch}){
  const[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[more,setMore]=useState(false),[courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false),[reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false),[reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
- const touch=useRef(null);
+ const touch=useRef(null),memberTouch=useRef(null),memberSwiped=useRef(false);
  useEffect(()=>{let ok=true;Promise.all([get('/profiles/'+id),get('/courtships/profile/'+id).catch(()=>null)]).then(([r,c])=>{if(ok){setData(r);setCourtship(c)}}).catch(e=>{if(ok)setError(e.message)}).finally(()=>ok&&setLoading(false));return()=>{ok=false}},[id]);
  const requestCourtship=async()=>{if(courtBusy)return;setCourtBusy(true);setError('');try{const mine=courtship?.mine;const r=mine?.status==='accepted'?await post('/courtships/'+mine.id+'/pay',{}):await post('/courtships/request',{target:String(id)});if(r.invoice_url){openInvoice(r.invoice_url)}else if(r.status==='pending'){window.alert('Приглашение отправлено. Статус появится только после согласия.')}const c=await get('/courtships/profile/'+id);setCourtship(c)}catch(e){setError(e.message)}finally{setCourtBusy(false)}};
  const like=async()=>{try{const r=await post('/reactions',{target:String(id),kind:'like'});if(r.matched)onMatch(r.match_id,data);else onBack()}catch(e){setError(e.message)}};
@@ -14,8 +16,18 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,initialMatch})
  if(loading)return <div className="page"><Header back={onBack}/><div className="center-loading"><Spinner/></div></div>;
  if(!data)return <div className="page"><Header back={onBack}/><Empty title="Анкета недоступна" body={error}/></div>;
  const match=data.match_id||initialMatch;
- return <div className="member page"><Header back={onBack} side={<button className="quiet" onClick={()=>setMore(true)}><Icon name="more"/></button>}/>
- <div className="member-photos"><Photo className="member-hero" id={data.photos?.[idx]} onClick={()=>setGallery(true)} alt={data.name}/><div className="member-bars">{data.photos?.map((p,i)=><button key={p} className={i===idx?'active':''} onClick={()=>setIdx(i)}/>)}</div><button className="member-prev" onClick={()=>setIdx(i=>Math.max(0,i-1))}>‹</button><button className="member-next" onClick={()=>setIdx(i=>Math.min(data.photos.length-1,i+1))}>›</button><div className="member-caption"><h2>{data.name}, {data.age}</h2><span>{data.city}, {data.country}</span></div></div>
+ return <div className="member page member-feed-profile"><Header back={onBack} side={<button className="quiet" onClick={()=>setMore(true)}><Icon name="more"/></button>}/>
+ <div className="member-photos"
+  onTouchStart={e=>{memberTouch.current=e.touches[0]?.clientX??null}}
+  onTouchEnd={e=>{if(memberTouch.current===null)return;const dx=e.changedTouches[0].clientX-memberTouch.current;memberTouch.current=null;if(Math.abs(dx)>45&&data.photos?.length>1){memberSwiped.current=true;setIdx(i=>(i+(dx<0?1:-1)+data.photos.length)%data.photos.length);setTimeout(()=>{memberSwiped.current=false},150)}}}>
+  <Photo className="member-hero" id={data.photos?.[idx]} onClick={()=>{if(!memberSwiped.current)setGallery(true)}} alt={data.name}/><div className="member-bars">{data.photos?.map((p,i)=><button key={p} className={i===idx?'active':''} onClick={()=>setIdx(i)}/>)}</div><button className="member-prev" onClick={()=>setIdx(i=>(i+data.photos.length-1)%data.photos.length)}>‹</button><button className="member-next" onClick={()=>setIdx(i=>(i+1)%data.photos.length)}>›</button><div className="member-thumbnails">{(data.photos||[]).slice(0,6).map((photo,i)=><button key={photo} type="button" aria-label={'Фото '+(i+1)} className={i===idx?'selected':''} onClick={()=>setIdx(i)}><Photo id={photo} alt=""/></button>)}</div>
+ </div>
+ <div className="member-summary">
+  <div className="member-summary-title"><h2>{data.name}, {data.age}</h2><ShieldCheck size={21} aria-label="Анкета прошла модерацию"/></div>
+  <p className="member-summary-location"><MapPin size={15} aria-hidden="true"/>{[data.city,data.country].filter(Boolean).join(', ')}</p>
+  {data.online&&<span className="member-summary-online">● в сети</span>}
+  {data.bio&&<p className="member-summary-bio">{data.bio}</p>}
+ </div>
  <div className="member-actions member-icon-actions">
  <button type="button" className="member-icon-control" onClick={()=>onGift(data)} aria-label="Подарить подарок"><Icon name="gift" tone="pink" size={26}/><span>подарок</span></button>
  <button type="button" className="member-icon-control main" onClick={()=>match?onChat(match):like()} aria-label={match?'Написать сообщение':'Поставить лайк'}><Icon name={match?'chat':'heart_filled'} tone="white" size={26}/><span>{match?'написать':'нравится'}</span></button>
@@ -26,7 +38,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,initialMatch})
  <div className="profile-badges">{data.popular&&<span>💗 популярный</span>}{data.online&&<span>🟢 сейчас онлайн</span>}{data.new_member&&<span>✨ новенький</span>}</div><section className="info-block"><h3>интересы</h3><div className="interest-grid">{(data.interests||[]).map(x=><span className="tag selected" key={x}>{x}</span>)}</div></section>
  <section className="info-block"><h3>о себе</h3><p>{data.bio||'Пока не рассказано'}</p></section><section className="info-block"><h3>коллекция подарков</h3><GiftCollection ownerId={id}/></section><section className="info-block"><h3>фото</h3><div className="photo-gallery-mini">{data.photos?.map((p,i)=><Photo key={p} id={p} onClick={()=>{setIdx(i);setGallery(true)}}/>)}</div></section>
  <InlineAlert>{error}</InlineAlert>
- {gallery&&<div className="gallery" onTouchStart={e=>touch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}} onTouchEnd={e=>{if(!touch.current)return;const x=e.changedTouches[0].clientX-touch.current.x,y=e.changedTouches[0].clientY-touch.current.y;if(Math.abs(y)>90&&Math.abs(y)>Math.abs(x))setGallery(false);else if(Math.abs(x)>40)setIdx(i=>Math.min(data.photos.length-1,Math.max(0,i+(x<0?1:-1))));touch.current=null}}><button className="gallery-close" onClick={()=>setGallery(false)} aria-label="Закрыть">×</button><Photo id={data.photos?.[idx]}/><small>{idx+1} / {data.photos.length}</small></div>}
+ {gallery&&<div className="gallery" onTouchStart={e=>touch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}} onTouchEnd={e=>{if(!touch.current)return;const x=e.changedTouches[0].clientX-touch.current.x,y=e.changedTouches[0].clientY-touch.current.y;if(Math.abs(y)>90&&Math.abs(y)>Math.abs(x))setGallery(false);else if(Math.abs(x)>40)setIdx(i=>(i+(x<0?1:-1)+data.photos.length)%data.photos.length);touch.current=null}}><button className="gallery-close" onClick={()=>setGallery(false)} aria-label="Закрыть">×</button><Photo id={data.photos?.[idx]}/><small>{idx+1} / {data.photos.length}</small></div>}
  {reportOpen&&<Sheet title="Пожаловаться" onClose={()=>setReportOpen(false)}><div className="fields"><label>Причина<select value={reportReason} onChange={e=>setReportReason(e.target.value)}><option value="fake">Фейковая анкета</option><option value="spam">Спам или реклама</option><option value="harassment">Оскорбления или домогательства</option><option value="underage">Пользователь младше 18 лет</option><option value="explicit">Неподходящие фотографии</option><option value="other">Другая причина</option></select></label><label>Подробности (необязательно)<textarea maxLength={2000} value={reportDetails} onChange={e=>setReportDetails(e.target.value)} placeholder="Что произошло?"/></label></div><InlineAlert>{error}</InlineAlert><Button className="full" disabled={reportBusy} onClick={report}>отправить жалобу</Button></Sheet>}
  {more&&<Sheet title="Анкета" onClose={()=>setMore(false)}><button className="menu-item" onClick={share}>Поделиться</button><button className="menu-item" onClick={()=>{setMore(false);setReportOpen(true)}}>Пожаловаться</button><button className="menu-item danger" onClick={block}>Заблокировать</button></Sheet>}
  </div>;

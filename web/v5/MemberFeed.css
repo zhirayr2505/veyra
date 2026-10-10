@@ -1,0 +1,37 @@
+/* Full profile opened from the feed: continuous VEYRA card language. */
+.member-feed-profile{position:relative;max-width:600px;min-height:100dvh;padding:0 0 115px;background:linear-gradient(#fff8f7,#fffdfa)}
+.member-feed-profile>.top-header{position:absolute;top:calc(8px + env(safe-area-inset-top));left:12px;right:12px;z-index:11;min-height:46px;pointer-events:none}
+.member-feed-profile>.top-header .logo{display:none}
+.member-feed-profile>.top-header button{pointer-events:auto;width:42px;height:42px;min-width:42px;border-radius:50%;background:#18161f91;backdrop-filter:blur(9px);color:white}
+.member-feed-profile>.top-header .kit-icon{filter:brightness(0) invert(1)}
+.member-feed-profile .member-photos{position:relative;width:100%;height:min(62dvh,600px);min-height:320px;border-radius:0;overflow:hidden;background:#efe0e4}
+.member-feed-profile .member-hero{height:100%;width:100%;border-radius:0}
+.member-feed-profile .member-hero .photo-box{height:100%;width:100%;border-radius:0}
+.member-feed-profile .member-photos:after{inset:70% 0 0;background:linear-gradient(transparent,#0e0a1d8c);z-index:1}
+.member-feed-profile .member-bars{position:absolute;top:16px;left:65px;right:65px;display:flex;gap:4px;z-index:10}
+.member-feed-profile .member-bars button{height:3px;border-radius:99px}
+.member-feed-profile .member-prev,.member-feed-profile .member-next{position:absolute;z-index:2;width:20%;height:55%;top:21%;border:0;background:transparent;color:transparent}
+.member-feed-profile .member-thumbnails{position:absolute;z-index:4;bottom:13px;left:13px;right:13px;display:flex;justify-content:center;gap:5px}
+.member-feed-profile .member-thumbnails button{width:min(15vw,62px);height:53px;min-width:0;padding:0;border:2px solid #ffffff9c;border-radius:10px;overflow:hidden;background:#fff4f7;box-shadow:0 3px 10px #0003}
+.member-feed-profile .member-thumbnails button.selected{border:2px solid white;outline:2px solid #ff4969}
+.member-feed-profile .member-thumbnails .photo-box{height:100%;width:100%;border-radius:0}
+.member-feed-profile .member-thumbnails img{height:100%;width:100%;object-fit:cover}
+.member-feed-profile .member-summary{position:relative;z-index:5;background:#fffdfb;border-radius:24px 24px 0 0;margin-top:-13px;padding:21px 20px 13px}
+.member-feed-profile .member-summary-title{display:flex;align-items:center;gap:8px}
+.member-feed-profile .member-summary-title h2{font-size:27px;line-height:1.1;letter-spacing:-.7px;margin:0;font-weight:820}
+.member-feed-profile .member-summary-title svg{color:#fff;fill:#269efc;filter:drop-shadow(0 1px 3px #348ded33)}
+.member-feed-profile .member-summary-location{display:flex;align-items:center;gap:5px;color:#777386;font-size:12px;margin:9px 0 0}
+.member-feed-profile .member-summary-online{display:inline-flex;margin-top:9px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:720;color:#23875c;background:#e9f8ee}
+.member-feed-profile .member-summary-bio{font-size:13px;color:#4b4757;line-height:1.55;margin:13px 0 0}
+.member-feed-profile .member-actions{margin:0;padding:6px 18px 14px;background:#fffdfb}
+.member-feed-profile .member-icon-actions{gap:9px}
+.member-feed-profile .member-icon-actions>.member-icon-control{min-height:69px;background:#fff;border-radius:20px;box-shadow:0 6px 17px #eb839020}
+.member-feed-profile .member-icon-actions>.member-icon-control.main{background:linear-gradient(115deg,#ff5068,#fb2479);color:white}
+.member-feed-profile .profile-badges,.member-feed-profile .info-block,.member-feed-profile .courtship-status{margin-left:18px;margin-right:18px}
+.member-feed-profile .profile-badges span{font-size:11px}
+.member-feed-profile .info-block{padding:16px 2px 18px}
+.member-feed-profile .info-block h3{font-size:15px;color:#292337}
+.member-feed-profile .info-block p{font-size:13px}
+.member-feed-profile .info-block .tag{background:#fff1f4;border:1px solid #ffe4eb;border-radius:99px;padding:8px 10px}
+@media(max-height:690px){.member-feed-profile .member-photos{height:54dvh;min-height:290px}}
+@media(prefers-reduced-motion:reduce){.member-feed-profile *{scroll-behavior:auto}}
