@@ -1,6 +1,7 @@
 // Isolated test harness. Never imported by server/index.js; no auth bypass exists in production.
 import {createApp} from '../server/app.js';import {testDB,deps,user} from './helpers.js';
-import sharp from 'sharp';import {readFile} from 'node:fs/promises';import {react} from '../server/domain.js';
+import sharp from 'sharp';
+import {portrait} from '../server/test-profiles.js';import {readFile} from 'node:fs/promises';import {react} from '../server/domain.js';
 const db=await testDB();await user(db,10,{premium:true});await user(db,11);await user(db,12,{moderation:'pending'});
 await user(db,30);
 for(const [id,name] of [[150,'Алина'],[151,'Диана'],[152,'Мария'],[153,'Катя']]){
@@ -14,5 +15,7 @@ const pair=await db.tx(q=>react(q,'10','151','like'));
 await db.query("INSERT INTO messages(id,match_id,sender,body,client_id) VALUES(gen_random_uuid(),$1,151,'Привет! Как проходит твой день? ☕',gen_random_uuid())",[pair.match_id]);
 const dependencies=deps(db);dependencies.env={...dependencies.env,APP_URL:'http://127.0.0.1:3100'};
 const placeholder=await sharp({create:{width:320,height:430,channels:3,background:{r:250,g:218,b:229}}}).webp().toBuffer();
-const photos=new Map();dependencies.storage={put:async(key,buffer)=>photos.set(key,await sharp(buffer).webp().toBuffer()),putMedia:async(key,buffer)=>photos.set(key,buffer),get:async key=>photos.get(key)||placeholder,remove:async key=>photos.delete(key)};
+const photos=new Map();
+for(const [i,uid] of [10,11,30,150,151,152,153].entries()){for(let pos=0;pos<3;pos++){photos.set(uid+'/photo'+pos+'.webp',await sharp(portrait(i%6,pos)).webp().toBuffer());}}
+dependencies.storage={put:async(key,buffer)=>photos.set(key,await sharp(buffer).webp().toBuffer()),putMedia:async(key,buffer)=>photos.set(key,buffer),get:async key=>photos.get(key)||placeholder,remove:async key=>photos.delete(key)};
 const app=createApp(dependencies);app.listen(3100,'127.0.0.1');

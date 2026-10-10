@@ -12,15 +12,16 @@ export function Icon({name,tone='dark',size=24}){
 }
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
 export function Photo({id,className='',onClick,alt=''}){const element=useRef(null),[state,set]=useState(()=>({id,url:cachedPhoto(id),error:false}));
+ const priority=/hero-photo|member-hero|own-photo|mini-avatar|chat-avatar/.test(className);
  useEffect(()=>{let live=true;const cached=cachedPhoto(id);set({id,url:cached,error:false});if(!id||cached)return;
   let observer;const load=()=>photoUrl(id).then(url=>{if(live)set({id,url,error:false})}).catch(()=>{if(live)set({id,url:'',error:true})});
-  if(element.current&&typeof IntersectionObserver!=='undefined'){
+  if(!priority&&element.current&&typeof IntersectionObserver!=='undefined'){
    observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}},{rootMargin:'180px 0px'});observer.observe(element.current);
   }else load();
   return()=>{live=false;observer?.disconnect()};
- },[id]);
+ },[id,priority]);
  const url=state.id===id?state.url:'',failed=!id||state.id===id&&state.error;
- return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно">♡</span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
+ return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading={priority?"eager":"lazy"} decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно">♡</span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
 }
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
 export function Empty({title,body,action}){return <section className="empty"><span className="empty-heart">♡</span><h3>{title}</h3><p>{body}</p>{action}</section>}

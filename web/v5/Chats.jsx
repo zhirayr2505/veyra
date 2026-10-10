@@ -37,7 +37,7 @@ function MessagePhoto({matchId,messageId}){
  </span>;
 }
 export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
- const [messages,setMessages]=useState([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[more,setMore]=useState(false),[before,setBefore]=useState(null),[stickerMode,setStickerMode]=useState(false),[stickers,setStickers]=useState([]),[selected,setSelected]=useState(null),[reply,setReply]=useState(null),[typing,setTyping]=useState(false);
+ const [messages,setMessages]=useState([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[more,setMore]=useState(false),[before,setBefore]=useState(null),[stickerMode,setStickerMode]=useState(false),[stickers,setStickers]=useState([]),[selected,setSelected]=useState(null),[reply,setReply]=useState(null),[typing,setTyping]=useState(false),[initialLoaded,setInitialLoaded]=useState(false);
  const scroll=useRef(null),first=useRef(true),autoScroll=useRef(true),syncRef=useRef(''),syncBusy=useRef(false),syncGeneration=useRef(0),scrollAnchor=useRef(null),touchRef=useRef(null),input=useRef(null),photoInput=useRef(null),typingAt=useRef(0);
  const merge=(existing,incoming)=>{const byId=new Map(existing.map(x=>[x.id,x]));for(const x of incoming){const old=byId.get(x.id);byId.set(x.id,x.deleted?{...old,...x}:({...old,...x}))}return [...byId.values()].sort((a,b)=>a.created_at===b.created_at?a.id.localeCompare(b.id):new Date(a.created_at)-new Date(b.created_at))};
  const fetchPage=async({older=false,initial=false}={})=>{
@@ -71,11 +71,11 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
     setTyping(typingState);
    }
    if(unread.length){for(let i=0;i<unread.length;i+=100)post('/matches/'+matchId+'/read',{ids:unread.slice(i,i+100)}).catch(()=>{});}
-   setError('');
+   setError('');if(initial)setInitialLoaded(true);
   }finally{if(!older&&generation===syncGeneration.current)syncBusy.current=false;}
  };
- useEffect(()=>{let live=true;++syncGeneration.current;syncBusy.current=false;syncRef.current='';first.current=true;autoScroll.current=true;scrollAnchor.current=null;setMessages([]);setBefore(null);setMore(false);setError('');
-  fetchPage({initial:true}).catch(e=>{if(live)setError('Не удалось загрузить переписку: '+e.message)});
+ useEffect(()=>{let live=true;++syncGeneration.current;syncBusy.current=false;syncRef.current='';first.current=true;autoScroll.current=true;scrollAnchor.current=null;setMessages([]);setBefore(null);setMore(false);setError('');setInitialLoaded(false);
+  fetchPage({initial:true}).catch(e=>{if(live){setInitialLoaded(true);setError('Не удалось загрузить переписку: '+e.message)}});
   get('/chat/stickers').then(r=>{if(live)setStickers(r.stickers||[])}).catch(()=>{});
   const poll=()=>{if(live&&!document.hidden)fetchPage().catch(e=>{if(live)setError('Не удалось обновить переписку: '+e.message)})};
   const timer=setInterval(poll,3500);const visible=()=>{if(!document.hidden)poll()};document.addEventListener('visibilitychange',visible);
@@ -97,7 +97,7 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
  const del=async(scope)=>{if(scope==='everyone'&&!window.confirm('Удалить сообщение у обоих?'))return;try{await request('/matches/'+matchId+'/messages/'+selected.id,{method:'DELETE',body:{scope}});await fetchPage()}catch(e){setError(e.message)}setSelected(null)};
  const older=async()=>{if(!more||!before)return;const node=scroll.current;scrollAnchor.current=node?{height:node.scrollHeight,top:node.scrollTop}:null;try{await fetchPage({older:true})}catch(e){scrollAnchor.current=null;setError(e.message)}};
  return <div className="conversation"><div className="conversation-head"><button onClick={onBack} aria-label="Назад" className="quiet"><Icon name="back"/></button><button className="chat-user" onClick={()=>onProfile(partner?.id,matchId)}><Photo id={partner?.photos?.[0]} className="mini-avatar"/><span><b>{partner?.name||'мэтч'}</b><small>{typing?'печатает...':partner?.online?'в сети':'общайтесь с уважением'}</small></span></button><button className="quiet" title="Подарок" onClick={()=>onGift(partner)}><Icon name="gift" tone="pink"/></button></div>
- <div className="message-stream" ref={scroll} role="log" aria-live="polite" aria-relevant="additions">{more&&<button className="history-more" onClick={older}>загрузить предыдущие сообщения</button>}{messages.map(m=><div key={m.id} className={'bubble '+(String(m.sender)===String(myId)?'mine':'theirs')} onContextMenu={e=>{e.preventDefault();menu(m)}} onTouchStart={()=>{touchRef.current=setTimeout(()=>menu(m),600)}} onTouchEnd={()=>clearTimeout(touchRef.current)} onTouchMove={()=>clearTimeout(touchRef.current)}>
+ <div className="message-stream" ref={scroll} role="log" aria-live="polite" aria-relevant="additions">{!initialLoaded&&<div className="chat-initial-loading"><Spinner/><span>загружаем переписку…</span></div>}{more&&<button className="history-more" onClick={older}>загрузить предыдущие сообщения</button>}{messages.map(m=><div key={m.id} className={'bubble '+(String(m.sender)===String(myId)?'mine':'theirs')} onContextMenu={e=>{e.preventDefault();menu(m)}} onTouchStart={()=>{touchRef.current=setTimeout(()=>menu(m),600)}} onTouchEnd={()=>clearTimeout(touchRef.current)} onTouchMove={()=>clearTimeout(touchRef.current)}>
  {m.deleted?<em>сообщение удалено</em>:<>{m.reply&&<div className="quoted-msg">↪ {m.reply.body||'фото или стикер'}</div>}{m.kind==='image'&&<MessagePhoto matchId={matchId} messageId={m.id}/>}
  {m.kind==='sticker'&&<img className="message-sticker" alt="Стикер" src={stickers.find(s=>s.id===m.sticker_id)?.src||''}/>}
  {m.body&&<span>{m.body}</span>}
