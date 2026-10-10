@@ -1,23 +1,27 @@
-// Cache only public branded vector assets. Personal photographs and messages are never cached.
-const names=['back','camera','cards','chat','chat_filled','check','close','crown','filters','gift','heart','heart_filled','more','pin','plus','search','send','settings','shield_check','sparkle','star','undo','user','user_filled','verified'];
-const tones=['dark','pink','white'];
-const version='veyra.brand.cache.20261010.v6';
-const paths=['/assets/veyra/00_brand/veyra_logo.svg',...tones.flatMap(t=>names.map(n=>'/assets/veyra/01_icons/svg/'+t+'/'+n+'.svg'))];
+// Warm only the critical first-screen VEYRA assets; noncritical art is lazy-loaded by the browser.
+// Never cache profile photos or private chat data here.
+const base='/assets/veyra/05_premium_icons/';
+const paths=[
+ '/assets/veyra/00_brand/veyra_logo.svg',
+ ...['cards','heart','chat','user'].flatMap(name=>[base+'dark/'+name+'.svg',base+'pink/'+name+'_filled.svg']),
+ base+'pink/filters.svg',base+'pink/refresh.svg',base+'dark/search.svg'
+];
+const version='veyra.brand.cache.20261011.premium';
 let inflight;
 export function preloadBrandAssets(onProgress=()=>{}){
  if(inflight)return inflight;
- let complete=0,failures=0,next=0;const first=(()=>{try{return localStorage.getItem(version)!=='ready'}catch{return true}})();
+ let complete=0,failures=0,next=0;
+ const first=(()=>{try{return localStorage.getItem(version)!=='ready'}catch{return true}})();
  onProgress(first?0:100);
  if(!first){inflight=Promise.resolve(true);return inflight;}
- // Bounded concurrency keeps the first launch responsive even on mobile networks.
- const jobs=Array.from({length:Math.min(8,paths.length)},async()=>{
-  while(next<paths.length){const file=paths[next++];
+ const jobs=Array.from({length:Math.min(6,paths.length)},async()=>{
+  while(next<paths.length){
+   const file=paths[next++];
    try{const r=await fetch(file,{cache:'force-cache'});if(!r.ok)throw Error('ASSET_'+r.status)}catch{failures++}
    complete++;onProgress(Math.round(complete/paths.length*100));
   }
  });
  const all=Promise.allSettled(jobs).then(()=>{if(!failures){try{localStorage.setItem(version,'ready')}catch{}}return failures===0});
- // Fail open after eight seconds; assets continue warming after the splash.
- inflight=Promise.race([all,new Promise(resolve=>setTimeout(()=>resolve(false),8000))]);
+ inflight=Promise.race([all,new Promise(resolve=>setTimeout(()=>resolve(false),4500))]);
  return inflight;
 }
