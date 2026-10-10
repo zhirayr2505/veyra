@@ -13,6 +13,6 @@ await db.query("UPDATE profiles SET name='Алина',bio='Люблю краси
 const pair=await db.tx(q=>react(q,'10','151','like'));
 await db.query("INSERT INTO messages(id,match_id,sender,body,client_id) VALUES(gen_random_uuid(),$1,151,'Привет! Как проходит твой день? ☕',gen_random_uuid())",[pair.match_id]);
 const dependencies=deps(db);dependencies.env={...dependencies.env,APP_URL:'http://127.0.0.1:3100'};
-const placeholder=await readFile(new URL('../web/assets/welcome-couple.webp',import.meta.url));
+const placeholder=await sharp({create:{width:320,height:430,channels:3,background:{r:250,g:218,b:229}}}).webp().toBuffer();
 const photos=new Map();dependencies.storage={put:async(key,buffer)=>photos.set(key,await sharp(buffer).webp().toBuffer()),get:async key=>photos.get(key)||placeholder,remove:async key=>photos.delete(key)};
 const app=createApp(dependencies);app.listen(3100,'127.0.0.1');
