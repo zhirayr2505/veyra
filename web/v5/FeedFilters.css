@@ -34,3 +34,6 @@
 .feed-filter-modes button.active{background:linear-gradient(120deg,#ff5a75,#fa2474);color:white}
 .feed-filter-hint{display:flex;align-items:center;gap:7px;color:#9a8b94;line-height:1.5;font-size:11px;margin:9px 0 0}
 .feed-filter-submit{margin:19px 0 3px}
+
+/* The visual switch must not block interaction with its real accessible checkbox. */
+.feed-filter-switch{pointer-events:none}

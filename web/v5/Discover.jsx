@@ -188,7 +188,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       onClick={onCardClick} aria-label={'Открыть профиль: '+card.name}>
-      <FeedPicture card={card} index={index}/>
+      <FeedPicture key={card.id} card={card} index={index}/>
       <div className="feed-image-shade" aria-hidden="true"/>
       <div className="photo-bars" aria-label="Фотографии анкеты">{photos.map((id,i)=><button
        type="button" key={id} aria-label={'Фото '+(i+1)} aria-current={index===i?'true':undefined}

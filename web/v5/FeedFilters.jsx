@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Check,Heart,MapPin,Mars,SlidersHorizontal,UsersRound,Venus,X} from 'lucide-react';
+import {Check,MapPin,Mars,UsersRound,Venus,X} from 'lucide-react';
 import {get,patch} from './api.js';
 import {Button,InlineAlert,Sheet} from './UI.jsx';
 import './FeedFilters.css';
