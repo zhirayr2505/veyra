@@ -46,7 +46,7 @@ function FeedPicture({card,index}){
  return <div className="feed-picture">
   {same&&state.previous&&<img className="feed-picture-previous" src={state.previous} alt="" draggable="false" aria-hidden="true"/>}
   {same&&state.src?<img key={state.src} className="feed-picture-current" src={state.src} alt={card.name} draggable="false" fetchPriority="high" decoding="async"/>:
-   same&&state.failed?<div className="feed-picture-unavailable"><Camera size={27}/><span>Фото недоступно</span></div>:
+   same&&state.failed?<div className="feed-picture-unavailable"><Icon name="camera" tone="dark" size={27}/><span>Фото недоступно</span></div>:
    <div className="feed-picture-skeleton" aria-hidden="true"/>}
  </div>;
 }
@@ -201,7 +201,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <div className="hero-info">
        {card.online&&<span className="feed-online"><span className="feed-online-dot"/>в сети</span>}
        <div className="feed-name-line"><button className="hero-name" onClick={()=>onProfile(card.id)} type="button">{card.name}, {card.age}</button><Icon name="verified" tone="white" size={20} className="feed-checked"/></div>
-       {location&&<p className="feed-location"><MapPin size={14} strokeWidth={2.5} aria-hidden="true"/>{location}</p>}
+       {location&&<p className="feed-location"><Icon name="pin" tone="white" size={14}/>{location}</p>}
        {card.bio&&<p className="hero-bio">{card.bio}</p>}
        {!!card.interests?.length&&<div className="hero-tags">{card.interests.slice(0,5).map(x=><Interest key={x} name={x}/>)}</div>}
       </div>

@@ -1,7 +1,6 @@
 import React,{useEffect,useState} from 'react';
-import {Check,MapPin,X} from 'lucide-react';
 import {get,patch} from './api.js';
-import {Button,InlineAlert,Sheet} from './UI.jsx';
+import {Button,Icon,InlineAlert,Sheet} from './UI.jsx';
 import './FeedFilters.css';
 
 const allGenders=['man','woman','other'];
@@ -73,13 +72,13 @@ export function FeedFilters({profile,filters,onClose,onSave}){
    </section>
    <section className="feed-filter-group feed-filter-city-group">
     <h3>Город</h3>
-    <div className="feed-filter-city"><MapPin size={18} aria-hidden="true"/><input value={query} placeholder="Любой город" aria-label="Город"
+    <div className="feed-filter-city"><Icon name="pin" size={18}/><input value={query} placeholder="Любой город" aria-label="Город"
      onChange={e=>{setQuery(e.target.value);setP('city',e.target.value)}}/>
-     {query&&<button type="button" aria-label="Очистить город" onClick={()=>{setQuery('');setP('city','');setPlaces([])}}><X size={16}/></button>}</div>
+     {query&&<button type="button" aria-label="Очистить город" onClick={()=>{setQuery('');setP('city','');setPlaces([])}}><Icon name="close" size={16}/></button>}</div>
     {searching&&<p className="feed-filter-hint">Ищем город…</p>}
     {places.length>0&&<div className="feed-filter-city-options" role="listbox" aria-label="Найденные города">{places.slice(0,6).map((place,i)=>
      <button type="button" role="option" key={place.label+'-'+i} aria-selected="false" onClick={()=>{setQuery(place.city);setP('city',place.city);setPlaces([])}}>
-      <MapPin size={16}/><span>{place.city}{place.country?' · '+place.country:''}</span></button>)}</div>}
+      <Icon name="pin" size={16}/><span>{place.city}{place.country?' · '+place.country:''}</span></button>)}</div>}
    </section>
    <section className="feed-filter-group">
     <h3>Дополнительные фильтры</h3>
@@ -87,7 +86,7 @@ export function FeedFilters({profile,filters,onClose,onSave}){
      <input type="checkbox" checked={p.only_online} onChange={e=>setP('only_online',e.target.checked)}/><span className="feed-filter-switch"/></label>
     <label className="feed-filter-toggle"><span><b>С общими интересами</b><small>Хотя бы один интерес совпадает</small></span>
      <input type="checkbox" checked={p.common_interests} onChange={e=>setP('common_interests',e.target.checked)}/><span className="feed-filter-switch"/></label>
-    <p className="feed-filter-hint"><Check size={15} aria-hidden="true"/> Все анкеты в ленте проходят модерацию и содержат фото</p>
+    <p className="feed-filter-hint"><Icon name="check" tone="pink" size={15}/> Все анкеты в ленте проходят модерацию и содержат фото</p>
    </section>
    <InlineAlert>{error}</InlineAlert>
    <Button className="full feed-filter-submit" disabled={busy||!p.looking_for.length} onClick={save}>{busy?'Сохраняем…':'Показать анкеты'}</Button>

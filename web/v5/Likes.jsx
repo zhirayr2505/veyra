@@ -1,5 +1,4 @@
 import React,{useEffect,useState} from 'react';
-import {LockKeyhole} from 'lucide-react';
 import {get,post} from './api.js';
 import {Header,Photo,Button,Tabs,Icon,Empty,Spinner} from './UI.jsx';
 import './Likes.css';
@@ -31,7 +30,7 @@ function Locked({count,onPremium}){
  return <>
   <div className="likes-count-line"><span>Входящие симпатии</span><span>{count}</span></div>
   <div className="likes-locked-intro"><span><Icon name="crown" tone="pink" size={25}/></span><div><strong>{count===1?'Кто-то заметил тебя':'Тобой заинтересовались'}</strong><p>Посмотри входящие симпатии с Premium</p></div></div>
-  <div className="likes-gallery">{Array.from({length:visible},(_,i)=><div key={i} className="likes-person likes-private-card" aria-label="Анкета скрыта — необходим Premium"><div className="likes-private-glow"/><div className="likes-private-center"><LockKeyhole size={24}/><span className="likes-private-chip"><Icon name="crown" tone="pink" size={12}/> Premium</span><small>Открой, кто тебя лайкнул</small></div></div>)}</div>
+  <div className="likes-gallery">{Array.from({length:visible},(_,i)=><div key={i} className="likes-person likes-private-card" aria-label="Анкета скрыта — необходим Premium"><div className="likes-private-glow"/><div className="likes-private-center"><Icon name="lock" tone="white" size={24}/><span className="likes-private-chip"><Icon name="crown" tone="pink" size={12}/> Premium</span><small>Открой, кто тебя лайкнул</small></div></div>)}</div>
   {count>visible&&<p className="likes-overflow">И ещё {count-visible}</p>}
   <Button className="likes-premium-button full" onClick={onPremium}><Icon name="crown" tone="white" size={20}/> Открыть с Premium</Button>
  </>;
