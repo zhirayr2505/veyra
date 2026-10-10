@@ -158,7 +158,7 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
  await expect(page.locator('.preview-count')).toHaveCount(0);
- await expect(page.locator('.preview-card-chips svg')).toHaveCount(2);
+ await expect(page.locator('.preview-card-chips img.veyra-interest-icon')).toHaveCount(2);
  await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
  for(let n=0;n<7;n++){
   await page.getByRole('button',{name:'Следующее фото'}).click();
