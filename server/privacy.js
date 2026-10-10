@@ -35,7 +35,7 @@ export async function eraseAccount(q,uid){
  await q.query('INSERT INTO storage_gc(object_key) SELECT object_key FROM photos WHERE user_id=$1 ON CONFLICT DO NOTHING',[uid]);
  await q.query('DELETE FROM photos WHERE user_id=$1',[uid]);
  await q.query('DELETE FROM profiles WHERE user_id=$1',[uid]);
- await q.query('DELETE FROM orders WHERE user_id=$1 AND status<>'paid'',[uid]);
+ await q.query("DELETE FROM orders WHERE user_id=$1 AND status<>'paid'",[uid]);
  await q.query('UPDATE broadcasts SET created_by=NULL WHERE created_by=$1',[uid]);
  await q.query('UPDATE users SET referrer_id=NULL WHERE referrer_id=$1',[uid]);
  await q.query('DELETE FROM outbox WHERE recipient=$1',[uid]);
