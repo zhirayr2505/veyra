@@ -45,7 +45,7 @@ export function chatRoutes(app,{db,rate,env,storage}){
  app.get('/api/matches',async(req,res)=>{
   await approved(db,req.user.id);
   const uid=String(req.user.id);
-  const rows=(await db.query('SELECT * FROM matches WHERE active AND (a=$1 OR b=$1) ORDER BY created_at DESC LIMIT 100',[uid])).rows;
+  const rows=(await db.query(`SELECT m.*,(m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND (m.a=$1 OR m.b=$1) ORDER BY m.created_at DESC LIMIT 100`,[uid])).rows;
   if(!rows.length)return res.json([]);
   const other=m=>String(m.a)===uid?String(m.b):String(m.a);
   const ids=rows.map(m=>String(m.id));
@@ -75,6 +75,14 @@ export function chatRoutes(app,{db,rate,env,storage}){
    return [{...m,profile,blocked_by_me:block===uid,unavailable:!!item.block_actor,last:item.last||null,unread:item.unread||0}];
   });
   res.json(result);
+ });
+ app.post('/api/matches/:id/seen',async(req,res)=>{
+  const mid=parse(uuid,req.params.id),uid=String(req.user.id);
+  const result=await db.query(`INSERT INTO match_views(match_id,user_id)
+    SELECT id,$2::bigint FROM matches WHERE id=$1 AND active AND (a=$2 OR b=$2)
+    ON CONFLICT(match_id,user_id) DO UPDATE SET seen_at=now() RETURNING match_id`,[mid,uid]);
+  if(!result.rowCount)fail(404,'MATCH_NOT_FOUND');
+  res.json({ok:true});
  });
  app.get('/api/matches/:id/messages',async(req,res)=>{const mid=parse(uuid,req.params.id),uid=req.user.id;const before=req.query.before?decode(req.query.before):null;const after=req.query.after?decode(req.query.after):null;const since=req.query.since===undefined?null:parse(z.string().regex(/^\d{1,19}$/),req.query.since);const around=req.query.around?parse(uuid,req.query.around):null;
  res.json(await db.tx(async q=>{const m=await access(q,mid,uid);let rows,more,newer=false;const args=[mid,uid];

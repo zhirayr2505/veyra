@@ -347,3 +347,29 @@ test('VEYRA nearby sends a genuine like with button only and keeps bottom naviga
  expect(likes[0].kind).toBe('like');
  await expect(page.locator('.bottom-nav button')).toHaveCount(4);
 });
+
+
+test('V5 Симпатии displays exactly two tabs, real matches, profiles, and incoming cards',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'симпатии'}).click();
+ await expect(page.locator('.likes-v2 [role="tab"]')).toHaveCount(2);
+ await expect(page.getByRole('tab',{name:/Мэтчи/})).toHaveAttribute('aria-selected','true');
+ await expect(page.locator('.likes-v2 .likes-gallery .likes-person').first()).toBeVisible();
+ await page.locator('.likes-v2 .likes-person-photo').first().click();
+ await expect(page.locator('.member')).toBeVisible();
+ await page.locator('.member .top-header button.back').click();
+ await page.getByRole('tab',{name:/Входящие/}).click();
+ await expect(page.locator('.likes-v2 .likes-gallery .likes-person').first()).toBeVisible();
+ await expect(page.locator('.likes-v2 .likes-private-card')).toHaveCount(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+});
+test('V5 free incoming likes reveal counts but never reveal private identities',async({page})=>{
+ await telegram(page,30);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'симпатии'}).click();
+ await page.getByRole('tab',{name:/Входящие/}).click();
+ await expect(page.locator('.likes-private-card').first()).toBeVisible();
+ await expect(page.locator('.likes-v2 .likes-gallery .photo-box')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:/Открыть с Premium/})).toBeVisible();
+ await page.getByRole('button',{name:/Открыть с Premium/}).click();
+ await expect(page.getByRole('dialog',{name:'VEYRA Premium'})).toBeVisible();
+});
