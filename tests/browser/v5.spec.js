@@ -9,14 +9,14 @@ test('V5 signed Telegram startup, persistent tabs, and real discovery',async({pa
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await telegram(page,10);await page.goto('/');
  await expect(page.locator('.feed-photo')).toBeVisible();
- await expect(page.locator('.bottom-nav button')).toHaveCount(4);
+ await expect(page.locator('.bottom-nav button')).toHaveCount(5);
  await page.getByRole('button',{name:'Фильтры',exact:true}).click();
  await expect(page.getByRole('dialog',{name:'фильтры'})).toBeVisible();
  await page.getByRole('button',{name:'Закрыть'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
  await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
  await expect(page.locator('.chat-tile').first()).toBeVisible();
- await page.locator('.bottom-nav').getByRole('button',{name:'лента'}).click();
+ await page.locator('.bottom-nav').getByRole('button',{name:'знакомства'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
  expect(errors).toEqual([]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
@@ -270,6 +270,7 @@ test('VEYRA screenshot filters preserve real feed API parameters',async({page})=
  await expect(page.locator('.feed-photo')).toBeVisible();
  const feedUrls=[];
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/feed')feedUrls.push(r.url())});
+ await page.locator('.bottom-nav').getByRole('button',{name:'поиск'}).click();
  await page.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby')).toBeVisible();
  await page.getByRole('button',{name:'Фильтры',exact:true}).click();
@@ -306,13 +307,14 @@ test('VEYRA next feed profile visibly enters after button reaction and undo rest
 });
 
 
-test('VEYRA top discovery modes are distinct, persistent, and open genuine member profiles',async({page})=>{
+test('VEYRA V2 keeps search and encounter screens distinct and opens genuine member profiles',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await telegram(page,10);await page.goto('/');
- const tabs=page.getByRole('tablist',{name:'Способы знакомств'});
- await expect(tabs.getByRole('tab')).toHaveCount(3);
  await expect(page.locator('.feed-photo')).toBeVisible();
- await expect(page.locator('.bottom-nav button')).toHaveCount(4);
+ await page.locator('.bottom-nav').getByRole('button',{name:'поиск'}).click();
+ const tabs=page.getByRole('tablist',{name:'Подборки людей'});
+ await expect(tabs.getByRole('tab')).toHaveCount(2);
+ await expect(page.locator('.bottom-nav button')).toHaveCount(5);
  await tabs.getByRole('tab',{name:'Для вас'}).click();
  await expect(page.locator('.vx-for_you .vx-people .vx-person').first()).toBeVisible();
  await expect(page.locator('.vx-collections .vx-collection').first()).toBeVisible();
@@ -328,7 +330,7 @@ test('VEYRA top discovery modes are distinct, persistent, and open genuine membe
  await expect(page.locator('.vx-nearby .vx-people .vx-person').first()).toBeVisible();
  await expect(page.locator('.vx-nearby .vx-person-caption small').first()).toContainText('км');
  await expect(page.locator('.feed-photo')).toBeHidden();
- await tabs.getByRole('tab',{name:'Лента'}).click();
+ await page.locator('.bottom-nav').getByRole('button',{name:'знакомства'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  expect(errors).toEqual([]);
@@ -343,6 +345,7 @@ test('VEYRA nearby sends a genuine like with button only and keeps bottom naviga
   if(url.pathname==='/api/reactions'&&request.method()==='POST')likes.push(request.postDataJSON());
   if(url.pathname==='/api/feed'&&url.searchParams.get('mode')==='discover')backgroundFeedRequests++;
  });
+ await page.locator('.bottom-nav').getByRole('button',{name:'поиск'}).click();
  await page.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby .vx-person-like').first()).toBeVisible();
  const before=backgroundFeedRequests;
@@ -350,7 +353,7 @@ test('VEYRA nearby sends a genuine like with button only and keeps bottom naviga
  await expect.poll(()=>likes.length).toBe(1);
  expect(backgroundFeedRequests).toBe(before);
  expect(likes[0].kind).toBe('like');
- await expect(page.locator('.bottom-nav button')).toHaveCount(4);
+ await expect(page.locator('.bottom-nav button')).toHaveCount(5);
 });
 
 
@@ -377,4 +380,20 @@ test('V5 free incoming likes reveal counts but never reveal private identities',
  await expect(page.getByRole('button',{name:/Открыть с Premium/})).toBeVisible();
  await page.getByRole('button',{name:/Открыть с Premium/}).click();
  await expect(page.getByRole('dialog',{name:'VEYRA Premium'})).toBeVisible();
+});
+
+test('VEYRA V2 serves its own wordmark and five navigation icon assets',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.bottom-nav button')).toHaveCount(5);
+ await expect(page.locator('.v2-screen-header .logo')).toHaveAttribute('src','/veyra-v2/brand/veyra-wordmark-purple.svg');
+ for(const path of ['brand/veyra-wordmark-purple.svg','icons/outline/search.svg','icons/outline/encounters.svg','icons/outline/chat.svg','icons/outline/heart.svg','icons/outline/user.svg','icons/active/heart.svg','illustrations/no-profiles.svg']){
+  const response=await page.request.get('/veyra-v2/'+path);
+  expect(response.status(),path).toBe(200);
+  expect(response.headers()['content-type']).toContain('image/svg+xml');
+ }
+ await page.locator('.bottom-nav').getByRole('button',{name:'поиск'}).click();
+ await expect(page.locator('.v2-directory')).toBeVisible();
+ await expect(page.getByRole('tablist',{name:'Подборки людей'}).getByRole('tab')).toHaveCount(2);
+ await page.locator('.bottom-nav').getByRole('button',{name:'знакомства'}).click();
+ await expect(page.locator('.feed-photo')).toBeVisible();
 });
