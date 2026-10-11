@@ -19,7 +19,7 @@ test('registration advances only for adults, persists private draft across sessi
  assert.equal((await auth(request(app).put('/api/registration/profile')).send({...f,max_age:17})).status,400);
  assert.equal((await auth(request(app).put('/api/registration/profile')).send(f)).status,200);
  assert.equal((await one(db,'SELECT accepted_terms_at FROM profiles WHERE user_id=200')).accepted_terms_at,null);
- assert.equal((await one(db,'SELECT step FROM registration_drafts WHERE user_id=200')).step,5);
+ assert.equal((await one(db,'SELECT step FROM registration_drafts WHERE user_id=200')).step,6);
 });
 test('at least one photo and explicit consent are enforced server-side; foreign and duplicate reorder attempts fail',async()=>{
  assert.equal((await auth(request(app).post('/api/profile/submit')).send({consent:true})).body.error,'PHOTO_REQUIRED');
