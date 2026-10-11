@@ -69,6 +69,14 @@ test('VEYS: authenticated Stars settlement, duplicate webhook, purchases, gift l
   const premiumOrder=await one(db,'SELECT * FROM orders WHERE id=$1',[premiumInvoice.body.order_id]);
   assert.equal(premiumOrder.kind,'premium');
   assert.equal(await db.tx(q=>validateCheckout(q,{id:'pc-intro-after-veys',invoice_payload:premiumOrder.id,from:{id:101},currency:'XTR',total_amount:Number(premiumOrder.total)})),true);
+  // A failed or abandoned Telegram checkout must not lock this offer forever.
+  const secondIntro=await c.post('/payments/invoice',{sku:intro.sku,provider:'stars'});
+  assert.equal(secondIntro.status,200);
+  const secondOrder=await one(db,'SELECT * FROM orders WHERE id=$1',[secondIntro.body.order_id]);
+  const secondPc={id:'pc-after-stale-reservation',invoice_payload:secondOrder.id,from:{id:101},currency:'XTR',total_amount:Number(secondOrder.total)};
+  assert.equal(await db.tx(q=>validateCheckout(q,secondPc)),false);
+  await db.query("UPDATE orders SET precheckout_at=now()-interval '2 hours' WHERE id=$1",[premiumOrder.id]);
+  assert.equal(await db.tx(q=>validateCheckout(q,secondPc)),true);
   const bad=await c.post('/veys/buy',{sku:'super_1',client_id:randomUUID(),cost:0});
   assert.equal(bad.status,400);
   const firstId=randomUUID();
