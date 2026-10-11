@@ -385,9 +385,9 @@ test('V5 free incoming likes reveal counts but never reveal private identities',
 test('VEYRA V2 serves its own wordmark and five navigation icon assets',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await expect(page.locator('.bottom-nav button')).toHaveCount(5);
- await expect(page.locator('.v2-screen-header .logo')).toHaveAttribute('src','/veyra-v2/brand/veyra-wordmark-purple.svg');
- for(const path of ['brand/veyra-wordmark-purple.svg','icons/outline/search.svg','icons/outline/encounters.svg','icons/outline/chat.svg','icons/outline/heart.svg','icons/outline/user.svg','icons/active/heart.svg','illustrations/no-profiles.svg']){
-  const response=await page.request.get('/veyra-v2/'+path);
+ await expect(page.locator('.v2-screen-header .logo')).toHaveAttribute('src','/veyra-approved/00_brand/veyra_logo_primary.svg');
+ for(const path of ['00_brand/veyra_logo_primary.svg','01_icons/inactive/search.svg','01_icons/inactive/cards.svg','01_icons/inactive/chats.svg','01_icons/inactive/heart.svg','01_icons/inactive/profile.svg','01_icons/active/heart.svg','04_empty_states/svg/no_results.svg']){
+  const response=await page.request.get('/veyra-approved/'+path);
   expect(response.status(),path).toBe(200);
   expect(response.headers()['content-type']).toContain('image/svg+xml');
  }
