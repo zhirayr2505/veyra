@@ -82,3 +82,7 @@ html,body,#root{min-width:0}
  .veyra-v2 .sheet{max-height:calc(100dvh - 6px)}
 }
 @media(prefers-reduced-motion:reduce){.veyra-v2 .sheet,.veyra-v2 .overlay{animation:none!important;transition:none!important}}
+
+/* Short phones: sheet enter motion may push the last controls below the WebView.
+   Keep the entire filter panel inside the visual viewport from its first frame. */
+@media(max-height:680px){.veyra-v2 .sheet,.v2-onboarding .sheet{animation:none!important;transform:none!important}}
