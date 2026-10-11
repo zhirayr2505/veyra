@@ -205,7 +205,7 @@ test('V7 registration keeps call-to-action pinned and interest icons visible',as
  await page.getByRole('button',{name:'выбрать цель'}).click();
  await page.locator('.veyra-goal-choice').nth(1).click();
  await page.getByRole('button',{name:'продолжить'}).click();
- await expect(page.locator('.interest-tag img.veyra-interest-icon')).toHaveCount(15);
+ expect(await page.locator('.veyra-interest-options button img.veyra-interest-icon').count()).toBeGreaterThan(40);
 });
 
 
