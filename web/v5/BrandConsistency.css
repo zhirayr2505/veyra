@@ -17,3 +17,8 @@
 .veyra-v2 :where(.feed-state,.vx-empty,.veyra-empty) img{filter:none!important}
 .veyra-v2 .feed-filter-reset{color:#6817FF!important}
 .v2-onboarding .gender-choice.selected,.v2-onboarding .looking-choice.selected{box-shadow:none!important}
+
+/* Work-approved icon system: no different gradients or extra circles on SVG. */
+.veyra-v2 .kit-icon,.veyra-v2 .veyra-detail-icon,.v2-onboarding .kit-icon{filter:none!important}
+.veyra-v2 .veyra-gender-symbol,.v2-onboarding .gender-choice img,.v2-onboarding .looking-choice img{filter:none!important;object-fit:contain}
+.veyra-v2 .interest-grid .tag img,.v2-onboarding .interest-grid .tag img{filter:none!important;object-fit:contain}
