@@ -51,7 +51,7 @@ export function FeedFilters({profile,filters,onClose,onSave}){
     <div className="feed-filter-genders">
      {[['woman','Женщин'],['man','Мужчин'],['all','Всех']].map(([key,label])=>
       <button type="button" key={key} aria-pressed={selected(key)} className={'feed-filter-gender '+(selected(key)?'selected':'')}
-       onClick={()=>setP('looking_for',key==='all'?allGenders:[key])}><img className="veyra-gender-symbol" src={"/veyra-v2/gender/"+key+"-purple.svg"} width="35" height="35" alt="" aria-hidden="true"/><span>{label}</span></button>)}
+       onClick={()=>setP('looking_for',key==='all'?allGenders:[key])}><img className="veyra-gender-symbol" src={"/veyra-approved/01_icons/"+(selected(key)?"active":"inactive")+"/"+(key==="all"?"everyone":key)+".svg"} width="35" height="35" alt="" aria-hidden="true"/><span>{label}</span></button>)}
     </div>
    </section>
    <section className="feed-filter-group">

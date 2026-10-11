@@ -130,7 +130,7 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
  await expect(page.locator('.looking-choice img')).toHaveCount(3);
- await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/gender\/(?:all-purple)\.svg/);
+ await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/\/veyra-approved\/01_icons\/(?:active|inactive)\/everyone\.svg/);
  await page.getByRole('button',{name:'рассказать о себе'}).click();
  await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
  await page.locator('.interest-tag').first().click();
@@ -396,4 +396,23 @@ test('VEYRA V2 serves its own wordmark and five navigation icon assets',async({p
  await expect(page.getByRole('tablist',{name:'Подборки людей'}).getByRole('tab')).toHaveCount(2);
  await page.locator('.bottom-nav').getByRole('button',{name:'знакомства'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
+});
+
+test('approved Work icon files are served in all three states and applied to navigation',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.bottom-nav button')).toHaveCount(5);
+ const targets=[
+  '01_icons/inactive/search.svg','01_icons/active/search.svg','01_icons/on_dark/search.svg',
+  '01_icons/inactive/cards.svg','01_icons/active/heart.svg','01_icons/active/chats.svg',
+  '01_icons/inactive/profile.svg','01_icons/active/gift.svg','01_icons/active/premium.svg',
+  '02_interest_icons/svg/normal/music.svg','02_interest_icons/svg/selected/music.svg'
+ ];
+ for(const file of targets){
+   const response=await page.request.get('/veyra-approved/'+file);
+   expect(response.status(),file).toBe(200);
+   expect(response.headers()['content-type']).toContain('image/svg+xml');
+ }
+ await expect(page.locator('.bottom-nav button').first().locator('img')).toHaveAttribute('src',/\/veyra-approved\/01_icons\/inactive\/search\.svg/);
+ await page.locator('.bottom-nav').getByRole('button',{name:'симпатии'}).click();
+ await expect(page.locator('.bottom-nav button.active img')).toHaveAttribute('src',/\/veyra-approved\/01_icons\/active\/heart\.svg/);
 });

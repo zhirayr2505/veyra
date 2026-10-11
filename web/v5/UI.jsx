@@ -1,13 +1,35 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {photoUrl,cachedPhoto} from './api.js';
-const base='/veyra-v2/';
-const iconAliases={filters:'filter',pin:'location',shield_check:'verified',crown:'premium',crown_filled:'premium',star_filled:'star',heart_filled:'heart',chat_filled:'chat',user_filled:'user',home_filled:'home',cards_filled:'cards',match:'new-match',down:'chevron-down',people:'everyone',views:'eye',missing_photo:'image','arrow-right':'forward'};
-function iconSrc(name,tone='dark'){const id=iconAliases[name]||name;const state=tone==='white'?'on-dark':tone==='pink'||name.endsWith('_filled')?'active':'outline';return base+'icons/'+state+'/'+id+'.svg';}
-export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="VEYRA" src={base+'brand/veyra-wordmark-purple.svg'}/>;}
+// Approved Work asset pack: /VEYRA_ASSET_PACK/ in repo root; browser mirror: /veyra-approved/.
+const oldBase='/veyra-v2/';
+const base=oldBase; // current illustrations remain on V2 until the full Work graphics set is installed
+const approvedBase='/veyra-approved/';
+const iconAliases={
+  filter:'filters',pin:'location',shield_check:'verified',
+  crown:'premium',crown_filled:'premium',star:'rating',star_filled:'rating',
+  heart_filled:'heart',chat:'chats',chat_filled:'chats',user:'profile',user_filled:'profile',
+  home:'feed',home_filled:'feed',encounters:'cards',cards_filled:'cards',
+  match:'matches',people:'everyone',views:'eye',missing_photo:'image',
+  'arrow-right':'forward',down:'chevron-down',checks:'double-check',
+  sparkle:'superlike'
+};
+const approvedNames=new Set(["back","birthday","block","broken_heart","calendar","camera","cards","chats","close","copy","edit","everyone","favorite","feed","filters","flirt","gallery","gift","heart","info","like","location","lock","man","map","matches","message","moderation","more","notifications","online","pass","phone","pin","premium","profile","rating","refresh","reply","report","search","send","settings","share","superlike","translation","unread","verified","video","view_profile","wallet","woman","chevron-left","chevron-right","chevron-down","plus","check","double-check","undo","sparkle","forward","eye","image","clock"]);
+function iconSrc(name,tone='dark'){
+ const normalized=String(name||'').replace(/_filled$/,'');
+ const id=iconAliases[name]||iconAliases[normalized]||normalized;
+ const state=tone==='white'?'on_dark':tone==='pink'||name.endsWith('_filled')?'active':'inactive';
+ return approvedNames.has(id)
+  ?approvedBase+'01_icons/'+state+'/'+id+'.svg'
+  :oldBase+'icons/'+(state==='inactive'?'outline':state==='on_dark'?'on-dark':'active')+'/'+normalized+'.svg';
+}
+export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="VEYRA" src={oldBase+'brand/veyra-wordmark-purple.svg'}/>;}
 export function Icon({name,tone='dark',size=24,className=''}){return <img className={'kit-icon '+className} draggable="false" src={iconSrc(name,tone)} width={size} height={size} alt="" aria-hidden="true"/>;}
 export function DetailIcon({name,size=20,className=''}){return <img className={'veyra-detail-icon '+className} src={iconSrc(name,'pink')} alt="" aria-hidden="true" draggable="false" width={size} height={size}/>;}
-const interestSlugs={'музыка':'music','путешествия':'travel','кино':'cinema','спорт':'sport','книги':'books','кофе':'coffee','технологии':'technology','животные':'pets','фото':'photography','прогулки':'hiking','искусство':'art','вкусная еда':'food','танцы':'dance','йога':'yoga','мода':'fashion'};
-export function InterestIcon({name,size=16}){const slug=interestSlugs[String(name||'').toLowerCase()];return slug?<img className="veyra-interest-icon" src={base+'interests/'+slug+'.svg'} width={size} height={size} alt="" aria-hidden="true" draggable="false"/>:null;}
+const interestSlugs={'музыка':'music','путешествия':'travel','кино':'movies','спорт':'sports','книги':'books','кофе':'coffee','технологии':'technology','животные':'pets','фото':'photography','прогулки':'travel','искусство':'art','вкусная еда':'food','танцы':'fitness','йога':'wellness','мода':'fashion'};
+export function InterestIcon({name,size=16,selected=false}){
+ const slug=interestSlugs[String(name||'').toLowerCase()];
+ return slug?<img className="veyra-interest-icon" src={approvedBase+'02_interest_icons/svg/'+(selected?'selected':'normal')+'/'+slug+'.svg'} width={size} height={size} alt="" aria-hidden="true" draggable="false"/>:null;
+}
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
 export function Photo({id,className='',onClick,alt=''}){const element=useRef(null),[state,set]=useState(()=>({id,url:cachedPhoto(id),error:false}));
  useEffect(()=>{let live=true;const cached=cachedPhoto(id);set({id,url:cached,error:false});if(!id||cached)return;
