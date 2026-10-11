@@ -211,3 +211,14 @@ body,#root{background:var(--milk);color:var(--ink)}
 @media(min-width:780px){.veyra-v2 .bottom-nav{left:50%;right:auto;width:min(100%,640px);transform:translateX(-50%);border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 @media(max-width:365px){.veyra-v2 .feed-actions{gap:7px}.veyra-v2 .feed-action-circle{width:51px;height:51px}.veyra-v2 .feed-action.action-like .feed-action-circle{width:58px;height:58px}.veyra-v2 .own-shortcuts{gap:5px}.veyra-v2 .own-shortcuts button b{font-size:9px}.veyra-v2 .bottom-nav .nav-label{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.veyra-v2 *{scroll-behavior:auto!important}.veyra-v2 .feed-photo{transition:none!important}}
+
+/* V2 mobile interaction fixes: keep action row above nav and sheets above everything. */
+.veyra-v2 .overlay{position:fixed!important;inset:0!important;z-index:130!important}
+.veyra-v2 .sheet{position:relative;z-index:131}
+.veyra-v2 .feed-photo{height:clamp(280px,calc(100dvh - 340px),575px)!important;min-height:0!important;max-height:58dvh!important}
+.veyra-v2 .feed-actions{display:flex!important;justify-content:space-evenly!important;gap:7px!important;min-height:74px;padding:6px 0 3px!important;margin-bottom:2px}
+.veyra-v2 .feed-actions .feed-action{width:auto;flex:0 0 auto;position:relative;z-index:2}
+.veyra-v2 .feed-actions .feed-action-circle{position:relative}
+.veyra-v2 .feed-content{overflow:visible!important}
+.veyra-v2 .v2-encounters-view{min-height:0}
+@media(max-height:700px){.veyra-v2 .feed-photo{height:clamp(255px,calc(100dvh - 300px),460px)!important;max-height:52dvh!important}.veyra-v2 .feed-actions{min-height:64px}}

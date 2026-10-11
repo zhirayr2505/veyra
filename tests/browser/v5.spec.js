@@ -130,7 +130,7 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
  await expect(page.locator('.looking-choice img')).toHaveCount(3);
- await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/gender\/(?:all)\.svg/);
+ await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/gender\/(?:all-purple)\.svg/);
  await page.getByRole('button',{name:'рассказать о себе'}).click();
  await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
  await page.locator('.interest-tag').first().click();
