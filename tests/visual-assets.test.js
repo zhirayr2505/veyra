@@ -53,7 +53,7 @@ test('archived refined duotone pack remains available for rollback',()=>{
   assert.doesNotMatch(source,/<linearGradient\b|<radialGradient\b|<filter\b|javascript:|<script\b/i);
  }
  const ui=readFileSync(new URL('../web/v5/UI.jsx',import.meta.url),'utf8');
- assert.ok(ui.includes("const base='/veyra-v2/'"));
+ assert.ok(ui.includes("const approvedBase='/veyra-approved/'"));
  const discovery=readFileSync(new URL('../web/v5/Discover.jsx',import.meta.url),'utf8');
  assert.ok(discovery.includes('/veyra-v2/illustrations/no-profiles.svg'));
  assert.doesNotMatch(discovery,/\/graphics\/illustrations\/discover-cards-512\.webp/);
