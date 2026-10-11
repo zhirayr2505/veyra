@@ -166,8 +166,8 @@ export function Registration({me,refresh}){
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
    {step===4&&<div className="fields"><img className="veyra-registration-art" src="/veyra-assets/illustrations/onboarding.svg" alt="" onError={e=>e.currentTarget.style.display='none'}/><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
-   {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
-   {step===5&&<div className="fields">
+   {step===5&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
+   {step===6&&<div className="fields">
     <p className="tip">Фото с настоящим лицом, без чужих людей. Зажми фотографию и перетащи в нужное место.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
