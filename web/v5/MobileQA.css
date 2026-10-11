@@ -86,3 +86,15 @@ html,body,#root{min-width:0}
 /* Short phones: sheet enter motion may push the last controls below the WebView.
    Keep the entire filter panel inside the visual viewport from its first frame. */
 @media(max-height:680px){.veyra-v2 .sheet,.v2-onboarding .sheet{animation:none!important;transform:none!important}}
+
+/* Approved match icon and clear VEYS gifting controls */
+.veyra-v2 .match-sparkle{width:134px;height:134px;max-width:65vw;border-radius:42px;background:#F0E9FF;filter:none!important;box-shadow:none!important;display:grid;place-items:center;margin:0 auto 12px;position:relative;animation:veyra-match-appear .45s cubic-bezier(.2,1.4,.4,1) both}
+.veyra-v2 .match-sparkle:before,.veyra-v2 .match-sparkle:after{content:"";position:absolute;width:11px;height:11px;background:#8F4AFF;border-radius:3px;transform:rotate(45deg)}
+.veyra-v2 .match-sparkle:before{left:-15px;top:23px}.veyra-v2 .match-sparkle:after{right:-18px;bottom:23px;width:8px;height:8px}
+.veyra-v2 .match-sparkle img{width:88px;height:88px;max-width:70%;max-height:70%;object-fit:contain;filter:none!important}
+.veyra-v2 .gift-wallet-status{display:flex;align-items:center;gap:8px;padding:9px 11px;margin:10px 0 12px;background:#F0E9FF;border:1px solid #E9E2F3;border-radius:14px;color:#25153D}
+.veyra-v2 .gift-wallet-status span{flex:1;font-size:12px}.veyra-v2 .gift-wallet-status strong{color:#6817FF}.veyra-v2 .gift-wallet-status button{border:0;background:#fff;border-radius:12px;padding:9px 10px;min-height:38px;font-size:12px;font-weight:780;color:#6817FF}
+.veyra-v2 .gift-grid button small{line-height:1.4;min-height:30px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px}
+.veyra-v2 .veys-loading{min-height:54px;display:flex;align-items:center;justify-content:center;gap:12px;color:#777185;font-size:12px}.veyra-v2 .veys-loading .spinner{width:23px;height:23px}
+.veyra-v2 .veys-retry{min-height:40px;border:1px solid #DCC9FF;background:#F0E9FF;color:#6817FF;border-radius:12px;font-size:12px;font-weight:750}
+@media(prefers-reduced-motion:reduce){.veyra-v2 .match-sparkle{animation:none!important}}

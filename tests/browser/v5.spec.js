@@ -496,3 +496,34 @@ test('gift draft and recipient survive wallet roundtrip',async({page})=>{
  await expect(gift.locator('.sheet-head h2')).toHaveText(title);
  await expect(gift.getByPlaceholder('От всего сердца')).toHaveValue('Тёплый привет');
 });
+
+test('VEYRA gift sheet previews VEYS balance and avoids a failed request when funds are insufficient',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
+ await page.locator('.chat-tile').first().click();
+ await page.locator('[title="Отправить подарок"]').click();
+ const sheet=page.getByRole('dialog',{name:/подарок для/i});
+ await expect(sheet).toBeVisible();
+ const status=sheet.locator('.gift-wallet-status');
+ await expect(status).toContainText('VEYS');
+ await expect(sheet.locator('.gift-grid button').first()).toBeVisible();
+ const paidGift=sheet.locator('.gift-grid button').filter({hasText:'Роза'}).first();
+ await expect(paidGift).toBeVisible();
+ let sends=0;
+ page.on('request',r=>{if(r.url().includes('/api/gifts/send')&&r.method()==='POST')sends++;});
+ await paidGift.click();
+ await expect(sheet.getByRole('alert')).toContainText('Недостаточно VEYS');
+ expect(sends).toBe(0);
+ await status.getByRole('button',{name:'Пополнить'}).click();
+ await expect(page.getByRole('dialog',{name:'Мои VEYS'})).toBeVisible();
+ await page.getByRole('dialog',{name:'Мои VEYS'}).getByRole('button',{name:'Закрыть'}).click();
+ await expect(sheet.locator('.gift-wallet-status')).toBeVisible();
+});
+
+test('VEYRA match celebration uses approved Work assets, not abandoned graphics',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ const resource=await page.request.get('/veyra-approved/01_icons/active/matches.svg');
+ expect(resource.status()).toBe(200);
+ const old=page.locator('img[src^="/veyra-v2/"]');
+ await expect(old).toHaveCount(0);
+});
