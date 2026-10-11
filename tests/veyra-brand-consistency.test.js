@@ -29,7 +29,7 @@ test('all core screens use one branded rounded wordmark, including error and dis
   assert.doesNotMatch(contents(p),/\/assets\/veyra\/00_brand\/veyra_logo\.svg/,p+' still references an old logo');
  }
  for(const p of ['web/v5/UI.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
-  assert.ok(contents(p).includes('veyra-wordmark-purple.svg'),p+' must source the same mark');
+  assert.ok(contents(p).includes('veyra_logo_primary.svg'),p+' must use the Work-approved wordmark');
  }
 });
 test('brand-wide asset illustrations and badges use the same violet palette',()=>{

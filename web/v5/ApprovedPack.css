@@ -1,0 +1,6 @@
+/* Approved Work asset-pack final wiring; keep graphical resources from /veyra-approved/ only. */
+.veyra-v2,.v2-onboarding{font-family:"Plus Jakarta Sans","Noto Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.veyra-v2 :where(.logo,.vx-logo,.feed-brand),.v2-onboarding .logo{object-fit:contain;object-position:center;filter:none!important}
+.veyra-v2 .veyra-empty .veyra-empty-art img,.veyra-v2 .feed-no-cards,.veyra-v2 .feed-load-cards img,.veyra-v2 .vx-state-illustration{filter:none!important;animation:none!important}
+.veyra-v2 .kit-icon,.veyra-v2 .veyra-interest-icon,.v2-onboarding .kit-icon,.v2-onboarding .veyra-interest-icon{filter:none!important}
+.veyra-v2 :where(.bottom-nav button,.vx-filter-pills button,.v2-directory-switch button,.own-shortcuts button) .kit-icon{object-fit:contain}

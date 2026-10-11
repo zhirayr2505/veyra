@@ -6,7 +6,7 @@ export class ErrorBoundary extends React.Component{
  render(){
   if(!this.state.failed)return this.props.children;
   return <main className="error-recovery" role="alert">
-   <img src="/veyra-v2/brand/veyra-wordmark-purple.svg" width="152" alt="VEYRA"/>
+   <img src="/veyra-approved/00_brand/veyra_logo_primary.svg" width="152" alt="VEYRA"/>
    <span aria-hidden="true">♡</span>
    <h1>Что-то пошло не так</h1>
    <p>Мы не смогли отобразить этот экран. Твоя анкета и переписки остаются на сервере.</p>
