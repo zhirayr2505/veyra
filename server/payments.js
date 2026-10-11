@@ -7,7 +7,7 @@ import {activatePaidCourtship,revokePaidCourtship} from './courtship.js';
 import {creditVeys,refundVeys} from './veys.js';
 export class StarsProvider{constructor(tg){this.tg=tg;}async refund(order){return this.tg('user','refundStarPayment',{user_id:Number(order.user_id),telegram_payment_charge_id:order.telegram_charge});}async invoice(order){return this.tg('user','createInvoiceLink',{title:order.title,description:'VEYRA · '+order.title,payload:order.id,provider_token:'',currency:'XTR',prices:[{label:order.title,amount:order.total}]});}}
 export class PaymentRegistry{constructor(stars){this.providers=new Map([['stars',stars]]);}get(name){if(!this.providers.has(name))fail(400,'PAYMENT_PROVIDER_DISABLED');return this.providers.get(name);}}
-export async function createOrder(q,user,sku){if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[user]);const p=await one(q,'SELECT * FROM products WHERE sku=$1 AND active',[sku]);if(!p)fail(404,'PRODUCT_NOT_FOUND');if(p.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND status='paid'",[user]))fail(409,'INTRO_ALREADY_USED');const o=await one(q,'INSERT INTO orders(id,user_id,sku,total,kind,amount,first_only) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[randomUUID(),user,p.sku,p.stars,p.kind,p.amount,p.first_only]);return {...o,title:p.title};}
+export async function createOrder(q,user,sku){if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[user]);const p=await one(q,'SELECT * FROM products WHERE sku=$1 AND active',[sku]);if(!p)fail(404,'PRODUCT_NOT_FOUND');if(p.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND status='paid' AND kind='premium'",[user]))fail(409,'INTRO_ALREADY_USED');const o=await one(q,'INSERT INTO orders(id,user_id,sku,total,kind,amount,first_only) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[randomUUID(),user,p.sku,p.stars,p.kind,p.amount,p.first_only]);return {...o,title:p.title};}
 export async function validateCheckout(q,pc){
  const initial=await one(q,'SELECT user_id FROM orders WHERE id=$1',[pc.invoice_payload]);if(!initial)return false;
  await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[initial.user_id]);
@@ -24,7 +24,7 @@ export async function validateCheckout(q,pc){
   if(!eligible)return false;
  }
  if(o.precheckout_id&&o.precheckout_id!==pc.id)return false;
- if(o.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND id<>$2 AND (status='paid' OR (first_only AND precheckout_id IS NOT NULL))",[o.user_id,o.id]))return false;
+ if(o.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND id<>$2 AND ((status='paid' AND kind='premium') OR (first_only AND precheckout_id IS NOT NULL))",[o.user_id,o.id]))return false;
  if(!pc.id)return false;
  await q.query('UPDATE orders SET precheckout_id=$2,precheckout_at=now() WHERE id=$1',[o.id,pc.id]);return true;
 }
