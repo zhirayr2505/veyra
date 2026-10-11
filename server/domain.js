@@ -33,7 +33,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
-  u.boost_until>now() AS boosted, (p.goal=$15) AS same_goal, u.last_seen
+  u.boost_until>now() AS boosted, (p.goal=$15) AS same_goal, (p.languages && $16::text[]) AS shared_language, u.last_seen
  FROM profiles p JOIN users u ON u.id=p.user_id
  WHERE p.user_id<>$1 AND p.moderation='approved' AND u.status='active' AND NOT u.paused AND (NOT u.invisible OR u.premium_until IS NULL OR u.premium_until<=now())
  AND p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for)
@@ -51,7 +51,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  AND NOT EXISTS(SELECT 1 FROM matches WHERE (a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id))
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal])).rows;
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[]])).rows;
  const candidates=rows.filter(x=>(process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
@@ -81,7 +81,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   const card=byId.get(String(candidate.user_id));
   if(!card)return null;
   card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);
-   card.shared_interests=Number(candidate.shared)||0;card.shared_goal=!!candidate.same_goal;
+   card.shared_interests=Number(candidate.shared)||0;card.shared_goal=!!candidate.same_goal;card.shared_language=!!candidate.shared_language;
   return card;
  }).filter(Boolean);
  return {profiles,limited:false};
