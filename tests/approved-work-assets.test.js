@@ -24,6 +24,20 @@ test('Work-approved 52 system icons, 12 compatible glyphs and 20 interest icons 
   assert.ok(source.includes(color));
  }
 });
+test('the Work-approved wordmark and all empty-state illustrations are served and wired',()=>{
+ const logo='00_brand/veyra_logo_primary.svg';
+ assert.equal(read('VEYRA_ASSET_PACK/'+logo),read('public/veyra-approved/'+logo));
+ for(const name of ['no_matches_yet','no_messages_yet','no_incoming_likes','no_nearby_people','no_results','empty_gifts','nothing_here_yet','take_a_break','no_notifications','empty_favorites']){
+  const rel='04_empty_states/svg/'+name+'.svg';
+  assert.equal(read('VEYRA_ASSET_PACK/'+rel),read('public/veyra-approved/'+rel));
+ }
+ const ui=read('web/v5/UI.jsx');
+ assert.ok(ui.includes("approvedBase+'00_brand/veyra_logo_primary.svg'"));
+ assert.ok(ui.includes("base+'04_empty_states/svg/'"));
+ for(const path of ['web/v5/Discover.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
+  assert.ok(read(path).includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
+ }
+});
 test('all five VEYRA navigation icons resolve through Work-approved pack with consistent inactive / active paths',()=>{
  const ui=read('web/v5/UI.jsx');
  assert.match(ui,/const approvedBase='\/veyra-approved\/'/);

@@ -54,10 +54,10 @@ function FeedState({kind,onRetry,onFilters,onPremium}){
  const isLoading=kind==='loading',isError=kind==='error',isLimited=kind==='limit';
  return <div className={'feed-state feed-state-'+kind} role={isLoading?'status':undefined}>
   <div className="feed-state-illustration">
-   {isLoading?<div className="feed-load-cards"><img src="/veyra-v2/illustrations/no-profiles.svg" alt="" loading="eager"/><span className="feed-loading-heart"><Spinner/></span></div>:
-   isLimited?<img className="feed-no-cards" src="/veyra-v2/illustrations/premium.svg" alt=""/>:
-   isError?<img className="feed-no-cards" src="/veyra-v2/illustrations/error.svg" alt=""/>:
-   <img className="feed-no-cards" src="/veyra-v2/illustrations/no-profiles.svg" alt=""/>}
+   {isLoading?<div className="feed-load-cards"><img src="/veyra-approved/04_empty_states/svg/no_results.svg" alt="" loading="eager"/><span className="feed-loading-heart"><Spinner/></span></div>:
+   isLimited?<img className="feed-no-cards" src="/veyra-approved/04_empty_states/svg/take_a_break.svg" alt=""/>:
+   isError?<img className="feed-no-cards" src="/veyra-approved/04_empty_states/svg/nothing_here_yet.svg" alt=""/>:
+   <img className="feed-no-cards" src="/veyra-approved/04_empty_states/svg/no_results.svg" alt=""/>}
   </div>
   <h2>{isLoading?'Подбираем анкеты':isError?'Не удалось загрузить анкеты':isLimited?'Лимит на сегодня исчерпан':'Пока нет новых анкет'}</h2>
   <p>{isLoading?'Ищем людей, которые могут тебе понравиться…':
@@ -179,7 +179,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const undoAvailable=!!last.target&&last.can_undo;
  return <section className={'discover screen'+(embedded?' discover-embedded':'')} aria-label="Лента знакомств">
   {!embedded&&<header className="feed-head">
-   <img src="/veyra-v2/brand/veyra-wordmark-purple.svg" alt="VEYRA" className="feed-brand"/>
+   <img src="/veyra-approved/00_brand/veyra_logo_primary.svg" alt="VEYRA" className="feed-brand"/>
    <div className="feed-head-right">
     <span className="feed-mode-name">{mode==='nearby'?'рядом':mode==='for_you'?'по интересам':'для вас'}</span>
     <button className="icon-button" type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={23}/></button>
