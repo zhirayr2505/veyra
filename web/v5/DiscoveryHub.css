@@ -3,23 +3,23 @@
 .vx-head{display:flex;align-items:center;justify-content:space-between;min-height:55px;margin-bottom:8px}
 .vx-logo{height:42px;width:131px;object-fit:contain;object-position:left center}
 .vx-head-actions{display:flex;gap:8px}
-.vx-head-actions button,.vx-nearby-filter{width:41px;height:41px;display:grid;place-items:center;border:1px solid #ffe6eb;background:#fff;border-radius:14px;color:#e9366a;box-shadow:0 5px 15px #ff637015}
+.vx-head-actions button,.vx-nearby-filter{width:41px;height:41px;display:grid;place-items:center;border:1px solid #F9F7FF;background:#fff;border-radius:14px;color:#6817FF;box-shadow:0 5px 15px #ff637015}
 .vx-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:4px;margin:8px 0 15px;border-radius:999px;background:#f6e9ec;border:1px solid #faedf0;box-shadow:0 2px 10px #ff85900d}
 .vx-tabs button{min-width:0;min-height:40px;border:0;border-radius:999px;background:transparent;color:#5e5966;font-size:13px;font-weight:670}
-.vx-tabs button.active{color:#fff;background:linear-gradient(105deg,#ff4a61,#f92377);font-weight:800;box-shadow:0 5px 14px #f9316652}
-.vx-tabs button:focus-visible,.vx-hub button:focus-visible{outline:2px solid #ed3266;outline-offset:2px}
+.vx-tabs button.active{color:#fff;background:linear-gradient(105deg,#B996FF,#6817FF);font-weight:800;box-shadow:0 5px 14px #f9316652}
+.vx-tabs button:focus-visible,.vx-hub button:focus-visible{outline:2px solid #6817FF;outline-offset:2px}
 .vx-panel[hidden]{display:none!important}
 .vx-browse{display:flex;flex-direction:column;gap:0;animation:vxSceneIn .25s ease both}
 @keyframes vxSceneIn{from{opacity:.55;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.vx-personal-head{position:relative;background:radial-gradient(ellipse at 8% 0%,#ffd8e7,#ffebed 62%,#ffe6e9);border-radius:20px;min-height:139px;padding:20px 17px 15px;overflow:hidden}
-.vx-feature-label{position:relative;z-index:1;display:flex;align-items:flex-start;gap:10px;color:#e62c66}
+.vx-personal-head{position:relative;background:radial-gradient(ellipse at 8% 0%,#F0E9FF,#F9F7FF 62%,#F9F7FF);border-radius:20px;min-height:139px;padding:20px 17px 15px;overflow:hidden}
+.vx-feature-label{position:relative;z-index:1;display:flex;align-items:flex-start;gap:10px;color:#6817FF}
 .vx-feature-label>svg{flex:none;margin-top:1px}
-.vx-feature-label b{display:block;font-size:15px;letter-spacing:-.2px;color:#ab2857}
-.vx-feature-label p{font-size:11px;line-height:1.4;color:#9e5a75;margin:5px 0 10px;max-width:255px}
+.vx-feature-label b{display:block;font-size:15px;letter-spacing:-.2px;color:#6817FF}
+.vx-feature-label p{font-size:11px;line-height:1.4;color:#6817FF;margin:5px 0 10px;max-width:255px}
 .vx-feature-mark{position:absolute;right:12px;top:12px;font-size:29px;color:#fff7}
 .vx-portraits{display:flex;align-items:center;gap:9px;width:100%;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
 .vx-portraits::-webkit-scrollbar{display:none}
-.vx-portrait{position:relative;flex:none;width:49px;height:49px;border-radius:50%;padding:3px;border:2px solid #ff6295;background:#fff;box-shadow:0 4px 11px #ff8d9f30}
+.vx-portrait{position:relative;flex:none;width:49px;height:49px;border-radius:50%;padding:3px;border:2px solid #B996FF;background:#fff;box-shadow:0 4px 11px #ff8d9f30}
 .vx-portrait .photo-box{height:100%;width:100%;border-radius:50%;overflow:hidden}
 .vx-portrait .photo-box img{width:100%;height:100%;object-fit:cover}
 .vx-status-dot{position:absolute;bottom:0;right:0;width:11px;height:11px;background:#37d47f;border:2px solid #fff;border-radius:50%}
@@ -27,20 +27,20 @@
 .vx-section-title h2{font-size:18px;letter-spacing:-.35px;line-height:1.2;font-weight:820;margin:0}
 .vx-section-title h3{font-size:14px;font-weight:800;margin:0}
 .vx-section-title small,.vx-section-title span{font-size:11px;color:#918b96}
-.vx-section-title>button{display:inline-flex;align-items:center;gap:3px;border:0;background:none;font-size:12px;color:#ef3873;font-weight:700}
+.vx-section-title>button{display:inline-flex;align-items:center;gap:3px;border:0;background:none;font-size:12px;color:#6817FF;font-weight:700}
 .vx-collections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
-.vx-collection{position:relative;height:165px;text-align:left;border-radius:17px;border:0;padding:0;overflow:hidden;background:#e7b5b8;box-shadow:0 8px 18px #39304416;color:white}
-.vx-collection.chosen{outline:3px solid #ff4775;outline-offset:1px}
+.vx-collection{position:relative;height:165px;text-align:left;border-radius:17px;border:0;padding:0;overflow:hidden;background:#DFD0FF;box-shadow:0 8px 18px #39304416;color:white}
+.vx-collection.chosen{outline:3px solid #B996FF;outline-offset:1px}
 .vx-collection .photo-box,.vx-collection .photo-box img{position:absolute;inset:0;width:100%;height:100%;border-radius:0;object-fit:cover}
 .vx-collection-shade{position:absolute;inset:0;background:linear-gradient(170deg,#09091638 0%,#11101725 30%,#0f0c13e8 100%)}
-.vx-collection-icon{position:absolute;top:11px;left:11px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:linear-gradient(125deg,#ff3381,#ff6d70);box-shadow:0 4px 12px #ff316b66}
+.vx-collection-icon{position:absolute;top:11px;left:11px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:linear-gradient(125deg,#6817FF,#B996FF);box-shadow:0 4px 12px #ff316b66}
 .vx-collection-label{position:absolute;left:11px;bottom:13px;right:39px;display:flex;flex-direction:column;gap:4px;text-shadow:0 1px 5px #0008}
 .vx-collection-label b{font-size:14px;font-weight:800;line-height:1.2;text-transform:capitalize}
 .vx-collection-label small{font-size:10px;color:#fffdf4}
 .vx-collection-chevron{position:absolute;right:9px;bottom:13px;width:28px;height:28px;background:#fff;display:grid;place-items:center;border-radius:50%;color:#34303f}
 .vx-feature-list-heading{margin-top:19px}
 .vx-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.vx-person{position:relative;height:230px;border-radius:17px;overflow:hidden;background:#fae5ea;box-shadow:0 9px 17px #3929341b}
+.vx-person{position:relative;height:230px;border-radius:17px;overflow:hidden;background:#F0E9FF;box-shadow:0 9px 17px #3929341b}
 .vx-person-open{display:block;position:absolute;inset:0;width:100%;padding:0;border:0;background:transparent;color:white;text-align:left}
 .vx-person .photo-box,.vx-person .photo-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0}
 .vx-person-gradient{position:absolute;inset:0;background:linear-gradient(180deg,#0000 45%,#04020adc 100%);pointer-events:none}
@@ -49,27 +49,27 @@
 .vx-person-caption small{display:flex;align-items:center;gap:3px;color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vx-person-caption small svg{flex:none}
 .vx-caption-online{display:inline-block;width:8px;height:8px;background:#30d473;border-radius:50%;box-shadow:0 0 0 2px #ffffffa8}
-.vx-person-like{position:absolute;right:9px;top:10px;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:#fffffff0;color:#f42e68;box-shadow:0 5px 12px #0003}
+.vx-person-like{position:absolute;right:9px;top:10px;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:#fffffff0;color:#6817FF;box-shadow:0 5px 12px #0003}
 .vx-person-like:active{transform:scale(.92)}
 .vx-person-like:disabled{opacity:.45}
 .vx-nearby-title{margin-top:5px;margin-bottom:16px}
 .vx-nearby-title>div{display:flex;flex-direction:column;gap:6px}
 .vx-nearby-title small{display:flex;align-items:center;gap:5px;color:#85808e}
-.vx-nearby-strip{margin:0 0 17px;padding:13px;background:linear-gradient(125deg,#fff2f3,#ffe7ef);border-radius:20px}
+.vx-nearby-strip{margin:0 0 17px;padding:13px;background:linear-gradient(125deg,#fff2f3,#F9F7FF);border-radius:20px}
 .vx-nearby-strip .vx-section-title{margin:1px 0 14px}
 .vx-nearby-strip .vx-portrait{width:57px;height:57px}
 .vx-filter-pills{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin-bottom:13px}
-.vx-filter-pills button{padding:9px 12px;border:1px solid #f4dfe7;border-radius:999px;flex:none;font-size:12px;font-weight:700;background:#fff;color:#7e6d7c}
-.vx-filter-pills button.chosen{background:linear-gradient(110deg,#ff597a,#fc2575);border-color:transparent;color:#fff}
+.vx-filter-pills button{padding:9px 12px;border:1px solid #F0E9FF;border-radius:999px;flex:none;font-size:12px;font-weight:700;background:#fff;color:#7e6d7c}
+.vx-filter-pills button.chosen{background:linear-gradient(110deg,#B996FF,#6817FF);border-color:transparent;color:#fff}
 .vx-state{min-height:200px;padding:30px 18px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:11px;text-align:center;border-radius:20px;background:linear-gradient(125deg,#fff8f8,#fff1f3)}
-.vx-state>svg{color:#ef4979}
+.vx-state>svg{color:#B996FF}
 .vx-state h3{margin:0;font-size:17px}
 .vx-state p{max-width:300px;line-height:1.5;color:#797380;font-size:13px;margin:0 0 9px}
 .vx-minor-empty{min-height:130px}
-.vx-more,.vx-retry{margin:17px auto 8px;min-height:44px;min-width:58%;display:flex;align-items:center;justify-content:center;gap:9px;border-radius:999px;background:#fff9fb;border:1.5px solid #ff527c;color:#f32c68;font-size:13px;font-weight:800}
+.vx-more,.vx-retry{margin:17px auto 8px;min-height:44px;min-width:58%;display:flex;align-items:center;justify-content:center;gap:9px;border-radius:999px;background:#fff9fb;border:1.5px solid #B996FF;color:#6817FF;font-size:13px;font-weight:800}
 .vx-more:disabled{opacity:.5}
 .vx-quota{font-size:11px;color:#8c7f88;text-align:center;margin:8px 0}
-.vx-quota button{color:#ed306d;border:0;background:transparent;font-weight:800}
+.vx-quota button{color:#6817FF;border:0;background:transparent;font-weight:800}
 .vx-hub .alert{margin:14px 0}
 @media(max-width:370px){.vx-hub{padding-left:11px;padding-right:11px}.vx-people{gap:9px}.vx-person{height:209px}.vx-tabs button{font-size:12px}.vx-collection{height:149px}.vx-collection-label b{font-size:12px}}
 @media(min-width:500px){.vx-person{height:270px}.vx-collection{height:207px}}

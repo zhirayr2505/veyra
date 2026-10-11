@@ -179,7 +179,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const undoAvailable=!!last.target&&last.can_undo;
  return <section className={'discover screen'+(embedded?' discover-embedded':'')} aria-label="Лента знакомств">
   {!embedded&&<header className="feed-head">
-   <img src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA" className="feed-brand"/>
+   <img src="/veyra-v2/brand/veyra-wordmark-purple.svg" alt="VEYRA" className="feed-brand"/>
    <div className="feed-head-right">
     <span className="feed-mode-name">{mode==='nearby'?'рядом':mode==='for_you'?'по интересам':'для вас'}</span>
     <button className="icon-button" type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={23}/></button>

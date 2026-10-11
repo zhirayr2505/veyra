@@ -17,6 +17,7 @@ import {Discover} from './Discover.jsx';
 import '../../veyra-assets/tokens/tokens.css';
 import '../../veyra-assets/styles/components.css';
 import './V2.css';
+import './BrandConsistency.css';
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){

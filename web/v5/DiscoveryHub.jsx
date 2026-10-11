@@ -153,7 +153,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
  </section>;
  return <section className="vx-hub" aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
-   <img className="vx-logo" src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA"/>
+   <img className="vx-logo" src="/veyra-v2/brand/veyra-wordmark-purple.svg" alt="VEYRA"/>
    <div className="vx-head-actions">
     <button type="button" aria-label="Обновить подборку" title="Обновить подборку" onClick={()=>{feedback();setRefresh(v=>({...v,[tab]:v[tab]+1}))}}><DetailIcon name="refresh" size={20}/></button>
     <button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={22}/></button>

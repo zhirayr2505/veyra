@@ -1,5 +1,5 @@
 /* VEYRA 2.0 — complete violet visual rebuild. Assets sourced only from /veyra-v2/. */
-:root{--milk:#F9F7FF;--ink:#25153D;--purple:#6817FF;--violet:#8F4AFF;--rose:#FF6A9B;--line:#E9E2F3;--soft:#F0E9FF;--muted:#837A97;--white:#fff}
+:root{--milk:#F9F7FF;--ink:#25153D;--purple:#6817FF;--violet:#8F4AFF;--rose:#B996FF;--line:#E9E2F3;--soft:#F0E9FF;--muted:#837A97;--white:#fff}
 body,#root{background:var(--milk);color:var(--ink)}
 .veyra-v2,.v2-onboarding{--milk:#F9F7FF;--coral:#6817FF;--pink:#6817FF;--deep:#25153D;--light:#F9F7FF;--purple:#6817FF;background:var(--milk);color:var(--ink)}
 .veyra-v2{font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
@@ -15,7 +15,7 @@ body,#root{background:var(--milk);color:var(--ink)}
 .veyra-v2 .btn.soft{background:var(--soft)!important;color:var(--purple)!important;border:1px solid transparent}
 .veyra-v2 .btn:active:not(:disabled),.v2-onboarding .btn:active:not(:disabled){transform:scale(.98)}
 .veyra-v2 .text-link{color:var(--purple)}
-.veyra-v2 .alert,.v2-onboarding .alert{background:#FDE9F1;border:1px solid #FFD6E3;color:#B63168}
+.veyra-v2 .alert,.v2-onboarding .alert{background:#F9F7FF;border:1px solid #F0E9FF;color:#6817FF}
 .veyra-v2 .spinner,.v2-onboarding .spinner{border-top-color:var(--purple)}
 /* Main five-section navigation — stable, labeled, safe-area aware. */
 .veyra-v2.app-shell{background:var(--milk);width:100%;min-height:100dvh;overflow-x:clip}
@@ -145,7 +145,7 @@ body,#root{background:var(--milk);color:var(--ink)}
 .veyra-v2 .own-shortcuts button{min-width:0;padding:12px 4px;background:#fff;border:1px solid var(--line);border-radius:16px;min-height:91px;display:flex;align-items:center;flex-direction:column;gap:7px;box-shadow:none!important}
 .veyra-v2 .own-shortcuts button b{font-size:10.2px;color:var(--ink);font-weight:700}
 .veyra-v2 .veyra-shortcut-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--soft)!important;box-shadow:none!important}
-.veyra-v2 .own-shortcuts button:nth-child(3) .veyra-shortcut-icon{background:#FFEAF2!important}
+.veyra-v2 .own-shortcuts button:nth-child(3) .veyra-shortcut-icon{background:#F9F7FF!important}
 .veyra-v2 .own-profile>.info-block{border-bottom:1px solid var(--line);padding:18px 2px 21px}
 .veyra-v2 .own-profile>.info-block h3{font-size:17px;color:var(--ink);font-weight:800;margin:0 0 14px}
 .veyra-v2 .own-profile>.info-block p{color:var(--muted);font-size:14px}
