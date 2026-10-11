@@ -45,7 +45,9 @@ test('all five VEYRA navigation icons resolve through Work-approved pack with co
  assert.match(ui,/chat:'chats'/);
  assert.match(ui,/user:'profile'/);
  assert.match(ui,/encounters:'cards'/);
- assert.match(ui,/state==='inactive'/);
+ assert.match(ui,/\?approvedBase\+'01_icons\/'.*state/);
+ assert.match(ui,/approvedBase\+'01_icons\/'.*info\.svg/);
+ assert.doesNotMatch(ui,/oldBase|veyra-v2/);
  assert.match(read('web/v5/preload.js'),/01_icons\/active\/heart\.svg/);
  const reg=read('web/v5/Registration.jsx');
  assert.match(reg,/veyra-approved\/01_icons/);
