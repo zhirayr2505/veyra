@@ -1,7 +1,7 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {photoUrl,cachedPhoto} from './api.js';
 const base='/veyra-v2/';
-const iconAliases={filters:'filter',pin:'location',shield_check:'verified',crown:'premium',crown_filled:'premium',star_filled:'star',heart_filled:'heart',chat_filled:'chat',user_filled:'user',home_filled:'home',cards_filled:'cards',match:'new-match',down:'chevron-down',people:'everyone',views:'eye',missing_photo:'image'};
+const iconAliases={filters:'filter',pin:'location',shield_check:'verified',crown:'premium',crown_filled:'premium',star_filled:'star',heart_filled:'heart',chat_filled:'chat',user_filled:'user',home_filled:'home',cards_filled:'cards',match:'new-match',down:'chevron-down',people:'everyone',views:'eye',missing_photo:'image','arrow-right':'forward'};
 function iconSrc(name,tone='dark'){const id=iconAliases[name]||name;const state=tone==='white'?'on-dark':tone==='pink'||name.endsWith('_filled')?'active':'outline';return base+'icons/'+state+'/'+id+'.svg';}
 export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="VEYRA" src={base+'brand/veyra-wordmark-purple.svg'}/>;}
 export function Icon({name,tone='dark',size=24,className=''}){return <img className={'kit-icon '+className} draggable="false" src={iconSrc(name,tone)} width={size} height={size} alt="" aria-hidden="true"/>;}
