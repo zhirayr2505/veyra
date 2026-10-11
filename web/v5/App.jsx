@@ -13,13 +13,15 @@ import {Premium,GiftPicker,GiftCollection,OwnProfile,Settings,Ranking,CourtshipI
 import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
-import './VisualPolish.css';
-import './VeyraRebuild.css';
+import {Discover} from './Discover.jsx';
+import '../../veyra-assets/tokens/tokens.css';
+import '../../veyra-assets/styles/components.css';
+import './V2.css';
 const tg=window.Telegram?.WebApp;
-const nav=[['feed','home','лента'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
+const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
  const [initializing,setInitializing]=useState(true),[assetPercent,setAssetPercent]=useState(0),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState(''),[deleted,setDeleted]=useState(false);
- const [tab,setTab]=useState('feed'),[tabDirection,setTabDirection]=useState('left'),[visited,setVisited]=useState(new Set(['feed'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
+ const [tab,setTab]=useState('encounters'),[tabDirection,setTabDirection]=useState('left'),[visited,setVisited]=useState(new Set(['encounters'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [feedFilters,setFeedFilters]=useState({mode:'discover',only_online:false,common_interests:false});
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
@@ -27,7 +29,7 @@ export function App(){
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
  const exitOverlay=()=>setOverlay(null);
  useEffect(()=>{let alive=true;(async()=>{try{
-  tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#fffdf8');tg?.setBackgroundColor?.('#fffdf8');
+  tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#F9F7FF');tg?.setBackgroundColor?.('#F9F7FF');
   const brandReady=preloadBrandAssets(percent=>{if(alive)setAssetPercent(percent)});
   if(!tg?.initData)throw Error('Открой VEYRA через официальный Telegram-бот @VeyraAppBot');
   const auth=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,scope:admin?'admin':'user'})});
@@ -54,21 +56,27 @@ export function App(){
  if(error&&!me)return <main className="access"><Logo width={188}/><h2>встретимся в Telegram</h2><p>{error}</p><Button onClick={()=>window.open('https://t.me/VeyraAppBot','_blank')}>открыть @VeyraAppBot</Button><button className="text-link" onClick={()=>location.reload()}>повторить</button></main>;
  if(adminMode)return <Admin onExit={()=>admin?location.assign('/'):setAdminMode(false)}/>;
  if(!ready&&(!me?.profile||status==='draft'||status==='rejected')){
-  return <Registration me={me} refresh={refresh}/>;
+  return <div className="veyra-v2 v2-onboarding"><Registration me={me} refresh={refresh}/></div>;
  }
- if(status==='pending')return <Moderation profile={me.profile} refresh={refresh}/>;
+ if(status==='pending')return <div className="veyra-v2 v2-onboarding"><Moderation profile={me.profile} refresh={refresh}/></div>;
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
- return <div className="app-shell">
+ return <div className="app-shell veyra-v2">
  <div className="view-frame" hidden={!!conversation||!!member}>
- <div className="view-tab" data-enter={tabDirection} hidden={tab!=='feed'}><DiscoveryHub filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>
+ {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
+ <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
+  <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
+   <header className="v2-screen-header"><Logo width={132}/><div className="v2-header-actions"><button type="button" aria-label="Фильтры" title="Фильтры" onClick={()=>setOverlay({type:'filters'})}><Icon name="filter" size={23}/></button></div></header>
+   <Discover embedded filters={feedFilters} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
+  </section>
+ </div>
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onMatch={matchFound} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
  {visited.has('profile')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
  </div>
  {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
- {!conversation&&!member&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={25}/></span><span className="nav-label">{label}</span></button>)}</nav>}
- {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><DetailIcon name="match" size={64}/></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
+ {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
+ {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><img src="/veyra-v2/illustrations/match-celebration.svg" width="190" height="142" alt="" /></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}

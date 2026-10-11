@@ -34,7 +34,7 @@ test('premium icon system covers every tab, shortcut and three tones',()=>{
  }
 });
 
-test('approved refined duotone pack is complete and wired in every core screen',()=>{
+test('archived refined duotone pack remains available for rollback',()=>{
  const path=new URL('../public/assets/veyra/05_premium_icons/',import.meta.url);
  for(const tone of ['dark','pink','white']){
   for(const name of ['home','home_filled','heart','heart_filled','chat','chat_filled','user','user_filled','crown','gift','star','settings','filters','search','verified','refresh']){
@@ -53,8 +53,31 @@ test('approved refined duotone pack is complete and wired in every core screen',
   assert.doesNotMatch(source,/<linearGradient\b|<radialGradient\b|<filter\b|javascript:|<script\b/i);
  }
  const ui=readFileSync(new URL('../web/v5/UI.jsx',import.meta.url),'utf8');
- assert.ok(ui.includes('/06_duotone_art/'));
+ assert.ok(ui.includes("const base='/veyra-v2/'"));
  const discovery=readFileSync(new URL('../web/v5/Discover.jsx',import.meta.url),'utf8');
- assert.ok(discovery.includes('/06_duotone_art/discover.svg'));
+ assert.ok(discovery.includes('/veyra-v2/illustrations/no-profiles.svg'));
  assert.doesNotMatch(discovery,/\/graphics\/illustrations\/discover-cards-512\.webp/);
+});
+
+test('VEYRA V2 production resolves all five tabs, logo, interests and empty illustrations to served assets',()=>{
+ const publicDir=new URL('../public/veyra-v2/',import.meta.url);
+ for(const group of ['brand','icons/outline','icons/active','icons/on-dark','interests','gender','illustrations']){
+  assert.ok(existsSync(new URL(group+'/',publicDir)),group);
+ }
+ for(const name of ['search','encounters','heart','chat','user','filter','premium','verified','location','close','undo','camera']){
+  for(const tone of ['outline','active','on-dark']){
+   const path=new URL('icons/'+tone+'/'+name+'.svg',publicDir);
+   assert.ok(existsSync(path),name+' '+tone);
+  }
+ }
+ for(const name of ['no-matches','no-likes','no-chats','no-search','no-profiles','no-photos','match-celebration','premium','error'])
+  assert.ok(existsSync(new URL('illustrations/'+name+'.svg',publicDir)),name);
+ for(const name of ['man','woman','all'])
+  assert.ok(existsSync(new URL('gender/'+name+'-purple.svg',publicDir)));
+ assert.ok(existsSync(new URL('brand/veyra-wordmark-purple.svg',publicDir)));
+ const app=readFileSync(new URL('../web/v5/App.jsx',import.meta.url),'utf8');
+ assert.ok(app.includes("['search','search','поиск']"));
+ assert.ok(app.includes("['encounters','encounters','знакомства']"));
+ assert.ok(app.includes('<DiscoveryHub directory'));
+ assert.ok(app.includes('<Discover embedded'));
 });

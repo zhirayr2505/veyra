@@ -1,0 +1,224 @@
+/* VEYRA 2.0 — complete violet visual rebuild. Assets sourced only from /veyra-v2/. */
+:root{--milk:#F9F7FF;--ink:#25153D;--purple:#6817FF;--violet:#8F4AFF;--rose:#FF6A9B;--line:#E9E2F3;--soft:#F0E9FF;--muted:#837A97;--white:#fff}
+body,#root{background:var(--milk);color:var(--ink)}
+.veyra-v2,.v2-onboarding{--milk:#F9F7FF;--coral:#6817FF;--pink:#6817FF;--deep:#25153D;--light:#F9F7FF;--purple:#6817FF;background:var(--milk);color:var(--ink)}
+.veyra-v2{font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
+.veyra-v2 button{touch-action:manipulation}
+.veyra-v2 :where(button,input,select,textarea):focus-visible{outline:2px solid var(--purple);outline-offset:2px}
+.veyra-v2 .page{background:var(--milk)}
+.veyra-v2 :where(h1,h2,h3,h4){color:var(--ink);letter-spacing:-.45px}
+.veyra-v2 .kit-icon,.veyra-v2 .veyra-detail-icon,.veyra-v2 .veyra-interest-icon,.v2-onboarding .kit-icon,.v2-onboarding .veyra-interest-icon{object-fit:contain;filter:none!important;flex-shrink:0;pointer-events:none}
+.veyra-v2 .logo,.v2-onboarding .logo{object-fit:contain;max-height:43px}
+.veyra-v2 .btn,.v2-onboarding .btn{min-height:44px;border-radius:99px;font-weight:760;letter-spacing:0;box-shadow:none!important;transition:transform .15s ease,background .15s ease}
+.veyra-v2 .btn.primary,.v2-onboarding .btn.primary{background:var(--purple)!important;color:#fff!important;border:1px solid var(--purple)!important}
+.veyra-v2 .btn.outline,.v2-onboarding .btn.outline{background:#fff!important;border:1px solid #D9C8F8!important;color:var(--purple)!important}
+.veyra-v2 .btn.soft{background:var(--soft)!important;color:var(--purple)!important;border:1px solid transparent}
+.veyra-v2 .btn:active:not(:disabled),.v2-onboarding .btn:active:not(:disabled){transform:scale(.98)}
+.veyra-v2 .text-link{color:var(--purple)}
+.veyra-v2 .alert,.v2-onboarding .alert{background:#FDE9F1;border:1px solid #FFD6E3;color:#B63168}
+.veyra-v2 .spinner,.v2-onboarding .spinner{border-top-color:var(--purple)}
+/* Main five-section navigation — stable, labeled, safe-area aware. */
+.veyra-v2.app-shell{background:var(--milk);width:100%;min-height:100dvh;overflow-x:clip}
+.veyra-v2 .view-frame{background:var(--milk);min-height:calc(100dvh - 91px);padding-bottom:0}
+.veyra-v2 .view-tab{width:100%;background:var(--milk);min-width:0}
+.veyra-v2 .view-tab[hidden]{display:none!important}
+.veyra-v2 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:45;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;justify-items:stretch;height:auto;min-height:68px;padding:6px max(env(safe-area-inset-right),2px) calc(7px + env(safe-area-inset-bottom)) max(env(safe-area-inset-left),2px);background:#fff;border-top:1px solid var(--line);box-shadow:0 -3px 18px #25153D0A;backdrop-filter:none}
+.veyra-v2 .bottom-nav button{display:flex;align-items:center;justify-content:center;flex-direction:column;min-width:0;gap:3px;padding:3px 0 0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;color:#8F879B;font-size:9.8px;font-weight:670;text-transform:none}
+.veyra-v2 .bottom-nav .nav-icon-plate{display:grid;place-items:center;width:42px;height:33px;border-radius:12px;background:transparent!important;box-shadow:none!important;transform:none!important}
+.veyra-v2 .bottom-nav .nav-icon-plate:after{display:none!important}
+.veyra-v2 .bottom-nav .nav-label{font-size:9.8px;white-space:nowrap;line-height:15px;font-weight:650}
+.veyra-v2 .bottom-nav button.active{color:var(--purple)!important}
+.veyra-v2 .bottom-nav button.active .nav-icon-plate{background:#F0E9FF!important}
+.veyra-v2 .bottom-nav img{width:23px;height:23px;opacity:1}
+.veyra-v2 .view-frame>.view-tab{padding-bottom:calc(77px + env(safe-area-inset-bottom))}
+.veyra-v2 .subscreen{background:var(--milk)}
+/* Consistent compact wordmark bar with utility actions */
+.v2-screen-header,.veyra-v2 .vx-head{display:flex;align-items:center;justify-content:space-between;min-height:56px;gap:12px;margin:0 0 9px;padding:7px 0}
+.v2-screen-header{padding:8px 17px 7px;margin:0 auto 3px;max-width:600px}
+.v2-screen-header .logo{width:127px;max-height:39px}
+.v2-header-actions,.veyra-v2 .vx-head-actions{display:flex;align-items:center;gap:8px}
+.v2-header-actions button,.veyra-v2 .vx-head-actions button,.veyra-v2 .likes-head-button{width:41px!important;height:41px!important;border-radius:14px!important;display:grid;place-items:center;border:1px solid var(--line)!important;background:#fff!important;box-shadow:none!important;color:var(--ink)}
+.veyra-v2 .vx-logo{width:124px;height:35px;object-fit:contain}
+.veyra-v2 .top-header{min-height:56px;padding:5px 0;margin:0 0 16px}
+.veyra-v2 .top-header .logo{width:125px;max-height:36px}
+.veyra-v2 .top-header .quiet{width:38px;height:38px;border-radius:12px;background:#fff}
+/* Encounters — let genuine photographs dominate, not illustrations or bloated headers */
+.veyra-v2 .v2-encounters-view{max-width:640px;margin:0 auto;min-height:calc(100dvh - 140px)}
+.veyra-v2 .discover{background:transparent;padding:0 12px 10px;min-height:0}
+.veyra-v2 .discover .feed-head{display:none}
+.veyra-v2 .discover .feed-content{padding:0;display:flex;flex-direction:column;align-items:center;max-width:540px;margin:0 auto}
+.veyra-v2 .feed-photo{position:relative;overflow:hidden;border-radius:23px;background:#E8E0F4;border:1px solid #E3DAEF;box-shadow:0 5px 23px #25153D12;width:100%;height:clamp(365px,calc(100dvh - 260px),655px);max-height:65dvh;touch-action:pan-y}
+.veyra-v2 .feed-photo .feed-picture,.veyra-v2 .feed-photo .feed-picture img{width:100%;height:100%;object-fit:cover}
+.veyra-v2 .feed-image-shade{background:linear-gradient(to bottom,#1F103000 32%,#1F103000 53%,#1F1030D4 100%)}
+.veyra-v2 .feed-info-button{background:#FFFFFF45!important;backdrop-filter:blur(5px);border:1px solid #FFFFFF73;border-radius:50%;box-shadow:none}
+.veyra-v2 .photo-bars{padding:0 5px}
+.veyra-v2 .photo-bars button{border-radius:50px}
+.veyra-v2 .feed-name-line .hero-name{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.65px}
+.veyra-v2 .feed-location,.veyra-v2 .hero-bio{color:#FFFFFFE8}
+.veyra-v2 .feed-interest{background:#FFFFFF37;color:#fff;border:1px solid #FFFFFF52;border-radius:99px;backdrop-filter:blur(3px)}
+.veyra-v2 .feed-actions{width:100%;max-width:465px;display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 0 8px}
+.veyra-v2 .feed-action{flex:none;margin:0}
+.veyra-v2 .feed-action-circle{display:grid;place-items:center;background:#fff!important;border:1px solid var(--line)!important;border-radius:50%;width:56px;height:56px;box-shadow:0 4px 16px #25153D0C!important;color:var(--ink)}
+.veyra-v2 .feed-action.action-pass .feed-action-circle{width:57px;height:57px}
+.veyra-v2 .feed-action.action-super .feed-action-circle{background:#F6EFFF!important}
+.veyra-v2 .feed-action.action-like .feed-action-circle{background:var(--purple)!important;border-color:var(--purple)!important;width:65px;height:65px}
+.veyra-v2 .feed-action.action-undo .feed-action-circle{width:43px;height:43px}
+.veyra-v2 .feed-flash{background:#6817FF33}
+.veyra-v2 .feed-state{margin:10px 0 0;padding:27px 22px 23px;max-width:100%;min-height:min(68dvh,530px);width:100%;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:none!important;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.veyra-v2 .feed-state-illustration{display:grid;place-items:center;width:235px;height:196px;margin:0 auto 12px}
+.veyra-v2 .feed-no-cards,.veyra-v2 .feed-load-cards img{height:185px;width:245px;object-fit:contain;filter:none!important}
+.veyra-v2 .feed-state h2{font-size:21px;line-height:1.25;font-weight:800;color:var(--ink);text-align:center}
+.veyra-v2 .feed-state p{color:var(--muted);font-size:13px;max-width:330px;line-height:1.55;text-align:center}
+.veyra-v2 .feed-state .btn{width:min(100%,295px);margin:16px auto 0}
+.veyra-v2 .feed-load-cards{filter:none}
+/* Search — separate catalogue, real profiles, filters, online and shared interests */
+.veyra-v2 .v2-directory{max-width:640px;margin:0 auto;padding:0 15px 22px;background:var(--milk)}
+.veyra-v2 .v2-directory-title{margin:9px 0 2px;font-size:25px;line-height:1.2;font-weight:810}
+.veyra-v2 .v2-directory-subtitle{font-size:13px;color:var(--muted);margin:0 0 17px}
+.veyra-v2 .v2-directory-switch{display:flex;gap:9px;margin:0 0 14px;padding:0;border:0;background:transparent}
+.veyra-v2 .v2-directory-switch button{min-height:36px;padding:8px 19px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:680;font-size:13px}
+.veyra-v2 .v2-directory-switch button.chosen{background:var(--purple);border-color:var(--purple);color:#fff}
+.veyra-v2 .vx-browse{padding:0}
+.veyra-v2 .vx-nearby-title{margin:8px 0 15px}
+.veyra-v2 .vx-nearby-title h2,.veyra-v2 .vx-section-title h2{font-size:17px;font-weight:800;color:var(--ink)}
+.veyra-v2 .vx-nearby-title small,.veyra-v2 .vx-section-title small{color:var(--muted)}
+.veyra-v2 .vx-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:13px}
+.veyra-v2 .vx-person{position:relative;border:0;border-radius:17px;overflow:hidden;aspect-ratio:3/4.25;box-shadow:none;background:#EDE6F6}
+.veyra-v2 .vx-person-open{width:100%;height:100%;border:0;padding:0;background:none}
+.veyra-v2 .vx-person .photo-box,.veyra-v2 .vx-person .photo-box img{width:100%;height:100%;object-fit:cover}
+.veyra-v2 .vx-person-gradient{background:linear-gradient(transparent 45%,#25153DCC)}
+.veyra-v2 .vx-person-caption strong{font-weight:790;font-size:15px;letter-spacing:-.3px}
+.veyra-v2 .vx-person-caption small{color:#FFFDFB;font-size:11px}
+.veyra-v2 .vx-person-like{display:grid;place-items:center;width:41px;height:41px;background:#fff!important;border:0;border-radius:50%;box-shadow:0 3px 14px #25153D22}
+.veyra-v2 .vx-person-like img{width:23px;height:23px}
+.veyra-v2 .vx-filter-pills{display:flex;gap:7px;padding:0;overflow-x:auto;scrollbar-width:none}
+.veyra-v2 .vx-filter-pills button{border-radius:999px;padding:8px 12px;min-height:35px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:12px;white-space:nowrap}
+.veyra-v2 .vx-filter-pills button.chosen{background:var(--soft);border-color:#D4C3FF;color:var(--purple)}
+.veyra-v2 .vx-nearby-strip{background:#fff;border-radius:18px;border:1px solid var(--line);padding:11px 13px;box-shadow:none}
+.veyra-v2 .vx-personal-head{background:#fff;border:1px solid var(--line);box-shadow:none;border-radius:18px}
+.veyra-v2 .vx-feature-label b{color:var(--ink)}.veyra-v2 .vx-feature-label p{color:var(--muted)}
+.veyra-v2 .vx-collections{gap:9px}.veyra-v2 .vx-collection{border-radius:16px}
+.veyra-v2 .vx-collection-label b{color:#fff}.veyra-v2 .vx-collection-icon{background:#F0E9FF}
+.veyra-v2 .vx-state-illustration{width:200px;height:150px;object-fit:contain;filter:none!important}
+.veyra-v2 .vx-empty{border:0;box-shadow:none;background:transparent;min-height:300px}
+/* Likes: Badoo-like clear two-mode likes and matches */
+.veyra-v2 .likes-v2{max-width:640px;margin:auto;padding:0 15px 25px;background:var(--milk)}
+.veyra-v2 .likes-hero{margin:7px 0 18px}
+.veyra-v2 .likes-hero h1{font-size:26px;font-weight:820;margin:0 0 4px;color:var(--ink)}
+.veyra-v2 .likes-hero p{font-size:13px;color:var(--muted)}
+.veyra-v2 .likes-v2 .tabs,.veyra-v2 .ve-chat-tabs{display:flex;gap:5px;padding:4px;border:1px solid var(--line);background:#F2EDF8;border-radius:999px;box-shadow:none;margin:0 0 16px}
+.veyra-v2 .likes-v2 .tabs button,.veyra-v2 .ve-chat-tabs button{flex:1;min-height:41px;border:0;border-radius:999px;background:transparent;color:#786E86;font-weight:740}
+.veyra-v2 .likes-v2 .tabs button.chosen,.veyra-v2 .ve-chat-tabs button.selected{background:var(--purple)!important;color:white!important;box-shadow:none!important}
+.veyra-v2 .likes-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.veyra-v2 .likes-person{border-radius:18px;background:#fff;border:1px solid var(--line);box-shadow:none;overflow:hidden}
+.veyra-v2 .likes-person-name{font-weight:780;color:#fff}
+.veyra-v2 .likes-head-button{background:#fff!important;border-color:var(--line)!important;box-shadow:none!important}
+.veyra-v2 .likes-private-card{background:#ECE6F5;border:1px solid #E1D7EF}
+.veyra-v2 .likes-private-glow{display:none}
+.veyra-v2 .likes-locked-intro{background:#F3EFFF;border:1px solid #E2D7FF;box-shadow:none;border-radius:17px}
+.veyra-v2 .likes-premium-button{background:var(--purple)}
+/* Chat listing + conversation */
+.veyra-v2 .veyra-chats{max-width:640px;margin:auto;padding:0 15px 25px;background:var(--milk)}
+.veyra-v2 .ve-chats-brand{height:55px;min-height:55px!important;margin:0 0 4px!important;display:flex;align-items:center;justify-content:flex-start!important}
+.veyra-v2 .ve-chats-brand .logo{width:133px!important;height:auto!important;max-height:37px}
+.veyra-v2 .veyra-chats h1{font-size:26px;font-weight:820;color:var(--ink);margin:7px 0 15px}
+.veyra-v2 .search-chat.ve-chat-search{background:#fff;border:1px solid var(--line);border-radius:16px;min-height:49px;box-shadow:none;padding:0 14px}
+.veyra-v2 .search-chat input{background:transparent;color:var(--ink)}
+.veyra-v2 .search-chat input::placeholder{color:var(--muted)}
+.veyra-v2 .ve-chat-tabs{margin-top:12px}
+.veyra-v2 .ve-chat-tile{background:#fff;border-color:var(--line)}
+.veyra-v2 .ve-chat-tile .chat-time{color:var(--muted)}
+.veyra-v2 .conversation{background:var(--milk)}
+.veyra-v2 .message.mine .message-bubble{background:var(--purple)!important;color:#fff!important}
+.veyra-v2 .message-bubble{border-radius:17px}
+.veyra-v2 .message-input:focus{outline-color:var(--purple)}
+/* Profile, photos, interests and tools */
+.veyra-v2 .own-profile{max-width:640px;margin:auto;padding:0 15px 30px;background:var(--milk)}
+.veyra-v2 .own-profile>.top-header{margin:0 0 8px;min-height:55px}
+.veyra-v2 .own-profile>h1{text-align:left;font-size:26px;font-weight:800;letter-spacing:-.6px;margin:10px 0 16px;color:var(--ink)}
+.veyra-v2 .own-hero{display:flex;align-items:center;gap:15px;margin:6px 0 20px;padding:15px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:none}
+.veyra-v2 .own-photo{border-radius:15px;width:98px;height:112px;flex-shrink:0;box-shadow:none}
+.veyra-v2 .own-hero h2{font-size:20px;font-weight:820;letter-spacing:-.5px;color:var(--ink)}
+.veyra-v2 .own-hero p{color:var(--muted);font-size:13px}
+.veyra-v2 .verified-status{color:var(--purple)!important;font-size:11px;font-weight:730}
+.veyra-v2 .own-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 18px}
+.veyra-v2 .own-shortcuts button{min-width:0;padding:12px 4px;background:#fff;border:1px solid var(--line);border-radius:16px;min-height:91px;display:flex;align-items:center;flex-direction:column;gap:7px;box-shadow:none!important}
+.veyra-v2 .own-shortcuts button b{font-size:10.2px;color:var(--ink);font-weight:700}
+.veyra-v2 .veyra-shortcut-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--soft)!important;box-shadow:none!important}
+.veyra-v2 .own-shortcuts button:nth-child(3) .veyra-shortcut-icon{background:#FFEAF2!important}
+.veyra-v2 .own-profile>.info-block{border-bottom:1px solid var(--line);padding:18px 2px 21px}
+.veyra-v2 .own-profile>.info-block h3{font-size:17px;color:var(--ink);font-weight:800;margin:0 0 14px}
+.veyra-v2 .own-profile>.info-block p{color:var(--muted);font-size:14px}
+.veyra-v2 .interest-grid{gap:7px}
+.veyra-v2 .interest-grid .tag,.veyra-v2 .interest-grid .tag.selected{border:1px solid #DED2FC!important;background:var(--soft)!important;color:#4E27B5!important;min-height:35px;border-radius:99px;padding:8px 12px;font-size:12px;font-weight:670;display:inline-flex;align-items:center;gap:7px}
+.veyra-v2 .photo-gallery-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.veyra-v2 .photo-gallery-mini .photo-box{aspect-ratio:1;box-shadow:none;border-radius:13px;overflow:hidden}
+.veyra-v2 .photo-gallery-mini .photo-box img{object-fit:cover}
+.veyra-v2 .ranking-hero{background:var(--soft)}
+/* Common empty states: V2 graphic source, no crystal, no glossy 3D. */
+.veyra-v2 .veyra-empty.empty{max-width:380px;min-height:0;margin:28px auto 0;padding:24px 11px 25px;text-align:center;background:none;color:var(--ink)}
+.veyra-v2 .veyra-empty .veyra-empty-art{width:230px;height:178px;max-width:76vw;margin:0 auto 13px;display:grid;place-items:center;filter:none}
+.veyra-v2 .veyra-empty .veyra-empty-art:before{display:none!important}
+.veyra-v2 .veyra-empty .veyra-empty-art img{width:100%;height:100%;object-fit:contain;filter:none!important;animation:none}
+.veyra-v2 .veyra-empty h3{color:var(--ink);font-size:21px;letter-spacing:-.6px;font-weight:800;line-height:1.25;margin:0 0 8px}
+.veyra-v2 .veyra-empty p{font-size:13px;line-height:1.6;color:var(--muted);max-width:320px;margin:0 auto 15px}
+.veyra-v2 .veyra-empty .btn{min-height:41px}
+/* All settings and filter sheets */
+.veyra-v2 .overlay{background:#1F133E69;backdrop-filter:blur(2px)}
+.veyra-v2 .sheet{background:#fff;border-radius:24px 24px 0 0;border:1px solid var(--line);box-shadow:0 -18px 48px #25153D16;max-width:620px}
+.veyra-v2 .sheet-head h2{color:var(--ink);font-size:23px}
+.veyra-v2 .fields input,.veyra-v2 .fields textarea,.veyra-v2 .fields select{border-radius:15px;border:1px solid var(--line);color:var(--ink);background:#fff}
+.veyra-v2 .fields input:focus,.veyra-v2 .fields textarea:focus,.veyra-v2 .fields select:focus{border-color:var(--purple);outline:none}
+.veyra-v2 input[type=range],.v2-onboarding input[type=range]{accent-color:var(--purple)}
+.veyra-v2 .feed-filter-sheet .feed-filter-group{border-bottom-color:var(--line)}
+.veyra-v2 .feed-filter-gender{background:#fff!important;border-color:var(--line)!important;border-radius:16px;box-shadow:none!important}
+.veyra-v2 .feed-filter-gender.selected{background:var(--soft)!important;border-color:#AB8AFF!important}
+.veyra-v2 .feed-filter-gender .veyra-gender-symbol{filter:none!important}
+.veyra-v2 .feed-filter-city{background:#F8F5FC;border:1px solid var(--line);border-radius:15px}
+.veyra-v2 .feed-filter-reset{color:var(--purple)}
+.veyra-v2 .feed-filter-switch{accent-color:var(--purple)}
+.veyra-v2 .feed-filter-sheet input[type=range]{accent-color:var(--purple)}
+/* Onboarding keeps validated logic and all 5 steps; redesign only. */
+.v2-onboarding{min-height:100dvh;background:var(--milk)}
+.v2-onboarding .registration{max-width:640px;margin:0 auto;background:var(--milk);padding-left:20px;padding-right:20px}
+.v2-onboarding .registration .step-top{padding-top:12px}
+.v2-onboarding .registration .step-top small{color:var(--muted);font-size:12px}
+.v2-onboarding .registration .center-logo{height:53px;display:flex;align-items:center;justify-content:center}
+.v2-onboarding .registration .center-logo .logo{width:122px}
+.v2-onboarding .registration .progress{gap:6px;margin:10px 0 24px}
+.v2-onboarding .registration .progress span{background:#E9E2F3;border-radius:999px;height:4px}
+.v2-onboarding .registration .progress span.done{background:var(--purple)}
+.v2-onboarding .registration h1{color:var(--ink);font-size:26px;font-weight:830;text-transform:none;letter-spacing:-.65px;line-height:1.25;margin-bottom:8px}
+.v2-onboarding .registration .subheading{color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:23px}
+.v2-onboarding .registration .fields label,.v2-onboarding .registration .field-label{color:var(--ink);font-size:13px;font-weight:760}
+.v2-onboarding .registration .fields input,.v2-onboarding .registration .fields select,.v2-onboarding .registration .fields textarea{min-height:47px;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--ink);outline:0}
+.v2-onboarding .registration .fields textarea{min-height:90px}
+.v2-onboarding .registration .fields input:focus,.v2-onboarding .registration .fields textarea:focus{border-color:var(--purple)}
+.v2-onboarding .registration .choices{gap:9px}
+.v2-onboarding .registration .choice,.v2-onboarding .registration .gender-choice,.v2-onboarding .registration .looking-choice{border-radius:16px;border:1px solid var(--line)!important;background:#fff!important;box-shadow:none!important;color:var(--ink);min-height:66px}
+.v2-onboarding .registration .choice.selected,.v2-onboarding .registration .gender-choice.selected,.v2-onboarding .registration .looking-choice.selected{border:1.8px solid var(--purple)!important;background:var(--soft)!important}
+.v2-onboarding .registration .choice img{filter:none!important;width:31px;height:31px}
+.v2-onboarding .registration .interest-grid .tag{color:var(--ink);background:#fff;border:1px solid var(--line);font-size:12px;min-height:34px;border-radius:999px}
+.v2-onboarding .registration .interest-grid .tag.selected{background:var(--soft);color:var(--purple);border-color:#CBB4FF}
+.v2-onboarding .registration .age-range input[type=range]{accent-color:var(--purple)}
+.v2-onboarding .registration .photo-slot{border-radius:14px;overflow:hidden;border-color:var(--line)}
+.v2-onboarding .registration .photo-slot-add{background:#F2EDFD;color:var(--purple);border-color:#DCCEF7}
+.v2-onboarding .registration .registration-actions{background:linear-gradient(transparent,var(--milk) 12%);border-top-color:var(--line)}
+.v2-onboarding .registration .location-card{border:1px solid var(--line);border-radius:17px;background:#fff;box-shadow:none}
+.v2-onboarding .registration .city-search{background:#fff;border:1px solid var(--line);border-radius:15px}
+.v2-onboarding .registration .preview-gallery{border-radius:21px;overflow:hidden}
+.v2-onboarding .registration .preview-card-caption h2{color:#fff}
+@media(min-width:780px){.veyra-v2 .bottom-nav{left:50%;right:auto;width:min(100%,640px);transform:translateX(-50%);border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+@media(max-width:365px){.veyra-v2 .feed-actions{gap:7px}.veyra-v2 .feed-action-circle{width:51px;height:51px}.veyra-v2 .feed-action.action-like .feed-action-circle{width:58px;height:58px}.veyra-v2 .own-shortcuts{gap:5px}.veyra-v2 .own-shortcuts button b{font-size:9px}.veyra-v2 .bottom-nav .nav-label{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.veyra-v2 *{scroll-behavior:auto!important}.veyra-v2 .feed-photo{transition:none!important}}
+
+/* V2 mobile interaction fixes: keep action row above nav and sheets above everything. */
+.veyra-v2 .overlay{position:fixed!important;inset:0!important;z-index:130!important}
+.veyra-v2 .sheet{position:relative;z-index:131}
+.veyra-v2 .feed-photo{height:clamp(280px,calc(100dvh - 340px),575px)!important;min-height:0!important;max-height:58dvh!important}
+.veyra-v2 .feed-actions{display:flex!important;justify-content:space-evenly!important;gap:7px!important;min-height:74px;padding:6px 0 3px!important;margin-bottom:2px}
+.veyra-v2 .feed-actions .feed-action{width:auto;flex:0 0 auto;position:relative;z-index:2}
+.veyra-v2 .feed-actions .feed-action-circle{position:relative}
+.veyra-v2 .feed-content{overflow:visible!important}
+.veyra-v2 .v2-encounters-view{min-height:0}
+@media(max-height:700px){.veyra-v2 .feed-photo{height:clamp(255px,calc(100dvh - 300px),460px)!important;max-height:52dvh!important}.veyra-v2 .feed-actions{min-height:64px}}

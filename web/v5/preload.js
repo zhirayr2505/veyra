@@ -1,27 +1,7 @@
-// Warm only the critical first-screen VEYRA assets; noncritical art is lazy-loaded by the browser.
-// Never cache profile photos or private chat data here.
-const base='/assets/veyra/05_premium_icons/';
-const paths=[
- '/assets/veyra/00_brand/veyra_logo.svg',
- ...['home','heart','chat','user'].flatMap(name=>[base+'dark/'+name+'.svg',base+'pink/'+name+'_filled.svg']),
- base+'pink/filters.svg',base+'pink/refresh.svg',base+'dark/search.svg'
-];
-const version='veyra.brand.cache.20261011.refined-duotone';
-let inflight;
+const base='/veyra-v2/';
+const essential=['brand/veyra-wordmark-purple.svg','icons/active/heart.svg','icons/outline/chat.svg','icons/outline/search.svg','icons/outline/encounters.svg','icons/outline/user.svg','illustrations/no-profiles.svg'];
 export function preloadBrandAssets(onProgress=()=>{}){
- if(inflight)return inflight;
- let complete=0,failures=0,next=0;
- const first=(()=>{try{return localStorage.getItem(version)!=='ready'}catch{return true}})();
- onProgress(first?0:100);
- if(!first){inflight=Promise.resolve(true);return inflight;}
- const jobs=Array.from({length:Math.min(6,paths.length)},async()=>{
-  while(next<paths.length){
-   const file=paths[next++];
-   try{const r=await fetch(file,{cache:'force-cache'});if(!r.ok)throw Error('ASSET_'+r.status)}catch{failures++}
-   complete++;onProgress(Math.round(complete/paths.length*100));
-  }
- });
- const all=Promise.allSettled(jobs).then(()=>{if(!failures){try{localStorage.setItem(version,'ready')}catch{}}return failures===0});
- inflight=Promise.race([all,new Promise(resolve=>setTimeout(()=>resolve(false),4500))]);
- return inflight;
+ let complete=0;
+ const jobs=essential.map(async file=>{try{const r=await fetch(base+file,{cache:'force-cache'});if(!r.ok)throw Error(String(r.status));}catch{}finally{complete++;onProgress(Math.round(100*complete/essential.length))}});
+ return Promise.allSettled(jobs).then(()=>true);
 }
