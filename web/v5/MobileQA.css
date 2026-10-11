@@ -1,0 +1,84 @@
+/* VEYRA mobile interface QA 2026-10-11. Preserve approved Work palette and assets.
+   Scoped corrections for narrow Android windows, dialogs and VEYS purchase flows. */
+:root{--qa-violet:#6817FF;--qa-bg:#F9F7FF;--qa-ink:#25153D;--qa-line:#E9E2F3;--qa-soft:#F0E9FF}
+html,body,#root{min-width:0}
+.veyra-v2,.v2-onboarding{min-width:0;max-width:100%;overflow-x:clip}
+.veyra-v2 :where(.view-frame,.view-tab,.page,.own-profile,.veyra-chats,.likes-v2,.vx-hub,.v2-encounters-view){min-width:0;max-width:100%}
+.veyra-v2 :where(img:not(.feed-picture-current),button){-webkit-tap-highlight-color:transparent}
+.veyra-v2 :where(.bottom-nav,.vx-head,.v2-screen-header,.ve-chats-brand){background-color:#fff}
+.veyra-v2 :where(.vx-head,.v2-screen-header,.ve-chats-brand){background:transparent}
+.veyra-v2 .bottom-nav{z-index:40;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;padding:5px max(3px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(3px,env(safe-area-inset-left));background:#fff}
+.veyra-v2 .bottom-nav button{min-width:0;min-height:52px;gap:1px;line-height:1.2}
+.veyra-v2 .bottom-nav .nav-icon-plate{height:33px;width:min(42px,100%)}
+.veyra-v2 .bottom-nav .nav-label{font-size:10.4px;line-height:15px;font-weight:680;letter-spacing:-.13px;white-space:nowrap}
+.veyra-v2 .view-frame>.view-tab{padding-bottom:calc(85px + env(safe-area-inset-bottom))}
+.veyra-v2 .vx-people,.veyra-v2 .likes-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+.veyra-v2 :where(.vx-person,.likes-person,.likes-private-card){min-width:0}
+.veyra-v2 .vx-person-caption,.veyra-v2 .likes-person-details{max-width:calc(100% - 15px);min-width:0}
+.veyra-v2 :where(.vx-person-caption strong,.likes-person-name,.chat-preview-head b,.ve-chat-last){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.veyra-v2 .vx-person-caption strong,.veyra-v2 .likes-person-name{display:block}
+.veyra-v2 .chat-list,.veyra-v2 .chat-tile,.veyra-v2 .chat-preview,.veyra-v2 .chat-preview-head,.veyra-v2 .ve-chat-second{min-width:0}
+.veyra-v2 .chat-preview-head{max-width:100%;gap:5px}
+.veyra-v2 .ve-chat-last{display:block;max-width:100%;min-width:0}
+.veyra-v2 .chat-tile{max-width:100%;padding-left:9px;padding-right:9px}
+.veyra-v2 :where(.feed-photo,.member-photos,.photo-gallery-mini){max-width:100%}
+.veyra-v2 .feed-actions{max-width:100%;gap:clamp(5px,2vw,11px)}
+.veyra-v2 .feed-action{min-width:0}
+.veyra-v2 .feed-action .feed-action-circle{border-radius:50%}
+/* Consistent empty/locked states, no old yellow cards or coloured glass. */
+.veyra-v2 .likes-private-card{background:#EEE8FA!important;border:1px solid #E4DBF7!important;box-shadow:none!important}
+.veyra-v2 .likes-private-card:before{background:#6817FF0D!important;backdrop-filter:none!important}
+.veyra-v2 .likes-private-center{color:#25153D}
+.veyra-v2 .likes-private-chip{background:#FFFFFF!important;background-image:none!important;color:#6817FF!important;border:1px solid #D7C8FB!important;box-shadow:none!important}
+.veyra-v2 .likes-private-center small{text-shadow:none!important;color:#554769}
+.veyra-v2 .likes-locked-intro{background:#F0E9FF!important;border:1px solid #E0D3FF!important}
+.veyra-v2 .likes-premium-button{background:#6817FF!important;background-image:none!important;box-shadow:none!important}
+.veyra-v2 .likes-private-glow{display:none!important}
+.veyra-v2 .premium-banner{background:#F0E9FF;color:#25153D;border:1px solid #E9E2F3;border-radius:20px}
+.veyra-v2 .premium-banner h2{color:#25153D}
+.veyra-v2 .premium-banner p{color:#777185}
+/* Sheets stay reachable with the keyboard visible; no body scroll under modal. */
+.veyra-v2 .overlay,.v2-onboarding .overlay{position:fixed;inset:0;z-index:150!important;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;overscroll-behavior:contain;padding:0!important;background:#25153D73;backdrop-filter:blur(3px)}
+.veyra-v2 .sheet,.v2-onboarding .sheet{width:100%;max-width:620px;min-width:0;max-height:calc(100dvh - 12px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:calc(18px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:#fff}
+.veyra-v2 .sheet-head,.v2-onboarding .sheet-head{position:sticky;top:0;z-index:2;background:#fff;margin-top:-1px;border-bottom:1px solid #F0E9FF}
+.veyra-v2 .sheet-head button,.v2-onboarding .sheet-head button{min-width:40px;min-height:40px;display:grid;place-items:center;border-radius:12px}
+.veyra-v2 .sheet :where(input,select,textarea){max-width:100%;min-width:0}
+.veyra-v2 .sheet :where(button,input,select,textarea){font-size:max(14px,1em)}
+.veyra-v2 .sheet:has(.feed-filter-sheet){max-height:calc(100dvh - 12px);background:#fff}
+.veyra-v2 .sheet:has(.veys-wallet){max-width:560px}
+.veyra-v2 .veys-wallet{min-width:0;max-height:none;overflow:visible;padding:10px 0 4px}
+.veyra-v2 .veys-tabs{min-width:0}
+.veyra-v2 .veys-inline-price{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.veyra-v2 .veys-history-item b{display:inline-flex;align-items:center;gap:6px}
+.veyra-v2 .veys-package:focus-visible,.veyra-v2 .veys-shortcut:focus-visible{outline:2px solid #6817FF;outline-offset:2px}
+.veyra-v2 .veys-package:disabled{opacity:.58;cursor:not-allowed}
+.veyra-v2 .veys-header-button{max-width:110px;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.veyra-v2 .veys-balance-amount{font-variant-numeric:tabular-nums;min-width:0;flex-wrap:wrap}
+.veyra-v2 .veys-balance-card{box-shadow:0 5px 18px #6817FF15}
+.veyra-v2 .veys-package-name{overflow:hidden}
+.veyra-v2 .veys-footnote{padding:0 4px}
+.veyra-v2 .gift-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.veyra-v2 .gift-grid button{min-width:0;word-break:break-word;border-radius:15px}
+.veyra-v2 .gift-grid .gift-emoji{font-size:32px}
+.veyra-v2 .own-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr))}
+.veyra-v2 .own-shortcuts button{min-width:0;overflow:hidden}
+.veyra-v2 .registration-actions{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+/* Accessible tap targets and breathing room on compact Android screens. */
+@media(max-width:359px){
+ .veyra-v2 .bottom-nav .nav-label{font-size:9.1px;letter-spacing:-.3px}
+ .veyra-v2 .bottom-nav button{padding-left:0;padding-right:0}
+ .veyra-v2 .feed-actions{gap:4px}
+ .veyra-v2 .feed-action .feed-action-circle{width:46px;height:46px}
+ .veyra-v2 .feed-action.action-like .feed-action-circle{width:57px;height:57px}
+ .veyra-v2 .own-shortcuts{gap:5px}
+ .veyra-v2 .own-shortcuts button b{font-size:9px;line-height:1.3}
+ .veyra-v2 .likes-private-center{gap:5px;padding:6px}
+ .veyra-v2 .likes-private-center small{font-size:9px}
+ .veyra-v2 .gift-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-height:660px){
+ .veyra-v2 .feed-photo{height:clamp(240px,calc(100dvh - 292px),430px)!important;max-height:51dvh!important}
+ .veyra-v2 .feed-actions{min-height:61px;padding:4px 0 0}
+ .veyra-v2 .sheet{max-height:calc(100dvh - 6px)}
+}
+@media(prefers-reduced-motion:reduce){.veyra-v2 .sheet,.veyra-v2 .overlay{animation:none!important;transition:none!important}}

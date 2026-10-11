@@ -416,3 +416,67 @@ test('approved Work icon files are served in all three states and applied to nav
  await page.locator('.bottom-nav').getByRole('button',{name:'симпатии'}).click();
  await expect(page.locator('.bottom-nav button.active img')).toHaveAttribute('src',/\/veyra-approved\/01_icons\/active\/heart\.svg/);
 });
+
+test('VEYRA mobile QA: 320px screen, all five tabs, working wallet and no horizontal overflow',async({page})=>{
+ await page.setViewportSize({width:320,height:640});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ const nav=page.locator('.bottom-nav');
+ const tabs=[
+  ['знакомства','.feed-photo'],['поиск','.v2-directory'],
+  ['симпатии','.likes-v2'],['чаты','.veyra-chats'],
+  ['профиль','.own-profile']
+ ];
+ for(const [label,target] of tabs){
+  await nav.getByRole('button',{name:label}).click();
+  await expect(page.locator(target)).toBeVisible();
+  const metrics=await page.evaluate(()=>{
+   const nav=document.querySelector('.bottom-nav'),rect=nav?.getBoundingClientRect();
+   return {width:window.innerWidth,doc:document.documentElement.scrollWidth,
+    top:rect?.top,bottom:rect?.bottom,navWidth:rect?.width};
+  });
+  expect(metrics.doc,label+' horizontal scroll').toBeLessThanOrEqual(metrics.width+2);
+  expect(metrics.top,label+' bottom navigation').toBeGreaterThan(0);
+  expect(metrics.bottom,label+' bottom navigation').toBeLessThanOrEqual(642);
+ }
+ await page.getByRole('button',{name:'Открыть кошелёк VEYS'}).click();
+ const wallet=page.getByRole('dialog',{name:'Мои VEYS'});
+ await expect(wallet).toBeVisible();
+ await expect(wallet.locator('.veys-balance-card')).toBeVisible();
+ await expect(wallet.locator('.veys-balance-card .veys-diamond')).toHaveCount(1);
+ await expect(page.locator('body')).toHaveCSS('overflow','hidden');
+ await wallet.getByRole('tab',{name:'Магазин'}).click();
+ await expect(wallet.locator('.veys-package').first()).toBeVisible();
+ await wallet.getByRole('tab',{name:'История'}).click();
+ await expect(wallet.locator('.veys-history')).toBeVisible();
+ await wallet.getByRole('button',{name:'Закрыть'}).click();
+ await expect(page.getByRole('dialog',{name:'Мои VEYS'})).toHaveCount(0);
+ await expect(page.locator('body')).not.toHaveCSS('overflow','hidden');
+ await nav.getByRole('button',{name:'поиск'}).click();
+ await page.getByRole('button',{name:'Открыть VEYS кошелёк'}).click();
+ await expect(page.getByRole('dialog',{name:'Мои VEYS'})).toBeVisible();
+ await page.getByRole('dialog',{name:'Мои VEYS'}).getByRole('button',{name:'Закрыть'}).click();
+ expect(errors).toEqual([]);
+});
+test('VEYRA mobile QA: filters work above nav at 360x620 and brand imagery loads',async({page})=>{
+ await page.setViewportSize({width:360,height:620});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await page.getByRole('button',{name:'Фильтры',exact:true}).click();
+ const filters=page.getByRole('dialog',{name:'фильтры'});
+ await expect(filters).toBeVisible();
+ await expect(page.locator('.bottom-nav')).toHaveCount(0);
+ const bounds=await filters.evaluate(el=>({h:window.innerHeight,top:el.getBoundingClientRect().top,bottom:el.getBoundingClientRect().bottom}));
+ expect(bounds.top).toBeGreaterThanOrEqual(-1);
+ expect(bounds.bottom).toBeLessThanOrEqual(bounds.h+1);
+ await filters.getByRole('button',{name:'Закрыть'}).click();
+ await expect(page.locator('.bottom-nav')).toBeVisible();
+ const bad=await page.evaluate(()=>[...document.querySelectorAll('img[src^="/veyra-approved/"]')].filter(i=>{
+  const r=i.getBoundingClientRect();
+  return i.complete&&i.naturalWidth===0&&r.width>0&&r.height>0&&r.bottom>0&&r.top<window.innerHeight;
+ }).map(i=>i.getAttribute('src')));
+ expect(bad).toEqual([]);
+ expect(errors).toEqual([]);
+});

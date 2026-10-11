@@ -20,6 +20,7 @@ import '../../veyra-assets/styles/components.css';
 import './V2.css';
 import './BrandConsistency.css';
 import './ApprovedPack.css';
+import './MobileQA.css';
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -66,7 +67,7 @@ export function App(){
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell veyra-v2">
  <div className="view-frame" hidden={!!conversation||!!member}>
- {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
+ {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
    <header className="v2-screen-header"><Logo width={132}/><div className="v2-header-actions"><button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={()=>setOverlay({type:'veys'})}><Diamond size={21}/>{new Intl.NumberFormat('ru-RU').format(me.veys_balance||0)}</button><button type="button" aria-label="Фильтры" title="Фильтры" onClick={()=>setOverlay({type:'filters'})}><Icon name="filter" size={23}/></button></div></header>
