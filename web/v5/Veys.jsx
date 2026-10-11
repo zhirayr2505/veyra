@@ -1,4 +1,4 @@
-import React,{useEffect,useState,useCallback} from 'react';
+import React,{useEffect,useState,useCallback,useRef} from 'react';
 import {get,post} from './api.js';
 import {Button,Sheet,InlineAlert} from './UI.jsx';
 import {openInvoice} from './Extras.jsx';
@@ -11,13 +11,16 @@ const actionLabel=row=>row.action==='topup'?'Пополнение за Stars':ro
 
 export function VeysWallet({onClose,onChanged}){
  const [data,setData]=useState(null),[busy,setBusy]=useState(''),[error,setError]=useState(''),[view,setView]=useState('topup');
+ const pendingPurchases=useRef(new Map()); // Retain the same request ID after a failed or uncertain response.
  const load=useCallback(()=>get('/veys').then(x=>{setData(x);onChanged?.(x.balance)}).catch(e=>setError(explain(e))),[onChanged]);
  useEffect(()=>{load()},[load]);
  useEffect(()=>{const onVisible=()=>{if(document.visibilityState==='visible')load()};document.addEventListener('visibilitychange',onVisible);return()=>document.removeEventListener('visibilitychange',onVisible)},[load]);
  const buyPack=async p=>{if(busy)return;setBusy(p.sku);setError('');try{const r=await post('/veys/invoice',{sku:p.sku});if(r.status==='owner_granted'){await load();return;}
    openInvoice(r.url,status=>{if(status==='paid'){setTimeout(load,600);setTimeout(load,1600);setTimeout(load,3500);}});
   }catch(e){setError(explain(e))}finally{setBusy('')}};
- const buyItem=async p=>{if(busy)return;setBusy(p.sku);setError('');try{await post('/veys/buy',{sku:p.sku,client_id:crypto.randomUUID()});await load();}catch(e){setError(explain(e))}finally{setBusy('')}};
+ const buyItem=async p=>{if(busy)return;setBusy(p.sku);setError('');const client_id=pendingPurchases.current.get(p.sku)||crypto.randomUUID();pendingPurchases.current.set(p.sku,client_id);
+  try{const result=await post('/veys/buy',{sku:p.sku,client_id});if(result.status!=='delivered')throw Error('PURCHASE_UNCONFIRMED');pendingPurchases.current.delete(p.sku);await load();}
+  catch(e){setError(explain(e))}finally{setBusy('')}};
  return <Sheet title="Мои VEYS" onClose={onClose}>
   <div className="veys-wallet">
    <div className="veys-balance-card">
