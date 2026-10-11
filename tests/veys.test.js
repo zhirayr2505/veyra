@@ -57,6 +57,17 @@ test('VEYS: authenticated Stars settlement, duplicate webhook, purchases, gift l
   await db.tx(q=>settle(q,101,charge));
   await db.tx(q=>settle(q,101,charge));
   assert.equal(await getBalance(),250);
+  // A paid VEYS funding order must not consume the introductory Premium offer.
+  // Only a paid Premium order or another reserved introductory invoice can do so.
+  const premiumBefore=await c.get('/products');
+  assert.equal(premiumBefore.status,200);
+  const intro=premiumBefore.body.products.find(p=>p.first_only);
+  assert.ok(intro,'test catalog must contain an introductory Premium package');
+  const premiumInvoice=await c.post('/payments/invoice',{sku:intro.sku,provider:'stars'});
+  assert.equal(premiumInvoice.status,200);
+  const premiumOrder=await one(db,'SELECT * FROM orders WHERE id=$1',[premiumInvoice.body.order_id]);
+  assert.equal(premiumOrder.kind,'premium');
+  assert.equal(await db.tx(q=>validateCheckout(q,{id:'pc-intro-after-veys',invoice_payload:premiumOrder.id,from:{id:101},currency:'XTR',total_amount:Number(premiumOrder.total)})),true);
   const bad=await c.post('/veys/buy',{sku:'super_1',client_id:randomUUID(),cost:0});
   assert.equal(bad.status,400);
   const firstId=randomUUID();
