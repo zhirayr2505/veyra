@@ -4,12 +4,12 @@ import {fail} from './core.js';
 import {z,parse,id,uuid} from './validation.js';
 import {approved,ensurePair,pairLock,flag,audit,notify} from './domain.js';
 import {StarsProvider} from './payments.js';
-import {spendVeys,VEYS_PER_STAR} from './veys.js';
+import {spendVeys} from './veys.js';
 
 // The server, never the browser, owns the amount and term. No autorenewal.
 export const COURTSHIP_STARS=99;
 export const COURTSHIP_DAYS=30;
-export const COURTSHIP_VEYS=COURTSHIP_STARS*VEYS_PER_STAR;
+export const COURTSHIP_VEYS=990; // 99 Stars at the published 1:10 VEYS exchange rate
 
 async function matched(q,a,b){
  const row=await one(q,'SELECT id FROM matches WHERE active=true AND (a=$1 AND b=$2 OR a=$2 AND b=$1)',[a,b]);
