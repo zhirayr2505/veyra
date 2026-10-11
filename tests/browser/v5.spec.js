@@ -480,3 +480,19 @@ test('VEYRA mobile QA: filters work above nav at 360x620 and brand imagery loads
  expect(bad).toEqual([]);
  expect(errors).toEqual([]);
 });
+
+test('gift draft and recipient survive wallet roundtrip',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'чаты'}).click();
+ await page.locator('.chat-tile').first().click();
+ await page.locator('[title="Отправить подарок"]').click();
+ const gift=page.getByRole('dialog',{name:/подарок для/i});
+ await expect(gift).toBeVisible();
+ const title=await gift.locator('.sheet-head h2').innerText();
+ await gift.getByPlaceholder('От всего сердца').fill('Тёплый привет');
+ await gift.getByRole('button',{name:/Пополнить VEYS/}).click();
+ await expect(page.getByRole('dialog',{name:'Мои VEYS'})).toBeVisible();
+ await page.getByRole('dialog',{name:'Мои VEYS'}).getByRole('button',{name:'Закрыть'}).click();
+ await expect(gift.locator('.sheet-head h2')).toHaveText(title);
+ await expect(gift.getByPlaceholder('От всего сердца')).toHaveValue('Тёплый привет');
+});
