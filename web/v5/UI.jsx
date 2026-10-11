@@ -1,7 +1,6 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {photoUrl,cachedPhoto} from './api.js';
 // Approved Work asset pack: /VEYRA_ASSET_PACK/ in repo root; browser mirror: /veyra-approved/.
-const oldBase='/veyra-v2/';
 const approvedBase='/veyra-approved/';
 const base=approvedBase; // only the approved Work asset pack powers branded UI
 const iconAliases={
@@ -20,7 +19,7 @@ function iconSrc(name,tone='dark'){
  const state=tone==='white'?'on_dark':tone==='pink'||name.endsWith('_filled')?'active':'inactive';
  return approvedNames.has(id)
   ?approvedBase+'01_icons/'+state+'/'+id+'.svg'
-  :oldBase+'icons/'+(state==='inactive'?'outline':state==='on_dark'?'on-dark':'active')+'/'+normalized+'.svg';
+  :approvedBase+'01_icons/'+state+'/info.svg';
 }
 export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="VEYRA" src={approvedBase+'00_brand/veyra_logo_primary.svg'}/>;}
 export function Icon({name,tone='dark',size=24,className=''}){return <img className={'kit-icon '+className} draggable="false" src={iconSrc(name,tone)} width={size} height={size} alt="" aria-hidden="true"/>;}
