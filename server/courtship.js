@@ -4,10 +4,12 @@ import {fail} from './core.js';
 import {z,parse,id,uuid} from './validation.js';
 import {approved,ensurePair,pairLock,flag,audit,notify} from './domain.js';
 import {StarsProvider} from './payments.js';
+import {spendVeys,VEYS_PER_STAR} from './veys.js';
 
 // The server, never the browser, owns the amount and term. No autorenewal.
 export const COURTSHIP_STARS=99;
 export const COURTSHIP_DAYS=30;
+export const COURTSHIP_VEYS=COURTSHIP_STARS*VEYS_PER_STAR;
 
 async function matched(q,a,b){
  const row=await one(q,'SELECT id FROM matches WHERE active=true AND (a=$1 AND b=$2 OR a=$2 AND b=$1)',[a,b]);
@@ -48,7 +50,7 @@ export function courtshipRoutes(app,{db,rate,tg,env}){
   else await ensurePair(db,req.user.id,target);
   const mine=String(target)===String(req.user.id)?null:await one(db,`SELECT id,status,created_at,responded_at,expires_at
    FROM courtships WHERE sender=$1 AND recipient=$2`,[req.user.id,target]);
-  res.json({suitors:await marker(db,target),mine:mine||null,stars:COURTSHIP_STARS,days:COURTSHIP_DAYS});
+  res.json({suitors:await marker(db,target),mine:mine||null,stars:COURTSHIP_STARS,veys:COURTSHIP_VEYS,days:COURTSHIP_DAYS});
  });
  app.get('/api/courtships/inbox',async(req,res)=>{
   await approved(db,req.user.id);
@@ -90,7 +92,7 @@ export function courtshipRoutes(app,{db,rate,tg,env}){
    await ensurePair(q,c.sender,c.recipient);await matched(q,c.sender,c.recipient);
    const updated=await one(q,"UPDATE courtships SET status=$2,responded_at=now() WHERE id=$1 RETURNING *",[cid,accept?'accepted':'declined']);
    await audit(q,req.user.id,accept?'courtship.accepted':'courtship.declined',cid);
-   await notify(q,c.sender,accept?'💜 Предложение об ухаживании принято! Чтобы активировать публичную отметку, открой профиль и оплати Stars.':'Предложение об ухаживании отклонено.');
+   await notify(q,c.sender,accept?'💜 Предложение об ухаживании принято! Чтобы активировать публичную отметку, открой профиль и оплати VEYS.':'Предложение об ухаживании отклонено.');
    return updated;
   });
   res.json({id:row.id,status:row.status});
@@ -98,28 +100,38 @@ export function courtshipRoutes(app,{db,rate,tg,env}){
  app.post('/api/courtships/:id/pay',async(req,res)=>{
   const cid=parse(uuid,req.params.id);
   await rate('courtship-pay:'+req.user.id,10,3600);
-  const order=await db.tx(async q=>{
+  const result=await db.tx(async q=>{
    await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
    const c=await one(q,'SELECT * FROM courtships WHERE id=$1 AND sender=$2 FOR UPDATE',[cid,req.user.id]);
    if(!c)fail(404,'COURTSHIP_NOT_FOUND');
+   if(c.status==='active'&&new Date(c.expires_at)>new Date())return {status:'active',veys_spent:0,duplicate:true};
    if(!['accepted','payment_pending'].includes(c.status))fail(409,'COURTSHIP_NOT_ACCEPTED');
-   await ensurePair(q,c.sender,c.recipient);await matched(q,c.sender,c.recipient);
-   if(String(req.user.id)===String(env.OWNER_TELEGRAM_ID)){await q.query("UPDATE courtships SET status='active',activated_at=now(),expires_at=now()+interval '30 days',order_id=NULL WHERE id=$1",[cid]);await audit(q,req.user.id,'owner.test.courtship',cid,{stars_charged:0});await notify(q,c.recipient,'💜 Предложение об ухаживании принято и активировано в VEYRA.');return {owner_free:true};}
-   if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');
+   await ensurePair(q,c.sender,c.recipient);
+   await matched(q,c.sender,c.recipient);
    if(c.status==='payment_pending'){
-    const pending=await one(q,'SELECT * FROM orders WHERE id=$1',[c.order_id]);
-    if(pending?.status==='pending')return pending;
-    fail(409,'COURTSHIP_ORDER_UNAVAILABLE');
+    // Keep pre-existing Telegram Stars invoices fulfillable. No NEW Stars
+    // courtship invoices are created after the VEYS migration.
+    const order=await one(q,'SELECT * FROM orders WHERE id=$1',[c.order_id]);
+    if(order?.status!=='pending')fail(409,'COURTSHIP_ORDER_UNAVAILABLE');
+    return {legacy_order:order};
    }
-   const row=await one(q,`INSERT INTO orders(id,user_id,sku,total,kind,amount,first_only)
-    VALUES($1,$2,NULL,$3,'courtship',$4,false) RETURNING *`,
-    [randomUUID(),c.sender,COURTSHIP_STARS,COURTSHIP_DAYS]);
-   await q.query("UPDATE courtships SET status='payment_pending',order_id=$2 WHERE id=$1",[cid,row.id]);
-   return row;
+   const owner=String(req.user.id)===String(env.OWNER_TELEGRAM_ID);
+   if(!owner)await spendVeys(q,c.sender,COURTSHIP_VEYS,'courtship',c.id);
+   const row=await one(q,`UPDATE courtships SET status='active',activated_at=now(),
+    expires_at=now()+($2::text||' days')::interval,veys_cost=$3,order_id=NULL
+    WHERE id=$1 RETURNING *`,[c.id,COURTSHIP_DAYS,owner?0:COURTSHIP_VEYS]);
+   await audit(q,c.sender,'courtship.activated',row.id,{recipient:c.recipient,veys:owner?0:COURTSHIP_VEYS,owner_test:owner});
+   await notify(q,c.sender,'💜 Статус ухажёра VEYRA активирован на '+COURTSHIP_DAYS+' дней.');
+   await notify(q,c.recipient,'💜 В твоём профиле появился подтверждённый ухажёр.');
+   return {status:'active',veys_spent:owner?0:COURTSHIP_VEYS,days:COURTSHIP_DAYS};
   });
-  if(order.owner_free){res.json({status:'active',stars_charged:0,days:COURTSHIP_DAYS});return;}
-  const url=await new StarsProvider(tg).invoice({...order,title:'VEYRA · Ухажёр на '+COURTSHIP_DAYS+' дней'});
-  res.json({status:'payment_required',order_id:order.id,invoice_url:url,stars:COURTSHIP_STARS,days:COURTSHIP_DAYS});
+  if(result.legacy_order){
+   const order=result.legacy_order;
+   const url=await new StarsProvider(tg).invoice({...order,title:'VEYRA · Ухажёр на '+COURTSHIP_DAYS+' дней'});
+   res.json({status:'payment_required',order_id:order.id,invoice_url:url,stars:COURTSHIP_STARS,legacy:true,days:COURTSHIP_DAYS});
+   return;
+  }
+  res.json(result);
  });
  app.get('/api/courtships/:id/status',async(req,res)=>{
   const cid=parse(uuid,req.params.id);

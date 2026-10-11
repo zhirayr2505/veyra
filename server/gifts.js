@@ -3,7 +3,7 @@ import {one} from './db.js';
 import {fail} from './core.js';
 import {z,parse,id,uuid} from './validation.js';
 import {approved,ensurePair,flag,audit,notify} from './domain.js';
-import {StarsProvider} from './payments.js';
+import {spendVeys,VEYS_PER_STAR} from './veys.js';
 
 // Identifiers, prices and the free daily limit are SERVER-owned.
 export const giftCatalog=Object.freeze([
@@ -59,7 +59,7 @@ export async function revokePaidGift(q,order){
 }
 export function giftsRoutes(app,{db,rate,tg,env}){
  app.get('/api/gifts/catalog',async(req,res)=>{
-  const owner=String(req.user.id)===String(env.OWNER_TELEGRAM_ID);res.json({gifts:giftCatalog,payments_enabled:owner||!!await flag(db,'payments'),owner_free:owner,free_daily_limit:owner?null:1});
+  const owner=String(req.user.id)===String(env.OWNER_TELEGRAM_ID);res.json({gifts:giftCatalog.map(g=>({...g,veys:g.stars*VEYS_PER_STAR})),payments_enabled:owner||!!await flag(db,'payments'),owner_free:owner,free_daily_limit:owner?null:1});
  });
  app.get('/api/gifts/collection/me',async(req,res)=>{
   await approved(db,req.user.id);
@@ -93,32 +93,25 @@ export function giftsRoutes(app,{db,rate,tg,env}){
     return {row:existing,duplicate:true};
    }
    await ensurePair(q,req.user.id,target);
-   let order=null;
-   if(gift.stars===0&&!owner){
-    const already=await one(q,"SELECT count(*)::int AS n FROM gifts WHERE sender=$1 AND stars=0 AND status='delivered' AND created_at>=now()-interval '24 hours'",[req.user.id]);
+   const cost=owner?0:gift.stars*VEYS_PER_STAR;
+   if(cost===0&&!owner){
+    const already=await one(q,"SELECT count(*)::int AS n FROM gifts WHERE sender=$1 AND stars=0 AND veys_cost=0 AND status='delivered' AND created_at>=now()-interval '24 hours'",[req.user.id]);
     if(already.n>=1)fail(429,'FREE_GIFT_LIMIT');
-   }else if(!owner){
-    if(!await flag(q,'payments'))fail(503,'PAYMENTS_DISABLED');
-    order=await one(q,"INSERT INTO orders(id,user_id,sku,total,kind,amount,first_only) VALUES($1,$2,NULL,$3,'gift',1,false) RETURNING *",[randomUUID(),req.user.id,gift.stars]);
    }
-   const row=await one(q,`INSERT INTO gifts(id,sender,recipient,gift_key,stars,note,client_id,order_id,status,delivered_at)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-    [randomUUID(),req.user.id,target,gift.key,owner?0:gift.stars,note,client_id,order?.id||null,order?'pending':'delivered',order?null:new Date()]);
-   if(!order){
-    await audit(q,req.user.id,'gift.delivered',row.id,{recipient:target,key:gift.key,stars:0,owner_test:owner});
-    await notify(q,target,'🎁 Тебе подарили '+gift.name+' в VEYRA! Открой профиль → Коллекция подарков.');
-   }
-   return {row,order,duplicate:false};
+   const giftId=randomUUID();
+   if(cost>0)await spendVeys(q,req.user.id,cost,'gift',giftId);
+   const row=await one(q,`INSERT INTO gifts(id,sender,recipient,gift_key,stars,veys_cost,note,client_id,order_id,status,delivered_at)
+      VALUES($1,$2,$3,$4,0,$5,$6,$7,NULL,'delivered',now()) RETURNING *`,
+     [giftId,req.user.id,target,gift.key,cost,note,client_id]);
+   await audit(q,req.user.id,'gift.delivered',row.id,{recipient:target,key:gift.key,veys:cost,owner_test:owner});
+   await notify(q,target,'🎁 Тебе подарили '+gift.name+' в VEYRA! Открой профиль → Коллекция подарков.');
+   return {row,duplicate:false};
   });
-  if(result.row.status==='delivered'){res.status(201).json({status:'delivered',gift_id:result.row.id});return;}
-  const order=result.order||await one(db,'SELECT * FROM orders WHERE id=$1',[result.row.order_id]);
-  if(!order||order.status!=='pending')fail(409,'GIFT_ORDER_UNAVAILABLE');
-  const invoice=await new StarsProvider(tg).invoice({...order,title:'Подарок VEYRA · '+gift.name});
-  res.status(201).json({status:'payment_required',gift_id:result.row.id,order_id:order.id,invoice_url:invoice});
+  res.status(201).json({status:'delivered',gift_id:result.row.id,veys_spent:Number(result.row.veys_cost)});
  });
 }
 async function collection(q,user){
- const rows=(await q.query(`SELECT g.id,g.gift_key,g.stars,g.note,g.created_at,g.delivered_at,
+ const rows=(await q.query(`SELECT g.id,g.gift_key,g.stars,g.veys_cost,g.note,g.created_at,g.delivered_at,
    p.name AS sender_name FROM gifts g LEFT JOIN profiles p ON p.user_id=g.sender
    WHERE g.recipient=$1 AND g.status='delivered' ORDER BY g.delivered_at DESC,g.id DESC LIMIT 120`,[user])).rows;
  const total=await one(q,"SELECT count(*)::int AS n FROM gifts WHERE recipient=$1 AND status='delivered'",[user]);
