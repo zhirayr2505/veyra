@@ -54,10 +54,10 @@ function FeedState({kind,onRetry,onFilters,onPremium}){
  const isLoading=kind==='loading',isError=kind==='error',isLimited=kind==='limit';
  return <div className={'feed-state feed-state-'+kind} role={isLoading?'status':undefined}>
   <div className="feed-state-illustration">
-   {isLoading?<div className="feed-load-cards"><img src="/assets/veyra/06_duotone_art/discover.svg" alt="" loading="eager"/><span className="feed-loading-heart"><Spinner/></span></div>:
-   isLimited?<span className="feed-state-icon"><Icon name="crown" size={55} tone="pink"/></span>:
-   isError?<span className="feed-state-icon"><Icon name="close" size={52} tone="pink"/></span>:
-   <img className="feed-no-cards" src="/assets/veyra/06_duotone_art/discover.svg" alt=""/>}
+   {isLoading?<div className="feed-load-cards"><img src="/veyra-v2/illustrations/no-profiles.svg" alt="" loading="eager"/><span className="feed-loading-heart"><Spinner/></span></div>:
+   isLimited?<img className="feed-no-cards" src="/veyra-v2/illustrations/premium.svg" alt=""/>:
+   isError?<img className="feed-no-cards" src="/veyra-v2/illustrations/error.svg" alt=""/>:
+   <img className="feed-no-cards" src="/veyra-v2/illustrations/no-profiles.svg" alt=""/>}
   </div>
   <h2>{isLoading?'Подбираем анкеты':isError?'Не удалось загрузить анкеты':isLimited?'Лимит на сегодня исчерпан':'Пока нет новых анкет'}</h2>
   <p>{isLoading?'Ищем людей, которые могут тебе понравиться…':

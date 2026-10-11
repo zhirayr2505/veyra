@@ -131,7 +131,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
     {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>{moreBusy?'Загружаем…':'Показать ещё'} <DetailIcon name="refresh" size={17}/></button>}
     {limited&&<p className="vx-quota">Лимит просмотров на сегодня достигнут. <button type="button" onClick={onPremium}>VEYRA Premium</button></p>}
    </React.Fragment>:
-   <div className="vx-state vx-empty"><img src="/assets/veyra/06_duotone_art/nearby.svg" className="vx-state-illustration" alt="" loading="lazy" decoding="async"/>
+   <div className="vx-state vx-empty"><img src="/veyra-v2/illustrations/no-search.svg" className="vx-state-illustration" alt="" loading="lazy" decoding="async"/>
     <h3>{limited?'Лимит просмотров исчерпан':'Пока нет подходящих анкет'}</h3>
     <p>{limited?'Продолжить знакомства можно с VEYRA Premium.':'Попробуй изменить город, возраст или расстояние. Все профили проходят модерацию.'}</p>
     <Button onClick={limited?onPremium:onFilters}>{limited?'Открыть Premium':'Изменить фильтры'}</Button>
@@ -140,10 +140,17 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
   {error&&!people.length&&<button type="button" className="vx-retry" onClick={reset}>Повторить загрузку</button>}
  </div>;
 }
-export function DiscoveryHub({filters,profile,onProfile,onMatch,onPremium,onFilters,refreshTick=0}){
- const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed']));
+export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,refreshTick=0}){
+ const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
  const [refresh,setRefresh]=useState({feed:0,for_you:0,nearby:0}),[reactionRefresh,setReactionRefresh]=useState(0);
  const switchTab=next=>{feedback();setTab(next);setVisited(prev=>new Set([...prev,next]));};
+ if(directory)return <section className="vx-hub v2-directory" aria-label="Поиск людей VEYRA">
+  <header className="vx-head"><img className="vx-logo" src="/veyra-v2/brand/veyra-wordmark-purple.svg" alt="VEYRA"/><div className="vx-head-actions"><button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><Icon name="filter" size={21}/></button></div></header>
+  <h1 className="v2-directory-title">Поиск людей</h1>
+  <p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
+  <div className="v2-directory-switch" role="tablist" aria-label="Подборки людей">{[['nearby','Рядом'],['for_you','Для вас']].map(([key,label])=><button key={key} type="button" role="tab" aria-selected={directoryTab===key} className={directoryTab===key?'chosen':''} onClick={()=>{feedback();setDirectoryTab(key)}}>{label}</button>)}</div>
+  <BrowseScene key={directoryTab} kind={directoryTab} active profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)} refreshTick={refreshTick+reactionRefresh}/>
+ </section>;
  return <section className="vx-hub" aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
    <img className="vx-logo" src="/assets/veyra/00_brand/veyra_logo.svg" alt="VEYRA"/>
