@@ -9,7 +9,8 @@ export async function notifyReview(q,env,userId){
  const p=await one(q,`SELECT p.*,u.username,extract(year FROM age(p.birth_date))::int AS age FROM profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=$1`,[userId]);
  if(!p)return;
  const photo=await one(q,'SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at LIMIT 1',[userId]);
- const text=`Анкета ${p.user_id} · ревизия ${p.revision}\n${p.name}, ${p.age}\n@${p.username||'—'}\n${p.city}, ${p.country}\nПол: ${p.gender} · Ищет: ${p.looking_for.join(', ')}\nЦель: ${p.goal}\n${p.bio.slice(0,250)}\nИнтересы: ${p.interests.join(', ').slice(0,100)}`.slice(0,1000);
+ const answers=(Array.isArray(p.prompts)?p.prompts:[]).filter(item=>item?.answer).map(item=>`${item.key}: ${String(item.answer).slice(0,180)}`).join('\n');
+  const text=`Анкета ${p.user_id} · ревизия ${p.revision}\n${p.name}, ${p.age}\n@${p.username||'—'}\n${p.city}, ${p.country}\nПол: ${p.gender} · Ищет: ${p.looking_for.join(', ')}\nЦель: ${p.goal}\nЯзыки: ${(p.languages||[]).join(', ')}\nИнтересы: ${p.interests.join(', ').slice(0,150)}\nОтветы:\n${answers.slice(0,400)}\nО себе: ${p.bio.slice(0,220)}`.slice(0,1000);
  const reply_markup={inline_keyboard:[[{text:'Все фото и анкета',web_app:{url:env.APP_URL+'/admin'}}],[{text:'Одобрить',callback_data:`approve:${p.user_id}:${p.revision}`}]]};
  await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify({text,photo_id:photo?.id,reply_markup})]);
 }
