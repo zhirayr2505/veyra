@@ -1,0 +1,19 @@
+/* VEYRA visual correction: monochrome brand and no legacy pink styles */
+:root{--milk:#F9F7FF;--ink:#25153D;--muted:#777085;--stroke:#E9E2F3;--pink:#6817FF;--coral:#6817FF;--soft:#F0E9FF;--shadow:0 9px 24px rgba(37,21,61,.07)}
+.veyra-v2,.v2-onboarding{--v2-primary:#6817FF;--v2-secondary:#6817FF;--v2-accent:#6817FF;--v2-ink:#25153D;--v2-text-muted:#777085;--v2-background:#F9F7FF;--v2-primary-soft:#F0E9FF;--v2-surface:#FFFFFF;--v2-border:#E9E2F3;--coral:#6817FF;--pink:#6817FF;--rose:#6817FF;--violet:#6817FF;--muted:#777085}
+.veyra-v2 .logo,.v2-onboarding .logo,.veyra-v2 .vx-logo,.veyra-v2 .feed-brand{filter:none!important;object-position:left center;max-width:100%}
+.veyra-v2 .nav-icon-plate,.veyra-v2 .veyra-shortcut-icon{box-shadow:none!important}
+.veyra-v2 .bottom-nav button:not(.active) .kit-icon{opacity:.84}
+.veyra-v2 .bottom-nav button.active .kit-icon{opacity:1}
+.veyra-v2 .kit-icon,.veyra-v2 .veyra-detail-icon,.veyra-v2 .veyra-interest-icon,.v2-onboarding .kit-icon,.v2-onboarding .veyra-interest-icon{filter:none!important}
+.veyra-v2 .feed-action.action-super .feed-action-circle{background:#F0E9FF!important}
+.veyra-v2 .feed-action.action-pass .feed-action-circle{background:#FFFFFF!important}
+.veyra-v2 .feed-action.action-like .feed-action-circle{background:#6817FF!important}
+.veyra-v2 :where(.vx-person-like,.likes-photo-action,.likes-premium-button,.feed-filter-submit){box-shadow:none!important}
+.veyra-v2 .vx-nearby-filter,.veyra-v2 .likes-head-button,.veyra-v2 .vx-head-actions button{box-shadow:none!important;background:#fff!important}
+.veyra-v2 :where(.vx-filter-pills button.chosen,.vx-more,.likes-v2 .tabs button.chosen,.ve-chat-tabs button.selected){background:#6817FF!important;color:#FFFFFF!important;border-color:#6817FF!important}
+.veyra-v2 .own-shortcuts button:nth-child(3) .veyra-shortcut-icon{background:#F0E9FF!important}
+.veyra-v2 :where(.feed-state,.vx-empty,.veyra-empty){background-image:none!important}
+.veyra-v2 :where(.feed-state,.vx-empty,.veyra-empty) img{filter:none!important}
+.veyra-v2 .feed-filter-reset{color:#6817FF!important}
+.v2-onboarding .gender-choice.selected,.v2-onboarding .looking-choice.selected{box-shadow:none!important}

@@ -5,7 +5,7 @@
 .discover .feed-brand{width:126px;height:42px;max-width:46%;object-fit:contain;object-position:left center}
 .discover .feed-head-right{display:flex;align-items:center;gap:8px}
 .discover .feed-mode-name{font-size:11px;color:#a2a0a4;font-weight:650}
-.discover .icon-button{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:50%;background:#fff;border:1px solid #ffe5e9;box-shadow:0 5px 16px #d8566410}
+.discover .icon-button{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:50%;background:#fff;border:1px solid #F0E9FF;box-shadow:0 5px 16px #d8566410}
 .discover .feed-content{display:flex;flex-direction:column;align-items:stretch;min-width:0}
 .discover .feed-photo{position:relative;isolation:isolate;overflow:hidden;width:100%;height:clamp(340px,calc(100dvh - 247px - env(safe-area-inset-top) - env(safe-area-inset-bottom)),690px);min-height:340px;border-radius:24px;background:#f1e3e7;touch-action:pan-y;user-select:none;box-shadow:0 12px 31px #3523381d;transition:transform .28s cubic-bezier(.2,.8,.24,1),opacity .28s ease,filter .28s ease}
 .discover .feed-photo.feed-motion-exit-pass{animation:veyraPass .31s ease-in forwards}
@@ -20,8 +20,8 @@
 .discover .feed-picture>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .discover .feed-picture-current{animation:veyraImageReveal .24s ease-out both}
 @keyframes veyraImageReveal{from{opacity:0}to{opacity:1}}
-.discover .feed-picture-skeleton{position:absolute;inset:0;background:linear-gradient(110deg,#f5dfe7,#fff0f1,#f3dce5);background-size:200% 100%;animation:shimmer 1.6s linear infinite}
-.discover .feed-picture-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:#a67683}
+.discover .feed-picture-skeleton{position:absolute;inset:0;background:linear-gradient(110deg,#F0E9FF,#fff0f1,#F0E9FF);background-size:200% 100%;animation:shimmer 1.6s linear infinite}
+.discover .feed-picture-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:#6817FF}
 .discover .feed-image-shade{position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(180deg,#0004 0%,transparent 25%,transparent 48%,#08050d40 68%,#050307e3 100%)}
 .discover .photo-bars{position:absolute;top:10px;left:11px;right:11px;bottom:auto;z-index:7;display:flex;gap:5px}
 .discover .photo-bars button{height:3px;min-width:0;flex:1;padding:0;border:0;border-radius:999px;background:#ffffff70;box-shadow:0 0 3px #0004}
@@ -35,7 +35,7 @@
 .discover .feed-online-dot{height:8px;width:8px;border-radius:50%;background:#47df95;box-shadow:0 0 0 3px #47df9533}
 .discover .feed-name-line{display:flex;align-items:center;gap:8px;max-width:100%}
 .discover .hero-name{font-size:clamp(24px,6.6vw,35px);line-height:1.1;letter-spacing:-.6px;font-weight:800;border:0;background:transparent;color:#fff;max-width:calc(100% - 36px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.discover .feed-checked{color:#6bbcff;fill:#2b91fa;stroke:#fff;stroke-width:2.2px;flex:none;filter:drop-shadow(0 2px 2px #0004)}
+.discover .feed-checked{color:#B996FF;fill:#6817FF;stroke:#fff;stroke-width:2.2px;flex:none;filter:drop-shadow(0 2px 2px #0004)}
 .discover .feed-location{display:flex;align-items:center;gap:5px;color:#fff;font-size:12px;margin:6px 0 0;line-height:1.2}
 .discover .hero-bio{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;max-width:100%;overflow:hidden;font-size:12px;line-height:1.35;margin:7px 0 0;white-space:normal}
 .discover .hero-tags{display:flex;max-width:100%;flex-wrap:wrap;gap:5px;overflow:hidden;margin-top:8px;max-height:61px}
@@ -44,13 +44,13 @@
 .discover .feed-interest svg{flex:none}
 .discover .feed-actions{display:grid;grid-template-columns:repeat(4,1fr);align-items:center;justify-items:center;gap:8px;width:100%;padding:14px 0 4px}
 .discover .feed-action{display:flex;align-items:center;justify-content:center;border:0;background:transparent;width:100%;padding:0;box-shadow:none;flex:none;cursor:pointer}
-.discover .feed-action-circle{height:clamp(49px,14vw,65px);width:clamp(49px,14vw,65px);display:grid;place-items:center;border-radius:50%;background:#fff;box-shadow:0 8px 21px #5233401a;transition:transform .15s,box-shadow .15s;color:#43a3fd}
+.discover .feed-action-circle{height:clamp(49px,14vw,65px);width:clamp(49px,14vw,65px);display:grid;place-items:center;border-radius:50%;background:#fff;box-shadow:0 8px 21px #5233401a;transition:transform .15s,box-shadow .15s;color:#B996FF}
 .discover .feed-action:active .feed-action-circle{transform:scale(.88)}
 .discover .action-undo .feed-action-circle{background:#fbfaf9}
-.discover .action-pass .feed-action-circle{background:linear-gradient(135deg,#ff5572,#fb1375);box-shadow:0 8px 20px #ef2a6662}
+.discover .action-pass .feed-action-circle{background:linear-gradient(135deg,#B996FF,#6817FF);box-shadow:0 8px 20px #ef2a6662}
 .discover .action-pass .feed-action-circle img{filter:brightness(0) invert(1)}
-.discover .action-super .feed-action-circle{background:#fff;color:#35aaff}
-.discover .action-like .feed-action-circle{background:linear-gradient(135deg,#ff4a66,#fd2379);box-shadow:0 8px 20px #ff36664a}
+.discover .action-super .feed-action-circle{background:#fff;color:#B996FF}
+.discover .action-like .feed-action-circle{background:linear-gradient(135deg,#B996FF,#6817FF);box-shadow:0 8px 20px #ff36664a}
 .discover .feed-action:disabled{opacity:.42;cursor:not-allowed}
 .discover .feed-action:disabled .feed-action-circle{box-shadow:none}
 .discover .feed-flash{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;pointer-events:none;color:#fff;text-shadow:0 2px 10px #1a0c2050;background:linear-gradient(160deg,#fc3b6380,#ee367077);animation:veyraFlash .31s ease both}
@@ -61,7 +61,7 @@
 .discover .feed-state{width:100%;min-height:clamp(390px,calc(100dvh - 185px),680px);background:linear-gradient(165deg,#fffdfa,#fff3f4);border:1px solid #f6e9e9;border-radius:23px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 25px;text-align:center;box-shadow:0 10px 26px #c9889714}
 .discover .feed-state-illustration{height:160px;width:200px;display:grid;place-items:center;margin-bottom:4px}
 .discover .feed-state-illustration>img,.discover .feed-load-cards img{width:165px;height:145px;object-fit:contain;opacity:.75}
-.discover .feed-state-icon{width:108px;height:108px;border-radius:50%;background:radial-gradient(circle at 35% 20%,#fff,#ffd5e4);display:grid;place-items:center;box-shadow:0 10px 30px #f29bb444}
+.discover .feed-state-icon{width:108px;height:108px;border-radius:50%;background:radial-gradient(circle at 35% 20%,#fff,#F0E9FF);display:grid;place-items:center;box-shadow:0 10px 30px #f29bb444}
 .discover .feed-load-cards{position:relative}
 .discover .feed-load-cards img{animation:veyraBreath 1.8s ease-in-out infinite alternate}
 .discover .feed-loading-heart{position:absolute;left:calc(50% - 14px);top:calc(50% - 14px)}
