@@ -40,7 +40,7 @@ export function Photo({id,className='',onClick,alt=''}){const element=useRef(nul
   return()=>{live=false;observer?.disconnect()};
  },[id]);
  const url=state.id===id?state.url:'',failed=!id||state.id===id&&state.error;
- return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><img src="/graphics/placeholders/avatar-neutral.svg" width="64" height="64" alt="" decoding="async"/></span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
+ return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><Icon name="camera" tone="dark" size={34}/></span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
 }
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
 const emptyIllustrations={match:'no_matches_yet',incoming:'no_incoming_likes',chat:'no_messages_yet',profile:'nothing_here_yet',discover:'no_results',nearby:'no_nearby_people',gift:'empty_gifts',default:'nothing_here_yet'};
@@ -48,4 +48,28 @@ export function Empty({title,body,action,art="default"}){return <section classNa
 export function Spinner(){return <span className="spinner" role="status" aria-label="Загрузка"/>;}
 export function Header({back,side}){return <header className="top-header">{back?<button className="quiet back" aria-label="Назад" onClick={back}><Icon name="back"/></button>:<span className="header-spacer"/>}<Logo/>{side||<span className="header-spacer"/>}</header>}
 export function Tabs({items,value,onChange}){return <div className="tabs" role="tablist">{items.map(([k,label])=><button role="tab" aria-selected={value===k} className={value===k?'chosen':''} key={k} onClick={()=>onChange(k)}>{label}</button>)}</div>}
-export function Sheet({title,onClose,children}){useEffect(()=>{const key=e=>{if(e.key==='Escape')onClose()};document.addEventListener('keydown',key);return()=>document.removeEventListener('keydown',key)},[onClose]);return <div className="overlay" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="sheet" role="dialog" aria-modal="true" aria-label={title}><div className="sheet-head"><h2>{title}</h2><button className="quiet" onClick={onClose} aria-label="Закрыть"><Icon name="close"/></button></div>{children}</section></div>}
+export function Sheet({title,onClose,children}){
+ const panel=useRef(null),closeRef=useRef(onClose);
+ useEffect(()=>{closeRef.current=onClose},[onClose]);
+ useEffect(()=>{
+  const oldBody=document.body.style.overflow,oldHtml=document.documentElement.style.overflow;
+  const previous=document.activeElement;
+  document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden';
+  const key=e=>{
+   if(e.key==='Escape'){e.preventDefault();closeRef.current?.();return}
+   if(e.key!=='Tab'||!panel.current)return;
+   const items=[...panel.current.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
+   if(!items.length)return;
+   if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus()}
+   else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus()}
+  };
+  document.addEventListener('keydown',key);
+  panel.current?.querySelector('.sheet-head button')?.focus({preventScroll:true});
+  return()=>{document.removeEventListener('keydown',key);document.body.style.overflow=oldBody;document.documentElement.style.overflow=oldHtml;if(previous?.isConnected)previous.focus?.({preventScroll:true})}
+ },[]);
+ return <div className="overlay" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
+  <section ref={panel} className="sheet" role="dialog" aria-modal="true" aria-label={title}>
+   <div className="sheet-head"><h2>{title}</h2><button type="button" className="quiet" onClick={onClose} aria-label="Закрыть"><Icon name="close"/></button></div>{children}
+  </section>
+ </div>;
+}

@@ -20,6 +20,7 @@ import '../../veyra-assets/styles/components.css';
 import './V2.css';
 import './BrandConsistency.css';
 import './ApprovedPack.css';
+import './MobileQA.css';
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -31,6 +32,7 @@ export function App(){
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
  const exitOverlay=()=>setOverlay(null);
+ const closeWallet=()=>setOverlay(current=>current?.type==='veys'?(current.returnTo||null):null);
  const onWalletChanged=useCallback(balance=>setMe(current=>current?{...current,veys_balance:balance}:current),[]);
  useEffect(()=>{let alive=true;(async()=>{try{
   tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#F9F7FF');tg?.setBackgroundColor?.('#F9F7FF');
@@ -43,7 +45,7 @@ export function App(){
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
   const active=!!(match||overlay||member||conversation);
   if(!active){back.hide?.();return;}
-  const goBack=()=>{if(match){setMatch(null);return;}if(overlay){setOverlay(null);return;}if(member){setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}return;}if(conversation)setConversation(null)};
+  const goBack=()=>{if(match){setMatch(null);return;}if(overlay){setOverlay(current=>current?.type==='veys'?(current.returnTo||null):null);return;}if(member){setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}return;}if(conversation)setConversation(null)};
   back.show?.();back.onClick(goBack);return()=>{back.offClick?.(goBack);back.hide?.()};
  },[match,overlay,member,conversation,returnChat]);
  const logout=()=>{setBearer('');clearPhotoCache();setMe(null);setError('');setDeleted(true);try{Object.keys(localStorage).filter(k=>k.startsWith('veyra.registration.')).forEach(k=>localStorage.removeItem(k))}catch{}};
@@ -66,7 +68,7 @@ export function App(){
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell veyra-v2">
  <div className="view-frame" hidden={!!conversation||!!member}>
- {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
+ {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
    <header className="v2-screen-header"><Logo width={132}/><div className="v2-header-actions"><button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={()=>setOverlay({type:'veys'})}><Diamond size={21}/>{new Intl.NumberFormat('ru-RU').format(me.veys_balance||0)}</button><button type="button" aria-label="Фильтры" title="Фильтры" onClick={()=>setOverlay({type:'filters'})}><Icon name="filter" size={23}/></button></div></header>
@@ -81,9 +83,9 @@ export function App(){
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
  {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><img src="/veyra-v2/illustrations/match-celebration.svg" width="190" height="142" alt="" /></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
- {overlay?.type==='veys'&&<VeysWallet onClose={exitOverlay} onChanged={onWalletChanged} onPurchased={refresh}/>}
+ {overlay?.type==='veys'&&<VeysWallet onClose={closeWallet} onChanged={onWalletChanged} onPurchased={refresh}/>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
- {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay} onSent={()=>{refresh();exitOverlay()}} onWallet={()=>setOverlay({type:'veys'})}/>}
+ {overlay?.type==='gift'&&<GiftPicker target={overlay.target} initialNote={overlay.note||''} initialPendingIds={overlay.pendingIds||[]} onClose={exitOverlay} onSent={()=>{refresh();exitOverlay()}} onWallet={(note,pendingIds)=>setOverlay({type:'veys',returnTo:{type:'gift',target:overlay.target,note,pendingIds}})}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
  {overlay?.type==='filters'&&<FeedFilters profile={me.profile} filters={feedFilters} onClose={exitOverlay} onSave={async next=>{await refresh();setFeedFilters(next);setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
  {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}
