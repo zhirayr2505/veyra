@@ -24,7 +24,7 @@ export async function validateCheckout(q,pc){
   if(!eligible)return false;
  }
  if(o.precheckout_id&&o.precheckout_id!==pc.id)return false;
- if(o.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND id<>$2 AND ((status='paid' AND kind='premium') OR (first_only AND precheckout_id IS NOT NULL))",[o.user_id,o.id]))return false;
+ if(o.first_only&&await one(q,"SELECT 1 FROM orders WHERE user_id=$1 AND id<>$2 AND ((status='paid' AND kind='premium') OR (first_only AND status='pending' AND precheckout_id IS NOT NULL AND precheckout_at>=now()-interval '1 hour'))",[o.user_id,o.id]))return false;
  if(!pc.id)return false;
  await q.query('UPDATE orders SET precheckout_id=$2,precheckout_at=now() WHERE id=$1',[o.id,pc.id]);return true;
 }
