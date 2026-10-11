@@ -192,6 +192,6 @@ export function Registration({me,refresh}){
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===6&&photos.length<MIN_PHOTOS)} onClick={step===6?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===6?'посмотреть анкету':step===5?'добавить фото':step===4?'продолжить':step===3?'выбрать цель':step===2?'кого я ищу':'далее'}</Button>}</div>
+  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===6&&photos.length<MIN_PHOTOS)} onClick={step===6?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===6?'посмотреть анкету':step===5?'добавить фото':step===4?'продолжить':step===3?'выбрать цель':step===2?'выбрать город':'далее'}</Button>}</div>
  </div>;
 }
