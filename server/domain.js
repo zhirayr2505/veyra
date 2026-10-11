@@ -9,7 +9,8 @@ export async function notifyReview(q,env,userId){
  const p=await one(q,`SELECT p.*,u.username,extract(year FROM age(p.birth_date))::int AS age FROM profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=$1`,[userId]);
  if(!p)return;
  const photo=await one(q,'SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at LIMIT 1',[userId]);
- const text=`Анкета ${p.user_id} · ревизия ${p.revision}\n${p.name}, ${p.age}\n@${p.username||'—'}\n${p.city}, ${p.country}\nПол: ${p.gender} · Ищет: ${p.looking_for.join(', ')}\nЦель: ${p.goal}\n${p.bio.slice(0,250)}\nИнтересы: ${p.interests.join(', ').slice(0,100)}`.slice(0,1000);
+ const answers=(Array.isArray(p.prompts)?p.prompts:[]).filter(item=>item?.answer).map(item=>`${item.key}: ${String(item.answer).slice(0,180)}`).join('\n');
+  const text=`Анкета ${p.user_id} · ревизия ${p.revision}\n${p.name}, ${p.age}\n@${p.username||'—'}\n${p.city}, ${p.country}\nПол: ${p.gender} · Ищет: ${p.looking_for.join(', ')}\nЦель: ${p.goal}\nЯзыки: ${(p.languages||[]).join(', ')}\nИнтересы: ${p.interests.join(', ').slice(0,150)}\nОтветы:\n${answers.slice(0,400)}\nО себе: ${p.bio.slice(0,220)}`.slice(0,1000);
  const reply_markup={inline_keyboard:[[{text:'Все фото и анкета',web_app:{url:env.APP_URL+'/admin'}}],[{text:'Одобрить',callback_data:`approve:${p.user_id}:${p.revision}`}]]};
  await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify({text,photo_id:photo?.id,reply_markup})]);
 }
@@ -19,11 +20,11 @@ export const blocked=async(q,a,b)=>!!await one(q,'SELECT 1 FROM blocks WHERE (ac
 export async function ensurePair(q,a,b){if(String(a)===String(b))fail(400,'SELF_ACTION');await approved(q,a);await approved(q,b);if(await blocked(q,a,b))fail(403,'BLOCKED');}
 export async function activeMatch(q,id,user,lock=false){const m=await one(q,`SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2) AND active=true ${lock?'FOR UPDATE':''}`,[id,user]);if(!m)fail(404,'MATCH_NOT_FOUND');const other=String(m.a)===String(user)?m.b:m.a;await ensurePair(q,user,other);return {...m,other};}
 export async function usage(q,id){await q.query('INSERT INTO daily_usage(user_id) VALUES($1) ON CONFLICT DO NOTHING',[id]);return one(q,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE FOR UPDATE',[id]);}
-export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}
+export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}
 // Bulk equivalent of publicProfile, for loading full match lists with one DB roundtrip.
 export async function publicProfiles(q,ids){
  if(!ids.length)return new Map();
- const rows=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,
+ const rows=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,
   (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos
   FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
   WHERE p.user_id=ANY($1::bigint[])`,[ids.map(String)])).rows;
@@ -33,7 +34,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
-  u.boost_until>now() AS boosted, u.last_seen
+  u.boost_until>now() AS boosted, (p.goal=$15) AS same_goal, (p.languages && $16::text[]) AS shared_language, u.last_seen
  FROM profiles p JOIN users u ON u.id=p.user_id
  WHERE p.user_id<>$1 AND p.moderation='approved' AND u.status='active' AND NOT u.paused AND (NOT u.invisible OR u.premium_until IS NULL OR u.premium_until<=now())
  AND p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for)
@@ -51,7 +52,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
  AND NOT EXISTS(SELECT 1 FROM matches WHERE (a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id))
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||''])).rows;
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[]])).rows;
  const candidates=rows.filter(x=>(process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
@@ -62,7 +63,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   ON CONFLICT DO NOTHING RETURNING target`,[user.id,candidateIds]);
  if(seen.rowCount)await q.query('UPDATE daily_usage SET views=views+$2 WHERE user_id=$1 AND day=CURRENT_DATE',[user.id,seen.rowCount]);
  const cards=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,
-  p.gender,p.bio,p.interests,p.goal,p.smoking,p.leisure,p.city,p.country,u.boost_until,
+  p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,
   (CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,
   (NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,
   t.activity,t.time_slot,t.expires_at AS today_until,
@@ -81,7 +82,7 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   const card=byId.get(String(candidate.user_id));
   if(!card)return null;
   card.distance_km=Math.max(1,Math.round(candidate.distance/5)*5);
-   card.shared_interests=Number(candidate.shared)||0;
+   card.shared_interests=Number(candidate.shared)||0;card.shared_goal=!!candidate.same_goal;card.shared_language=!!candidate.shared_language;
   return card;
  }).filter(Boolean);
  return {profiles,limited:false};

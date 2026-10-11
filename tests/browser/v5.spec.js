@@ -131,10 +131,12 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
  await expect(page.locator('.looking-choice img')).toHaveCount(3);
  await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/\/veyra-approved\/01_icons\/(?:active|inactive)\/everyone\.svg/);
- await page.getByRole('button',{name:'рассказать о себе'}).click();
- await expect(page.getByRole('heading',{name:'ваши интересы'})).toBeVisible();
- await page.locator('.interest-tag').first().click();
- await page.locator('.interest-tag').nth(1).click();
+ await page.getByRole('button',{name:'выбрать цель'}).click();
+ await page.locator('.veyra-goal-choice').nth(1).click();
+ await page.getByRole('button',{name:'продолжить'}).click();
+ await expect(page.getByRole('heading',{name:'что тебе нравится?'})).toBeVisible();
+ await page.locator('.veyra-interest-options button').first().click();
+ await page.locator('.veyra-interest-options button').nth(1).click();
  await page.getByRole('button',{name:'добавить фото'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
  await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
@@ -200,8 +202,13 @@ test('V7 registration keeps call-to-action pinned and interest icons visible',as
  await page.getByRole('button',{name:'скрыть поиск'}).click();
  await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toHaveCount(0);
  await page.getByRole('button',{name:'выбрать город'}).click();
- await page.getByRole('button',{name:'рассказать о себе'}).click();
- await expect(page.locator('.interest-tag img.veyra-interest-icon')).toHaveCount(15);
+ await page.getByRole('button',{name:'выбрать цель'}).click();
+ await page.locator('.veyra-goal-choice').nth(1).click();
+ await page.getByRole('button',{name:'продолжить'}).click();
+ await expect(page.getByRole('heading',{name:'что тебе нравится?'})).toBeVisible();
+ await expect(page.locator('.veyra-interest-options button').first()).toBeVisible();
+ await expect(page.getByRole('heading',{name:'что тебе нравится?'})).toBeVisible();
+ await expect.poll(()=>page.locator('.veyra-interest-options button img.veyra-interest-icon').count()).toBeGreaterThan(40);
 });
 
 

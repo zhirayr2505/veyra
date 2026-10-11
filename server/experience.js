@@ -12,7 +12,7 @@ export async function profileStats(q,uid){
  (SELECT count(*)::int FROM reactions WHERE target=$1 AND kind<>'pass' AND created_at>=now()-interval '7 days') AS likes_7d,
  (SELECT count(*)::int FROM matches WHERE active AND (a=$1 OR b=$1)) AS matches,
  (SELECT count(*)::int FROM photos WHERE user_id=$1) AS photos`,[uid]);
- const fields=[!!p?.name,!!p?.bio,p?.interests?.length>0,!!p?.city,n.photos>0,n.photos>=3];
+ const fields=[!!p?.name,!!p?.city,n.photos>=3,!!p?.goal,(p?.interests||[]).length>=3,!!p?.bio,(p?.languages||[]).length>0,(p?.prompts||[]).some(x=>x.answer?.trim())];
  return {...n,completion:Math.round(fields.filter(Boolean).length/fields.length*100)};
 }
 export async function undoReaction(q,uid,target){
