@@ -2,8 +2,8 @@ import React,{useEffect,useState,useRef} from 'react';
 import {photoUrl,cachedPhoto} from './api.js';
 // Approved Work asset pack: /VEYRA_ASSET_PACK/ in repo root; browser mirror: /veyra-approved/.
 const oldBase='/veyra-v2/';
-const base=approvedBase; // only the approved Work asset pack powers branded UI
 const approvedBase='/veyra-approved/';
+const base=approvedBase; // only the approved Work asset pack powers branded UI
 const iconAliases={
   filter:'filters',pin:'location',shield_check:'verified',
   crown:'premium',crown_filled:'premium',star:'rating',star_filled:'rating',
