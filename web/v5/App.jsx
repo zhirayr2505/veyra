@@ -14,6 +14,7 @@ import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
 import {Discover} from './Discover.jsx';
+import {VeysWallet,Diamond} from './Veys.jsx';
 import '../../veyra-assets/tokens/tokens.css';
 import '../../veyra-assets/styles/components.css';
 import './V2.css';
@@ -30,6 +31,7 @@ export function App(){
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
  const exitOverlay=()=>setOverlay(null);
+ const onWalletChanged=useCallback(balance=>setMe(current=>current?{...current,veys_balance:balance}:current),[]);
  useEffect(()=>{let alive=true;(async()=>{try{
   tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#F9F7FF');tg?.setBackgroundColor?.('#F9F7FF');
   const brandReady=preloadBrandAssets(percent=>{if(alive)setAssetPercent(percent)});
@@ -67,20 +69,21 @@ export function App(){
  {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
-   <header className="v2-screen-header"><Logo width={132}/><div className="v2-header-actions"><button type="button" aria-label="Фильтры" title="Фильтры" onClick={()=>setOverlay({type:'filters'})}><Icon name="filter" size={23}/></button></div></header>
+   <header className="v2-screen-header"><Logo width={132}/><div className="v2-header-actions"><button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={()=>setOverlay({type:'veys'})}><Diamond size={21}/>{new Intl.NumberFormat('ru-RU').format(me.veys_balance||0)}</button><button type="button" aria-label="Фильтры" title="Фильтры" onClick={()=>setOverlay({type:'filters'})}><Icon name="filter" size={23}/></button></div></header>
    <Discover embedded filters={feedFilters} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
   </section>
  </div>
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onMatch={matchFound} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
- {visited.has('profile')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
+ {visited.has('profile')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onWallet={()=>setOverlay({type:'veys'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
  </div>
- {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship}/></div>}
+ {member&&<div className="subscreen"><Member id={member.id} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship} onWallet={()=>setOverlay({type:'veys'})}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
  {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><img src="/veyra-v2/illustrations/match-celebration.svg" width="190" height="142" alt="" /></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
+ {overlay?.type==='veys'&&<VeysWallet onClose={exitOverlay} onChanged={onWalletChanged}/>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
- {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay}/>}
+ {overlay?.type==='gift'&&<GiftPicker target={overlay.target} onClose={exitOverlay} onWallet={()=>setOverlay({type:'veys'})}/>}
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
  {overlay?.type==='filters'&&<FeedFilters profile={me.profile} filters={feedFilters} onClose={exitOverlay} onSave={async next=>{await refresh();setFeedFilters(next);setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
  {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}

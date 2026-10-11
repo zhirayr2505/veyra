@@ -1,14 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
+import {randomUUID} from 'node:crypto';
 import {testDB,user,initData,deps} from './helpers.js';
 import {createApp} from '../server/app.js';
 import {react} from '../server/domain.js';
-import {one} from '../server/db.js';
-import {settle,validateCheckout,finalizeRefund} from '../server/payments.js';
-import {COURTSHIP_STARS,COURTSHIP_DAYS} from '../server/courtship.js';
+import {creditVeys} from '../server/veys.js';
+import {COURTSHIP_VEYS,COURTSHIP_DAYS} from '../server/courtship.js';
 
-test('courtship: only matched members, recipient consent, Stars activation, public status and recipient stop',async()=>{
+test('courtship: matched consent, VEYS debit, idempotent activation and recipient stop',async()=>{
  const db=await testDB();
  try{
   for(const uid of [101,102,103])await user(db,uid);
@@ -19,8 +19,7 @@ test('courtship: only matched members, recipient consent, Stars activation, publ
   const get=(uid,path)=>aut(uid,request(app).get('/api'+path));
   const send=(uid,path,body)=>aut(uid,request(app).post('/api'+path)).send(body);
   assert.equal((await send(101,'/courtships/request',{target:'102'})).status,403);
-  await db.tx(q=>react(q,'101','102','like'));
-  await db.tx(q=>react(q,'102','101','like'));
+  await db.tx(q=>react(q,'101','102','like'));await db.tx(q=>react(q,'102','101','like'));
   const offered=await send(101,'/courtships/request',{target:'102'});
   assert.equal(offered.status,201);assert.equal(offered.body.status,'pending');
   assert.equal((await get(103,'/courtships/profile/102')).body.suitors.length,0);
@@ -28,35 +27,25 @@ test('courtship: only matched members, recipient consent, Stars activation, publ
   assert.equal((await send(101,'/courtships/'+offered.body.id+'/respond',{accept:true})).status,404);
   assert.equal((await send(102,'/courtships/'+offered.body.id+'/respond',{accept:true})).body.status,'accepted');
   assert.equal((await get(103,'/courtships/profile/102')).body.suitors.length,0);
-  assert.equal((await send(101,'/courtships/'+offered.body.id+'/pay',{})).status,503);
-  await db.query("UPDATE feature_flags SET enabled=true WHERE key='payments'");
-  const pay=await send(101,'/courtships/'+offered.body.id+'/pay',{});
-  assert.equal(pay.status,200);
-  assert.equal(pay.body.stars,COURTSHIP_STARS);assert.equal(pay.body.days,COURTSHIP_DAYS);
-  assert.equal(pay.body.status,'payment_required');
-  assert.ok(pay.body.invoice_url);
-  const order=await one(db,'SELECT * FROM orders WHERE id=$1',[pay.body.order_id]);
-  assert.equal(order.kind,'courtship');
-  assert.equal(order.total,COURTSHIP_STARS);
+  const path='/courtships/'+offered.body.id+'/pay';
+  assert.equal((await send(101,path,{})).status,402);
   assert.equal((await get(103,'/courtships/profile/102')).body.suitors.length,0);
+  await db.tx(async q=>{await q.query('SELECT id FROM users WHERE id=101 FOR UPDATE');await creditVeys(q,101,COURTSHIP_VEYS,'order',randomUUID())});
   await db.query('INSERT INTO blocks(actor,target) VALUES(102,101)');
-  assert.equal(await db.tx(q=>validateCheckout(q,{
-   invoice_payload:order.id,from:{id:101},currency:'XTR',total_amount:COURTSHIP_STARS,id:'pc-blocked-test'
-  })),false);
+  assert.equal((await send(101,path,{})).status,403);
+  assert.equal((await get(101,'/veys')).body.balance,COURTSHIP_VEYS);
   await db.query('DELETE FROM blocks WHERE actor=102 AND target=101');
-  assert.equal(await db.tx(q=>validateCheckout(q,{
-   invoice_payload:order.id,from:{id:101},currency:'XTR',total_amount:COURTSHIP_STARS,id:'pc-courtship-test'
-  })),true);
-  const pc={invoice_payload:order.id,currency:'XTR',total_amount:COURTSHIP_STARS,telegram_payment_charge_id:'courtship-test'};
-  await db.tx(q=>settle(q,'101',pc));await db.tx(q=>settle(q,'101',pc));
+  const pay=await send(101,path,{});
+  assert.equal(pay.status,200);assert.equal(pay.body.status,'active');
+  assert.equal(pay.body.veys_spent,COURTSHIP_VEYS);assert.equal(pay.body.days,COURTSHIP_DAYS);
+  assert.equal((await get(101,'/veys')).body.balance,0);
+  assert.equal((await send(101,path,{})).body.duplicate,true);
   let publicStatus=(await get(103,'/courtships/profile/102')).body;
   assert.equal(publicStatus.suitors.length,1);assert.equal(String(publicStatus.suitors[0].sender),'101');
   assert.equal((await get(101,'/courtships/profile/102')).body.mine.status,'active');
   assert.equal((await send(102,'/courtships/'+offered.body.id+'/stop',{})).body.status,'cancelled');
   publicStatus=(await get(103,'/courtships/profile/102')).body;
   assert.equal(publicStatus.suitors.length,0);
-  await db.tx(q=>finalizeRefund(q,order.id,'101'));
-  assert.equal((await get(103,'/courtships/profile/102')).body.suitors.length,0);
  }finally{await db.close();}
 });
 
@@ -64,8 +53,7 @@ test('courtship: declined requests never take money and may be sent again',async
  const db=await testDB();
  try{
   await user(db,101);await user(db,102);
-  await db.tx(q=>react(q,'101','102','like'));
-  await db.tx(q=>react(q,'102','101','like'));
+  await db.tx(q=>react(q,'101','102','like'));await db.tx(q=>react(q,'102','101','like'));
   const app=createApp(deps(db));
   const auth=async uid=>(await request(app).post('/api/auth').send({initData:initData(uid)})).body.token;
   const first=await auth(101),second=await auth(102);

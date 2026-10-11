@@ -1,0 +1,32 @@
+/* VEYS brand wallet — original faceted diamond, VEYRA palette only. */
+.veys-wallet{display:flex;flex-direction:column;gap:16px;color:#25153D;padding-bottom:12px;max-height:min(78dvh,740px);overflow:auto;scrollbar-width:thin}
+.veys-diamond{display:inline-block;vertical-align:middle;object-fit:contain;flex-shrink:0}
+.veys-balance-card{padding:24px 20px 22px;border-radius:22px;background:#6817FF;color:#fff;box-shadow:0 12px 29px #6817FF25;overflow:hidden;position:relative}
+.veys-balance-card:before{content:"";position:absolute;right:-32px;top:-65px;width:165px;height:165px;background:#FFFFFF13;border-radius:50%;pointer-events:none}
+.veys-balance-label{font-size:13px;font-weight:700;color:#F3EBFF}
+.veys-balance-amount{display:flex;align-items:center;gap:9px;font-size:39px;line-height:1.3;font-weight:830;letter-spacing:-1.4px;margin:6px 0 7px}
+.veys-balance-amount span{font-size:13px;font-weight:750;letter-spacing:0;margin-top:9px}
+.veys-balance-card p{margin:0;color:#E9DFFF;font-size:12px;line-height:1.5;max-width:285px}
+.veys-tabs{display:grid;grid-template-columns:repeat(3,1fr);background:#F0E9FF;padding:4px;gap:3px;border-radius:15px}
+.veys-tabs button{border:0;border-radius:12px;padding:10px 3px;background:transparent;color:#625474;font-size:12px;font-weight:710}
+.veys-tabs button.selected{background:#fff;color:#6817FF;box-shadow:0 1px 6px #25153D0B}
+.veys-exchange{font-size:12px;line-height:1.55;margin:0;color:#777185}
+.veys-exchange strong{color:#6817FF}
+.veys-packages{display:flex;flex-direction:column;gap:9px}
+.veys-package{border:1px solid #E9E2F3!important;background:#fff!important;border-radius:17px!important;display:flex;align-items:center;gap:12px;padding:12px 13px!important;min-height:71px;text-align:left;box-shadow:none!important;color:#25153D!important}
+.veys-package:disabled{opacity:.58}.veys-package:active:not(:disabled){transform:scale(.99)}
+.veys-package-icon{width:44px;height:44px;display:grid;place-items:center;background:#F0E9FF;border-radius:15px}
+.veys-package-name{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.veys-package-name strong{font-size:14px;line-height:1.2}
+.veys-package-name small{color:#777185;font-size:11px}
+.veys-package>b{font-size:13px;font-weight:790;white-space:nowrap;color:#6817FF}
+.veys-footnote{font-size:11px;line-height:1.55;text-align:center;color:#777185;margin:0}
+.veys-hint{font-size:12px;color:#777185}
+.veys-history-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #F0E9FF;padding:12px 2px}
+.veys-history-item span{display:flex;flex-direction:column;gap:3px}.veys-history-item strong{font-size:13px}.veys-history-item small{font-size:11px;color:#777185}.veys-history-item b{font-size:13px;white-space:nowrap}.veys-history-item .positive{color:#6817FF}.veys-history-item .negative{color:#25153D}
+.veys-history-empty{padding:28px 8px;text-align:center;font-size:13px;color:#777185}
+.veys-shortcut{margin-bottom:15px;display:flex;align-items:center;gap:11px;min-height:65px;padding:12px 15px!important;border:1px solid #DDD0FA!important;background:#F0E9FF!important;border-radius:17px!important;color:#25153D!important;text-align:left;box-shadow:none!important;width:100%}
+.veys-shortcut strong{font-size:15px;font-weight:800}.veys-shortcut small{font-size:11px;color:#777185}.veys-shortcut .veys-shortcut-meta{display:flex;flex-direction:column;flex:1;gap:3px}.veys-shortcut .veys-shortcut-action{font-weight:720;color:#6817FF;font-size:12px}
+.veys-header-button{display:flex;align-items:center;gap:4px;border:1px solid #E9E2F3;background:#fff;border-radius:14px;min-height:38px;padding:5px 8px;font-size:12px;font-weight:800;color:#6817FF;white-space:nowrap}
+.veys-header-button img{width:19px;height:19px}
+@media(max-width:365px){.veys-balance-amount{font-size:32px}.veys-shortcut{padding:10px!important}}
