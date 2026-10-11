@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import {randomUUID} from 'node:crypto';
-import {testDB,user,initData,deps} from './helpers.js';
+import {testDB,user,initData,deps,env} from './helpers.js';
+import {webhookSecret} from '../server/core.js';
 import {createApp} from '../server/app.js';
 import {one} from '../server/db.js';
 import {settle,finalizeRefund,validateCheckout} from '../server/payments.js';
@@ -107,5 +108,46 @@ test('VEYS: gift free allowance is unaffected by paid VEYS purchases',async()=>{
   const free=await c.post('/gifts/send',{target:'102',gift_key:'spark',client_id:randomUUID()});
   assert.equal(free.status,201);
   assert.equal((await c.post('/gifts/send',{target:'102',gift_key:'spark',client_id:randomUUID()})).status,429);
+ }finally{await db.close();}
+});
+
+test('VEYS: actual Telegram webhook pre-checkout, settlement, retry and Stars refund',async()=>{
+ const db=await testDB();
+ try{
+  await user(db,101);
+  const calls=[];
+  const d=deps(db);
+  d.tg=async(bot,method,body)=>{calls.push({bot,method,body});return 'https://t.me/test-invoice'};
+  const app=createApp(d);
+  const token=(await request(app).post('/api/auth').send({initData:initData(101)})).body.token;
+  const aut=req=>req.set('Authorization','Bearer '+token);
+  await db.query("UPDATE feature_flags SET enabled=true WHERE key='payments'");
+  const invoice=await aut(request(app).post('/api/veys/invoice')).send({sku:'veys_100'});
+  assert.equal(invoice.status,201);
+  assert.equal(invoice.body.amount,100);
+  const payload=invoice.body.order_id;
+  const callWebhook=(update_id,message)=>request(app).post('/webhooks/user')
+   .set('X-Telegram-Bot-Api-Secret-Token',webhookSecret(env.USER_BOT_TOKEN))
+   .send({update_id,...message});
+  const bad=await request(app).post('/webhooks/user').send({update_id:1});
+  assert.equal(bad.status,403);
+  const checkout={id:'pc-100',invoice_payload:payload,from:{id:101},currency:'XTR',total_amount:10};
+  const pre=await callWebhook(1011,{pre_checkout_query:checkout});
+  assert.equal(pre.status,200);
+  assert.ok(calls.some(c=>c.method==='answerPreCheckoutQuery'&&c.body.ok===true));
+  const charge={invoice_payload:payload,currency:'XTR',total_amount:10,telegram_payment_charge_id:'veys-webhook-charge-100'};
+  const payment={message:{message_id:201,chat:{id:101,type:'private'},from:{id:101},successful_payment:charge}};
+  assert.equal((await callWebhook(1012,payment)).status,200);
+  assert.equal((await callWebhook(1013,payment)).status,200);
+  const getBalance=async()=>Number((await aut(request(app).get('/api/veys'))).body.balance);
+  assert.equal(await getBalance(),100);
+  const refund={message:{message_id:202,chat:{id:101,type:'private'},from:{id:101},
+   refunded_payment:{telegram_payment_charge_id:charge.telegram_payment_charge_id}}};
+  assert.equal((await callWebhook(1014,refund)).status,200);
+  assert.equal((await callWebhook(1015,refund)).status,200);
+  assert.equal(await getBalance(),0);
+  const wallet=(await aut(request(app).get('/api/veys'))).body;
+  assert.equal(wallet.history.filter(r=>r.action==='topup').length,1);
+  assert.equal(wallet.history.filter(r=>r.action==='refund').length,1);
  }finally{await db.close();}
 });
