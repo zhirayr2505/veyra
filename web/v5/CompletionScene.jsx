@@ -95,7 +95,7 @@ export function CompletionScreen({kind='pending',reason='',onClose,onRefresh,onP
    {!deleted&&onPreview&&<button type="button" className="vc-preview-btn" onClick={onPreview}><Icon name="user" tone="white" size={19}/> Посмотреть профиль</button>}
    <button type="button" className="vc-close-btn" onClick={close}>{deleted?'Выйти из приложения':'Закрыть приложение'}</button>
    {!deleted&&<div className="vc-footer-links"><button type="button" className="vc-refresh-btn" disabled={checking} onClick={refresh}>{checking?'Проверяем…':'Обновить статус'}</button>{onEdit&&<button type="button" className="vc-refresh-btn" disabled={busy} onClick={onEdit}>{busy?'Открываем…':'Изменить анкету'}</button>}</div>}
-   {error&&<p role="alert" className="vc-feedback-error">{error}</p>
+   {error&&<p role="alert" className="vc-feedback-error">{error}</p>}
   </footer>
  </main>;
 }
