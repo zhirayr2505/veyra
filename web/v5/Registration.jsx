@@ -25,7 +25,7 @@ function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),
 export function Registration({me,refresh}){
  const start=me?.registration?.data||{},draftKey='veyra.registration.v8.'+String(me?.user?.id||'anonymous');
  const savedStep=me?.registration?.step||1;
- const initialStep=start.registration_ui_version===2?savedStep:({1:1,2:3,3:4,4:5,5:6,6:7}[savedStep]||1);
+ const initialStep=start.registration_ui_version===2?savedStep:1; // Legacy drafts restart at terms consent; previous answers stay filled.
  const [step,setStep]=useState(Math.min(7,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);

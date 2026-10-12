@@ -22,6 +22,7 @@ import './V2.css';
 import './BrandConsistency.css';
 import './ApprovedPack.css';
 import './MobileQA.css';
+import './Registration2026.css'; // Purple-white onboarding must override the legacy V2 shell rules
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
