@@ -183,9 +183,11 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await expect(page.locator('.city-results button').first()).toBeVisible();
  await page.locator('.city-results button').first().click();
  await expect(page.locator('.location-card')).toContainText('Paris');
+  expect((await page.locator('.location-card').boundingBox()).height).toBeLessThan(130);
+  await expect(page.locator('.vy-range input[type=range]')).toHaveCount(1);
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Кого вы ищете?'})).toBeVisible();
- await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
+ await expect(page.locator('.vy-range-dual input[type=range]')).toHaveCount(2);
  await expect(page.locator('.looking-choice .veyra-brand-glyph')).toHaveCount(3);
  await page.getByRole('button',{name:'далее'}).click();
  await page.locator('.veyra-goal-choice').nth(1).click();
@@ -247,13 +249,18 @@ test('New registration has a pinned CTA and working location edit + interests',a
  await page.getByRole('button',{name:'изменить город'}).click();
  await expect(page.locator('.city-search')).toBeVisible();
  await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toBeVisible();
- await page.getByRole('button',{name:'скрыть поиск'}).click();
+ await page.getByRole('button',{name:'Закрыть'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await page.locator('.veyra-goal-choice').nth(1).click();
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await expect(page.locator('.veyra-interest-options button').first()).toBeVisible();
+  await expect(page.getByRole('textbox',{name:'О себе'})).toBeVisible();
+  await expect(page.locator('.veyra-interest-tabs-scroll [role=tab]')).toHaveCount(14);
+  const bioTop=await page.getByRole('textbox',{name:'О себе'}).evaluate(e=>e.getBoundingClientRect().top);
+  const pickerTop=await page.locator('.veyra-interest-picker').evaluate(e=>e.getBoundingClientRect().top);
+  expect(bioTop).toBeLessThan(pickerTop);
 });
 
 test('City set manually can be corrected via device location without a navigation',async({page,context})=>{
