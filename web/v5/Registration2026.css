@@ -464,3 +464,12 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
  display:block!important;max-width:100%!important;height:100%!important;
  border-radius:99px!important;transform:none!important;
 }
+
+/* Interest categories may be scrolled without hijacking the vertical form. */
+.v2-onboarding .veyra-registration-2026 .veyra-interest-tabs-scroll{
+ overscroll-behavior-x:contain;scroll-snap-type:x proximity;
+ -webkit-overflow-scrolling:touch;touch-action:pan-x;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-tabs-scroll>[role="tab"]{
+ scroll-snap-align:center;flex-shrink:0;
+}

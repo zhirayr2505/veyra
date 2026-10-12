@@ -234,6 +234,13 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  expect(gallery.y+gallery.height).toBeLessThan(primaryCta.y+1);
  await expect(page.locator('.preview-gallery')).toHaveCount(1);
  await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
+ // Switching between feed and full-profile must not retain a previous scroll.
+ await page.getByRole('tab',{name:'Полный профиль'}).click();
+ const fullScroll=page.locator('.vp-scroll');
+ await fullScroll.evaluate(el=>{el.scrollTop=300});
+ await page.getByRole('tab',{name:'В ленте'}).click();
+ await page.getByRole('tab',{name:'Полный профиль'}).click();
+ await expect.poll(()=>fullScroll.evaluate(el=>el.scrollTop)).toBe(0);
  await page.getByRole('button',{name:'редактировать'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
 });

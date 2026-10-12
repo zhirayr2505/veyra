@@ -69,6 +69,14 @@ export const profileCompletion=(p,photoCount=0)=>{
 export function GoalPicker({value,onChange}){return <div className="veyra-goal-list" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><button type="button" key={goal.value} className={'veyra-goal-choice '+(value===goal.value?'is-active':'')} aria-pressed={value===goal.value} onClick={()=>onChange(goal.value)}><span className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={25}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></button>)}</div>;}
 export function InterestPicker({value=[],onChange,max=12}){
  const [search,setSearch]=useState(''),[category,setCategory]=useState(INTEREST_GROUPS[0].title),[limitMessage,setLimitMessage]=useState(false);
+  const selectCategory=(e,title)=>{
+   setCategory(title);
+   const tab=e.currentTarget,rail=tab.parentElement;
+   if(!rail)return;
+   // Move the horizontal categories only; never jump the full page vertically.
+   const left=tab.offsetLeft-rail.offsetLeft-(rail.clientWidth-tab.clientWidth)/2;
+   rail.scrollTo?.({left:Math.max(0,left),behavior:'smooth'});
+  };
  const selected=Array.isArray(value)?value:[],query=search.trim().toLocaleLowerCase('ru');
  const matching=useMemo(()=>query?INTEREST_GROUPS.flatMap(group=>group.items.filter(item=>item.toLocaleLowerCase('ru').includes(query))):INTEREST_GROUPS.find(group=>group.title===category)?.items||[],[query,category]);
  const toggle=item=>{if(selected.includes(item)){setLimitMessage(false);onChange(selected.filter(x=>x!==item))}else if(selected.length<max){setLimitMessage(false);onChange([...selected,item])}else setLimitMessage(true)};
@@ -77,7 +85,7 @@ export function InterestPicker({value=[],onChange,max=12}){
   <p className="veyra-picker-caption">Из всех категорий можно выбрать до 12 увлечений.</p>
   <div className="veyra-interest-picked" aria-label="Выбранные интересы"><strong>Выбрано</strong><div className="veyra-selected-scroller">{selected.length?selected.map(item=><button type="button" key={item} aria-label={'Убрать '+item} onClick={()=>toggle(item)}>{item} ×</button>):<span className="veyra-empty-selected">Интересы появятся здесь</span>}</div></div>
   <input className="veyra-picker-search" aria-label="Поиск интересов" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск интересов…"/>
-  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={()=>setCategory(g.title)}><CategoryGlyph title={g.title} size={17}/><span>{g.title}</span></button>)}</div>}
+  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={e=>selectCategory(e,g.title)}><CategoryGlyph title={g.title} size={17}/><span>{g.title}</span></button>)}</div>}
   <section className="veyra-interest-panel"><h3>{query?'Результаты поиска':category}</h3><div className="veyra-interest-options">{matching.slice(0,40).map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={17}/>{item}{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>)}</div>{!matching.length&&<p className="veyra-picker-caption">Ничего не найдено. Попробуй другой запрос.</p>}</section>
   {(limitMessage||selected.length===max)&&<p className="veyra-interest-limit" role="status">Выбраны 12 интересов. Убери один, чтобы добавить новый.</p>}
  </div>;
