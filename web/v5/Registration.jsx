@@ -38,7 +38,15 @@ export function Registration({me,refresh}){
  const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
- const setDobPart=(key,raw)=>{const max=key==='year'?4:2,val=String(raw).replace(/\D/g,'').slice(0,max),parts={...dobParts,[key]:val};setDobParts(parts);const {day,month,year}=parts;change('birth_date',day.length===2&&month.length===2&&year.length===4?year+'-'+month+'-'+day:'');if(val.length===max&&key!=='year')dobRefs.current[key==='day'?1:2]?.focus();};
+ const setDobPart=(key,raw)=>{const max=key==='year'?4:2,val=String(raw).replace(/\D/g,'').slice(0,max),parts={...dobParts,[key]:val};setDobParts(parts);const {day,month,year}=parts;change('birth_date',day.length===2&&month.length===2&&year.length===4?year+'-'+month+'-'+day:'');if(val.length===max){
+  if(key!=='year')dobRefs.current[key==='day'?1:2]?.focus();
+  else if(day.length===2&&month.length===2){
+   // Close the Android numeric keyboard only after all DOB fields are filled.
+   dobRefs.current[2]?.blur();
+   const miniApp=window.Telegram?.WebApp;
+   try{if(miniApp?.isVersionAtLeast?.('9.1'))miniApp.hideKeyboard?.()}catch{}
+  }
+ }};
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
  useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);

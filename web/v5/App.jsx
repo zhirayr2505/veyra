@@ -17,6 +17,7 @@ import {Premium} from './Premium.jsx';
 import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
+import {enableTelegramFullscreen} from './telegramViewport.js';
 import {Discover} from './Discover.jsx';
 import {VeysWallet,Diamond} from './Veys.jsx';
 import '../../veyra-assets/tokens/tokens.css';
@@ -39,14 +40,14 @@ export function App(){
  const exitOverlay=()=>setOverlay(null);
  const closeWallet=()=>setOverlay(current=>current?.type==='veys'?(current.returnTo||null):null);
  const onWalletChanged=useCallback(balance=>setMe(current=>current?{...current,veys_balance:balance}:current),[]);
- useEffect(()=>{let alive=true;(async()=>{try{
+ useEffect(()=>{let alive=true;const releaseFullscreen=enableTelegramFullscreen(tg);(async()=>{try{
   tg?.ready?.();tg?.expand?.();tg?.setHeaderColor?.('#F9F7FF');tg?.setBackgroundColor?.('#F9F7FF');
   const brandReady=preloadBrandAssets(percent=>{if(alive)setAssetPercent(percent)});
   if(!tg?.initData)throw Error('Открой VEYRA через официальный Telegram-бот @VeyraAppBot');
   const auth=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,scope:admin?'admin':'user'})});
   const j=await auth.json();if(!auth.ok)throw Error(j.error||'Не удалось войти через Telegram');
   setBearer(j.token);const m=await get('/me');await brandReady;if(alive){setMe(m);setError('')}
- }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false}},[]);
+ }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false;releaseFullscreen()}},[]);
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
   const active=!!(match||overlay||member||conversation);
   if(!active){back.hide?.();return;}

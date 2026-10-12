@@ -413,3 +413,29 @@
  .v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress span{transition:none!important}
  .v2-onboarding .veyra-registration-2026 .photo-slot .veyra-photo-upload-tick{animation:none!important}
 }
+
+
+/* Native fullscreen Telegram paints underneath its own controls. Pad the
+   application content by Telegram's platform-reported safe area only. */
+:root{--veyra-telegram-top:0px;--veyra-telegram-bottom:0px}
+html.veyra-telegram-fullscreen body{min-height:100dvh}
+html.veyra-telegram-fullscreen .v2-onboarding .veyra-onboarding-fixed-header{
+ padding-top:calc(10px + max(env(safe-area-inset-top,0px),var(--veyra-telegram-top)))!important;
+}
+html.veyra-telegram-fullscreen .vc-screen{
+ padding-top:calc(8px + max(env(safe-area-inset-top,0px),var(--veyra-telegram-top)))!important;
+ padding-bottom:calc(12px + max(env(safe-area-inset-bottom,0px),var(--veyra-telegram-bottom)))!important;
+}
+html.veyra-telegram-fullscreen .veyra-profile-preview{
+ padding-top:calc(8px + max(env(safe-area-inset-top,0px),var(--veyra-telegram-top)))!important;
+ padding-bottom:calc(8px + max(env(safe-area-inset-bottom,0px),var(--veyra-telegram-bottom)))!important;
+}
+html.veyra-telegram-fullscreen .veyra-delete-page{
+ padding-top:calc(10px + max(env(safe-area-inset-top,0px),var(--veyra-telegram-top)))!important;
+}
+html.veyra-telegram-fullscreen .app-shell .v2-screen-header{
+ padding-top:calc(9px + max(env(safe-area-inset-top,0px),var(--veyra-telegram-top)))!important;
+}
+html.veyra-telegram-fullscreen .bottom-nav{
+ padding-bottom:calc(8px + max(env(safe-area-inset-bottom,0px),var(--veyra-telegram-bottom)))!important;
+}
