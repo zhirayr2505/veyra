@@ -1,29 +1,39 @@
 import React from 'react';
 import './GoalIllustration.css';
-/* Crisp Veyra crystal illustration drawn as brand artwork, animated in CSS. */
 export function GoalIllustration(){return <div className="veyra-goal-jewel" aria-hidden="true">
-<svg viewBox="0 0 330 250" className="veyra-goal-jewel-svg" xmlns="http://www.w3.org/2000/svg" focusable="false">
-<defs>
- <radialGradient id="vj-glow"><stop stopColor="#C69BFF" stopOpacity=".7"/><stop offset="1" stopColor="#DEC3FF" stopOpacity="0"/></radialGradient>
- <linearGradient id="vj-shell" x1="72" y1="25" x2="260" y2="225" gradientUnits="userSpaceOnUse"><stop stopColor="#FFF8FF"/><stop offset=".34" stopColor="#F6D9FF"/><stop offset=".68" stopColor="#CEAAFF"/><stop offset="1" stopColor="#ECDAFF"/></linearGradient>
- <linearGradient id="vj-heart" x1="101" y1="62" x2="231" y2="188" gradientUnits="userSpaceOnUse"><stop stopColor="#F5BEFF"/><stop offset=".37" stopColor="#A64AF6"/><stop offset=".75" stopColor="#6324F2"/><stop offset="1" stopColor="#CE8FFF"/></linearGradient>
- <linearGradient id="vj-ring" x1="20" y1="210" x2="305" y2="25" gradientUnits="userSpaceOnUse"><stop stopColor="#FFFFFF" stopOpacity="0"/><stop offset=".28" stopColor="#FFF"/><stop offset=".62" stopColor="#D9B9FF"/><stop offset="1" stopColor="#FFFFFF" stopOpacity=".18"/></linearGradient>
- <filter id="vj-shadow" x="-55%" y="-55%" width="210%" height="210%"><feGaussianBlur stdDeviation="13"/></filter>
-</defs>
-<ellipse cx="165" cy="126" rx="153" ry="112" fill="url(#vj-glow)" opacity=".68"/>
-<g className="vj-float">
- <ellipse cx="163" cy="145" rx="104" ry="37" fill="#8D52EF" opacity=".15" filter="url(#vj-shadow)"/>
- <rect x="75" y="31" width="177" height="176" rx="65" transform="rotate(-9 75 31)" fill="url(#vj-shell)" stroke="#FFF" strokeWidth="3"/>
- <path d="M98 92C107 46 151 39 178 47" fill="none" stroke="white" strokeOpacity=".72" strokeWidth="7" strokeLinecap="round"/>
- <path className="vj-heart" d="M165 177L110 126C82 96 115 66 142 78C154 83 160 93 165 99C186 65 226 72 234 102C241 129 195 157 165 177Z" fill="url(#vj-heart)" stroke="#FFF3FF" strokeWidth="3" strokeLinejoin="round"/>
- <path d="M165 164L119 120C101 103 116 83 134 87" fill="none" stroke="#FFF" strokeOpacity=".48" strokeWidth="5" strokeLinecap="round"/>
- <ellipse className="vj-ring" cx="164" cy="128" rx="146" ry="42" transform="rotate(-20 164 128)" fill="none" stroke="url(#vj-ring)" strokeWidth="3"/>
- <ellipse cx="164" cy="128" rx="145" ry="40" transform="rotate(-20 164 128)" fill="none" stroke="#FFF" strokeOpacity=".18" strokeWidth="6"/>
-</g>
-<g className="vj-sparkles" fill="#A16AFA">
- <path d="M55 44Q59 60 75 64Q59 68 55 84Q51 68 35 64Q51 60 55 44Z"/>
- <path d="M282 129Q287 149 307 153Q287 157 282 177Q277 157 257 153Q277 149 282 129Z"/>
- <circle cx="280" cy="65" r="7" fill="#D8B5FC"/><circle cx="42" cy="182" r="5" fill="#8E5AEC"/>
- <path d="M250 40C250 28 265 28 269 39C276 28 288 33 285 45C282 55 270 60 268 64C259 55 250 48 250 40Z" fill="#BA72FA"/>
-</g>
+<svg viewBox="0 0 400 290" className="veyra-goal-jewel-svg" xmlns="http://www.w3.org/2000/svg" focusable="false">
+ <defs>
+  <radialGradient id="goal-glow"><stop stopColor="#BD82FF" stopOpacity=".48"/><stop offset=".57" stopColor="#E1BAFF" stopOpacity=".2"/><stop offset="1" stopColor="#F5EEFF" stopOpacity="0"/></radialGradient>
+  <linearGradient id="goal-shell" x1="104" x2="284" y1="44" y2="248" gradientUnits="userSpaceOnUse"><stop stopColor="#FFFFFF"/><stop offset=".31" stopColor="#FEF8FF"/><stop offset=".6" stopColor="#F1D9FF"/><stop offset=".86" stopColor="#DFBBFF"/><stop offset="1" stopColor="#F9EFFF"/></linearGradient>
+  <linearGradient id="goal-inner" x1="124" x2="278" y1="44" y2="252" gradientUnits="userSpaceOnUse"><stop stopColor="#FFFFFF" stopOpacity=".7"/><stop offset=".47" stopColor="#F6DDFE" stopOpacity=".5"/><stop offset="1" stopColor="#BB86F7" stopOpacity=".35"/></linearGradient>
+  <linearGradient id="goal-heart" x1="156" x2="237" y1="85" y2="207" gradientUnits="userSpaceOnUse"><stop stopColor="#FACDFF"/><stop offset=".17" stopColor="#CB79FB"/><stop offset=".48" stopColor="#9346F9"/><stop offset=".78" stopColor="#7B26E6"/><stop offset="1" stopColor="#C377F9"/></linearGradient>
+  <linearGradient id="goal-orbit" x1="20" x2="378" y1="238" y2="55" gradientUnits="userSpaceOnUse"><stop stopColor="#FFFFFF" stopOpacity="0"/><stop offset=".14" stopColor="#F8EAFF"/><stop offset=".43" stopColor="#FFFFFF"/><stop offset=".68" stopColor="#CEACFF"/><stop offset=".95" stopColor="#FFFFFF"/><stop offset="1" stopColor="#FFFFFF" stopOpacity=".1"/></linearGradient>
+  <radialGradient id="goal-pearl"><stop stopColor="#F3D5FF"/><stop offset=".47" stopColor="#BF7FFC"/><stop offset="1" stopColor="#8547E7"/></radialGradient>
+  <filter id="goal-blur" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="15"/></filter>
+ </defs>
+ <ellipse cx="199" cy="150" rx="186" ry="124" fill="url(#goal-glow)" className="goal-light"/>
+ <ellipse cx="200" cy="239" rx="94" ry="16" fill="#9652F4" opacity=".14" filter="url(#goal-blur)"/>
+ <g className="goal-jewel-float">
+  <rect x="97" y="38" width="208" height="208" rx="72" transform="rotate(-8 201 142)" fill="url(#goal-shell)" stroke="#FFFFFF" strokeWidth="3"/>
+  <rect x="105" y="45" width="190" height="193" rx="68" transform="rotate(-8 200 143)" fill="url(#goal-inner)"/>
+  <path d="M129 99 Q142 52 206 51" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" opacity=".85"/>
+  <path d="M269 195 Q277 186 283 169" fill="none" stroke="#FFFFFF" strokeWidth="9" strokeLinecap="round" opacity=".4"/>
+  <path className="goal-heart" d="M201 213C168 189 133 154 135 124C137 93 170 80 190 102L201 115C224 79 264 88 268 120C272 151 240 182 201 213Z" fill="url(#goal-heart)" stroke="#D493FB" strokeWidth="1.3" strokeLinejoin="round"/>
+  <path d="M153 122C159 104 179 103 190 115" fill="none" stroke="#FFEEFF" strokeWidth="8" strokeLinecap="round" opacity=".75"/>
+  <path d="M226 103C240 103 251 112 252 125" fill="none" stroke="#FBE2FF" strokeWidth="7" strokeLinecap="round" opacity=".45"/>
+  <path d="M169 169C180 180 190 191 201 200" fill="none" stroke="#EBBCFC" strokeWidth="4" strokeLinecap="round" opacity=".5"/>
+ </g>
+ <g className="goal-orbit-motion">
+  <ellipse cx="200" cy="145" rx="176" ry="51" transform="rotate(-20 200 145)" fill="none" stroke="#DBBDFF" strokeWidth="11" opacity=".2" filter="url(#goal-blur)"/>
+  <ellipse cx="200" cy="145" rx="176" ry="51" transform="rotate(-20 200 145)" fill="none" stroke="url(#goal-orbit)" strokeWidth="3.5"/>
+  <circle cx="45" cy="197" r="12" fill="url(#goal-pearl)"/><circle cx="41" cy="193" r="4" fill="#FFF" opacity=".75"/>
+  <circle cx="348" cy="88" r="12" fill="url(#goal-pearl)"/><circle cx="344" cy="84" r="4" fill="#FFF" opacity=".77"/>
+ </g>
+ <g className="goal-star-field">
+  <path d="M57 50Q61 72 83 76Q61 80 57 103Q53 80 30 76Q53 72 57 50Z" fill="#FFFFFF"/>
+  <path d="M341 192Q347 215 369 221Q347 226 341 249Q335 226 313 221Q335 215 341 192Z" fill="#FFFFFF"/>
+  <path d="M330 22Q333 39 351 42Q333 45 330 62Q327 45 311 42Q327 39 330 22Z" fill="#C491FD"/>
+  <path d="M303 37C301 23 315 19 324 31C330 19 346 23 345 38C344 48 331 58 324 63C317 56 304 48 303 37Z" fill="url(#goal-heart)" opacity=".85"/>
+  <circle cx="80" cy="245" r="3" fill="#B47CF0"/><circle cx="363" cy="159" r="3" fill="#FFFFFF"/>
+ </g>
 </svg></div>}
