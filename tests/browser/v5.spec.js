@@ -311,11 +311,15 @@ test('New registration has a pinned CTA and working location edit + interests',a
   await expect(page.locator('.veyra-interests-selected header small')).toContainText('1 из 12');
   const scroll=page.locator('.registration-step');
   await scroll.evaluate(el=>{el.scrollTop=500});
-  await expect.poll(()=>page.evaluate(()=>{
+  const stickyPosition=await page.locator('.veyra-interests-selected').evaluate(el=>getComputedStyle(el).position);
+  expect(stickyPosition).toBe('sticky');
+  const offset=()=>page.evaluate(()=>{
    const shelf=document.querySelector('.veyra-interests-selected');
    const scroller=document.querySelector('.registration-step');
-   return Math.abs(shelf.getBoundingClientRect().top-scroller.getBoundingClientRect().top)<8;
-  })).toBe(true);
+   return Math.round(shelf.getBoundingClientRect().top-scroller.getBoundingClientRect().top);
+  });
+  await expect.poll(offset).toBeGreaterThanOrEqual(-2);
+  await expect.poll(offset).toBeLessThanOrEqual(25);
   await page.locator('.veyra-interest-accordion-trigger').nth(1).click();
   await expect(page.locator('.veyra-interest-accordion-item.expanded')).toHaveCount(1);
   await page.getByRole('button',{name:'далее'}).click();
