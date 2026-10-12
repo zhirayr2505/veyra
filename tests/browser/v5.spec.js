@@ -69,12 +69,10 @@ test('VEYRA legal documents accept consent and support a public legal page',asyn
 
 test('VEYRA pending approval displays animated crystal, genuine status and close action',async({page})=>{
  await telegram(page,10);
- await page.route('**/api/me',async route=>{
-  const response=await route.fetch();
-  const data=await response.json();
-  if(data.profile)data.profile.moderation='pending';
-  await route.fulfill({response,json:data});
- });
+ await page.route('**/api/me',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({user:{id:'10'},profile:{moderation:'pending'},photos:[],registration:null,veys_balance:0})
+ }));
  await page.goto('/');
  const screen=page.locator('.vc-screen--pending');
  await expect(screen).toBeVisible();
