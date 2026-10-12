@@ -6,14 +6,39 @@ export const flag=async(q,k)=>{const f=await one(q,'SELECT * FROM feature_flags 
 export const audit=(q,actor,action,subject,metadata={})=>q.query('INSERT INTO audit_log(actor,action,subject,metadata) VALUES($1,$2,$3,$4)',[actor,action,String(subject),JSON.stringify(metadata)]);
 export async function notify(q,recipient,text,bot='user',markup){if(isTestProfile(recipient))return;await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),bot,recipient,JSON.stringify({text,...(markup?{reply_markup:markup}:{})})]);}
 export async function notifyReview(q,env,userId){
- const p=await one(q,`SELECT p.*,u.username,extract(year FROM age(p.birth_date))::int AS age FROM profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=$1`,[userId]);
+ const p=await one(q,'SELECT p.*,u.username,u.first_name,extract(year FROM age(p.birth_date))::int AS age FROM profiles p JOIN users u ON u.id=p.user_id WHERE p.user_id=$1',[userId]);
  if(!p)return;
- const photo=await one(q,'SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at LIMIT 1',[userId]);
- const answers=(Array.isArray(p.prompts)?p.prompts:[]).filter(item=>item?.answer).map(item=>`${item.key}: ${String(item.answer).slice(0,180)}`).join('\n');
-  const text=`Анкета ${p.user_id} · ревизия ${p.revision}\n${p.name}, ${p.age}\n@${p.username||'—'}\n${p.city}, ${p.country}\nПол: ${p.gender} · Ищет: ${p.looking_for.join(', ')}\nЦель: ${p.goal}\nЯзыки: ${(p.languages||[]).join(', ')}\nИнтересы: ${p.interests.join(', ').slice(0,150)}\nОтветы:\n${answers.slice(0,400)}\nО себе: ${p.bio.slice(0,220)}`.slice(0,1000);
- const reply_markup={inline_keyboard:[[{text:'Все фото и анкета',web_app:{url:env.APP_URL+'/admin'}}],[{text:'Одобрить',callback_data:`approve:${p.user_id}:${p.revision}`}]]};
- await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify({text,photo_id:photo?.id,reply_markup})]);
+ const photos=(await q.query('SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at LIMIT 7',[userId])).rows;
+ const answers=(Array.isArray(p.prompts)?p.prompts:[]).filter(item=>item?.answer).map(item=>item.key+': '+String(item.answer).slice(0,180)).join('\n');
+ const goals={relationship:'Серьёзные отношения',dating:'Свидания',friends:'Общение',unsure:'Не определился',friendship:'Дружба',flirt:'Лёгкий флирт'};
+ const text=[
+ '💜 VEYRA · новая заявка на модерацию',
+ 'ID: '+p.user_id+' · версия '+p.revision,
+ 'Telegram: @'+(p.username||'не указан')+' · '+(p.first_name||''),
+ 'Анкета: '+p.name+' · '+p.age+' лет · '+String(p.birth_date instanceof Date?p.birth_date.toISOString():p.birth_date).slice(0,10),
+ 'Пол: '+p.gender+' · Ищет: '+(p.looking_for||[]).join(', '),
+ 'Локация: '+p.city+', '+p.country,
+ 'Радиус: '+(p.radius_km>=20000?'весь мир':p.radius_km+' км')+' · возраст '+p.min_age+'–'+p.max_age,
+ 'Цель: '+(goals[p.goal]||p.goal),
+ 'Интересы ('+(p.interests||[]).length+'): '+((p.interests||[]).join(', ')||'—'),
+ 'О себе: '+(p.bio||'—'),
+ 'Языки: '+((p.languages||[]).join(', ')||'—'),
+ 'Ответы: '+(answers||'—'),
+ 'Фото: '+photos.length+'/7',
+ 'Отправлено: '+new Date().toISOString()
+ ].join('\n').slice(0,3600);
+ const reply_markup={inline_keyboard:[
+ [{text:'Все фото и анкета',web_app:{url:env.APP_URL+'/admin'}}],
+ [{text:'✅ Одобрить',callback_data:'approve:'+p.user_id+':'+p.revision},{text:'✏️ На доработку',callback_data:'changes:'+p.user_id+':'+p.revision}]
+ ]};
+ for(let i=0;i<photos.length;i++){
+  const payload={text:i===0?text:'VEYRA · фото '+(i+1)+' из '+photos.length+' · ID '+p.user_id+' · версия '+p.revision,
+   photo_id:photos[i].id,review_user_id:String(p.user_id),review_revision:p.revision,
+   ...(i===0?{reply_markup}:{})};
+  await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify(payload)]);
+ }
 }
+
 export async function approved(q,id){const p=await one(q,"SELECT p.* FROM profiles p JOIN users u ON u.id=p.user_id WHERE user_id=$1 AND u.status='active'",[id]);if(p?.moderation!=='approved')fail(403,'PROFILE_NOT_APPROVED');return p;}
 export async function pairLock(q,a,b){const ids=[BigInt(a),BigInt(b)].sort((x,y)=>x<y?-1:1);await q.query('SELECT id FROM users WHERE id=$1 OR id=$2 ORDER BY id FOR UPDATE',[...ids.map(String)]);}
 export const blocked=async(q,a,b)=>!!await one(q,'SELECT 1 FROM blocks WHERE (actor=$1 AND target=$2) OR (actor=$2 AND target=$1)',[a,b]);
