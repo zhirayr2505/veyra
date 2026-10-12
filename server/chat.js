@@ -14,6 +14,8 @@ const cursor=m=>m?Buffer.from(JSON.stringify([m.created_at,m.id])).toString('bas
 function decode(value){try{const [time,id]=JSON.parse(Buffer.from(value,'base64url').toString());if(!Number.isFinite(Date.parse(time)))throw Error();parse(uuid,id);return [time,id];}catch{fail(400,'INVALID_CURSOR');}}
 async function access(q,mid,uid,write=false){
  const raw=await one(q,'SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2)',[mid,uid]);if(!raw)fail(404,'MATCH_NOT_FOUND');
+  const mineErased=String(raw.a)===String(uid)?raw.a_erased_at:raw.b_erased_at;
+  if(mineErased)fail(404,'MATCH_NOT_FOUND');
  const other=String(raw.a)===String(uid)?raw.b:raw.a;
  // Same lock order as block/reaction actions. Serializes a send against a block.
  await pairLock(q,uid,other);
@@ -21,7 +23,8 @@ async function access(q,mid,uid,write=false){
  const b=(await q.query('SELECT actor FROM blocks WHERE (actor=$1 AND target=$2) OR (actor=$2 AND target=$1)',[uid,other])).rows;
  const target=await one(q,"SELECT u.last_seen,u.status,p.moderation FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.id=$1",[other]);
  const blocked_by_me=b.some(x=>String(x.actor)===String(uid));
- const unavailable=!m.active||b.length>0||target?.status!=='active'||target?.moderation!=='approved';
+ const otherErased=String(m.a)===String(uid)?m.b_erased_at:m.a_erased_at;
+  const unavailable=!m.active||!!otherErased||b.length>0||target?.status!=='active'||target?.moderation!=='approved';
  if(write&&unavailable)fail(403,'CHAT_UNAVAILABLE');
  return {...m,other,blocked_by_me,unavailable,last_seen:target?.last_seen};
 }
@@ -48,7 +51,7 @@ export function chatRoutes(app,{db,rate,env,storage}){
   const uid=String(req.user.id);
   const rows=(await db.query(`SELECT m.*,
     EXISTS(SELECT 1 FROM chat_pins cp WHERE cp.match_id=m.id AND cp.user_id=$1) AS pinned,
-    (m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND (m.a=$1 OR m.b=$1) ORDER BY m.created_at DESC LIMIT 100`,[uid])).rows;
+    (m.created_at>now()-interval '48 hours' AND NOT EXISTS(SELECT 1 FROM match_views v WHERE v.match_id=m.id AND v.user_id=$1)) AS is_new FROM matches m WHERE m.active AND ((m.a=$1 AND m.a_erased_at IS NULL) OR (m.b=$1 AND m.b_erased_at IS NULL)) ORDER BY m.created_at DESC LIMIT 100`,[uid])).rows;
   if(!rows.length)return res.json([]);
   const other=m=>String(m.a)===uid?String(m.b):String(m.a);
   const ids=rows.map(m=>String(m.id));
@@ -78,7 +81,8 @@ export function chatRoutes(app,{db,rate,env,storage}){
   const ghosts=new Set(departedRows.rows.map(x=>String(x.id)));
   const ghostProfile=id=>({id,name:'Удалённый аккаунт',age:null,city:'',country:'',bio:'',interests:[],photos:[],online:false,deleted:true});
   const result=rows.flatMap(m=>{
-   const ghost=ghosts.has(other(m)),profile=ghost?ghostProfile(other(m)):profiles.get(other(m));if(!profile)return [];
+   const otherErased=String(m.a)===uid?m.b_erased_at:m.a_erased_at;
+   const ghost=!!otherErased||ghosts.has(other(m)),profile=ghost?ghostProfile(other(m)):profiles.get(other(m));if(!profile)return [];
    const item=meta.get(String(m.id))||{},block=String(item.block_actor||'');
    return [{...m,profile:{...profile,online:!!item.online},blocked_by_me:block===uid,unavailable:!!item.block_actor||ghost,last:item.last||null,unread:item.unread||0}];
   });

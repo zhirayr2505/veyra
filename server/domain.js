@@ -102,6 +102,7 @@ export async function react(q,actor,target,kind,message){
  const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);
  const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);
  const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1)',[actor,target]);
+ if(existing&&(existing.a_erased_at||existing.b_erased_at))fail(409,'MATCH_ARCHIVED');
  if(existing&&!existing.active)fail(409,'MATCH_ENDED');
  if(existing)return {matched:true,match_id:existing.id,test_profile:isTestProfile(target)};
  const repeat=old&&old.kind!=='pass';
