@@ -3,6 +3,7 @@ import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,Paw
 import {get,put,post,request,photoOrder} from './api.js';
 import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
+import './Registration2026.css';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3;
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
@@ -21,31 +22,36 @@ function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),
  </div>}
 
 export function Registration({me,refresh}){
- const start=me?.registration?.data||{},draftKey='veyra.registration.v5.'+String(me?.user?.id||'anonymous');
- const [step,setStep]=useState(Math.min(6,Math.max(1,me?.registration?.step||1))),[direction,setDirection]=useState('forward');
+ const start=me?.registration?.data||{},draftKey='veyra.registration.v8.'+String(me?.user?.id||'anonymous');
+ const savedStep=me?.registration?.step||1;
+ const initialStep=start.registration_ui_version===2?savedStep:({1:1,2:3,3:4,4:5,5:6,6:7}[savedStep]||1);
+ const [step,setStep]=useState(Math.min(7,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
- const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(false),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
+ const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
  const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
  useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer)}},[draftKey]);
- useEffect(()=>{localStorage.setItem(draftKey,JSON.stringify({step,data:f}))},[draftKey,step,f]);
+ useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
   return()=>{alive=false;clearTimeout(timer)};
  },[query,cityEdit]);
  const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message);
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
- const valid=()=>{if(step===1){if(!f.name.trim()||!f.gender)throw Error('Укажи имя и пол');if(age(f.birth_date)<18||age(f.birth_date)>110)throw Error('VEYRA доступна с 18 лет')}
- if(step===2&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери реальный город из предложенного списка');
- if(step===3&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь возраст и предпочтения поиска')};
- const go=(n,dir)=>{setDirection(dir);setStep(Math.min(6,Math.max(1,n)));window.scrollTo({top:0,behavior:'instant'})};
+ const valid=()=>{
+  if(step===1){if(!f.name.trim())throw Error('Введи своё имя');if(!consent)throw Error('Прими условия использования и политику конфиденциальности')}
+  if(step===2){if(!f.gender)throw Error('Выбери свой пол');if(age(f.birth_date)<18||age(f.birth_date)>110)throw Error('VEYRA доступна с 18 лет')}
+  if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери город из предложенного списка');
+  if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь предпочтения поиска');
+ };
+ const go=(n,dir)=>{setDirection(dir);setStep(Math.min(7,Math.max(1,n)));window.scrollTo({top:0,behavior:'instant'})};
  const next=()=>work(async()=>{valid();const data={...f,min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
-  if(step===5){await put('/registration/profile',data);await refresh()}else await put('/registration',{step:step+1,data});
+  if(step===6){await put('/registration/profile',{...data,registration_ui_version:2});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:2,consent_to_terms:consent}});
   go(step+1,'forward');
  });
  const choosePlace=p=>{setF(old=>({...old,city:p.city,country:p.country,lat:p.lat,lon:p.lon}));setPlaces([]);setQuery('');setCityEdit(false);setError('')};
@@ -132,21 +138,21 @@ export function Registration({me,refresh}){
    </div>
   </div>
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Icon name="check" tone="white" size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(6,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
+  <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Icon name="check" tone="white" size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(7,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
  </main>;
- return <div className="page registration registration-v6 registration-v7">
-  <div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><small>шаг {step} из 6</small><span/></div>
+ return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
+  <div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><small>Шаг {step} из 7</small><span/></div>
   <div className="center-logo"><Logo width={136}/></div>
-  <div className="progress" aria-label={'Шаг '+step+' из 6'}>{[1,2,3,4,5,6].map(n=><span key={n} className={n<=step?'done':''}/>)}</div>
+  <div className="progress" aria-label={'Шаг '+step+' из 7'}>{[1,2,3,4,5,6,7].map(n=><span key={n} className={n<=step?'done':''}/>)}</div>
   <div className={'registration-step '+direction} key={step}>
-   <h1>{['расскажите о себе','где вы ищете?','кого хотите встретить?','чего ты ищешь?','что тебе нравится?','добавьте фото'][step-1]}</h1>
-   <p className="subheading">{['Начнём знакомство с тебя','Будем показывать людей из твоего города','Настрой комфортный поиск','Расскажи, какого знакомства ждёшь','Об этом можно рассказать и позже','Главная слева, ещё шесть справа · максимум 7'][step-1]}</p>
+   <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Добавьте свои фото'][step-1]}</h1>
+   <p className="subheading">{['Мы взяли имя из Telegram. Его всегда можно изменить.','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
     <label className="registration-name-field">Имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как тебя зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
     <label>Дата рождения<input type="date" min="1900-01-01" max={adultDate()} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
     <p className="field-label">Пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+(f.gender===k?'active':'inactive')+'/'+k+'.svg'}/>{v}</button>)}</div>
    </div>}
-   {step===2&&<div className="fields">
+   {step===3&&<div className="fields">
     {selectedCity&&<div className="location-card">
      <span className="location-mark"><Icon name="pin" tone="pink" size={32}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
     </div>}
@@ -162,12 +168,12 @@ export function Registration({me,refresh}){
       <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
    </div>}
-   {step===3&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'active':'inactive')+'/'+(k==='all'?'everyone':k)+'.svg'}/><span>{v}</span></button>)}</div>
+   {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'active':'inactive')+'/'+(k==='all'?'everyone':k)+'.svg'}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
-   {step===4&&<div className="fields"><img className="veyra-registration-art" src="/graphics/illustrations/match-hearts-512.webp" alt="" onError={e=>e.currentTarget.style.display='none'}/><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
-   {step===5&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
-   {step===6&&<div className="fields">
+   {step===5&&<div className="fields"><img className="veyra-registration-art" src="/graphics/illustrations/match-hearts-512.webp" alt="" onError={e=>e.currentTarget.style.display='none'}/><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
+   {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
+   {step===7&&<div className="fields">
     <p className="tip">Фото с настоящим лицом, без чужих людей. Зажми фотографию и перетащи в нужное место.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
