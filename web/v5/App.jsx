@@ -5,6 +5,7 @@ import {Welcome} from './Welcome.jsx';
 import {Registration} from './Registration.jsx';
 import {LegalScreen} from './Legal.jsx';
 import {Moderation} from './Moderation.jsx';
+import {CompletionScreen} from './CompletionScene.jsx';
 import {DiscoveryHub} from './DiscoveryHub.jsx';
 import {FeedFilters} from './FeedFilters.jsx';
 import {Member} from './Member.jsx';
@@ -61,7 +62,7 @@ export function App(){
  const status=me?.profile?.moderation;
  const ready=!!me?.profile&&status==='approved';
  if(['/legal','/terms','/privacy'].includes(location.pathname))return <LegalScreen initialTab={location.pathname==='/privacy'?'privacy':'terms'}/>;
- if(deleted)return <main className="deleted-screen"><div className="deleted-glow"/><div className="deleted-content"><Logo width={190}/><div className="deleted-heart">♡</div><h1>Нам жаль, что ты уходишь</h1><p>Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.</p><p className="deleted-note">Мы будем рады встретиться снова</p><Button className="full" onClick={()=>{if(tg?.close)tg.close();else window.location.assign('https://t.me/VeyraAppBot')}}>Выйти из приложения</Button></div></main>;
+ if(deleted)return <CompletionScreen kind="deleted"/>;
  if(initializing)return <div className="splash" aria-label="VEYRA загружается"><Logo width={206}/><div className="splash-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={assetPercent}><span style={{width:assetPercent+"%"}}/></div><p className="splash-copy">Подготавливаем VEYRA · {assetPercent}%</p></div>;
  if(error&&!me)return <main className="access"><Logo width={188}/><h2>встретимся в Telegram</h2><p>{error}</p><Button onClick={()=>window.open('https://t.me/VeyraAppBot','_blank')}>открыть @VeyraAppBot</Button><button className="text-link" onClick={()=>location.reload()}>повторить</button></main>;
  if(adminMode)return <Admin onExit={()=>admin?location.assign('/'):setAdminMode(false)}/>;

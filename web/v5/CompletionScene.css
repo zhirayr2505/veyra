@@ -1,0 +1,64 @@
+/* VEYRA approved crystal-farewell and moderation visual system.
+   Independent of Telegram's own chrome. All controls remain native and accessible. */
+.vc-screen{
+ --vc-violet:#8950F2; --vc-ink:#25163F;
+ position:relative; isolation:isolate; box-sizing:border-box;
+ width:100%; max-width:560px; min-height:100dvh; min-height:100svh;
+ margin:0 auto; padding:calc(9px + env(safe-area-inset-top,0px)) 23px calc(16px + env(safe-area-inset-bottom,0px));
+ display:flex; flex-direction:column; align-items:stretch; overflow:hidden;
+ background:radial-gradient(ellipse 88% 52% at 50% 43%,#F5E8FF 0%,#FBF6FF 46%,#FFFCFC 77%,#FFFFFF 100%);
+ color:var(--vc-ink); text-align:center;
+}
+.vc-screen:before{content:"";pointer-events:none;position:absolute;z-index:-1;inset:-12% -35%;background:radial-gradient(ellipse 47% 30% at 54% 45%,#CB9DFF33,transparent 83%);filter:blur(27px);animation:vc-ambient 7s ease-in-out infinite}
+.vc-header{min-height:78px;display:flex;justify-content:center;align-items:center;flex:none;}
+.vc-logo-sheen{width:161px;height:69px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:17px;}
+.vc-logo-sheen .logo{width:151px;height:auto;max-height:64px;object-fit:contain;}
+.vc-logo-sheen:after{content:"";position:absolute;inset:-80%;pointer-events:none;background:linear-gradient(111deg,transparent 38%,#FFFFFF05 42%,#FFFFFFCC 49%,#FFFFFF25 53%,transparent 61%);transform:translateX(-140%) skewX(-12deg);mix-blend-mode:screen;animation:vc-logo-shine 6.2s ease-in-out infinite;}
+.vc-content{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:0;}
+.vc-art{width:min(100%,420px);height:clamp(205px,37dvh,400px);max-height:400px;flex:none;position:relative;display:grid;place-items:center;}
+.vc-crystal{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 10px 18px #A866EC25);transform:translateZ(0);animation:vc-crystal-arrive .85s cubic-bezier(.15,.8,.2,1) both;}
+.vc-glow{transform-origin:215px 202px;animation:vc-glow-breathe 6.2s ease-in-out infinite;}
+.vc-sphere{transform-origin:215px 201px;animation:vc-sphere-float 5.5s ease-in-out infinite;}
+.vc-crystal-symbol{transform-origin:215px 204px;animation:vc-mark-arrive 1s cubic-bezier(.15,1.15,.3,1) .15s both;}
+.vc-orbit-back{transform-origin:215px 211px;animation:vc-orbit-sway 11s ease-in-out infinite;}
+.vc-orbit-front{transform-origin:215px 211px;animation:vc-orbit-sway 11s ease-in-out infinite reverse;}
+.vc-floating-orbs{animation:vc-orbs-bob 6s ease-in-out infinite;}
+.vc-crystal-twinkles .vc-star-one,.vc-crystal-twinkles .vc-star-two,.vc-crystal-twinkles .vc-star-three,.vc-crystal-twinkles .vc-star-four,.vc-crystal-twinkles .vc-star-five{transform-box:fill-box;transform-origin:center;animation:vc-twinkle 3.4s ease-in-out infinite;}
+.vc-crystal-twinkles .vc-star-two{animation-delay:.8s;}
+.vc-crystal-twinkles .vc-star-three{animation-delay:1.7s;}
+.vc-crystal-twinkles .vc-star-four{animation-delay:.4s;}
+.vc-crystal-twinkles .vc-star-five{animation-delay:2.2s;}
+.vc-small-hearts{animation:vc-orbs-bob 7.2s ease-in-out infinite reverse;}
+.vc-copy{width:100%;animation:vc-content-arrive .7s ease-out .2s both;}
+.vc-copy h1{font-weight:850;line-height:1.15;letter-spacing:-.9px;color:#26163F;font-size:clamp(25px,6.5vw,32px);margin:4px 0 17px;}
+.vc-copy>p:not(.vc-emotional){color:#8B8198;font-size:clamp(13px,3.6vw,15px);line-height:1.64;max-width:410px;margin:0 auto;}
+.vc-emotional{color:#7B39EF;font-size:clamp(14px,3.8vw,17px);font-weight:800;margin:24px auto 18px;line-height:1.4;}
+.vc-telegram-hint{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#F2ECFF;max-width:100%;border-radius:100px;padding:12px 16px;color:#7B48D8;font-size:12px;font-weight:700;margin:23px auto 13px;}
+.vc-status{width:100%;flex:none;box-sizing:border-box;min-height:94px;display:flex;align-items:center;text-align:left;gap:14px;background:#FFFFFFDE;border:1px solid #EAE0F4;border-radius:24px;box-shadow:0 14px 37px #7953A912;padding:16px 17px;margin:20px 0 11px;backdrop-filter:blur(12px);animation:vc-content-arrive .75s ease-out .35s both;}
+.vc-status-icon{display:grid;place-items:center;width:56px;height:56px;flex:none;background:linear-gradient(145deg,#F7F2FF,#F0E3FF);border-radius:18px;}
+.vc-status-info{flex:1;display:grid;gap:5px;}
+.vc-status-info>span{color:#8A8098;font-size:12px;}
+.vc-status-info>strong{color:#25163F;font-size:16px;line-height:1.2;font-weight:820;}
+.vc-status-dot{width:9px;height:9px;flex:none;margin-right:2px;border-radius:50%;background:#8D58F5;box-shadow:0 0 0 6px #9C73ED20;animation:vc-status-pulse 2.8s ease-in-out infinite;}
+.vc-actions{display:grid;gap:7px;flex:none;margin-top:18px;padding-bottom:1px;animation:vc-content-arrive .75s ease-out .45s both;}
+.vc-close-btn{width:100%;min-height:57px;padding:14px 15px;border:0;border-radius:100px;color:#fff;background:linear-gradient(102deg,#B891FD 0%,#9359F5 53%,#6819F7 100%);font-size:15px;line-height:1.3;font-weight:820;box-shadow:0 15px 27px #BE80EE32;cursor:pointer;transition:transform .18s,filter .18s;}
+.vc-close-btn:active{transform:scale(.983);filter:brightness(.97);}
+.vc-close-btn:focus-visible,.vc-refresh-btn:focus-visible{outline:3px solid #7648F0;outline-offset:3px;}
+.vc-refresh-btn{color:#803BED;border:0;background:transparent;font-size:14px;font-weight:760;min-height:43px;cursor:pointer;}
+.vc-refresh-btn:disabled{opacity:.65;cursor:wait;}
+.vc-screen--deleted .vc-actions{padding-bottom:24px;}
+.vc-screen--rejected .vc-telegram-hint{display:none;}
+@keyframes vc-ambient{0%,100%{transform:scale(.95);opacity:.55}50%{transform:scale(1.1);opacity:1}}
+@keyframes vc-crystal-arrive{from{opacity:0;transform:translateY(18px) scale(.88)}to{opacity:1;transform:none}}
+@keyframes vc-sphere-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes vc-glow-breathe{0%,100%{transform:scale(.96);opacity:.72}50%{transform:scale(1.1);opacity:1}}
+@keyframes vc-mark-arrive{from{opacity:0;transform:scale(.55) rotate(-12deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes vc-orbit-sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+@keyframes vc-orbs-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes vc-twinkle{0%,100%{transform:scale(.72);opacity:.46}50%{transform:scale(1.13);opacity:1}}
+@keyframes vc-content-arrive{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:none}}
+@keyframes vc-status-pulse{0%,100%{box-shadow:0 0 0 5px #9C73ED22}50%{box-shadow:0 0 0 10px #9C73ED08}}
+@keyframes vc-logo-shine{0%,22%{transform:translateX(-140%) skewX(-12deg)}49%,100%{transform:translateX(140%) skewX(-12deg)}}
+@media(max-width:385px){.vc-screen{padding-inline:20px}.vc-art{height:clamp(185px,34dvh,300px)}.vc-copy h1{font-size:25px}.vc-status{min-height:86px;padding:12px 14px;margin-top:13px}.vc-status-icon{width:48px;height:48px}.vc-content .vc-telegram-hint{margin-top:15px;}}
+@media(max-height:700px){.vc-screen{padding-top:0}.vc-header{min-height:55px}.vc-logo-sheen{height:54px}.vc-art{height:clamp(155px,30dvh,235px)}.vc-copy h1{margin:0 0 10px;font-size:25px}.vc-copy>p:not(.vc-emotional){font-size:12px}.vc-emotional{margin:14px auto 4px}.vc-telegram-hint{margin-top:12px;margin-bottom:2px;padding:8px 12px}.vc-status{margin:12px 0 4px;min-height:73px}.vc-actions{margin-top:7px}.vc-close-btn{min-height:49px}.vc-screen--deleted .vc-actions{padding-bottom:7px}}
+@media(prefers-reduced-motion:reduce){.vc-screen:before,.vc-screen *, .vc-screen *:before,.vc-screen *:after{animation:none!important;transition:none!important}}
