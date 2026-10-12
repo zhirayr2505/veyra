@@ -50,7 +50,7 @@ export function CompletionArt({kind='pending'}){
    <path d="M 111 158 Q 117 89 193 80" fill="none" stroke="#FFFFFF" strokeWidth="8" opacity=".49" strokeLinecap="round"/>
    <path d="M 275 292 Q 325 267 331 206" fill="none" stroke="#FFFFFF" strokeWidth="8" opacity=".25" strokeLinecap="round"/>
    <g className="vc-crystal-symbol">
-    {deleted?<path d="M 215 266 C 196 242 145 200 145 173 C 145 136 188 121 215 160 C 242 120 285 136 285 173 C 285 203 237 243 215 266 Z" fill="none" stroke={'url(#'+mark+')'} strokeWidth="12" strokeLinejoin="round" strokeLinecap="round"/>:
+    {deleted?<g stroke={'url(#'+mark+')'} strokeWidth="10" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="208" cy="157" r="23"/><path d="M 159 237 V 223 C 159 189 172 183 208 183 C 242 183 256 189 256 223"/><circle cx="259" cy="228" r="21" fill="#F3DBFF" strokeWidth="7"/><path d="M 248 228 H 270" strokeWidth="8"/></g>:
       <path d="M 158 207 L 192 244 L 275 158" fill="none" stroke={'url(#'+mark+')'} strokeWidth="17" strokeLinecap="round" strokeLinejoin="round"/>}
    </g>
    <g className="vc-orbit-front">
@@ -86,8 +86,8 @@ export function CompletionScreen({kind='pending',reason='',onClose,onRefresh}){
    <CompletionArt kind={kind}/>
    <div className="vc-copy">
     <h1>{deleted?'Нам жаль, что ты уходишь':rejected?'Давайте исправим анкету':'Анкета отправлена'}</h1>
-    <p>{deleted?'Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.':rejected?(reason||'Модератор оставил замечания к анкете.'):'Мы проверяем вашу анкету перед публикацией. Сообщим результат в Telegram.'}</p>
-    {deleted?<p className="vc-emotional">Мы будем рады встретиться снова</p>:pending?<span className="vc-telegram-hint"><Icon name="send" tone="pink" size={18}/> Сообщим результат в Telegram</span>:null}
+    <p>{deleted?'Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.':rejected?(reason||'Модератор оставил замечания к анкете.') :'Мы проверяем вашу анкету перед публикацией. Результат отправим в Telegram.'}</p>
+    {deleted?<p className="vc-emotional">Мы будем рады встретиться снова</p>:pending?<span className="vc-telegram-hint"><Icon name="send" tone="pink" size={18}/> Постараемся проверить за 5 минут · сообщим в Telegram</span>:null}
    </div>
    <div className="vc-status" role="status"><div className="vc-status-icon"><Icon name={deleted?'broken_heart':rejected?'info':'verified'} tone="pink" size={29}/></div><div className="vc-status-info"><span>Статус</span><strong>{status}</strong></div>{pending&&<span className="vc-status-dot" aria-hidden="true"/>}</div>
   </section>

@@ -76,3 +76,60 @@
 .vc-actions{margin-top:7px;gap:2px}
 .vc-close-btn{min-height:51px}
 @media(max-height:750px){.vc-header{min-height:49px}.vc-logo-sheen{height:48px}.vc-art{height:26dvh!important}.vc-copy>p:not(.vc-emotional){font-size:12px}.vc-status{min-height:59px}.vc-actions{margin-top:5px}}
+
+/* VEYRA approved terminal layout: strict space partition, never overlap artwork and copy. */
+.v2-onboarding .vc-screen{
+ display:flex!important;flex-direction:column!important;box-sizing:border-box!important;
+ height:100dvh!important;min-height:0!important;max-height:100dvh!important;
+ overflow:hidden!important;padding:calc(4px + env(safe-area-inset-top)) 20px calc(13px + env(safe-area-inset-bottom))!important;
+}
+.v2-onboarding .vc-screen .vc-header{height:57px!important;min-height:57px!important;flex:0 0 57px!important}
+.v2-onboarding .vc-screen .vc-content{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-evenly!important;
+ flex:1 1 auto!important;min-height:0!important;min-width:0!important;
+ gap:clamp(3px,1vh,11px)!important;overflow:hidden!important;padding:0!important;
+}
+.v2-onboarding .vc-screen .vc-art{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ width:min(100%,340px)!important;height:clamp(130px,30dvh,245px)!important;
+ max-height:clamp(130px,30dvh,245px)!important;min-height:0!important;
+ flex:0 1 auto!important;overflow:hidden!important;margin:0!important;
+}
+.v2-onboarding .vc-screen .vc-crystal{width:100%!important;height:100%!important;overflow:hidden!important;flex:none!important;}
+.v2-onboarding .vc-screen .vc-copy{
+ flex:0 0 auto!important;display:grid!important;justify-items:center!important;gap:8px!important;
+ width:100%!important;margin:0!important;padding:0!important;
+}
+.v2-onboarding .vc-screen .vc-copy h1{
+ line-height:1.16!important;letter-spacing:-.6px!important;
+ font-size:clamp(23px,6.1vw,31px)!important;margin:0!important;
+}
+.v2-onboarding .vc-screen .vc-copy>p:not(.vc-emotional){
+ margin:0!important;line-height:1.5!important;font-size:clamp(11px,3.5vw,14px)!important;
+ max-width:385px!important;
+}
+.v2-onboarding .vc-screen .vc-telegram-hint{
+ display:inline-flex!important;max-width:100%;white-space:normal;text-align:center;
+ justify-content:center;gap:7px!important;padding:8px 12px!important;font-size:11px!important;
+ line-height:1.3!important;margin:4px 0 0!important;
+}
+.v2-onboarding .vc-screen .vc-status{
+ flex:0 0 auto!important;box-sizing:border-box!important;width:100%!important;min-height:68px!important;
+ padding:10px 13px!important;margin:0!important;border-radius:21px!important;
+}
+.v2-onboarding .vc-screen .vc-status-icon{height:45px!important;width:45px!important;}
+.v2-onboarding .vc-screen .vc-actions{
+ flex:0 0 auto!important;width:100%!important;margin:7px 0 0!important;
+ padding:0!important;gap:1px!important;
+}
+.v2-onboarding .vc-screen .vc-close-btn{min-height:52px!important;border-radius:100px!important}
+.v2-onboarding .vc-screen .vc-refresh-btn{min-height:33px!important;padding:6px!important}
+@media(max-height:685px){
+ .v2-onboarding .vc-screen .vc-header{height:46px!important;min-height:46px!important;flex-basis:46px!important}
+ .v2-onboarding .vc-screen .vc-art{height:clamp(104px,24dvh,165px)!important;max-height:165px!important}
+ .v2-onboarding .vc-screen .vc-copy{gap:5px!important}
+ .v2-onboarding .vc-screen .vc-copy h1{font-size:24px!important}
+ .v2-onboarding .vc-screen .vc-telegram-hint{padding:6px 10px!important}
+ .v2-onboarding .vc-screen .vc-status{min-height:56px!important}
+ .v2-onboarding .vc-screen .vc-close-btn{min-height:47px!important}
+}

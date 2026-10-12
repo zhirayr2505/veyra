@@ -12,3 +12,56 @@
 .veyra-delete-page .veyra-delete-main h1{margin-top:-4px}
 @media(max-height:750px){.veyra-delete-page .veyra-delete-crystal{height:clamp(115px,22dvh,172px)}.veyra-delete-page .veyra-delete-main{gap:7px}.veyra-delete-page .veyra-delete-terms{gap:7px;padding:11px 14px}.veyra-delete-page .veyra-delete-main>p{font-size:12px;line-height:1.45}.veyra-delete-page .veyra-delete-check{padding:10px}}
 @media(prefers-reduced-motion:reduce){.veyra-delete-page .veyra-deletion-wordmark:after{animation:none}}
+
+/* Approved deletion scene: art never overlays the title, explanation or controls */
+.veyra-delete-page{height:100dvh!important;min-height:0!important;max-height:100dvh!important;overflow:hidden!important}
+.veyra-delete-page>header{min-height:56px!important;flex:0 0 auto!important}
+.veyra-delete-page .veyra-delete-main{
+ flex:1 1 auto!important;min-height:0!important;justify-content:flex-start!important;
+ align-items:center!important;gap:10px!important;overflow-y:auto!important;
+ overflow-x:hidden!important;padding:10px 0 16px!important;scrollbar-width:none;
+}
+.veyra-delete-page .veyra-delete-main::-webkit-scrollbar{display:none}
+.veyra-delete-page .veyra-delete-crystal{
+ box-sizing:border-box!important;height:clamp(132px,22dvh,198px)!important;
+ max-height:198px!important;min-height:0!important;overflow:hidden!important;flex:0 0 auto!important;
+}
+.veyra-delete-page .veyra-delete-crystal .vc-art{
+ display:grid!important;place-items:center!important;height:100%!important;
+ width:100%!important;max-height:100%!important;overflow:hidden!important;
+}
+.veyra-delete-page .veyra-delete-crystal .vc-crystal{height:100%!important;width:100%!important;overflow:hidden!important}
+.veyra-delete-page .veyra-delete-main h1{margin:0!important;font-size:clamp(25px,6.3vw,31px)!important;line-height:1.17!important}
+.veyra-delete-page .veyra-delete-main>p{line-height:1.5!important;font-size:13px!important}
+.veyra-delete-page .veyra-delete-terms{
+ display:grid!important;gap:13px!important;padding:15px!important;
+ border-radius:24px!important;background:#FFFFFFEA!important;
+ box-shadow:0 9px 25px #8569AA12!important;
+}
+.veyra-delete-page .veyra-delete-terms>div{
+ display:grid;grid-template-columns:49px minmax(0,1fr);align-items:center;gap:12px;text-align:left;
+}
+.veyra-delete-page .veyra-delete-term-icon{
+ display:grid;place-items:center;background:#F1E9FC;border-radius:15px;width:49px;height:49px;
+}
+.veyra-delete-page .veyra-delete-terms p{
+ display:grid!important;gap:4px!important;font-size:12px!important;padding:0!important;line-height:1.36!important;
+}
+.veyra-delete-page .veyra-delete-terms p::before{display:none!important}
+.veyra-delete-page .veyra-delete-terms p strong{color:#2B1B40;font-size:12px!important;line-height:1.35}
+.veyra-delete-page .veyra-delete-terms p small{color:#82768F;font-size:11px;line-height:1.38}
+.veyra-delete-page .veyra-delete-check{background:#fff!important;border-radius:19px!important;align-items:center!important;padding:12px!important}
+.veyra-delete-page .veyra-delete-square{width:25px;height:25px;border-color:#C8B6E4!important;background:#fff!important;color:#8553E9!important}
+.veyra-delete-page .veyra-delete-check input:not(:checked)+.veyra-delete-square{background:#fff!important}
+.veyra-delete-page .veyra-delete-main-action{background:linear-gradient(110deg,#BA9EF8,#8752EF)!important}
+.veyra-delete-page .veyra-delete-main-action:disabled{background:#D9C7F3!important;color:#fff!important}
+.veyra-delete-page .veyra-delete-secondary{border:1px solid #DFD1F4!important;background:#fff!important;color:#713EE8!important}
+.veyra-delete-page footer{background:#FBF7FFEE!important;margin:0 -21px -3px!important;padding:11px 21px 3px!important}
+@media(max-height:740px){
+ .veyra-delete-page .veyra-delete-crystal{height:clamp(115px,20dvh,145px)!important}
+ .veyra-delete-page .veyra-delete-terms{gap:9px!important;padding:11px!important}
+ .veyra-delete-page .veyra-delete-term-icon{width:39px;height:39px;border-radius:12px}
+ .veyra-delete-page .veyra-delete-terms>div{grid-template-columns:39px minmax(0,1fr);gap:9px}
+ .veyra-delete-page .veyra-delete-terms p strong{font-size:11px!important}
+ .veyra-delete-page .veyra-delete-terms p small{font-size:10px!important}
+}
