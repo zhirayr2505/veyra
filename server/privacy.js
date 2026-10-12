@@ -25,10 +25,14 @@ export async function finalizeDueDeletions({db}){
    await q.query('DELETE FROM reports WHERE reporter=$1 OR target=$1',[id]);
    await q.query('DELETE FROM profile_hides WHERE actor=$1 OR target=$1',[id]);
    await q.query('DELETE FROM daily_usage WHERE user_id=$1',[id]);
+   await q.query('DELETE FROM tickets WHERE user_id=$1',[id]);
+   await q.query('DELETE FROM veys_ledger WHERE user_id=$1',[id]);
+   await q.query('DELETE FROM veys_purchases WHERE user_id=$1',[id]);
+   await q.query('DELETE FROM veys_wallets WHERE user_id=$1',[id]);
    await q.query('DELETE FROM chat_presence WHERE user_id=$1',[id]);
    await q.query('DELETE FROM chat_pins WHERE user_id=$1',[id]);
    await q.query("UPDATE matches SET a_exchange=false,b_exchange=false,a_erased_at=CASE WHEN a=$1 THEN now() ELSE a_erased_at END,b_erased_at=CASE WHEN b=$1 THEN now() ELSE b_erased_at END WHERE a=$1 OR b=$1",[id]);
-   await q.query("UPDATE users SET status='deleted',username=NULL,first_name='',notifications=false,paused=true,invisible=true,deletion_snapshot=NULL,premium_until=NULL,boost_until=NULL,superlikes=0,prematches=0,boosts=0 WHERE id=$1",[id]);
+   await q.query("UPDATE users SET status='deleted',username=NULL,first_name='',notifications=false,paused=true,invisible=true,deletion_snapshot=NULL,referrer_id=NULL,referral_rewarded=false,premium_until=NULL,boost_until=NULL,superlikes=0,prematches=0,boosts=0 WHERE id=$1",[id]);
    await audit(q,id,'privacy.deletion_finalized',id,{retained:'conversation_text_for_participants'});
    await notify(q,id,'💔 Аккаунт VEYRA удалён. Твои фотографии и анкета удалены. Спасибо, что был частью нашей истории.');
    return true;

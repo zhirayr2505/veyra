@@ -89,8 +89,8 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
 }
 async function finishMatch(q,actor,target) {
  const [a,b]=[String(actor),String(target)].sort((x,y)=>BigInt(x)<BigInt(y)?-1:1);
- let m=await one(q,'INSERT INTO matches(id,a,b) VALUES($1,$2,$3) ON CONFLICT(a,b) DO NOTHING RETURNING *',[randomUUID(),a,b]);
- const created=!!m;if(!m)m=await one(q,'SELECT * FROM matches WHERE a=$1 AND b=$2',[a,b]);
+ let m=await one(q,'INSERT INTO matches(id,a,b) VALUES($1,$2,$3) ON CONFLICT(a,b) WHERE a_erased_at IS NULL AND b_erased_at IS NULL DO NOTHING RETURNING *',[randomUUID(),a,b]);
+ const created=!!m;if(!m)m=await one(q,'SELECT * FROM matches WHERE a=$1 AND b=$2 AND a_erased_at IS NULL AND b_erased_at IS NULL',[a,b]);
  if(!m.active)fail(409,'MATCH_ENDED');
  if(isTestProfile(target)&&!isTestProfile(actor)&&!await one(q,'SELECT 1 FROM messages WHERE match_id=$1',[m.id]))
   await q.query('INSERT INTO messages(id,match_id,sender,body,client_id) VALUES($1,$2,$3,$4,$2) ON CONFLICT(sender,client_id) DO NOTHING',[randomUUID(),m.id,target,'Тестовая анкета VEYRA · автоматическое приветствие. Привет! Мэтч создан — здесь можно проверить сообщения и фотографии.']);
@@ -101,7 +101,7 @@ export async function react(q,actor,target,kind,message){
  await pairLock(q,actor,target);await ensurePair(q,actor,target);
  const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);
  const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);
- const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1)',[actor,target]);
+ const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND a_erased_at IS NULL AND b_erased_at IS NULL',[actor,target]);
  if(existing&&(existing.a_erased_at||existing.b_erased_at))fail(409,'MATCH_ARCHIVED');
  if(existing&&!existing.active)fail(409,'MATCH_ENDED');
  if(existing)return {matched:true,match_id:existing.id,test_profile:isTestProfile(target)};
