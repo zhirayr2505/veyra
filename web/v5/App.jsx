@@ -18,7 +18,6 @@ import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
 import {enableTelegramFullscreen} from './telegramViewport.js';
-import {Discover} from './Discover.jsx';
 import {VeysWallet,Diamond} from './Veys.jsx';
 import '../../veyra-assets/tokens/tokens.css';
 import '../../veyra-assets/styles/components.css';
@@ -28,6 +27,7 @@ import './ApprovedPack.css';
 import './MobileQA.css';
 import './Registration2026.css'; // Approved registration baseline
 import './OnboardingV9.css'; // Final eight-step visual overrides
+import './DatingStage02.css'; // Three approved dating screens; registration remains unchanged
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -80,8 +80,9 @@ export function App(){
  {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
-   <header className="v2-screen-header"><Logo width={132}/><div className="v2-header-actions"><button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={()=>setOverlay({type:'veys'})}><Diamond size={21}/>{new Intl.NumberFormat('ru-RU').format(me.veys_balance||0)}</button><button type="button" aria-label="Фильтры" title="Фильтры" onClick={()=>setOverlay({type:'filters'})}><Icon name="filter" size={23}/></button></div></header>
-   <Discover embedded filters={feedFilters} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
+   <DiscoveryHub filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound}
+    refreshTick={feedTick} onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0}
+    onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
   </section>
  </div>
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onMatch={matchFound} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
