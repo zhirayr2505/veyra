@@ -513,3 +513,11 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout){overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:38px!important}
 .v2-onboarding .veyra-registration-2026 .photo-layout{align-items:stretch!important;padding-bottom:24px;grid-auto-flow:row}
 .v2-onboarding .veyra-registration-2026 .photo-layout .photo-slot-add{display:flex;align-items:center;justify-content:center;border:1.5px dashed #B698F4!important;background:#F1E8FF!important}
+
+
+/* Permit ordinary vertical swipes starting on a photo, not only in the gaps.
+   Existing long-press/keyboard reordering remains available. */
+.v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout) .photo-slot:not(.photo-slot-add),
+.v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout) .photo-slot:not(.photo-slot-add) img{
+ touch-action:pan-y!important;
+}
