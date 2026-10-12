@@ -71,7 +71,7 @@ export function App(){
  if(!ready&&(!me?.profile||status==='draft'||status==='rejected')){
   return <div className="veyra-v2 v2-onboarding"><Registration me={me} refresh={refresh}/></div>;
  }
- if(status==='pending')return <div className="veyra-v2 v2-onboarding"><Moderation profile={me.profile} refresh={refresh}/></div>;
+ if(status==='pending')return <div className="veyra-v2 v2-onboarding"><Moderation profile={me.profile} photos={me.photos} refresh={refresh}/></div>;
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell veyra-v2">
  <div className="view-frame" hidden={!!conversation||!!member}>

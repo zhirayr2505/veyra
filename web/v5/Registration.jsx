@@ -5,6 +5,7 @@ import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
 import {GoalIllustration} from './GoalIllustration.jsx';
+import {ProfilePreview} from './ProfilePreview.jsx';
 import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './Registration2026.css';
 import {LegalScreen} from './Legal.jsx';
@@ -140,31 +141,7 @@ export function Registration({me,refresh}){
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
- if(preview)return <main className="page registration registration-v7 registration-preview">
-  <div className="step-top"><button className="quiet" aria-label="Назад к фотографиям" onClick={()=>setPreview(false)}><Icon name="back"/></button><small>так тебя увидят другие</small><span/></div>
-  <div className="center-logo"><Logo width={136}/></div>
-  <h1>твоя анкета</h1><p className="subheading">Первое впечатление начинается здесь ✨</p>
-  <div className="preview-surface preview-dating-card">
-   <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>swipeX.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
-    <div className="preview-gallery-track" onTransitionEnd={finishPhotoSlide} style={{transform:'translate3d(-'+((slideStep+1)*100)+'%,0,0)',transition:slideStep?'transform .36s cubic-bezier(.2,.8,.2,1)':'none'}}>
-     {galleryPhotos.map((p,i)=><div className="preview-gallery-slide" key={p.id+'-'+i}><Photo id={p.id} className="preview-photo" alt={'Фото '+(i===0?(photoIndex-1+photos.length)%photos.length+1:i===1?photoIndex+1:(photoIndex+1)%photos.length+1)}/></div>)}
-    </div>
-    <div className="preview-fade"/>
-    <span className="preview-card-flag">твоя карточка</span>
-    {photos.length>1&&<><button type="button" className="preview-arrow left" aria-label="Предыдущее фото" onClick={()=>advancePhoto(-1)}><Icon name="chevron-left" tone="dark" size={23}/></button><button type="button" className="preview-arrow right" aria-label="Следующее фото" onClick={()=>advancePhoto(1)}><Icon name="chevron-right" tone="dark" size={23}/></button></>}
-    <div className="preview-card-caption">
-     <h2>{f.name}, {age(f.birth_date)}</h2>
-     <p className="preview-card-location"><Icon name="pin" tone="white" size={16}/>{f.city}, {f.country}</p>
-     {f.bio?.trim()&&<p className="preview-card-bio">{f.bio}</p>}
-     {f.interests.length>0&&<InterestReveal items={f.interests} preview/>}
-     <p className="preview-card-goal">✨ {f.goal==='relationship'?'Ищу серьёзные отношения':f.goal==='dating'?'Открыт(а) к свиданиям':f.goal==='friends'?'Ищу общение':'Пока не определился'}</p>
-    </div>
-    {photos.length>1&&<div className="preview-dots" role="group" aria-label="Фотографии анкеты">{photos.map((p,i)=><button type="button" key={p.id} aria-label={'Фото '+(i+1)} aria-current={i===photoIndex?'true':undefined} className={i===photoIndex?'active':''} onClick={()=>selectPhoto(i)}/>)}</div>}
-   </div>
-  </div>
-  <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Icon name="check" tone="white" size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(7,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
- </main>;
+ if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(7,'backward')}} onEdit={()=>{setPreview(false);go(6,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
   <header className="veyra-onboarding-fixed-header"><div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><span/><span/></div>
   <div className="center-logo veyra-shine-logo"><Logo width={136}/></div>
