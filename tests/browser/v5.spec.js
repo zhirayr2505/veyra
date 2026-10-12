@@ -229,7 +229,7 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await expect(page.locator('.registration-toast')).toContainText('максимум 7 фото');
  await expect(page.locator('.registration-photo-count')).toContainText('7 из 7',{timeout:45000});
  await expect(page.locator('.photo-make-main')).toHaveCount(0);
- await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeEnabled();
+ await expect(page.getByRole('button',{name:'Посмотреть анкету'})).toBeEnabled();
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
  await expect(page.locator('.photo-slot-add')).toHaveCount(0);
  const dragged=page.locator('.photo-slot').nth(1),drop=page.locator('.photo-slot').nth(3);
@@ -240,7 +240,7 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await page.mouse.move(targetRect.x+targetRect.width/2,targetRect.y+targetRect.height/2,{steps:8});
  await page.mouse.up();
  await expect(page.locator('.photo-drag-ghost')).toHaveCount(0);
- await page.getByRole('button',{name:'посмотреть анкету'}).click();
+ await page.getByRole('button',{name:'Посмотреть анкету'}).click();
  await expect(page.locator('.preview-gallery .veyra-card-shade')).toHaveCount(1);
  await expect(page.locator('.preview-gallery > .veyra-card-top-goal')).toContainText('Свидания');
   await expect(page.locator('.preview-card-caption .veyra-card-goal-badge')).toHaveCount(0);
