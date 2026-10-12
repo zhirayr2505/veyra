@@ -423,7 +423,9 @@ test('V5 approved premium feed uses cyclic photo strips and opens the complete p
  await expect(bars.last()).toHaveClass(/active/);
  expect(reactionRequests).toBe(0);
  await expect(page.locator('.feed-photo .hero-name')).toHaveText(before);
- await page.locator('.feed-photo').click({position:{x:box.width*.5,y:box.height*.42}});
+ await page.locator('.feed-photo').click({position:{x:box.width*.8,y:box.height*.42}});
+ await expect(page.locator('.member')).toHaveCount(0);
+ await page.locator('.feed-photo .hero-name').click();
  await expect(page.locator('.member')).toBeVisible();
  await page.locator('.member .top-header button.back').click();
  await expect(page.locator('.feed-photo')).toBeVisible();
@@ -494,7 +496,7 @@ test('VEYRA V2 keeps search and encounter screens distinct and opens genuine mem
  await expect(page.locator('.vx-for_you .vx-people')).toBeVisible();
  await tabs.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby .vx-people .vx-person').first()).toBeVisible();
- await expect(page.locator('.vx-nearby .vx-person-caption small').first()).toContainText('км');
+ await expect(page.locator('.vx-nearby .vx-person-caption small').nth(1)).toContainText('км');
  await expect(page.locator('.feed-photo')).toBeHidden();
  await page.locator('.bottom-nav').getByRole('button',{name:'знакомства'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
