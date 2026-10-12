@@ -32,7 +32,7 @@ test('the Work-approved wordmark and all empty-state illustrations are served an
   assert.equal(read('VEYRA_ASSET_PACK/'+rel),read('public/veyra-approved/'+rel));
  }
  const ui=read('web/v5/UI.jsx');
- assert.ok(ui.includes("approvedBase+'00_brand/veyra_logo_primary.svg'"));
+ assert.ok(ui.includes('/veyra-design/veyra-wordmark-purple.svg'));
  assert.ok(ui.includes("base+'04_empty_states/svg/'"));
  for(const path of ['web/v5/Discover.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
   assert.ok(read(path).includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
@@ -48,10 +48,10 @@ test('all five VEYRA navigation icons resolve through Work-approved pack with co
  assert.match(ui,/\?approvedBase\+'01_icons\/'.*state/);
  assert.match(ui,/approvedBase\+'01_icons\/'.*info\.svg/);
  assert.doesNotMatch(ui,/oldBase|veyra-v2/);
- assert.match(read('web/v5/preload.js'),/01_icons\/active\/heart\.svg/);
+ assert.match(read('web/v5/preload.js'),/veyra-approved\/01_icons\/active/);
  const reg=read('web/v5/Registration.jsx');
- assert.match(reg,/veyra-approved\/01_icons/);
- assert.match(reg,/k==='all'\?'everyone':k/);
+ assert.match(reg,/veyra-design\/icons/);
+ assert.match(reg,/DesignGlyph name=/);
  const filters=read('web/v5/FeedFilters.jsx');
  assert.match(filters,/veyra-approved\/01_icons/);
  assert.ok(existsSync(new URL('public/veyra-approved/01_icons/active/everyone.svg',root)));

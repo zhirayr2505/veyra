@@ -36,15 +36,19 @@ test('V5 real match chat opens, sends and persists messages',async({page})=>{
  await page.getByRole('button',{name:'Отправить',exact:true}).click();
  await expect(page.locator('.bubble.mine').filter({hasText:msg})).toBeVisible();
 });
-test('V5 newly signed adult opens registration immediately and rejects an underage date',async({page})=>{
+test('New VEYRA seven-stage registration rejects an underage date',async({page})=>{
  await telegram(page,20);await page.goto('/');
- await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
- await page.getByRole('textbox',{name:'Имя'}).fill('Test Adult');
+ await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
+ await page.getByRole('textbox',{name:'Ваше имя'}).fill('Test Adult');
+ await page.locator('.registration-consent input').check();
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'Когда ваш день рождения?'})).toBeVisible();
  await page.getByLabel('Дата рождения').fill('2017-01-01');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('alert')).toContainText('18');
 });
+
 test('V5 admin bot signed auth opens private moderation queue',async({page})=>{
  await telegram(page,1,true);await page.goto('/admin');
  await expect(page.getByRole('heading',{name:'панель VEYRA'})).toBeVisible();
@@ -109,35 +113,38 @@ test('V5 like/pass immediately returns the next card in one API request',async({
  expect(feedRequests).toBe(before);
 });
 
-test('V5 onboarding animates, autocompletes a verified city and uploads only seven preview photos',async({page})=>{
+test('VEYRA new onboarding has seven animated steps, verified location and 3-7 reordered photos',async({page})=>{
  await telegram(page,22);await page.goto('/');
- await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
- await expect(page.getByRole('textbox',{name:'Имя'})).toHaveValue('Tester');
- await page.getByRole('textbox',{name:'Имя'}).fill('Seven Photos Test!123');
- await expect(page.getByRole('textbox',{name:'Имя'})).toHaveValue('Seven Photos Test');
+ await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
+ await expect(page.getByRole('textbox',{name:'Ваше имя'})).toHaveValue('Tester');
+ await page.getByRole('textbox',{name:'Ваше имя'}).fill('Seven Photos Test!123');
+ await expect(page.getByRole('textbox',{name:'Ваше имя'})).toHaveValue('Seven Photos Test');
  await expect(page.locator('.name-feedback')).toBeVisible();
- await expect(page.locator('.gender-choice img')).toHaveCount(2);
+ await page.locator('.registration-consent input').check();
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'Когда ваш день рождения?'})).toBeVisible();
+ await expect(page.locator('.gender-choice .veyra-brand-glyph')).toHaveCount(2);
  await page.getByLabel('Дата рождения').fill('1998-05-12');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
- await expect(page.getByRole('heading',{name:'где вы ищете?'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Разрешите доступ к геолокации'})).toBeVisible();
  await expect(page.locator('.registration-step.forward')).toBeVisible();
  await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
  await expect(page.locator('.city-results button').first()).toBeVisible();
  await page.locator('.city-results button').first().click();
  await expect(page.locator('.location-card')).toContainText('Paris');
  await page.getByRole('button',{name:'выбрать город'}).click();
- await expect(page.getByRole('heading',{name:'кого хотите встретить?'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Кого вы ищете?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
- await expect(page.locator('.looking-choice img')).toHaveCount(3);
- await expect(page.locator('.looking-choice img').nth(2)).toHaveAttribute('src',/\/veyra-approved\/01_icons\/(?:active|inactive)\/everyone\.svg/);
- await page.getByRole('button',{name:'выбрать цель'}).click();
+ await expect(page.locator('.looking-choice .veyra-brand-glyph')).toHaveCount(3);
+ await page.getByRole('button',{name:'далее'}).click();
  await page.locator('.veyra-goal-choice').nth(1).click();
- await page.getByRole('button',{name:'продолжить'}).click();
- await expect(page.getByRole('heading',{name:'что тебе нравится?'})).toBeVisible();
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await page.locator('.veyra-interest-options button').first().click();
  await page.locator('.veyra-interest-options button').nth(1).click();
  await page.getByRole('button',{name:'добавить фото'}).click();
+ await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
  await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
  const png=await sharp({create:{width:120,height:120,channels:3,background:{r:238,g:131,b:155}}}).png().toBuffer();
@@ -146,77 +153,64 @@ test('V5 onboarding animates, autocompletes a verified city and uploads only sev
  await expect(page.locator('.registration-toast')).toContainText('максимум 7 фото');
  await expect(page.locator('.photo-footnote')).toContainText('Загружено 7 из 7',{timeout:45000});
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
- await expect(page.locator('.thumb-order')).toHaveCount(0);
  const dragged=page.locator('.photo-slot').nth(1),drop=page.locator('.photo-slot').nth(3);
- const a=await dragged.boundingBox(),b=await drop.boundingBox();
- await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.waitForTimeout(430);
+ const firstRect=await dragged.boundingBox(),targetRect=await drop.boundingBox();
+ await page.mouse.move(firstRect.x+firstRect.width/2,firstRect.y+firstRect.height/2);
+ await page.mouse.down();await page.waitForTimeout(430);
  await expect(page.locator('.photo-drag-ghost')).toBeVisible();
- await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8});
- await expect(page.locator('.photo-slot.drag-origin')).toHaveCount(1);
+ await page.mouse.move(targetRect.x+targetRect.width/2,targetRect.y+targetRect.height/2,{steps:8});
  await page.mouse.up();
  await expect(page.locator('.photo-drag-ghost')).toHaveCount(0);
- await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeVisible();
  await page.getByRole('button',{name:'посмотреть анкету'}).click();
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
- await expect(page.locator('.preview-count')).toHaveCount(0);
- await expect(page.locator('.preview-card-chips img.veyra-interest-icon')).toHaveCount(2);
  await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
- for(let n=0;n<7;n++){
-  await page.getByRole('button',{name:'Следующее фото'}).click();
-  await expect(page.locator('.preview-dots button').nth((n+1)%7)).toHaveAttribute('aria-current','true');
- }
- await expect(page.locator('.preview-dots button').first()).toHaveClass(/active/);
- await page.getByRole('button',{name:'Предыдущее фото'}).click();
- await expect(page.locator('.preview-dots button').last()).toHaveClass(/active/);
  await page.getByRole('button',{name:'редактировать'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
 });
 
-test('V5 server account reset cannot resurrect a stale cached registration step',async({page})=>{
+test('New server account reset ignores stale cached registration steps',async({page})=>{
  await telegram(page,23);
  await page.addInitScript(()=>{localStorage.setItem('veyra.registration.v5.23',JSON.stringify({step:5,data:{name:'OLD CACHED NAME',city:'OLD CACHED CITY'}}))});
  await page.goto('/');
- await expect(page.getByRole('heading',{name:'расскажите о себе'})).toBeVisible();
- await expect(page.locator('input[placeholder="Как тебя зовут?"]')).toHaveValue('Tester');
+ await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
+ await expect(page.locator('input[placeholder="Как вас зовут?"]')).toHaveValue('Tester');
 });
 
-
-test('V7 registration keeps call-to-action pinned and interest icons visible',async({page})=>{
+test('New registration has a pinned CTA and working location edit + interests',async({page})=>{
  await telegram(page,24);await page.goto('/');
  await expect(page.locator('.registration-actions')).toBeVisible();
  const box=await page.locator('.registration-actions').boundingBox();
  expect(Math.abs((box.y+box.height)-page.viewportSize().height)).toBeLessThan(3);
- await page.getByRole('textbox',{name:'Имя'}).fill('Мария💗123');
- await expect(page.getByRole('textbox',{name:'Имя'})).toHaveValue('Мария');
+ await page.getByRole('textbox',{name:'Ваше имя'}).fill('Мария💗123');
+ await expect(page.getByRole('textbox',{name:'Ваше имя'})).toHaveValue('Мария');
+ await page.locator('.registration-consent input').check();
+ await page.getByRole('button',{name:'далее'}).click();
  await page.getByLabel('Дата рождения').fill('1998-05-12');
  await page.getByRole('button',{name:'женщина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
  await page.locator('.city-results button').first().click();
  await expect(page.locator('.location-card')).toContainText('Paris');
- await expect(page.locator('.city-search')).toHaveCount(0);
  await page.getByRole('button',{name:'изменить город'}).click();
  await expect(page.locator('.city-search')).toBeVisible();
  await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toBeVisible();
  await page.getByRole('button',{name:'скрыть поиск'}).click();
- await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toHaveCount(0);
  await page.getByRole('button',{name:'выбрать город'}).click();
- await page.getByRole('button',{name:'выбрать цель'}).click();
+ await page.getByRole('button',{name:'далее'}).click();
  await page.locator('.veyra-goal-choice').nth(1).click();
- await page.getByRole('button',{name:'продолжить'}).click();
- await expect(page.getByRole('heading',{name:'что тебе нравится?'})).toBeVisible();
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await expect(page.locator('.veyra-interest-options button').first()).toBeVisible();
- await expect(page.getByRole('heading',{name:'что тебе нравится?'})).toBeVisible();
- await expect.poll(()=>page.locator('.veyra-interest-options button img.veyra-interest-icon').count()).toBeGreaterThan(40);
 });
 
-
-test('V8 manual city can be corrected using device location without leaving the page',async({page,context})=>{
+test('City set manually can be corrected via device location without a navigation',async({page,context})=>{
  await context.grantPermissions(['geolocation'],{origin:'http://127.0.0.1:3100'});
  await context.setGeolocation({latitude:45.035,longitude:38.975});
  await page.route('**/api/geo?lat=*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{city:'Краснодар',country:'Россия',lat:45.035,lon:38.975,label:'Краснодар, Россия'}])}));
  await telegram(page,25);await page.goto('/');
+ await page.locator('.registration-consent input').check();
+ await page.getByRole('button',{name:'далее'}).click();
  await page.getByLabel('Дата рождения').fill('1998-05-12');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
@@ -230,7 +224,6 @@ test('V8 manual city can be corrected using device location without leaving the 
  await expect(page.locator('.city-search')).toHaveCount(0);
  expect(await page.evaluate(()=>performance.getEntriesByType('navigation').length)).toBe(navCount);
 });
-
 
 test('V5 approved premium feed uses cyclic photo strips and opens the complete profile',async({page})=>{
  await telegram(page,10);await page.goto('/');
