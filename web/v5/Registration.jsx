@@ -148,11 +148,15 @@ export function Registration({me,refresh}){
    <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Добавьте свои фото'][step-1]}</h1>
    <p className="subheading">{['Мы взяли имя из Telegram. Его всегда можно изменить.','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
-    <label className="registration-name-field">Имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как тебя зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
-    <label>Дата рождения<input type="date" min="1900-01-01" max={adultDate()} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
-    <p className="field-label">Пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+(f.gender===k?'active':'inactive')+'/'+k+'.svg'}/>{v}</button>)}</div>
-   </div>}
-   {step===3&&<div className="fields">
+     <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
+     <div className="registration-telegram-hint"><Icon name="check" tone="pink" size={19}/>Имя подставлено из Telegram. Вы можете изменить его.</div>
+     <label className="checkline registration-check registration-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Мне исполнилось 18 лет, я принимаю <a href="/legal" target="_blank" rel="noreferrer">Условия использования и Политику конфиденциальности</a> VEYRA</span></label>
+    </div>}
+    {step===2&&<div className="fields">
+     <label>Дата рождения<input type="date" min="1900-01-01" max={adultDate()} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
+     <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+(f.gender===k?'active':'inactive')+'/'+k+'.svg'}/>{v}</button>)}</div>
+    </div>}
+    {step===3&&<div className="fields">
     {selectedCity&&<div className="location-card">
      <span className="location-mark"><Icon name="pin" tone="pink" size={32}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
     </div>}
@@ -174,7 +178,8 @@ export function Registration({me,refresh}){
    {step===5&&<div className="fields"><img className="veyra-registration-art" src="/graphics/illustrations/match-hearts-512.webp" alt="" onError={e=>e.currentTarget.style.display='none'}/><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
    {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
    {step===7&&<div className="fields">
-    <p className="tip">Фото с настоящим лицом, без чужих людей. Зажми фотографию и перетащи в нужное место.</p>
+    <span className="registration-photo-count">{photos.length} из 7 фото · минимум 3</span>
+     <p className="tip">Первое фото будет главным. Чтобы изменить порядок, удерживай фотографию и перетаскивай.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
       return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
@@ -183,7 +188,7 @@ export function Registration({me,refresh}){
        tabIndex={!loading?0:-1} aria-label={'Фотография '+(i+1)+', перетащи для смены позиции'}
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<Photo id={item.id}/>}
-        {i===0&&<span className="cover-label">главное фото</span>}
+        {i===0&&<span className="cover-label">главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
         {loading?<span className={'upload-state '+item.status}>{item.status==='done'?<Icon name="check" tone="white" size={23}/>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="spinner-ring"/>}</span>:
         <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button>}
        </div>:<button key={'empty'+i} className={'photo-slot photo-slot-add '+(i===0?'primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}>
@@ -192,12 +197,12 @@ export function Registration({me,refresh}){
     </div>
     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
     <p className="photo-footnote">{uploading?'Загружаем фотографии по очереди…':'Загружено '+photos.length+' из '+MAX_PHOTOS+' · минимум '+MIN_PHOTOS}</p>
-    <label className="checkline registration-check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Мне 18+, согласен с правилами и политикой конфиденциальности</span></label>
+    <div className="photo-guidelines"><p><Icon name="camera" tone="pink" size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
    </div>}
   </div>
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===6&&photos.length<MIN_PHOTOS)} onClick={step===6?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===6?'посмотреть анкету':step===5?'добавить фото':step===4?'продолжить':step===3?'выбрать цель':step===2?'выбрать город':'далее'}</Button>}</div>
+  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===7&&photos.length<MIN_PHOTOS)} onClick={step===7?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===7?'посмотреть анкету':step===6?'добавить фото':step===5?'далее':step===3?'выбрать город':'далее'}</Button>}</div>
  </div>;
 }
