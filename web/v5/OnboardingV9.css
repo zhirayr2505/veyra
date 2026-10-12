@@ -128,3 +128,14 @@
  .v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-accordion-chevron{transition:none}
  .v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected-grid{scroll-behavior:auto}
 }
+
+/* v10: sticky selected interests within the step's own scroll viewport. */
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected{
+ position:sticky!important;top:0!important;z-index:25!important;
+ background:linear-gradient(120deg,#F1E7FFFA,#FBF8FFFA)!important;
+ border:1px solid #DCC7F5!important;
+ box-shadow:0 7px 20px #6D47922B!important;
+ backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-picker-head{justify-content:flex-start!important}
+@media(prefers-reduced-transparency:reduce){.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected{background:#F5EDFF!important;backdrop-filter:none!important}}
