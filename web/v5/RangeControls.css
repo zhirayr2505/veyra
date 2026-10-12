@@ -44,3 +44,51 @@
 .v2-onboarding .veyra-registration-2026 .vy-range-dual .vy-range-upper{z-index:3;}
 .v2-onboarding .veyra-registration-2026 .vy-range-dual .vy-range-lower.vy-range-front{z-index:4;}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .vy-range-track>i{transition:none}}
+
+/* Matching range geometry across discovery and account filter sheets. */
+/* A single range-control geometry shared by search radius and age preferences */
+.veyra-v2 .sheet .vy-range{
+ --vy-thumb:26px;position:relative;box-sizing:border-box;height:46px;width:100%;
+ padding:0 calc(var(--vy-thumb)/2);margin:0;display:flex;align-items:center;
+ touch-action:pan-y;user-select:none;-webkit-user-select:none;
+}
+.veyra-v2 .sheet .vy-range-track{
+ position:absolute;left:calc(var(--vy-thumb)/2);right:calc(var(--vy-thumb)/2);top:50%;
+ transform:translateY(-50%);height:6px;border-radius:999px;background:#EAE3F5;
+ pointer-events:none;overflow:visible;
+}
+.veyra-v2 .sheet .vy-range-track>i{
+ position:absolute;left:var(--vy-start);right:calc(100% - var(--vy-end));height:100%;
+ border-radius:999px;background:linear-gradient(90deg,#B494FF,#8951EB);transition:left .05s linear,right .05s linear;
+}
+.veyra-v2 .sheet .vy-range input[type=range]{
+ -webkit-appearance:none!important;appearance:none!important;position:relative!important;
+ width:100%!important;height:46px!important;margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;
+ outline:none!important;cursor:pointer;
+}
+.veyra-v2 .sheet .vy-range input[type=range]::-webkit-slider-runnable-track{
+ background:transparent!important;height:6px!important;border:none!important;
+}
+.veyra-v2 .sheet .vy-range input[type=range]::-moz-range-track{
+ height:6px!important;background:transparent!important;border:0!important;
+}
+.veyra-v2 .sheet .vy-range input[type=range]::-webkit-slider-thumb{
+ -webkit-appearance:none!important;appearance:none!important;width:var(--vy-thumb)!important;height:var(--vy-thumb)!important;
+ box-sizing:border-box!important;border-radius:50%!important;border:5px solid #fff!important;
+ background:#8E55ED!important;box-shadow:0 0 0 1px #A987F3,0 3px 10px #8766BC4A!important;
+ margin-top:calc((6px - var(--vy-thumb))/2)!important;cursor:grab!important;transition:box-shadow .15s ease;
+}
+.veyra-v2 .sheet .vy-range input[type=range]::-moz-range-thumb{
+ width:16px!important;height:16px!important;box-sizing:content-box!important;border-radius:50%!important;
+ border:5px solid #fff!important;background:#8E55ED!important;box-shadow:0 0 0 1px #A987F3,0 3px 10px #8766BC4A!important;
+}
+.veyra-v2 .sheet .vy-range input[type=range]:disabled{opacity:.5;cursor:default!important}
+.veyra-v2 .sheet .vy-range input[type=range]:focus-visible{outline:2px solid #9165F2!important;outline-offset:2px!important;border-radius:12px!important}
+.veyra-v2 .sheet .vy-range-dual input[type=range]{position:absolute!important;left:calc(var(--vy-thumb)/2)!important;top:0!important;width:calc(100% - var(--vy-thumb))!important;pointer-events:none!important;}
+.veyra-v2 .sheet .vy-range-dual input[type=range]::-webkit-slider-thumb{pointer-events:auto!important;}
+.veyra-v2 .sheet .vy-range-dual input[type=range]::-moz-range-thumb{pointer-events:auto!important;}
+.veyra-v2 .sheet .vy-range-dual .vy-range-lower{z-index:2;}
+.veyra-v2 .sheet .vy-range-dual .vy-range-upper{z-index:3;}
+.veyra-v2 .sheet .vy-range-dual .vy-range-lower.vy-range-front{z-index:4;}
+@media(prefers-reduced-motion:reduce){.veyra-v2 .sheet .vy-range-track>i{transition:none}}

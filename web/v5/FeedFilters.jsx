@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {get,patch} from './api.js';
 import {Button,Icon,InlineAlert,Sheet} from './UI.jsx';
+import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './FeedFilters.css';
 
 const allGenders=['man','woman','other'];
@@ -56,17 +57,11 @@ export function FeedFilters({profile,filters,onClose,onSave}){
    </section>
    <section className="feed-filter-group">
     <div className="feed-filter-heading"><h3>Возраст</h3><span>{p.min_age} – {p.max_age} лет</span></div>
-    <div className="feed-filter-two-range">
-     <label>От <input type="range" min="18" max="110" value={p.min_age} aria-label="Возраст от"
-      onChange={e=>setP('min_age',Math.min(Number(e.target.value),Number(p.max_age)))}/></label>
-     <label>До <input type="range" min="18" max="110" value={p.max_age} aria-label="Возраст до"
-      onChange={e=>setP('max_age',Math.max(Number(e.target.value),Number(p.min_age)))}/></label>
-    </div>
+    <BrandedDualSlider min={18} max={110} lower={Number(p.min_age)} upper={Number(p.max_age)} onChange={(low,high)=>set(old=>({...old,min_age:low,max_age:high}))}/>
    </section>
    <section className="feed-filter-group">
     <div className="feed-filter-heading"><h3>Расстояние</h3><span>{p.radius_km===20000?'Весь мир':'До '+p.radius_km+' км'}</span></div>
-    <input aria-label="Расстояние" type="range" min="5" max="200" step="5" disabled={p.radius_km===20000}
-     value={Math.min(p.radius_km,200)} onChange={e=>setP('radius_km',Number(e.target.value))}/>
+    <BrandedSlider ariaLabel="Расстояние" min={5} max={200} step={5} disabled={p.radius_km===20000} value={Math.min(p.radius_km,200)} onChange={v=>setP('radius_km',v)}/>
     <label className="feed-filter-toggle"><span>По всему миру</span><input type="checkbox" checked={p.radius_km===20000}
      onChange={e=>setP('radius_km',e.target.checked?20000:50)}/><span className="feed-filter-switch"/></label>
    </section>
