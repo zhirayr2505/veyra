@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
 import {get,post,photoUrl,cachedPhoto} from './api.js';
+import {InterestReveal} from './InterestReveal.jsx';
 import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
 import './Discover.css';
 
@@ -203,7 +204,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
        <div className="feed-name-line"><button className="hero-name" onClick={()=>onProfile(card.id)} type="button">{card.name}, {card.age}</button><Icon name="verified" tone="white" size={20} className="feed-checked"/></div>
        {location&&<p className="feed-location"><Icon name="pin" tone="white" size={14}/>{location}</p>}
        {card.bio&&<p className="hero-bio">{card.bio}</p>}
-       {!!card.interests?.length&&<div className="hero-tags">{card.interests.slice(0,5).map(x=><Interest key={x} name={x}/>)}</div>}
+       {!!card.interests?.length&&<div className="hero-tags"><InterestReveal items={card.interests}/></div>}
       </div>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}

@@ -3,6 +3,7 @@ import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,Paw
 import {get,put,post,request,photoOrder} from './api.js';
 import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
+import {InterestReveal} from './InterestReveal.jsx';
 import './Registration2026.css';
 import {LegalScreen} from './Legal.jsx';
 
@@ -34,6 +35,7 @@ export function Registration({me,refresh}){
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
  const [legalOpen,setLegalOpen]=useState(false),[legalTab,setLegalTab]=useState('terms');
+ const [goalScroll,setGoalScroll]=useState(0);
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]);
  const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
@@ -55,6 +57,7 @@ export function Registration({me,refresh}){
   if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери город из предложенного списка');
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь предпочтения поиска');
  };
+ useEffect(()=>{if(step!==5){setGoalScroll(0);return}const update=()=>setGoalScroll(Math.min(1,Math.max(0,window.scrollY/210)));window.addEventListener('scroll',update,{passive:true});update();return()=>window.removeEventListener('scroll',update)},[step]);
  const go=(n,dir)=>{setDirection(dir);setStep(Math.min(7,Math.max(1,n)));window.scrollTo({top:0,behavior:'instant'})};
  const next=()=>work(async()=>{valid();const data={...f,min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===6){await put('/registration/profile',{...data,registration_ui_version:2});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:2,consent_to_terms:consent}});
@@ -157,7 +160,7 @@ export function Registration({me,refresh}){
      <h2>{f.name}, {age(f.birth_date)}</h2>
      <p className="preview-card-location"><Icon name="pin" tone="white" size={16}/>{f.city}, {f.country}</p>
      {f.bio?.trim()&&<p className="preview-card-bio">{f.bio}</p>}
-     {f.interests.length>0&&<div className="preview-card-chips" aria-label="Интересы">{f.interests.map(value=><span key={value}><InterestSymbol value={value} size={14}/>{value}</span>)}</div>}
+     {f.interests.length>0&&<InterestReveal items={f.interests} preview/>}
      <p className="preview-card-goal">✨ {f.goal==='relationship'?'Ищу серьёзные отношения':f.goal==='dating'?'Открыт(а) к свиданиям':f.goal==='friends'?'Ищу общение':'Пока не определился'}</p>
     </div>
     {photos.length>1&&<div className="preview-dots" role="group" aria-label="Фотографии анкеты">{photos.map((p,i)=><button type="button" key={p.id} aria-label={'Фото '+(i+1)} aria-current={i===photoIndex?'true':undefined} className={i===photoIndex?'active':''} onClick={()=>selectPhoto(i)}/>)}</div>}
@@ -201,19 +204,19 @@ export function Registration({me,refresh}){
    {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><DesignGlyph name={k==='man'?'male':k==='woman'?'female':'everyone'} active={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} size={42}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
-   {step===5&&<div className="fields"><div className="veyra-goal-header-icon" aria-hidden="true"><Icon name="heart" tone="pink" size={36}/><span className="veyra-goal-header-sparkle"><Icon name="sparkle" tone="pink" size={18}/></span></div><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
-   {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
+   {step===5&&<div className="fields"><div className="veyra-orb-stage" aria-hidden="true" style={{height:Math.round(158-goalScroll*99)+'px'}}><div className="veyra-orb-glow" style={{transform:'scale('+(1-goalScroll*.52)+')'}}><div className="veyra-orb-orbit"/><div className="veyra-orb-core"><Icon name="heart" tone="pink" size={48}/></div><span className="veyra-orb-spark first">✦</span><span className="veyra-orb-spark second">✦</span></div></div><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
+   {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/><label className="veyra-bio-box">Немного о себе <small>Необязательно · до 200 символов</small><textarea aria-label="О себе" maxLength={200} rows={3} placeholder="Каким ты бываешь? Что любишь и кого хочешь встретить?" value={f.bio||''} onChange={e=>change('bio',e.target.value)}/><span>{(f.bio||'').length}/200</span></label></div>}
    {step===7&&<div className="fields">
     <span className="registration-photo-count">{photos.length} из 7 фото · минимум 3</span>
      <p className="tip">Первое фото будет главным. Чтобы изменить порядок, удерживай фотографию и перетаскивай.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
       return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
-       onContextMenu={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
+       onContextMenuCapture={e=>e.preventDefault()} onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
        onPointerMove={dragMove} onPointerUp={dragFinish} onPointerCancel={dragCancel}
        tabIndex={!loading?0:-1} aria-label={'Фотография '+(i+1)+', перетащи для смены позиции'}
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
-        {loading?<img className="upload-preview" alt="" src={item.preview}/>:<Photo id={item.id}/>}
+        {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
         {loading?<span className={'upload-state '+item.status}>{item.status==='done'?<Icon name="check" tone="white" size={23}/>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="spinner-ring"/>}</span>:
         <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button>}
