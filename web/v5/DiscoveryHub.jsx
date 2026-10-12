@@ -51,7 +51,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
  const [people,setPeople]=useState([]),[loading,setLoading]=useState(false),[limited,setLimited]=useState(false);
  const [error,setError]=useState(''),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
  const [choice,setChoice]=useState('all'),[interest,setInterest]=useState(''),[pending,setPending]=useState([]);
- const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false);
+ const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false),[showAllCollections,setShowAllCollections]=useState(false);
  const loadedKey=useRef(null),requestNumber=useRef(0);
  const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,refreshTick,retry].join(':');
  const allInterests=useMemo(()=>{
@@ -116,7 +116,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
   }finally{setPending(old=>old.filter(v=>v!==target))}
  };
  const retryLoad=()=>{loadedKey.current=null;setRetry(x=>x+1)};
- const rows=personal?sharedPeople:selected;
+ const rows=personal?(interest?sharedPeople.filter(p=>(p.interests||[]).some(x=>interestKey(x)===interestKey(interest))):sharedPeople):selected;
  return <div className={'vx-browse vx-'+kind} aria-label={personal?'Для вас':'Люди рядом'}>
   {personal?<>
    <section className="vx-personal-head">
@@ -132,9 +132,10 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
      return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} onProfile={onProfile}/>;
     })}
    </div>}
-   <SectionTitle action={interest?'Сбросить':'Смотреть все'} onAction={()=>setInterest('')}>Подборки для тебя</SectionTitle>
+   <SectionTitle action={interest?'Сбросить':showAllCollections?'Свернуть':'Смотреть все'}
+    onAction={()=>interest?setInterest(''):setShowAllCollections(x=>!x)}>Подборки для тебя</SectionTitle>
    {allInterests.length>0&&<div className="vx-collections">
-    {allInterests.slice(0,4).map(group=><button type="button" key={group.id}
+    {allInterests.slice(0,showAllCollections?8:4).map(group=><button type="button" key={group.id}
       className={'vx-collection'+(interest===group.id?' chosen':'')}
       aria-pressed={interest===group.id} onClick={()=>{haptic();setInterest(interest===group.id?'':group.id)}}>
      <Photo id={group.members[0]?.photos?.[0]} alt=""/>
@@ -186,7 +187,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
 }
 export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
- const [refresh,setRefresh]=useState({feed:0,for_you:0,nearby:0}),[reactionRefresh,setReactionRefresh]=useState(0);
+ const [reactionRefresh,setReactionRefresh]=useState(0);
  const scroll=useRef({feed:0,for_you:0,nearby:0}),scrollTimeout=useRef(null);
  useEffect(()=>()=>{if(scrollTimeout.current)cancelAnimationFrame(scrollTimeout.current)},[]);
  const switchTab=next=>{
@@ -226,13 +227,13 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
   </div>
   <div id="vx-panel-feed" className="vx-panel" role="tabpanel" aria-labelledby="vx-tab-feed" hidden={tab!=='feed'}>
    <Discover embedded filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium}
-    onFilters={onFilters} refreshTick={refreshTick+refresh.feed+(tab==='feed'?reactionRefresh:0)}/>
+    onFilters={onFilters} refreshTick={refreshTick+(tab==='feed'?reactionRefresh:0)}/>
   </div>
   {['for_you','nearby'].map(kind=>visited.has(kind)&&<div key={kind} id={'vx-panel-'+kind}
    className="vx-panel" role="tabpanel" aria-labelledby={'vx-tab-'+kind} hidden={tab!==kind}>
    <BrowseScene kind={kind} active={tab===kind} profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch}
     onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
-    refreshTick={refresh[kind]+refreshTick+reactionRefresh}/>
+    refreshTick={refreshTick+reactionRefresh}/>
   </div>)}
  </section>;
 }
