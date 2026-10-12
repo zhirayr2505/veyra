@@ -13,6 +13,8 @@ import {LegalScreen} from './Legal.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3,MAX_BIO=250;
+const NEXT_STEP_LABELS=['Указать возраст','Выбрать город','Настроить поиск','Выбрать цель знакомства','Выбрать интересы','Рассказать о себе'];
+function hapticNext(){try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{}}
 const truncateBio=value=>Array.from(String(value||'')).slice(0,MAX_BIO).join('');
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
 const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
@@ -34,12 +36,13 @@ export function Registration({me,refresh}){
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
+ const [ctaPressed,setCtaPressed]=useState(false);
  const [legalOpen,setLegalOpen]=useState(false),[legalTab,setLegalTab]=useState('terms');
 
  const [telegramFull,setTelegramFull]=useState(()=>Boolean(window.Telegram?.WebApp?.isFullscreen));
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
- const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
+ const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),ctaTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  const setDobPart=(key,raw)=>{const max=key==='year'?4:2,val=String(raw).replace(/\D/g,'').slice(0,max),parts={...dobParts,[key]:val};setDobParts(parts);const {day,month,year}=parts;change('birth_date',day.length===2&&month.length===2&&year.length===4?year+'-'+month+'-'+day:'');if(val.length===max){
@@ -63,7 +66,7 @@ export function Registration({me,refresh}){
   return()=>{tg.offEvent?.('fullscreenChanged',sync);back.offClick?.(onBack);back.hide?.()};
  },[step,preview,busy,uploading,telegramFull]);
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
- useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
+ useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);clearTimeout(ctaTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
@@ -79,7 +82,7 @@ export function Registration({me,refresh}){
  };
 
  const go=(n,dir)=>{setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
- const next=()=>work(async()=>{valid();const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
+ const next=()=>work(async()=>{valid();hapticNext();const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
   go(step+1,'forward');
  });
@@ -163,6 +166,18 @@ export function Registration({me,refresh}){
  const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
+ const nextLabel=step===8?(photos.length<MIN_PHOTOS?'Добавить ещё '+(MIN_PHOTOS-photos.length)+' фото':'Посмотреть анкету'):step===7?(String(f.bio||'').trim()?'Добавить фото':'Пропустить'):NEXT_STEP_LABELS[step-1];
+ const primaryAction=()=>{
+  if(busy||uploading)return;
+  setCtaPressed(true);clearTimeout(ctaTimer.current);
+  ctaTimer.current=setTimeout(()=>setCtaPressed(false),480);
+  if(step===8){
+   hapticNext();
+   if(photos.length<MIN_PHOTOS){photoInput.current?.click();return}
+   setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true);return;
+  }
+  next();
+ };
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
@@ -225,7 +240,14 @@ export function Registration({me,refresh}){
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-   <div className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>{busy?<Spinner/>:<Button className="full" disabled={busy||uploading} onClick={step===8?photos.length<MIN_PHOTOS?()=>photoInput.current?.click():()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===8?(photos.length<MIN_PHOTOS?'добавь ещё '+(MIN_PHOTOS-photos.length)+' фото':'посмотреть анкету'):step===7?'к фотографиям':'далее'}</Button>}</div>
+   <div className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>
+    <Button className={'full veyra-smart-next'+(busy?' is-loading':'')+(ctaPressed?' was-pressed':'')} disabled={busy||uploading} onClick={primaryAction}>
+     <span className="veyra-smart-next-content">
+      <span className="veyra-smart-next-label" key={nextLabel}>{nextLabel}</span>
+      {busy?<span className="veyra-smart-next-spinner" role="status" aria-label="Сохраняем данные"/>:<Icon name="arrow-right" tone="white" size={21} className="veyra-smart-next-arrow"/>}
+     </span>
+    </Button>
+   </div>
  {legalOpen&&<LegalScreen asModal initialTab={legalTab} onClose={()=>setLegalOpen(false)} onAccept={()=>{setConsent(true);setLegalOpen(false)}}/>}
  </div>;
 }
