@@ -116,3 +116,9 @@
 .discover .feed-photo .veyra-card-top-goal{top:43px;right:12px}
 .discover .feed-photo .feed-info-button{top:94px;bottom:auto}
 .discover .feed-photo .veyra-card-tags{max-height:62px}
+
+/* Match registration preview: extra interests never wrap beneath the photo frame. */
+.discover .feed-photo .veyra-card-caption .veyra-interest-inline{
+ display:flex!important;flex-wrap:nowrap!important;max-height:30px!important;overflow:hidden!important;
+}
+.discover .feed-photo .veyra-card-caption .hero-tags{height:30px!important;max-height:30px!important;overflow:visible!important}
