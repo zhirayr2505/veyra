@@ -26,7 +26,7 @@ export function DeletionPending({dueAt,onRestore}){
  const restore=async()=>{if(busy||seconds<=0)return;setBusy(true);setError('');try{await onRestore()}catch(e){setError(e?.message||'Не удалось восстановить аккаунт');setBusy(false)}};
  const exit=()=>{const tg=window.Telegram?.WebApp;if(typeof tg?.close==='function')tg.close();else window.location.assign('https://t.me/VeyraAppBot')};
  return <main className="veyra-delete-page veyra-delete-wait">
-  <header><span/><Logo width={136}/><span/></header>
+  <header><span/><span className="veyra-deletion-wordmark"><Logo width={136}/></span><span/></header>
   <div className="veyra-delete-main">
    <div className="veyra-delete-crystal" aria-hidden="true"><CompletionArt kind="deleted"/></div>
    <h1>Ещё можно вернуться</h1>
