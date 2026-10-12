@@ -423,7 +423,9 @@ test('V5 approved premium feed uses cyclic photo strips and opens the complete p
  await expect(bars.last()).toHaveClass(/active/);
  expect(reactionRequests).toBe(0);
  await expect(page.locator('.feed-photo .hero-name')).toHaveText(before);
- await page.locator('.feed-photo').click({position:{x:box.width*.5,y:box.height*.42}});
+ await page.locator('.feed-photo').click({position:{x:box.width*.8,y:box.height*.42}});
+ await expect(page.locator('.member')).toHaveCount(0);
+ await page.locator('.feed-photo .hero-name').click();
  await expect(page.locator('.member')).toBeVisible();
  await page.locator('.member .top-header button.back').click();
  await expect(page.locator('.feed-photo')).toBeVisible();
@@ -494,7 +496,7 @@ test('VEYRA V2 keeps search and encounter screens distinct and opens genuine mem
  await expect(page.locator('.vx-for_you .vx-people')).toBeVisible();
  await tabs.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby .vx-people .vx-person').first()).toBeVisible();
- await expect(page.locator('.vx-nearby .vx-person-caption small').first()).toContainText('км');
+ await expect(page.locator('.vx-nearby .vx-person-caption small').nth(1)).toContainText('км');
  await expect(page.locator('.feed-photo')).toBeHidden();
  await page.locator('.bottom-nav').getByRole('button',{name:'знакомства'}).click();
  await expect(page.locator('.feed-photo')).toBeVisible();
@@ -551,7 +553,7 @@ test('V5 free incoming likes reveal counts but never reveal private identities',
 test('VEYRA V2 serves its own wordmark and five navigation icon assets',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await expect(page.locator('.bottom-nav button')).toHaveCount(5);
- await expect(page.locator('.v2-screen-header .logo')).toHaveAttribute('src','/veyra-design/veyra-wordmark-purple.svg');
+ await expect(page.locator('.vx-dating-stage02 .vx-head .vx-logo')).toHaveAttribute('src','/veyra-design/veyra-wordmark-purple.svg');
  for(const path of ['00_brand/veyra_logo_primary.svg','01_icons/inactive/search.svg','01_icons/inactive/cards.svg','01_icons/inactive/chats.svg','01_icons/inactive/heart.svg','01_icons/inactive/profile.svg','01_icons/active/heart.svg','04_empty_states/svg/no_results.svg']){
   const response=await page.request.get('/veyra-approved/'+path);
   expect(response.status(),path).toBe(200);

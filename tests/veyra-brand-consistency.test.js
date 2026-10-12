@@ -28,9 +28,9 @@ test('all core screens use one branded rounded wordmark, including error and dis
  for(const p of ['web/v5/UI.jsx','web/v5/App.jsx','web/v5/Discover.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
   assert.doesNotMatch(contents(p),/\/assets\/veyra\/00_brand\/veyra_logo\.svg/,p+' still references an old logo');
  }
- for(const p of ['web/v5/UI.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
-  assert.ok(contents(p).includes(p==='web/v5/UI.jsx'?'veyra-wordmark-purple.svg':'veyra_logo_primary.svg'),p+' must use the approved wordmark');
- }
+ assert.ok(contents('web/v5/UI.jsx').includes('veyra-wordmark-purple.svg'));
+ assert.ok(contents('web/v5/DiscoveryHub.jsx').includes('<Logo width={145}'),'DiscoveryHub renders the approved shared wordmark');
+ assert.ok(contents('web/v5/ErrorBoundary.jsx').includes('veyra_logo_primary.svg'));
 });
 test('brand-wide asset illustrations and badges use the same violet palette',()=>{
  for(const dir of ['illustrations','badges']){

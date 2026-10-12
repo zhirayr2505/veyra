@@ -1,177 +1,239 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {get,post} from './api.js';
-import {Button,Icon,DetailIcon,InterestIcon,Photo,Spinner,InlineAlert} from './UI.jsx';
+import {get,post,photoUrl} from './api.js';
+import {Button,Icon,InterestIcon,Logo,Photo,Spinner,InlineAlert} from './UI.jsx';
+import {CountryFlag} from './CountryFlag.jsx';
 import {Discover} from './Discover.jsx';
 import './DiscoveryHub.css';
 
 const TABS=[['feed','Лента'],['for_you','Для вас'],['nearby','Рядом']];
-const PAGE_SIZE=6;
-function distanceFor(person){const n=Number(person.distance_km);return Number.isFinite(n)&&n>=0?'~'+n+' км':person.city||'';}
-function feedback(){try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{}}
-function queryFor(kind,filter,choice,skip=[]){
- const params=new URLSearchParams({browse:'true',mode:kind,limit:String(PAGE_SIZE)});
- if(filter?.only_online||kind==='nearby'&&choice==='online')params.set('only_online','true');
- if(filter?.common_interests||kind==='nearby'&&choice==='common')params.set('common_interests','true');
- if(skip.length)params.set('skip',skip.map(p=>String(p.id)).join(','));
- return '/feed?'+params.toString();
+const PAGE_SIZE=8;
+const haptic=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* optional */}};
+const distanceFor=p=>Number.isFinite(Number(p.distance_km))&&p.distance_km!=null
+ ?'~'+Math.round(Number(p.distance_km))+' км':null;
+const interestKey=v=>String(v||'').toLocaleLowerCase('ru').trim();
+const queryFor=(kind,filters,choice,skip=[])=>{
+ const p=new URLSearchParams({browse:'true',mode:kind,limit:String(PAGE_SIZE)});
+ if(filters?.only_online||(kind==='nearby'&&choice==='online'))p.set('only_online','true');
+ if(filters?.common_interests||(kind==='nearby'&&choice==='common'))p.set('common_interests','true');
+ if(skip.length)p.set('skip',skip.map(x=>String(x.id)).join(','));
+ return '/feed?'+p.toString();
+};
+function SectionTitle({children,action,onAction}){
+ return <div className="vx-section-title"><h2>{children}</h2>
+  {action&&<button type="button" onClick={onAction}>{action}<Icon name="chevron-right" tone="dark" size={18}/></button>}</div>;
 }
-function Portraits({people,onProfile}){
- return <div className="vx-portraits">
-  {people.slice(0,6).map(p=><button type="button" key={p.id} className="vx-portrait" aria-label={'Открыть профиль '+p.name} onClick={()=>onProfile(p.id)}>
-   <Photo id={p.photos?.[0]} alt=""/>
-   {p.online&&<span className="vx-status-dot"/>}
-  </button>)}
- </div>;
+function Portrait({person,onProfile,interest}){
+ return <button className="vx-portrait-card" type="button" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
+  <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name}/></span>
+  {interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
+   person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null}
+  <span className="vx-portrait-name">{person.name}</span>
+ </button>;
 }
-function BrowsePerson({person,onProfile,onLike,busy}){
- return <article className="vx-person" data-person-id={person.id}>
-  <button className="vx-person-open" type="button" aria-label={'Открыть профиль '+person.name} onClick={()=>onProfile(person.id)}>
+function BrowsePerson({person,onProfile,onLike,busy,variant='nearby'}){
+ return <article className={'vx-person vx-person-'+variant} data-person-id={person.id}>
+  <button type="button" className="vx-person-open" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
    <Photo id={person.photos?.[0]} alt={person.name}/>
-   <div className="vx-person-gradient" aria-hidden="true"/>
-   <div className="vx-person-caption">
-    <strong>{person.name}, {person.age} {person.online&&<span className="vx-caption-online" title="Сейчас онлайн"/>}</strong>
-    <small><Icon name="pin" tone="white" size={12}/>{[person.city,distanceFor(person)].filter(Boolean).join(' · ')}</small>
-   </div>
+   <span className="vx-person-gradient" aria-hidden="true"/>
+   {person.online&&<span className="vx-card-online" title="В сети"/>}
+   <span className="vx-person-caption">
+    <strong>{person.name}, {person.age}</strong>
+    <small><CountryFlag country={person.country}/> {person.city}{person.country?', '+person.country:''}</small>
+    {variant==='nearby'&&distanceFor(person)&&<small><Icon name="pin" tone="white" size={13}/>{distanceFor(person)}</small>}
+   </span>
   </button>
-  <button className="vx-person-like" type="button" aria-label={'Нравится '+person.name} disabled={busy} onClick={()=>{feedback();onLike(person)}}><Icon name="heart_filled" tone="pink" size={20}/></button>
+  <button type="button" className="vx-person-like" disabled={busy} onClick={()=>{haptic();onLike(person)}}
+   aria-label={'Нравится '+person.name}><Icon name="heart" tone="pink" size={21}/></button>
  </article>;
 }
 function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,onPremium,onFilters,onReaction}){
- const isPersonal=kind==='for_you';
- const [people,setPeople]=useState([]),[loading,setLoading]=useState(false),[error,setError]=useState('');
- const [limited,setLimited]=useState(false),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
- const [choice,setChoice]=useState('all'),[interest,setInterest]=useState(''),[pending,setPending]=useState([]),[retry,setRetry]=useState(0);
+ const personal=kind==='for_you';
+ const [people,setPeople]=useState([]),[loading,setLoading]=useState(false),[limited,setLimited]=useState(false);
+ const [error,setError]=useState(''),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
+ const [choice,setChoice]=useState('all'),[interest,setInterest]=useState(''),[pending,setPending]=useState([]);
+ const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false),[showAllCollections,setShowAllCollections]=useState(false);
  const loadedKey=useRef(null),requestNumber=useRef(0);
- const requestKey=[kind,!!filters?.only_online,!!filters?.common_interests,choice,refreshTick,retry].join(':');
+ const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,refreshTick,retry].join(':');
+ const allInterests=useMemo(()=>{
+  const mine=new Set((profile?.interests||[]).map(interestKey));
+  const groups=new Map();
+  people.forEach(p=>(p.interests||[]).forEach(value=>{
+   const id=interestKey(value);
+   if(!groups.has(id))groups.set(id,{id,name:String(value),members:[],shared:mine.has(id)});
+   groups.get(id).members.push(p);
+  }));
+  return [...groups.values()].sort((a,b)=>Number(b.shared)-Number(a.shared)||b.members.length-a.members.length).slice(0,8);
+ },[people,profile?.interests]);
+ const selected=interest?people.filter(p=>(p.interests||[]).some(x=>interestKey(x)===interestKey(interest))):people;
+ const sharedPeople=useMemo(()=>[...people].sort((a,b)=>(b.shared_interests||0)-(a.shared_interests||0)),[people]);
+ const nearbyLocation=profile?.city?(profile.city+(profile.country?', '+profile.country:'')):'Местоположение не определено';
+ const hasCoordinates=Number.isFinite(Number(profile?.lat))&&Number.isFinite(Number(profile?.lon))&&profile?.lat!=null&&profile?.lon!=null;
+ const radius=profile?.radius_km===20000?'по всему миру':'в радиусе '+(profile?.radius_km||50)+' км';
+
  useEffect(()=>{
   if(!active||loadedKey.current===requestKey)return;
   loadedKey.current=requestKey;
-  let alive=true,completed=false;const number=++requestNumber.current;
-  setLoading(true);setError('');setPeople([]);setHasMore(false);setInterest('');
-  get(queryFor(kind,filters,choice)).then(result=>{
-   if(!alive||number!==requestNumber.current)return;
-   completed=true;
-   const list=result.profiles||[];
-   setPeople(list);setLimited(!!result.limited);
-   setHasMore(list.length===PAGE_SIZE&&!result.limited);
-  }).catch(e=>{if(alive&&number===requestNumber.current){loadedKey.current=null;setError('Не удалось загрузить анкеты: '+e.message)}})
-   .finally(()=>{if(alive&&number===requestNumber.current)setLoading(false)});
-  return()=>{alive=false;if(!completed&&loadedKey.current===requestKey)loadedKey.current=null};
- },[active,requestKey,choice,kind,filters]);
- const interestGroups=useMemo(()=>{
-  const own=new Set((profile?.interests||[]).map(x=>String(x).toLowerCase()));
-  const values=new Map();
-  for(const p of people)for(const label of (p.interests||[])){
-   const name=String(label),key=name.toLowerCase();
-   if(!values.has(key))values.set(key,{name,people:[],shared:own.has(key)});
-   values.get(key).people.push(p);
-  }
-  return [...values.values()].sort((a,b)=>Number(b.shared)-Number(a.shared)||b.people.length-a.people.length).slice(0,6);
- },[people,profile?.interests]);
- const visible=interest?people.filter(p=>(p.interests||[]).some(v=>String(v).toLowerCase()===interest.toLowerCase())):people;
+  const n=++requestNumber.current;let alive=true,done=false;
+  setLoading(true);setError('');setHasMore(false);
+  get(queryFor(kind,filters,choice)).then(data=>{
+   if(!alive||n!==requestNumber.current)return;
+   done=true;const list=data.profiles||[];
+   setPeople(list);setLimited(!!data.limited);setHasMore(list.length===PAGE_SIZE&&!data.limited);
+  }).catch(e=>{
+   if(alive&&n===requestNumber.current){loadedKey.current=null;setError(e.message)}
+  }).finally(()=>{if(alive&&n===requestNumber.current)setLoading(false)});
+  return()=>{alive=false;if(!done&&loadedKey.current===requestKey)loadedKey.current=null};
+ },[active,requestKey,kind,filters,choice]);
+ useEffect(()=>{
+  if(!people.length)return;
+  people.slice(0,Math.min(8,people.length)).forEach(p=>{
+   const id=p.photos?.[0];if(id)photoUrl(id).catch(()=>{});
+  });
+ },[people]);
  const loadMore=async()=>{
   if(moreBusy||!hasMore)return;
   setMoreBusy(true);setError('');
   try{
-   const result=await get(queryFor(kind,filters,choice,people));
-   const incoming=(result.profiles||[]).filter(p=>!people.some(previous=>String(previous.id)===String(p.id)));
-   setPeople(old=>[...old,...incoming]);setLimited(!!result.limited);
-   setHasMore(incoming.length===PAGE_SIZE&&!result.limited);
-  }catch(e){setError('Не удалось показать больше анкет: '+e.message)}
+   const data=await get(queryFor(kind,filters,choice,people));
+   const existing=new Set(people.map(p=>String(p.id)));
+   const next=(data.profiles||[]).filter(p=>!existing.has(String(p.id)));
+   setPeople(old=>[...old,...next]);setLimited(!!data.limited);
+   setHasMore(next.length===PAGE_SIZE&&!data.limited);
+  }catch(e){setError('Не удалось загрузить другие анкеты: '+e.message)}
   finally{setMoreBusy(false)}
  };
  const like=async person=>{
-  const id=String(person.id);
-  if(pending.includes(id))return;
-  setPending(old=>[...old,id]);setError('');
+  const target=String(person.id);if(pending.includes(target))return;
+  setPending(old=>[...old,target]);setError('');
   try{
-   const result=await post('/reactions',{target:id,kind:'like'});
-   setPeople(old=>old.filter(p=>String(p.id)!==id));
-   onReaction();
-   if(result.matched)onMatch(result.match_id,person);
+   const data=await post('/reactions',{target,kind:'like'});
+   setPeople(old=>old.filter(p=>String(p.id)!==target));
+   onReaction?.();
+   if(data.matched)onMatch(data.match_id,person);
   }catch(e){
    if(/LIMIT|REQUIRED|PREMIUM/i.test(e.message))onPremium();
    else setError('Не удалось отправить симпатию: '+e.message);
-  }finally{setPending(old=>old.filter(x=>x!==id))}
+  }finally{setPending(old=>old.filter(v=>v!==target))}
  };
- const reset=()=>{loadedKey.current=null;setInterest('');setError('');setRetry(n=>n+1)};
- const title=isPersonal?'Для вас':'Рядом с вами';
- return <div className={'vx-browse vx-'+kind} aria-label={title}>
-  {isPersonal?
-   <React.Fragment>
-    <section className="vx-personal-head">
-     <div className="vx-feature-label"><Icon name="sparkle" tone="pink" size={18}/><div><b>Специально для тебя</b><p>Знакомства по вашим интересам и предпочтениям</p></div></div>
-     {!!people.length&&<Portraits people={people} onProfile={onProfile}/>}
-     <div className="vx-feature-mark" aria-hidden="true"><Icon name="sparkle" tone="pink" size={25}/></div>
-    </section>
-    <div className="vx-section-title"><h2>Твои подборки</h2><small>На основе общих интересов</small></div>
-    {!!interestGroups.length&&<div className="vx-collections">
-     {interestGroups.slice(0,4).map((group,i)=>{const face=group.people[0];
-      return <button type="button" key={group.name} className={'vx-collection vx-collection-'+i+(interest===group.name?' chosen':'')}
-       aria-label={'Подборка '+group.name} onClick={()=>{feedback();setInterest(interest===group.name?'':group.name)}}>
-       <Photo id={face.photos?.[0]} alt=""/>
-       <div className="vx-collection-shade"/>
-       <span className="vx-collection-icon"><InterestIcon name={group.name} size={18}/></span>
-       <span className="vx-collection-label"><b>{group.name}</b><small>{group.people.length} {group.people.length===1?'анкета':'анкеты в подборке'}</small></span>
-       <span className="vx-collection-chevron"><Icon name="chevron-right" tone="dark" size={18}/></span>
-      </button>;
-     })}
-    </div>}
-    <div className="vx-section-title vx-feature-list-heading"><h2>{interest?'Любят '+interest.toLowerCase():'Вам могут понравиться'}</h2>{interest&&<button type="button" onClick={()=>setInterest('')}>Все <Icon name="arrow-right" tone="pink" size={13}/></button>}</div>
-   </React.Fragment>:
-   <React.Fragment>
-    <div className="vx-section-title vx-nearby-title"><div><h2>Люди рядом</h2><small><Icon name="pin" tone="dark" size={14}/>{profile?.city||'По вашей геолокации'} · примерное расстояние</small></div><button type="button" className="vx-nearby-filter" aria-label="Изменить расстояние" onClick={onFilters}><Icon name="filters" tone="pink" size={19}/></button></div>
-    {!!people.length&&<section className="vx-nearby-strip"><div className="vx-section-title"><h3>Познакомься поближе</h3><span>{people.length} {people.length===1?'анкета':'анкет'}</span></div><Portraits people={people} onProfile={onProfile}/></section>}
-    <div className="vx-filter-pills" role="group" aria-label="Фильтры рядом">{[['all','Все'],['online','В сети'],['common','Общие интересы']].map(([key,label])=><button type="button" key={key} className={choice===key?'chosen':''} aria-pressed={choice===key} onClick={()=>{feedback();setChoice(key)}}>{label}</button>)}</div>
-   </React.Fragment>}
-  {loading?<div className="vx-state"><Spinner/><p>Подбираем настоящие анкеты…</p></div>:people.length?
-   <React.Fragment>
-    {visible.length?<div className="vx-people" aria-label={isPersonal?'Подборка анкет':'Анкеты рядом'}>{visible.map(p=><BrowsePerson person={p} key={p.id} onProfile={onProfile} onLike={like} busy={pending.includes(String(p.id))}/>)}</div>:
-     <div className="vx-state vx-minor-empty"><Icon name="sparkle" tone="pink" size={34}/><p>В этой подборке пока нет новых анкет</p><Button kind="outline" onClick={()=>setInterest('')}>Все анкеты</Button></div>}
-    {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>{moreBusy?'Загружаем…':'Показать ещё'} <DetailIcon name="refresh" size={17}/></button>}
-    {limited&&<p className="vx-quota">Лимит просмотров на сегодня достигнут. <button type="button" onClick={onPremium}>VEYRA Premium</button></p>}
-   </React.Fragment>:
-   <div className="vx-state vx-empty"><img src="/veyra-approved/04_empty_states/svg/no_nearby_people.svg" className="vx-state-illustration" alt="" loading="lazy" decoding="async"/>
-    <h3>{limited?'Лимит просмотров исчерпан':'Пока нет подходящих анкет'}</h3>
-    <p>{limited?'Продолжить знакомства можно с VEYRA Premium.':'Попробуй изменить город, возраст или расстояние. Все профили проходят модерацию.'}</p>
-    <Button onClick={limited?onPremium:onFilters}>{limited?'Открыть Premium':'Изменить фильтры'}</Button>
+ const retryLoad=()=>{loadedKey.current=null;setRetry(x=>x+1)};
+ const rows=personal?(interest?sharedPeople.filter(p=>(p.interests||[]).some(x=>interestKey(x)===interestKey(interest))):sharedPeople):selected;
+ return <div className={'vx-browse vx-'+kind} aria-label={personal?'Для вас':'Люди рядом'}>
+  {personal?<>
+   <section className="vx-personal-head">
+    <div className="vx-personal-hello"><h1>{profile?.name?profile.name+', это':'Это'} для тебя <span aria-hidden="true" className="vx-purple-heart"><Icon name="heart" tone="pink" size={24}/></span></h1>
+     <p>Мы подобрали людей, которые разделяют твои интересы и ценности</p></div>
+    <div className="vx-personal-heart" aria-hidden="true"><img src="/veyra-approved/01_icons/active/heart.svg" alt=""/></div>
+    <div className="vx-benefits"><span><Icon name="sparkle" tone="pink" size={18}/>Общие интересы</span><span><Icon name="heart" tone="pink" size={18}/>Близкие цели</span><span><Icon name="rating" tone="pink" size={18}/>Больше совпадений</span></div>
+   </section>
+   <SectionTitle action={showAllPortraits?'Свернуть':'Смотреть все'} onAction={()=>setShowAllPortraits(x=>!x)}>Люди, похожие на тебя</SectionTitle>
+   {people.length>0&&<div className={'vx-interest-portraits'+(showAllPortraits?' expanded':'')}>
+    {(showAllPortraits?sharedPeople:sharedPeople.slice(0,6)).map(p=>{
+     const common=(p.interests||[]).find(x=>(profile?.interests||[]).some(i=>interestKey(x)===interestKey(i)));
+     return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} onProfile={onProfile}/>;
+    })}
    </div>}
-  <InlineAlert>{error}</InlineAlert>
-  {error&&!people.length&&<button type="button" className="vx-retry" onClick={reset}>Повторить загрузку</button>}
+   <SectionTitle action={interest?'Сбросить':showAllCollections?'Свернуть':'Смотреть все'}
+    onAction={()=>interest?setInterest(''):setShowAllCollections(x=>!x)}>Подборки для тебя</SectionTitle>
+   {allInterests.length>0&&<div className="vx-collections">
+    {allInterests.slice(0,showAllCollections?8:4).map(group=><button type="button" key={group.id}
+      className={'vx-collection'+(interest===group.id?' chosen':'')}
+      aria-pressed={interest===group.id} onClick={()=>{haptic();setInterest(interest===group.id?'':group.id)}}>
+     <Photo id={group.members[0]?.photos?.[0]} alt=""/>
+     <span className="vx-collection-shade"/>
+     <span className="vx-collection-icon"><InterestIcon name={group.name} size={23}/></span>
+     <span className="vx-collection-count"><Icon name="everyone" tone="white" size={13}/>{group.members.length}</span>
+     <span className="vx-collection-label"><b>{group.name}</b><small>Общие увлечения и новые знакомства</small></span>
+    </button>)}
+   </div>}
+   <SectionTitle action={hasMore?'Смотреть все':interest?'Сбросить':null}
+     onAction={interest?()=>setInterest(''):loadMore}>{interest?'Интересуются: '+interest:'Рекомендуем тебе'}</SectionTitle>
+  </>:<>
+   <section className="vx-nearby-hero">
+    <div className="vx-nearby-copy"><h1>Люди рядом</h1><p className="vx-nearby-place"><Icon name="pin" tone="pink" size={18}/>{nearbyLocation}</p>
+     <p className="vx-nearby-description">Новые знакомства рядом с вами<br/>{radius}</p></div>
+    <div className="vx-nearby-radar" aria-hidden="true">
+     <span className="vx-radar-ring ring-one"/><span className="vx-radar-ring ring-two"/><span className="vx-radar-center"><Icon name="pin" tone="white" size={20}/></span>
+     {people.slice(0,4).map((p,i)=><span key={p.id} className={'vx-radar-face face-'+i}><Photo id={p.photos?.[0]} alt=""/></span>)}
+    </div>
+   </section>
+   {!hasCoordinates&&<div className="vx-location-hint"><Icon name="pin" tone="pink" size={19}/><p>Чтобы искать поблизости, выбери город и расстояние в фильтрах.</p><button onClick={onFilters}>Выбрать город</button></div>}
+   <div className="vx-filter-pills" role="group" aria-label="Фильтры рядом">
+    {[['all','Все','everyone'],['online','В сети','online'],['common','Общие интересы','everyone']].map(([key,label,icon])=>
+     <button type="button" key={key} className={choice===key?'chosen':''} aria-pressed={choice===key}
+      onClick={()=>{haptic();setChoice(key)}}><Icon name={icon} tone={choice===key?'white':'pink'} size={17}/>{label}</button>)}
+   </div>
+   <div className="vx-nearby-avatars">
+    <button type="button" className="vx-nearby-adjust" onClick={onFilters}><span><Icon name="plus" tone="pink" size={24}/></span><small>Настроить</small></button>
+    {people.slice(0,6).map(p=><Portrait person={p} key={p.id} onProfile={onProfile}/>)}
+   </div>
+  </>}
+  {loading?<div className="vx-state" role="status"><Spinner/><p>Подбираем настоящие анкеты…</p></div>:
+   people.length>0?<>
+    {rows.length>0?<div className={'vx-people'+(personal?' vx-recommendations':' vx-nearby-grid')}>
+     {rows.map(p=><BrowsePerson person={p} key={p.id} variant={personal?'recommended':'nearby'}
+       onProfile={onProfile} onLike={like} busy={pending.includes(String(p.id))}/>)}
+    </div>:<div className="vx-state"><p>Пока нет анкет с таким интересом.</p><Button kind="outline" onClick={()=>setInterest('')}>Смотреть все</Button></div>}
+    {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>
+     {moreBusy?'Загружаем…':'Показать ещё'}<Icon name="chevron-right" tone="pink" size={18}/></button>}
+    {limited&&<p className="vx-quota">Дневной лимит анкет исчерпан. <button onClick={onPremium}>VEYRA Premium</button></p>}
+   </>:<div className="vx-state vx-empty">
+    <img src="/veyra-approved/04_empty_states/svg/no_nearby_people.svg" alt="" className="vx-state-illustration"/>
+    <h3>{limited?'Дневной лимит исчерпан':error?'Не удалось загрузить анкеты':'Пока нет подходящих людей'}</h3>
+    <p>{limited?'Больше знакомств доступно с Premium.':error?'Проверь соединение и попробуй снова.':'Анкеты проходят модерацию. Попробуй изменить фильтры или вернись позже.'}</p>
+    <Button onClick={limited?onPremium:error?retryLoad:onFilters}>{limited?'Открыть Premium':error?'Повторить':'Настроить поиск'}</Button>
+   </div>}
+  <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
  </div>;
 }
 export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
- const [refresh,setRefresh]=useState({feed:0,for_you:0,nearby:0}),[reactionRefresh,setReactionRefresh]=useState(0);
- const switchTab=next=>{feedback();setTab(next);setVisited(prev=>new Set([...prev,next]));};
+ const [reactionRefresh,setReactionRefresh]=useState(0);
+ const scroll=useRef({feed:0,for_you:0,nearby:0}),scrollTimeout=useRef(null);
+ useEffect(()=>()=>{if(scrollTimeout.current)cancelAnimationFrame(scrollTimeout.current)},[]);
+ const switchTab=next=>{
+  if(next===tab)return;
+  haptic();scroll.current[tab]=window.scrollY;setTab(next);setVisited(v=>new Set([...v,next]));
+  scrollTimeout.current=requestAnimationFrame(()=>window.scrollTo({top:scroll.current[next]||0,behavior:'instant'}));
+ };
  if(directory)return <section className="vx-hub v2-directory" aria-label="Поиск людей VEYRA">
-  <header className="vx-head"><img className="vx-logo" src="/veyra-approved/00_brand/veyra_logo_primary.svg" alt="VEYRA"/><div className="vx-head-actions"><button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}><img alt="" aria-hidden="true" width="19" height="19" src="/veyra-approved/09_veys/veys-diamond.svg"/>{new Intl.NumberFormat('ru-RU').format(veysBalance)}</button><button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><Icon name="filter" size={21}/></button></div></header>
-  <h1 className="v2-directory-title">Поиск людей</h1>
-  <p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
-  <div className="v2-directory-switch" role="tablist" aria-label="Подборки людей">{[['nearby','Рядом'],['for_you','Для вас']].map(([key,label])=><button key={key} type="button" role="tab" aria-selected={directoryTab===key} className={directoryTab===key?'chosen':''} onClick={()=>{feedback();setDirectoryTab(key)}}>{label}</button>)}</div>
-  <BrowseScene key={directoryTab} kind={directoryTab} active profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)} refreshTick={refreshTick+reactionRefresh}/>
+  <header className="vx-head"><Logo width={138} className="vx-logo"/><div className="vx-head-actions">
+   <button type="button" className="veys-header-button" onClick={onWallet} aria-label="Открыть VEYS кошелёк"><img src="/veyra-approved/09_veys/veys-diamond.svg" alt="" width="20" height="20"/>{new Intl.NumberFormat('ru-RU').format(veysBalance)}</button>
+   <button type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={22}/></button></div></header>
+  <h1 className="v2-directory-title">Поиск людей</h1><p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
+  <div className="v2-directory-switch" role="tablist" aria-label="Подборки людей">
+   {TABS.slice(1).reverse().map(([key,label])=><button key={key} type="button" role="tab" aria-selected={directoryTab===key}
+    className={directoryTab===key?'chosen':''} onClick={()=>setDirectoryTab(key)}>{label}</button>)}
+  </div>
+  <BrowseScene kind={directoryTab} active profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch}
+   onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
+   refreshTick={refreshTick+reactionRefresh}/>
  </section>;
- return <section className="vx-hub" aria-label="Раздел знакомств VEYRA">
+ return <section className="vx-hub vx-dating-stage02" aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
-   <img className="vx-logo" src="/veyra-approved/00_brand/veyra_logo_primary.svg" alt="VEYRA"/>
+   <button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium"><Icon name="premium" tone="pink" size={25}/></button>
+   <Logo width={145} className="vx-logo"/>
    <div className="vx-head-actions">
-    <button type="button" aria-label="Обновить подборку" title="Обновить подборку" onClick={()=>{feedback();setRefresh(v=>({...v,[tab]:v[tab]+1}))}}><DetailIcon name="refresh" size={20}/></button>
-    <button type="button" aria-label="Фильтры" title="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={22}/></button>
+    <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>
+     <img alt="" aria-hidden="true" width="21" height="21" src="/veyra-approved/09_veys/veys-diamond.svg"/>
+     <span>{new Intl.NumberFormat('ru-RU').format(veysBalance)}<small>VEYS</small></span>
+    </button>
+    <button type="button" aria-label="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={23}/></button>
    </div>
   </header>
   <div className="vx-tabs" role="tablist" aria-label="Способы знакомств">
-   {TABS.map(([key,label])=><button type="button" key={key} id={'vx-tab-'+key} role="tab" aria-selected={tab===key}
-    aria-controls={'vx-panel-'+key} className={tab===key?'active':''} onClick={()=>switchTab(key)}>{label}</button>)}
+   {TABS.map(([key,label])=><button key={key} id={'vx-tab-'+key} type="button" role="tab"
+    aria-selected={tab===key} aria-controls={'vx-panel-'+key} className={tab===key?'active':''}
+    onClick={()=>switchTab(key)}>{label}</button>)}
   </div>
   <div id="vx-panel-feed" className="vx-panel" role="tabpanel" aria-labelledby="vx-tab-feed" hidden={tab!=='feed'}>
-   <Discover embedded filters={filters} onProfile={onProfile} onMatch={onMatch}
-    onPremium={onPremium} onFilters={onFilters} refreshTick={refreshTick+refresh.feed+(tab==='feed'?reactionRefresh:0)}/>
+   <Discover embedded filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium}
+    onFilters={onFilters} refreshTick={refreshTick+(tab==='feed'?reactionRefresh:0)}/>
   </div>
-  {['for_you','nearby'].map(kind=>visited.has(kind)&&<div key={kind} id={'vx-panel-'+kind} className="vx-panel" role="tabpanel"
-    aria-labelledby={'vx-tab-'+kind} hidden={tab!==kind}>
-    <BrowseScene kind={kind} active={tab===kind} profile={profile} filters={filters} onProfile={onProfile}
-     onMatch={onMatch} onPremium={onPremium} onFilters={onFilters}
-     onReaction={()=>setReactionRefresh(x=>x+1)} refreshTick={refresh[kind]+refreshTick}/>
-   </div>)}
+  {['for_you','nearby'].map(kind=>visited.has(kind)&&<div key={kind} id={'vx-panel-'+kind}
+   className="vx-panel" role="tabpanel" aria-labelledby={'vx-tab-'+kind} hidden={tab!==kind}>
+   <BrowseScene kind={kind} active={tab===kind} profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch}
+    onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
+    refreshTick={refreshTick+reactionRefresh}/>
+  </div>)}
  </section>;
 }

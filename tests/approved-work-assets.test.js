@@ -34,9 +34,12 @@ test('the Work-approved wordmark and all empty-state illustrations are served an
  const ui=read('web/v5/UI.jsx');
  assert.ok(ui.includes('/veyra-design/veyra-wordmark-purple.svg'));
  assert.ok(ui.includes("base+'04_empty_states/svg/'"));
- for(const path of ['web/v5/Discover.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
-  assert.ok(read(path).includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
- }
+ // Discover retains the approved fallback mark for standalone rendering;
+ // DiscoveryHub deliberately uses the shared, rounded Logo component.
+ assert.ok(read('web/v5/Discover.jsx').includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
+ assert.ok(read('web/v5/DiscoveryHub.jsx').includes('<Logo width={145}'));
+ assert.ok(read('web/v5/ErrorBoundary.jsx').includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
+ assert.ok(ui.includes('veyra-wordmark-purple.svg'));
 });
 test('all five VEYRA navigation icons resolve through Work-approved pack with consistent inactive / active paths',()=>{
  const ui=read('web/v5/UI.jsx');

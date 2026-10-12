@@ -79,5 +79,6 @@ test('VEYRA V2 production resolves all five tabs, logo, interests and empty illu
  assert.ok(app.includes("['search','search','поиск']"));
  assert.ok(app.includes("['encounters','encounters','знакомства']"));
  assert.ok(app.includes('<DiscoveryHub directory'));
- assert.ok(app.includes('<Discover embedded'));
+ assert.ok(app.includes('<DiscoveryHub filters={feedFilters}'),'encounters must mount the approved three-tab hub');
+ assert.ok(readFileSync(new URL('../web/v5/DiscoveryHub.jsx',import.meta.url),'utf8').includes('<Discover embedded'),'the hub must retain the real photo feed');
 });

@@ -125,8 +125,10 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const onPointerCancel=e=>{if(pointer.current?.id===e.pointerId)pointer.current=null;};
  const onCardClick=e=>{
   if(ignoreSwipeClick.current){ignoreSwipeClick.current=false;return;}
-  if(busy||e.target.closest('button'))return;
-  onProfile(card.id);
+  if(busy||!card||e.target.closest('button'))return;
+  // Tapping the photo browses only the image; the name alone opens the profile.
+  const bounds=e.currentTarget.getBoundingClientRect();
+  changePhoto(e.clientX<bounds.left+bounds.width/2?-1:1);
  };
  const react=async kind=>{
   if(!card||busy)return;
@@ -193,22 +195,21 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
      <div key={String(card.id)} className={'feed-photo'+(motion?' feed-motion-'+motion:'')}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
-      onClick={onCardClick} aria-label={'Открыть профиль: '+card.name}>
+      onClick={onCardClick} aria-label={'Листать фотографии: '+card.name}>
       <FeedPicture key={card.id} card={card} index={index}/>
       <div className="veyra-card-shade" aria-hidden="true"/>
       <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
        <CardGoalBadge goal={card.goal} compact top/>
-      <button className="feed-info-button" type="button" aria-label="Открыть профиль" onClick={()=>onProfile(card.id)}><Icon name="user" tone="white" size={22}/></button>
       <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}
       {motion==='exit-super'&&<div className="feed-flash feed-flash-super" aria-hidden="true"><Star size={76} fill="white"/><b>Суперлайк!</b></div>}
-     </div>
      <div className="feed-actions">
       <button type="button" className="feed-action action-undo" disabled={busy||!undoAvailable} aria-label="Отменить последнее действие" title={last.can_undo&&!last.premium&&last.free_undo_left<=0?'Лимит бесплатных отмен исчерпан':'Отменить последнее действие'} onClick={undo}><span className="feed-action-circle"><Icon name="undo" tone="dark" size={24}/></span></button>
       <button type="button" className="feed-action action-pass" disabled={busy} aria-label="Пропустить" title="Пропустить" onClick={()=>react('pass')}><span className="feed-action-circle"><Icon name="close" tone="pink" size={29}/></span></button>
       <button type="button" className="feed-action action-super" disabled={busy} aria-label="Суперлайк" title="Суперлайк" onClick={()=>react('super')}><span className="feed-action-circle"><Icon name="star" tone="pink" size={27}/></span></button>
       <button type="button" className="feed-action action-like" disabled={busy} aria-label="Нравится" title="Нравится" onClick={()=>react('like')}><span className="feed-action-circle"><Icon name="heart_filled" tone="white" size={30}/></span></button>
+     </div>
      </div>
     </React.Fragment>:<FeedState kind={error?'error':limited?'limit':'empty'} onRetry={()=>setRefresh(i=>i+1)} onFilters={onFilters} onPremium={onPremium}/>}
    {card&&<InlineAlert>{error}</InlineAlert>}
