@@ -20,3 +20,22 @@
 .veyra-legal-document section p{font-size:12px;line-height:1.8;color:#686075;margin:0}
 .veyra-legal-footer{padding:12px 19px calc(15px + env(safe-area-inset-bottom));background:linear-gradient(0deg,#FBF8FF 85%,#FBF8FF00)}
 .veyra-legal-accept{width:100%;min-height:56px;border:0;border-radius:18px;color:white;background:linear-gradient(115deg,#A581F9,#8553ED);font-size:14px;font-weight:820;box-shadow:0 8px 19px #9165F230}
+
+/* Scrollable long-form documents with one coherent system header. */
+.veyra-legal-header{position:relative;isolation:isolate;z-index:4;min-height:64px!important;padding-top:calc(11px + env(safe-area-inset-top,0px))!important;background:#FBF8FFED;box-shadow:0 5px 17px #EDE1FF8C}
+.veyra-legal-header .logo{max-height:50px!important;width:135px!important;justify-self:center}
+html.veyra-telegram-fullscreen .veyra-legal-header{padding-top:calc(5px + var(--veyra-telegram-status-top,0px))!important;min-height:calc(57px + var(--veyra-telegram-status-top,0px))!important}
+html.veyra-telegram-fullscreen .veyra-legal-header>button{visibility:hidden!important;pointer-events:none!important}
+.veyra-legal-tabs{border:1px solid #E3D6F4;border-radius:21px;padding:5px;gap:5px}
+.veyra-legal-tabs button{min-height:46px;border-radius:17px;font-size:12px}
+.veyra-legal-document{padding:21px 19px 27px;border-radius:25px;box-shadow:0 9px 24px #62438B0D}
+.veyra-legal-document h2{font-size:21px;font-weight:840;letter-spacing:-.35px}
+.veyra-legal-version{font-size:11px;line-height:1.5}
+.veyra-legal-document section{padding-top:18px;margin-top:15px;border-top:1px solid #F0EAF5}
+.veyra-legal-section-title{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+.veyra-legal-section-title>span{width:32px;height:32px;display:grid;place-items:center;border-radius:11px;background:#F1E9FF;color:#8A55E6;font-size:11px;font-weight:850;flex:none}
+.veyra-legal-document .veyra-legal-section-title h3{color:#342344;font-size:14px;line-height:1.32;margin:0;font-weight:820}
+.veyra-legal-document section p{color:#655C70;font-size:13px;line-height:1.78;letter-spacing:0;margin:0}
+.veyra-legal-scroll{padding-bottom:32px}
+.veyra-legal-footer{position:relative;z-index:3}
+@media(max-width:360px){.veyra-legal-document{padding:17px 15px}.veyra-legal-tabs button{font-size:11px}}

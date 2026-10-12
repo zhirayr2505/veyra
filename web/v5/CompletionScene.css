@@ -152,3 +152,13 @@
 .vc-screen--pending .vc-crystal-symbol path{opacity:.13}
 @keyframes vc-real-review-drift{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.035)}}
 @media(prefers-reduced-motion:reduce){.vc-real-review{animation:none!important}}
+
+/* Crisp scalable completion artwork: no low-resolution bitmap. */
+.vc-art--pending .vc-review-vector{transform-origin:215px 207px;animation:veyraShieldAppear .75s cubic-bezier(.2,1.2,.3,1) both,veyraShieldFloat 5s ease-in-out .75s infinite}
+.vc-art--pending .vc-sphere{animation:veyraShieldGlow 4.7s ease-in-out infinite}
+.vc-art--pending .vc-crystal-twinkles{animation:veyraShieldTwinkle 3.8s ease-in-out infinite}
+@keyframes veyraShieldAppear{0%{opacity:0;transform:scale(.65) rotate(-11deg)}64%{opacity:1;transform:scale(1.055) rotate(2deg)}100%{transform:scale(1) rotate(0deg)}}
+@keyframes veyraShieldFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes veyraShieldGlow{0%,100%{opacity:1}50%{opacity:.92}}
+@keyframes veyraShieldTwinkle{0%,100%{opacity:.7}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.vc-art--pending .vc-review-vector,.vc-art--pending .vc-sphere,.vc-art--pending .vc-crystal-twinkles{animation:none!important}}
