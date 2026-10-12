@@ -361,7 +361,9 @@ test('New registration has a pinned CTA and working location edit + interests',a
   await bio.fill('😃'.repeat(260));
   expect([...await bio.inputValue()].length).toBe(250);
   await expect(page.locator('.veyra-bio-limit-bubble')).toContainText('Максимум 250 символов');
-  await page.getByRole('button',{name:'Добавить фото'}).click();
+  await bio.fill('   ');
+  await expect(page.locator('.registration-actions .veyra-smart-next')).toContainText('Пропустить');
+  await page.getByRole('button',{name:'Пропустить'}).click();
   await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
   await expect(page.locator('.photo-slot-add')).toHaveCount(1);
 });
