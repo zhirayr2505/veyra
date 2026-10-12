@@ -36,7 +36,7 @@ export function Registration({me,refresh}){
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
- useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer)}},[draftKey]);
+ useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
@@ -92,20 +92,40 @@ export function Registration({me,refresh}){
  },[dragOver]);
  const dragTarget=(x,y)=>{const target=document.elementFromPoint(x,y)?.closest?.('[data-slot-index]');return target?Number(target.dataset.slotIndex):-1};
  const dragStart=(e,i)=>{if(uploading||busy||(e.pointerType==='mouse'&&e.button!==0))return;
+  dragRef.current?.cleanup?.();
   const rect=e.currentTarget.getBoundingClientRect();
   const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null};
-  state.timer=setTimeout(()=>{if(dragRef.current!==state)return;state.active=true;state.node.setPointerCapture?.(state.id);setDragVisual({index:i,x:state.x,y:state.y,width:state.width,height:state.height});setDragOver(i);window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()},320);
+  // Moving a keyed tile can disconnect it from the pointer capture target.
+  // Document-level capture retains the gesture until the finger or mouse releases.
+  const onMove=event=>dragMove(event),onUp=event=>dragFinish(event),onCancel=()=>dragCancel();
+  state.cleanup=()=>{
+   window.removeEventListener('pointermove',onMove,true);
+   window.removeEventListener('pointerup',onUp,true);
+   window.removeEventListener('pointercancel',onCancel,true);
+   window.removeEventListener('blur',onCancel);
+  };
+  window.addEventListener('pointermove',onMove,{capture:true,passive:false});
+  window.addEventListener('pointerup',onUp,true);
+  window.addEventListener('pointercancel',onCancel,true);
+  window.addEventListener('blur',onCancel);
+  state.timer=setTimeout(()=>{
+   if(dragRef.current!==state)return;
+   state.active=true;
+   try{state.node.setPointerCapture?.(state.id)}catch{}
+   setDragVisual({index:i,x:state.x,y:state.y,width:state.width,height:state.height});setDragOver(i);
+   window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.();
+  },320);
   dragRef.current=state;
  };
  const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
-  if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);dragRef.current=null}return}
+  if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);s.cleanup?.();dragRef.current=null}return}
   e.preventDefault();setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null);const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()}
  };
- const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);dragRef.current=null;
+ const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);s.cleanup?.();dragRef.current=null;
   if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
   if(target>=0&&target<photos.length&&target!==s.index)reorder(s.index,target);
  };
- const dragCancel=()=>{if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current=null;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1)};
+ const dragCancel=()=>{if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.();dragRef.current=null;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1)};
  const advancePhoto=direction=>{if(photos.length<2||slideBusy.current)return;slideBusy.current=true;setSlideStep(direction)};
  const finishPhotoSlide=e=>{if(e.target!==e.currentTarget||e.propertyName!=='transform'||!slideStep)return;setPhotoIndex(i=>(i+slideStep+photos.length)%photos.length);setSlideStep(0);slideBusy.current=false};
  const selectPhoto=i=>{if(slideBusy.current)return;setPhotoIndex(i)};
