@@ -7,6 +7,7 @@ const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)
 export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,submitting=false,error='',submitted=false}){
  const [mode,setMode]=useState('feed'),[index,setIndex]=useState(0),touch=useRef(null);
  const ids=photos.map(p=>typeof p==='object'?p.id:p).filter(Boolean),current=ids[Math.min(index,ids.length-1)];
+ const galleryIds=ids.length?[ids[(index-1+ids.length)%ids.length],ids[index],ids[(index+1)%ids.length]]:[];
  const slide=dir=>setIndex(i=>(i+dir+ids.length)%ids.length);
  const swipeEnd=e=>{if(touch.current==null)return;const x=e.changedTouches[0].clientX-touch.current;touch.current=null;if(Math.abs(x)>40&&ids.length>1)slide(x<0?1:-1)};
  const years=profile.age||ageOf(profile.birth_date),interests=profile.interests||[];
@@ -18,7 +19,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
    <p className="vp-subtitle">Первое впечатление начинается здесь ✨</p>
    <section className="preview-surface preview-dating-card">
     <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>touch.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
-     {current?<Photo id={current} className="preview-photo" alt={'Фото '+(index+1)}/>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
+     {galleryIds.length?<div className="preview-gallery-track" style={{transform:'translate3d(-100%,0,0)'}}>{galleryIds.map((id,i)=><div className="preview-gallery-slide" key={id+'-'+i}><Photo id={id} className="preview-photo" alt={'Фото '+(i===0?(index-1+ids.length)%ids.length+1:i===1?index+1:(index+1)%ids.length+1)}/></div>)}</div>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
      <div className="preview-fade"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span>
      {ids.length>1&&<><button type="button" className="preview-arrow left" aria-label="Предыдущее фото" onClick={()=>slide(-1)}><Icon name="chevron-left" size={23} tone="white"/></button><button type="button" className="preview-arrow right" aria-label="Следующее фото" onClick={()=>slide(1)}><Icon name="chevron-right" size={23} tone="white"/></button></>}
      <div className="preview-card-caption"><h2>{profile.name||'Имя'}{years?', '+years:''}</h2>
