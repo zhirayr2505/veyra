@@ -556,9 +556,12 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
   filter:brightness(1.065);
   box-shadow:0 5px 14px #7847D74D,inset 0 1px 3px #471C891F!important;
 }
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next.was-pressed::after,
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled)::after{
   animation:veyraSmartPressSweep .46s ease-out forwards;
 }
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next.was-pressed:not(.is-loading){transform:scale(.98)!important}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next.was-pressed .veyra-smart-next-arrow{transform:translateX(3px)}
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:focus-visible{
   outline:3px solid #C5A8FE!important;outline-offset:3px!important;
 }
