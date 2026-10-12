@@ -43,10 +43,28 @@ test('New VEYRA seven-stage registration rejects an underage date',async({page})
  await page.locator('.registration-consent input').check();
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Когда ваш день рождения?'})).toBeVisible();
- await page.getByLabel('Дата рождения').fill('2017-01-01');
+ await page.getByLabel('День рождения').fill('01');
+  await page.getByLabel('Месяц рождения').fill('01');
+  await page.getByLabel('Год рождения').fill('2017');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('alert')).toContainText('18');
+});
+
+test('VEYRA legal documents accept consent and support a public legal page',async({page})=>{
+ await telegram(page,26);await page.goto('/');
+ await expect(page.locator('.registration-consent input')).not.toBeChecked();
+ await page.getByRole('button',{name:'Условия использования'}).click();
+ const dialog=page.getByRole('dialog',{name:'Правила и конфиденциальность VEYRA'});
+ await expect(dialog).toBeVisible();
+ await expect(dialog.getByRole('heading',{name:'Условия использования'})).toBeVisible();
+ await dialog.getByRole('tab',{name:'Конфиденциальность'}).click();
+ await expect(dialog.getByRole('heading',{name:'Политика конфиденциальности'})).toBeVisible();
+ await dialog.getByRole('button',{name:'Принять условия и политику'}).click();
+ await expect(dialog).toHaveCount(0);
+ await expect(page.locator('.registration-consent input')).toBeChecked();
+ await page.goto('/legal');
+ await expect(page.getByRole('heading',{name:'Документы VEYRA'})).toBeVisible();
 });
 
 test('V5 admin bot signed auth opens private moderation queue',async({page})=>{
@@ -124,7 +142,9 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Когда ваш день рождения?'})).toBeVisible();
  await expect(page.locator('.gender-choice .veyra-brand-glyph')).toHaveCount(2);
- await page.getByLabel('Дата рождения').fill('1998-05-12');
+ await page.getByLabel('День рождения').fill('12');
+  await page.getByLabel('Месяц рождения').fill('05');
+  await page.getByLabel('Год рождения').fill('1998');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Разрешите доступ к геолокации'})).toBeVisible();
@@ -133,7 +153,7 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await expect(page.locator('.city-results button').first()).toBeVisible();
  await page.locator('.city-results button').first().click();
  await expect(page.locator('.location-card')).toContainText('Paris');
- await page.getByRole('button',{name:'выбрать город'}).click();
+ await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Кого вы ищете?'})).toBeVisible();
  await expect(page.locator('.age-range-rails input[type=range]')).toHaveCount(2);
  await expect(page.locator('.looking-choice .veyra-brand-glyph')).toHaveCount(3);
@@ -186,7 +206,9 @@ test('New registration has a pinned CTA and working location edit + interests',a
  await expect(page.getByRole('textbox',{name:'Ваше имя'})).toHaveValue('Мария');
  await page.locator('.registration-consent input').check();
  await page.getByRole('button',{name:'далее'}).click();
- await page.getByLabel('Дата рождения').fill('1998-05-12');
+ await page.getByLabel('День рождения').fill('12');
+  await page.getByLabel('Месяц рождения').fill('05');
+  await page.getByLabel('Год рождения').fill('1998');
  await page.getByRole('button',{name:'женщина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
@@ -196,7 +218,7 @@ test('New registration has a pinned CTA and working location edit + interests',a
  await expect(page.locator('.city-search')).toBeVisible();
  await expect(page.getByRole('button',{name:'использовать моё местоположение'})).toBeVisible();
  await page.getByRole('button',{name:'скрыть поиск'}).click();
- await page.getByRole('button',{name:'выбрать город'}).click();
+ await page.getByRole('button',{name:'далее'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await page.locator('.veyra-goal-choice').nth(1).click();
  await page.getByRole('button',{name:'далее'}).click();
@@ -211,7 +233,9 @@ test('City set manually can be corrected via device location without a navigatio
  await telegram(page,25);await page.goto('/');
  await page.locator('.registration-consent input').check();
  await page.getByRole('button',{name:'далее'}).click();
- await page.getByLabel('Дата рождения').fill('1998-05-12');
+ await page.getByLabel('День рождения').fill('12');
+  await page.getByLabel('Месяц рождения').fill('05');
+  await page.getByLabel('Год рождения').fill('1998');
  await page.getByRole('button',{name:'мужчина'}).click();
  await page.getByRole('button',{name:'далее'}).click();
  await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');

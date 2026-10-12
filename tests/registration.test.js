@@ -21,6 +21,14 @@ test('registration advances only for adults, persists private draft across sessi
  assert.equal((await one(db,'SELECT accepted_terms_at FROM profiles WHERE user_id=200')).accepted_terms_at,null);
  assert.equal((await one(db,'SELECT step FROM registration_drafts WHERE user_id=200')).step,6);
 });
+test('twelve interests are supported while thirteen are rejected',async()=>{
+ const response=await request(app).post('/api/auth').send({initData:initData(240)});
+ const key=response.body.token;
+ const base={...f,interests:Array.from({length:12},(_,i)=>'interest-'+i)};
+ assert.equal((await request(app).put('/api/registration/profile').set('Authorization','Bearer '+key).send({...base,registration_ui_version:2})).status,200);
+ const extra=await request(app).put('/api/registration/profile').set('Authorization','Bearer '+key).send({...base,interests:[...base.interests,'interest-12']});
+ assert.equal(extra.status,400);
+});
 test('at least one photo and explicit consent are enforced server-side; foreign and duplicate reorder attempts fail',async()=>{
  assert.equal((await auth(request(app).post('/api/profile/submit')).send({consent:true})).body.error,'PHOTO_REQUIRED');
  const own=[];for(let i=0;i<2;i++){const id=randomUUID();own.push(id);await db.query('INSERT INTO photos(id,user_id,object_key,position) VALUES($1,200,$2,$3)',[id,'200/'+id,i]);}
