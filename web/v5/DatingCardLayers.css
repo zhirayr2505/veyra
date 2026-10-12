@@ -16,3 +16,62 @@
 .veyra-card-photo-bars button{height:4px;min-width:0;flex:1 1 0;border:0;border-radius:99px;background:#FFFFFF70;padding:0;box-shadow:0 1px 5px #0003;transition:background .18s ease}
 .veyra-card-photo-bars button.active{background:#fff;box-shadow:0 0 6px #fff8}
 @media(prefers-reduced-motion:reduce){.veyra-card-photo-bars button{transition:none}}
+
+/* Shared feed/preview caption is legible over both white and dark photos.
+   A deterministic photo-independent scrim avoids jarring luminance changes. */
+.veyra-card-shade{
+ background:linear-gradient(180deg,rgba(6,5,15,.26) 0%,transparent 21%,
+ transparent 35%,rgba(9,7,23,.06) 49%,rgba(8,6,22,.48) 67%,rgba(6,5,19,.84) 87%,rgba(5,4,16,.94) 100%)!important;
+}
+.veyra-card-caption{
+ gap:7px!important;text-shadow:0 1px 2px #090613D9,0 2px 10px #080518AD;
+}
+.veyra-card-caption .feed-location,.veyra-card-caption .preview-card-location{
+ font-size:12px;line-height:1.32;color:#FFF!important;
+ display:flex;align-items:center;gap:6px;margin:0!important;
+}
+.veyra-card-caption .veyra-country-flag{
+ display:inline!important;font-size:15px!important;vertical-align:-1px;margin-left:2px;
+}
+.veyra-card-caption .veyra-card-distance{opacity:.82;font-size:11px}
+.veyra-card-caption .veyra-card-bio{
+ font-size:12px!important;line-height:1.42!important;font-weight:550;
+ margin:1px 0 0!important;max-width:100%;color:#fff;
+ display:-webkit-box!important;-webkit-box-orient:vertical!important;
+ -webkit-line-clamp:2;line-clamp:2;overflow:hidden!important;white-space:normal;
+ text-wrap:pretty;
+}
+.veyra-card-caption .veyra-card-tags{width:100%;max-width:100%;margin-top:1px!important;overflow:hidden}
+.veyra-card-interest-row{display:flex;align-items:center;gap:7px;width:100%;max-width:100%;min-width:0}
+.veyra-card-interest-row .veyra-card-goal-badge.is-compact{
+ flex:0 0 auto;max-width:46%;min-width:0;
+ padding:3px 8px 3px 3px;min-height:27px;gap:5px;
+ font-size:10px;font-weight:760;line-height:1.1;
+ background:#9461E8ED;border-color:#D9BFFFA6;
+ box-shadow:0 2px 10px #21113E35;
+}
+.veyra-card-goal-badge.is-compact .veyra-card-goal-mark{
+ height:20px;width:20px;background:#fff;
+}
+.veyra-card-goal-badge.is-compact .veyra-card-goal-text{
+ display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.veyra-card-interest-divider{height:21px;width:1.5px;flex:0 0 1.5px;
+ border-radius:9px;background:#FFFFFFA6;box-shadow:0 0 5px #fff3;
+}
+.veyra-card-interest-row .veyra-interest-inline{
+ display:flex;align-items:center;flex-wrap:wrap;gap:5px;
+ flex:1 1 auto;min-width:0;max-width:100%;max-height:56px;overflow:hidden;
+}
+.veyra-card-interest-row .veyra-interest-inline-chip,
+.veyra-card-interest-row .veyra-interest-more{
+ font-size:10px!important;font-weight:720;min-height:25px;
+ padding:5px 7px!important;background:#191629D9!important;
+ color:#fff!important;border-color:#FFFFFF59!important;
+ text-shadow:0 1px 4px #000C;max-width:min(140px,100%);
+}
+@media(max-width:390px){
+ .veyra-card-interest-row .veyra-card-goal-badge.is-compact{max-width:47%;font-size:9.5px}
+ .veyra-card-interest-row .veyra-interest-inline-chip{max-width:46%!important}
+ .veyra-card-caption .veyra-card-bio{font-size:11px!important}
+}

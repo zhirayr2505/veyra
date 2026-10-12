@@ -116,3 +116,109 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-prev
 .veyra-profile-preview.mode-feed .vp-scroll{padding-top:0}
 .veyra-profile-preview.mode-feed .vp-scroll h1{margin:0 0 5px!important}
 .veyra-profile-preview .preview-gallery-slide>.photo-box.preview-photo>img{object-fit:cover!important;object-position:center!important}
+
+
+/* Full-profile preview uses the same Member summary, highlights and info blocks
+   as real profiles. The photo remains free of caption overlays. */
+.veyra-profile-preview.mode-detail .preview-gallery{
+ aspect-ratio:1.12!important;height:auto!important;max-height:420px!important;
+ border:4px solid white;border-radius:27px;
+ background:#F1E8FF;
+}
+.veyra-profile-preview.mode-detail .preview-gallery .veyra-card-shade,
+.veyra-profile-preview.mode-detail .preview-gallery .veyra-card-caption,
+.veyra-profile-preview.mode-detail .preview-gallery .preview-card-flag{display:none!important}
+.veyra-profile-preview.mode-detail .preview-gallery .preview-gallery-track{z-index:0}
+.veyra-profile-preview.mode-detail .preview-gallery .preview-member-thumbnails{
+ position:absolute;z-index:9;bottom:11px;left:12px;right:12px;
+ display:flex;gap:6px;align-items:center;justify-content:center;
+ pointer-events:auto;
+}
+.veyra-profile-preview.mode-detail .preview-member-thumbnails button{
+ flex:0 1 48px;width:min(12vw,48px);height:47px;min-width:0;overflow:hidden;
+ border:2px solid #FFFD;border-radius:11px;padding:0;background:#F2EBFA;
+ box-shadow:0 3px 12px #170C303F;
+}
+.veyra-profile-preview.mode-detail .preview-member-thumbnails button.active{
+ border-color:white;outline:2px solid #9B65EC;
+}
+.veyra-profile-preview.mode-detail .preview-member-thumbnails .photo-box,
+.veyra-profile-preview.mode-detail .preview-member-thumbnails img{
+ width:100%!important;height:100%!important;object-fit:cover!important;
+ border-radius:0!important;
+}
+.veyra-profile-preview .vp-member-detail.member-feed-profile{
+ min-height:0;max-width:none;padding:0;margin:13px 0 26px;
+ display:grid;gap:11px;background:transparent;border:0;
+}
+.veyra-profile-preview .vp-member-detail .member-summary{
+ margin:0!important;padding:18px 17px!important;display:grid!important;gap:8px!important;
+ border-radius:22px!important;border:1px solid #E7D9F5!important;
+ background:white!important;box-shadow:0 6px 17px #5838810D;
+}
+.veyra-profile-preview .vp-member-detail .member-summary-title{display:block;margin:0}
+.veyra-profile-preview .vp-member-detail .member-summary-title h2{
+ font-size:26px;line-height:1.17;font-weight:830;letter-spacing:-.45px;
+ color:#301C45;margin:0;
+}
+.veyra-profile-preview .vp-member-detail .member-summary-location{
+ display:flex;gap:7px;align-items:center;color:#6F6381;
+ font-size:13px;margin:0!important;line-height:1.45;
+}
+.veyra-profile-preview .vp-member-detail .member-summary-location .veyra-country-flag{
+ font-size:16px!important;
+}
+.veyra-profile-preview .vp-member-info{display:grid;gap:11px}
+.veyra-profile-preview .vp-member-info .veyra-profile-highlights{display:grid;gap:11px;margin:0}
+.veyra-profile-preview .vp-member-info .veyra-profile-highlights .veyra-detail-card,
+.veyra-profile-preview .vp-member-info .veyra-profile-highlights .veyra-common-card,
+.veyra-profile-preview .vp-member-info .veyra-profile-highlights .veyra-prompt-cards article,
+.veyra-profile-preview .vp-member-info .vp-member-card{
+ border:1px solid #E7D9F5!important;border-radius:22px!important;
+ background:#fff!important;padding:17px!important;box-shadow:0 6px 17px #5838810D;
+ margin:0!important;
+}
+.veyra-profile-preview .vp-member-info .veyra-profile-highlights .veyra-detail-card>strong{
+ display:flex;gap:8px;align-items:center;font-size:15px;font-weight:820;color:#36234E;margin-bottom:12px;
+}
+.veyra-profile-preview .vp-member-info .veyra-profile-highlights .veyra-detail-card p{
+ display:flex;gap:9px;align-items:center;color:#7744D4;font-size:14px;font-weight:750;margin:0;
+}
+.veyra-profile-preview .vp-member-info .vp-member-card{display:grid;gap:12px}
+.veyra-profile-preview .vp-member-info .vp-member-card h3{
+ display:flex;align-items:center;gap:8px;margin:0!important;font-size:15px;
+ font-weight:820;color:#352447;
+}
+.veyra-profile-preview .vp-member-info .vp-member-card h3 small{font-size:11px;color:#9569DE;margin-left:auto}
+.veyra-profile-preview .vp-member-info .vp-member-card p{
+ font-size:14px;line-height:1.65;color:#655870;margin:0;white-space:pre-wrap;
+}
+.veyra-profile-preview .vp-member-info .vp-interests{display:flex;flex-wrap:wrap;gap:8px}
+.veyra-profile-preview .vp-member-info .vp-interests>span{
+ display:inline-flex;gap:6px;align-items:center;
+ background:#F4ECFF;border:1px solid #DAC8F7;color:#7444C1;
+ font-size:12px;font-weight:740;border-radius:99px;padding:9px 11px;
+}
+.veyra-profile-preview .vp-member-info .vp-thumbnails{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.veyra-profile-preview .vp-member-info .vp-thumbnails button{
+ aspect-ratio:1;min-width:0;overflow:hidden;border:0;border-radius:12px;
+ background:#EFE6FB;padding:0;
+}
+.veyra-profile-preview .vp-member-info .vp-thumbnails .photo-box,
+.veyra-profile-preview .vp-member-info .vp-thumbnails img{
+ display:block;width:100%;height:100%;object-fit:cover;
+}
+.veyra-profile-preview .preview-gallery .veyra-card-caption{bottom:20px!important}
+.veyra-profile-preview.mode-feed .preview-gallery .veyra-card-shade{
+ background:linear-gradient(180deg,#0C071540 0%,transparent 20%,
+ transparent 34%,#0C082010 47%,#0B071C8A 71%,#090617EE 100%)!important;
+}
+.veyra-profile-preview.mode-feed .preview-gallery .veyra-card-bio{
+ display:-webkit-box!important;-webkit-line-clamp:2;font-size:12px!important;
+}
+.veyra-profile-preview.mode-feed .preview-gallery .veyra-card-interest-row{gap:6px}
+.veyra-profile-preview.mode-feed .preview-gallery .veyra-interest-inline{max-height:52px;overflow:hidden}
+@media(max-height:700px){
+ .veyra-profile-preview.mode-detail .preview-gallery{max-height:320px!important}
+ .veyra-profile-preview .vp-member-detail .member-summary-title h2{font-size:23px}
+}
