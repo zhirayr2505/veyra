@@ -6,6 +6,7 @@ import {Registration} from './Registration.jsx';
 import {LegalScreen} from './Legal.jsx';
 import {Moderation} from './Moderation.jsx';
 import {CompletionScreen} from './CompletionScene.jsx';
+import {DeletionPending} from './AccountDeletion.jsx';
 import {DiscoveryHub} from './DiscoveryHub.jsx';
 import {FeedFilters} from './FeedFilters.jsx';
 import {Member} from './Member.jsx';
@@ -66,6 +67,7 @@ export function App(){
  if(initializing)return <div className="splash" aria-label="VEYRA загружается"><Logo width={206}/><div className="splash-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={assetPercent}><span style={{width:assetPercent+"%"}}/></div><p className="splash-copy">Подготавливаем VEYRA · {assetPercent}%</p></div>;
  if(error&&!me)return <main className="access"><Logo width={188}/><h2>встретимся в Telegram</h2><p>{error}</p><Button onClick={()=>window.open('https://t.me/VeyraAppBot','_blank')}>открыть @VeyraAppBot</Button><button className="text-link" onClick={()=>location.reload()}>повторить</button></main>;
  if(adminMode)return <Admin onExit={()=>admin?location.assign('/'):setAdminMode(false)}/>;
+ if(me?.user?.status==='deleting')return <div className="veyra-v2 v2-onboarding"><DeletionPending dueAt={me.user.deletion_due_at} onRestore={async()=>{await post('/account/restore',{});await refresh();setTab('profile');setOverlay(null)}}/></div>;
  if(!ready&&(!me?.profile||status==='draft'||status==='rejected')){
   return <div className="veyra-v2 v2-onboarding"><Registration me={me} refresh={refresh}/></div>;
  }
@@ -94,7 +96,7 @@ export function App(){
  {overlay?.type==='collection'&&<Sheet title="коллекция подарков" onClose={exitOverlay}><GiftCollection/></Sheet>}
  {overlay?.type==='filters'&&<FeedFilters profile={me.profile} filters={feedFilters} onClose={exitOverlay} onSave={async next=>{await refresh();setFeedFilters(next);setFeedTick(x=>x+1);setRefreshTick(x=>x+1)}}/>}
  {overlay?.type==='edit'&&<ProfileEditor me={me} refresh={refresh} onClose={exitOverlay}/>}
- {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={logout}/>}
+ {overlay?.type==='settings'&&<Settings me={me} onClose={exitOverlay} refresh={refresh} onDeleted={async()=>{setOverlay(null);await refresh()}}/>}
  {overlay?.type==='ranking'&&<Ranking onClose={exitOverlay}/>}
  {overlay?.type==='courtship-inbox'&&<CourtshipInbox onClose={exitOverlay}/>}
  {overlay?.type==='courtship-sent'&&<Sheet title="ухаживание" onClose={exitOverlay}><p className="tip">Предложение отправлено. Публичный статус и оплата появятся только после согласия получателя.</p><Button className="full" onClick={exitOverlay}>понятно</Button></Sheet>}

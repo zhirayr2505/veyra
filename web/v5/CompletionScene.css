@@ -62,3 +62,17 @@
 @media(max-width:385px){.vc-screen{padding-inline:20px}.vc-art{height:clamp(185px,34dvh,300px)}.vc-copy h1{font-size:25px}.vc-status{min-height:86px;padding:12px 14px;margin-top:13px}.vc-status-icon{width:48px;height:48px}.vc-content .vc-telegram-hint{margin-top:15px;}}
 @media(max-height:700px){.vc-screen{padding-top:0}.vc-header{min-height:55px}.vc-logo-sheen{height:54px}.vc-art{height:clamp(155px,30dvh,235px)}.vc-copy h1{margin:0 0 10px;font-size:25px}.vc-copy>p:not(.vc-emotional){font-size:12px}.vc-emotional{margin:14px auto 4px}.vc-telegram-hint{margin-top:12px;margin-bottom:2px;padding:8px 12px}.vc-status{margin:12px 0 4px;min-height:73px}.vc-actions{margin-top:7px}.vc-close-btn{min-height:49px}.vc-screen--deleted .vc-actions{padding-bottom:7px}}
 @media(prefers-reduced-motion:reduce){.vc-screen:before,.vc-screen *, .vc-screen *:before,.vc-screen *:after{animation:none!important;transition:none!important}}
+
+/* Approved confirmation screen: fit normal Telegram viewport without vertical scrolling. */
+.vc-screen{height:100dvh!important;min-height:0!important;max-height:100dvh!important;overflow:hidden!important}
+.vc-header{min-height:56px}
+.vc-content{flex:1 1 auto;min-height:0;overflow:hidden}
+.vc-art{height:min(31dvh,280px)!important;min-height:0;max-height:280px!important;flex:0 1 auto}
+.vc-copy h1{font-size:clamp(23px,6.1vw,31px);margin:0 0 10px}
+.vc-copy>p:not(.vc-emotional){font-size:13px;line-height:1.45}
+.vc-telegram-hint{margin:11px auto 4px;padding:8px 13px}
+.vc-status{margin:10px 0 3px;min-height:70px;padding:10px 14px}
+.vc-status-icon{width:45px;height:45px}
+.vc-actions{margin-top:7px;gap:2px}
+.vc-close-btn{min-height:51px}
+@media(max-height:750px){.vc-header{min-height:49px}.vc-logo-sheen{height:48px}.vc-art{height:26dvh!important}.vc-copy>p:not(.vc-emotional){font-size:12px}.vc-status{min-height:59px}.vc-actions{margin-top:5px}}
