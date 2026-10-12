@@ -10,6 +10,7 @@ before(async()=>{db=await testDB();await user(db,260,{moderation:'pending'});app
 after(()=>db.close());
 const auth=r=>r.set('Authorization','Bearer '+token);
 test('editing pending review withdraws old notices, retains photos, and invalidates old decisions',async()=>{
+ await db.query("UPDATE profiles SET name='Антон' WHERE user_id=260"); // Valid public name, unlike numeric test fixture.
  const prior=await one(db,'SELECT revision,moderation FROM profiles WHERE user_id=260');
  assert.equal(prior.moderation,'pending');
  await db.tx(q=>notifyReview(q,env,'260'));
