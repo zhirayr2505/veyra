@@ -6,7 +6,9 @@ export const GOALS=[
  {value:'relationship',title:'Серьёзные отношения',subtitle:'Хочу найти своего человека',icon:'heart'},
  {value:'dating',title:'Свидания',subtitle:'Знакомиться, встречаться и узнавать друг друга',icon:'flirt'},
  {value:'friends',title:'Общение',subtitle:'Новые люди и интересные разговоры',icon:'chats'},
- {value:'unsure',title:'Пока не определился',subtitle:'Посмотрим, куда приведёт знакомство',icon:'sparkle'}
+ {value:'unsure',title:'Пока не определился',subtitle:'Посмотрим, куда приведёт знакомство',icon:'sparkle'},
+ {value:'friendship',title:'Дружба',subtitle:'Найти близких по духу друзей',icon:'everyone'},
+ {value:'flirt',title:'Лёгкий флирт',subtitle:'Лёгкость, улыбки и взаимная симпатия',icon:'flirt'}
 ];
 export const goalTitle=value=>GOALS.find(x=>x.value===value)?.title||'Пока не определился';
 export const INTEREST_GROUPS=[
@@ -59,7 +61,7 @@ export function InterestPicker({value=[],onChange,max=12}){
   <p className="veyra-picker-caption">Из всех категорий можно выбрать до 12 увлечений.</p>
   <div className="veyra-interest-picked" aria-label="Выбранные интересы"><strong>Выбрано</strong><div className="veyra-selected-scroller">{selected.length?selected.map(item=><button type="button" key={item} aria-label={'Убрать '+item} onClick={()=>toggle(item)}>{item} ×</button>):<span className="veyra-empty-selected">Интересы появятся здесь</span>}</div></div>
   <input className="veyra-picker-search" aria-label="Поиск интересов" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск интересов…"/>
-  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={()=>setCategory(g.title)}>{g.title}</button>)}</div>}
+  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={()=>setCategory(g.title)}><InterestIcon name={g.icon} size={17}/><span>{g.title}</span></button>)}</div>}
   <section className="veyra-interest-panel"><h3>{query?'Результаты поиска':category}</h3><div className="veyra-interest-options">{matching.slice(0,40).map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={17}/>{item}{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>)}</div>{!matching.length&&<p className="veyra-picker-caption">Ничего не найдено. Попробуй другой запрос.</p>}</section>
   {(limitMessage||selected.length===max)&&<p className="veyra-interest-limit" role="status">Выбраны 12 интересов. Убери один, чтобы добавить новый.</p>}
  </div>;

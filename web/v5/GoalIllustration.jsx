@@ -13,6 +13,12 @@ export function GoalIllustration(){return <div className="veyra-goal-jewel" aria
  </defs>
  <ellipse cx="199" cy="150" rx="186" ry="124" fill="url(#goal-glow)" className="goal-light"/>
  <ellipse cx="200" cy="239" rx="94" ry="16" fill="#9652F4" opacity=".14" filter="url(#goal-blur)"/>
+ <g className="goal-orbit-motion">
+  <ellipse cx="200" cy="145" rx="176" ry="51" transform="rotate(-20 200 145)" fill="none" stroke="#DBBDFF" strokeWidth="11" opacity=".2" filter="url(#goal-blur)"/>
+  <ellipse cx="200" cy="145" rx="176" ry="51" transform="rotate(-20 200 145)" fill="none" stroke="url(#goal-orbit)" strokeWidth="3.5"/>
+  <circle cx="45" cy="197" r="12" fill="url(#goal-pearl)"/><circle cx="41" cy="193" r="4" fill="#FFF" opacity=".75"/>
+  <circle cx="348" cy="88" r="12" fill="url(#goal-pearl)"/><circle cx="344" cy="84" r="4" fill="#FFF" opacity=".77"/>
+ </g>
  <g className="goal-jewel-float">
   <rect x="97" y="38" width="208" height="208" rx="72" transform="rotate(-8 201 142)" fill="url(#goal-shell)" stroke="#FFFFFF" strokeWidth="3"/>
   <rect x="105" y="45" width="190" height="193" rx="68" transform="rotate(-8 200 143)" fill="url(#goal-inner)"/>
@@ -22,12 +28,6 @@ export function GoalIllustration(){return <div className="veyra-goal-jewel" aria
   <path d="M153 122C159 104 179 103 190 115" fill="none" stroke="#FFEEFF" strokeWidth="8" strokeLinecap="round" opacity=".75"/>
   <path d="M226 103C240 103 251 112 252 125" fill="none" stroke="#FBE2FF" strokeWidth="7" strokeLinecap="round" opacity=".45"/>
   <path d="M169 169C180 180 190 191 201 200" fill="none" stroke="#EBBCFC" strokeWidth="4" strokeLinecap="round" opacity=".5"/>
- </g>
- <g className="goal-orbit-motion">
-  <ellipse cx="200" cy="145" rx="176" ry="51" transform="rotate(-20 200 145)" fill="none" stroke="#DBBDFF" strokeWidth="11" opacity=".2" filter="url(#goal-blur)"/>
-  <ellipse cx="200" cy="145" rx="176" ry="51" transform="rotate(-20 200 145)" fill="none" stroke="url(#goal-orbit)" strokeWidth="3.5"/>
-  <circle cx="45" cy="197" r="12" fill="url(#goal-pearl)"/><circle cx="41" cy="193" r="4" fill="#FFF" opacity=".75"/>
-  <circle cx="348" cy="88" r="12" fill="url(#goal-pearl)"/><circle cx="344" cy="84" r="4" fill="#FFF" opacity=".77"/>
  </g>
  <g className="goal-star-field">
   <path d="M57 50Q61 72 83 76Q61 80 57 103Q53 80 30 76Q53 72 57 50Z" fill="#FFFFFF"/>
