@@ -84,26 +84,19 @@ test('VEYRA pending approval displays animated crystal, genuine status and close
  await expect(screen.getByRole('status')).toContainText('На модерации');
 });
 
-test('VEYRA farewell displays only after confirmed deletion and keeps Telegram close button',async({page})=>{
- await telegram(page,10);
- await page.route('**/api/account',route=>{
-  if(route.request().method()==='DELETE')return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
-  return route.continue();
- });
- page.on('dialog',dialog=>dialog.accept());
- await page.goto('/');
+test('VEYRA scheduled deletion shows in-app consent without deleting immediately',async({page})=>{
+ await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
  await page.getByRole('button',{name:'удалить аккаунт'}).click();
- const screen=page.locator('.vc-screen--deleted');
- await expect(screen).toBeVisible();
- await expect(screen.getByRole('heading',{name:'Нам жаль, что ты уходишь'})).toBeVisible();
- await expect(screen.getByRole('status')).toContainText('Аккаунт удалён');
- await expect(screen.locator('.vc-crystal-symbol path')).toHaveCount(1);
- await expect(screen.getByRole('button',{name:'Выйти из приложения'})).toBeVisible();
- await expect(screen.getByRole('button',{name:'Обновить статус'})).toHaveCount(0);
+ const dialog=page.getByRole('dialog',{name:'Удаление аккаунта VEYRA'});
+ await expect(dialog).toBeVisible();
+ await expect(dialog.getByRole('button',{name:'Удалить мой аккаунт'})).toBeDisabled();
+ await dialog.getByRole('checkbox').check();
+ await expect(dialog.getByRole('button',{name:'Удалить мой аккаунт'})).toBeEnabled();
+ await dialog.getByRole('button',{name:'Остаться в VEYRA'}).click();
+ await expect(dialog).toHaveCount(0);
 });
-
 test('V5 admin bot signed auth opens private moderation queue',async({page})=>{
  await telegram(page,1,true);await page.goto('/admin');
  await expect(page.getByRole('heading',{name:'панель VEYRA'})).toBeVisible();
