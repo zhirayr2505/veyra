@@ -88,3 +88,31 @@ html.veyra-telegram-fullscreen .veyra-profile-preview .vp-header>button{
  .veyra-profile-preview.mode-feed .vp-tabs{margin:5px 0!important}
  .veyra-profile-preview.mode-feed .vp-actions button{min-height:41px}
 }
+
+
+/* VEYRA preview uses the same native-height header as registration. */
+.v2-onboarding .veyra-profile-preview{padding-top:0!important}
+.v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header{flex:0 0 auto;position:relative;isolation:isolate;z-index:30;height:calc(65px + env(safe-area-inset-top,0px));min-height:0;padding:calc(10px + env(safe-area-inset-top,0px)) 0 0;margin:0;background:#FBF8FF;box-shadow:none}
+.v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .step-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;height:44px}
+.v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .step-top .quiet{width:40px;height:40px;border:0;border-radius:13px;background:#FFFFFFE3;display:grid;place-items:center}
+.v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .center-logo{margin:-43px auto 0!important;height:48px;width:150px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:15px}
+.v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .center-logo .logo{display:block;width:140px;height:44px;object-fit:contain}
+html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview{padding-top:0!important}
+html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header{height:calc(65px + var(--veyra-telegram-status-top,0px));padding-top:calc(5px + var(--veyra-telegram-status-top,0px))!important}
+html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .step-top>.quiet{visibility:hidden!important;pointer-events:none!important}
+/* One continuous, smooth shade, no dark slab across the picture. */
+.veyra-profile-preview .preview-gallery .veyra-card-shade{z-index:2;inset:0;background:linear-gradient(180deg,#0C07152B 0%,transparent 24%,transparent 54%,#120B2014 67%,#0F0A245B 85%,#0C071CCB 100%)}
+.veyra-profile-preview .preview-gallery .veyra-card-photo-bars{top:12px!important;bottom:auto!important;left:14px!important;right:14px!important;z-index:8!important}
+.veyra-profile-preview .preview-gallery .veyra-card-photo-bars button{height:4px!important;flex:1 1 0!important;max-width:none!important}
+.veyra-profile-preview .preview-gallery .veyra-card-caption{bottom:21px!important;left:15px;right:15px;max-width:calc(100% - 30px);gap:5px!important;z-index:5!important}
+.veyra-profile-preview .veyra-card-name-row h2{font-size:clamp(23px,6.6vw,31px)}
+.veyra-profile-preview .preview-gallery .veyra-card-goal-badge{margin:1px 0}
+.veyra-profile-preview .preview-gallery .veyra-preview-tags{width:100%}
+.veyra-profile-preview .preview-gallery .veyra-interest-inline{max-height:64px;overflow:hidden}
+.veyra-profile-preview .preview-gallery .preview-card-flag{top:25px;z-index:7}
+.veyra-profile-preview .preview-gallery .preview-photo-tap{position:absolute;z-index:4;top:14%;height:48%;width:30%;border:0;padding:0;background:transparent;box-shadow:none;opacity:1;min-height:0}
+.veyra-profile-preview .preview-photo-tap.left{left:0;border-radius:0}
+.veyra-profile-preview .preview-photo-tap.right{right:0;border-radius:0}
+.veyra-profile-preview.mode-feed .vp-scroll{padding-top:0}
+.veyra-profile-preview.mode-feed .vp-scroll h1{margin:0 0 5px!important}
+.veyra-profile-preview .preview-gallery-slide>.photo-box.preview-photo>img{object-fit:cover!important;object-position:center!important}

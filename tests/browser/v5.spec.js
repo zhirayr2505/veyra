@@ -202,7 +202,7 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await page.locator('.veyra-interest-options button').first().click();
  await page.locator('.veyra-interest-options button').nth(1).click();
- await page.getByRole('button',{name:'добавить фото'}).click();
+ await page.getByRole('button',{name:'к фотографиям'}).click();
  await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
  await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
@@ -210,7 +210,8 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  const files=Array.from({length:8},(_,i)=>({name:'test'+i+'.png',mimeType:'image/png',buffer:png}));
  await page.locator('input[type=file]').setInputFiles(files);
  await expect(page.locator('.registration-toast')).toContainText('максимум 7 фото');
- await expect(page.locator('.photo-footnote')).toContainText('Загружено 7 из 7',{timeout:45000});
+ await expect(page.locator('.registration-photo-count')).toContainText('7 из 7',{timeout:45000});
+ await expect(page.locator('.photo-make-main')).toHaveCount(6);
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
  const dragged=page.locator('.photo-slot').nth(1),drop=page.locator('.photo-slot').nth(3);
  const firstRect=await dragged.boundingBox(),targetRect=await drop.boundingBox();
@@ -221,6 +222,8 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await page.mouse.up();
  await expect(page.locator('.photo-drag-ghost')).toHaveCount(0);
  await page.getByRole('button',{name:'посмотреть анкету'}).click();
+ await expect(page.locator('.preview-gallery .veyra-card-shade')).toHaveCount(1);
+ await expect(page.locator('.preview-card-caption .veyra-card-goal-badge')).toContainText('Свидания');
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
  await expect(page.locator('.preview-card-chips .veyra-interest-inline-chip')).toHaveCount(2);

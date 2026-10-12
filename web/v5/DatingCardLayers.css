@@ -1,0 +1,18 @@
+/* Shared VEYRA feed & onboarding profile overlays. */
+.veyra-card-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(14,7,29,.17) 0%,transparent 22%,transparent 56%,rgba(11,6,24,.08) 68%,rgba(10,5,22,.38) 85%,rgba(9,5,20,.78) 100%)}
+.veyra-card-caption{z-index:5!important;color:#fff;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important;text-shadow:0 1px 7px #160b2990;max-width:100%;min-width:0;pointer-events:none}
+.veyra-card-caption>*{pointer-events:auto}
+.veyra-card-name-row{display:flex;align-items:center;gap:8px;max-width:100%;min-width:0}
+.veyra-card-name-row h2{margin:0;color:white;font-weight:830;line-height:1.1}
+.veyra-card-goal-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;max-width:100%;min-height:29px;padding:3px 11px 3px 4px;font-size:12px;line-height:1.2;font-weight:790;color:#fff;white-space:nowrap;background:linear-gradient(110deg,#743CCFD6,#9155E3C4);border:1px solid #FFFFFF63;box-shadow:0 3px 13px #22113C32;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.veyra-card-goal-mark{width:23px;height:23px;display:grid;place-items:center;flex:none;border-radius:50%;background:#fff;box-shadow:0 1px 4px #29164727}
+.veyra-card-goal-mark img{display:block;width:15px;height:15px;object-fit:contain}
+.veyra-card-caption .feed-location,.veyra-card-caption .preview-card-location{display:flex;align-items:center;gap:6px;margin:1px 0 0;line-height:1.2;font-size:12px;color:#fff}
+.veyra-card-caption .feed-location img,.veyra-card-caption .preview-card-location img{flex:none}
+.veyra-card-caption .hero-tags,.veyra-card-caption .veyra-preview-tags{width:100%;max-width:100%;margin-top:3px;min-height:0}
+.veyra-card-caption .veyra-interest-inline{gap:5px;max-width:100%;display:flex;flex-wrap:wrap}
+.veyra-card-caption .veyra-interest-inline-chip{background:#1F1B2DBD;border:1px solid #FFFFFF60;color:#fff;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);max-width:45%;font-size:11px}
+.veyra-card-photo-bars{display:flex;gap:5px;position:absolute;top:12px;left:14px;right:14px;bottom:auto;z-index:8;max-width:none}
+.veyra-card-photo-bars button{height:4px;min-width:0;flex:1 1 0;border:0;border-radius:99px;background:#FFFFFF70;padding:0;box-shadow:0 1px 5px #0003;transition:background .18s ease}
+.veyra-card-photo-bars button.active{background:#fff;box-shadow:0 0 6px #fff8}
+@media(prefers-reduced-motion:reduce){.veyra-card-photo-bars button{transition:none}}
