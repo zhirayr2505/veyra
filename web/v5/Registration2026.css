@@ -1,0 +1,56 @@
+/* VEYRA 2026 registration • seven-step light purple/white journey */
+.v2-onboarding .veyra-registration-2026{
+ --registration-purple:#9165F2;--registration-ink:#292033;--registration-soft:#FBF7FF;
+ background:radial-gradient(ellipse 90% 42% at 50% -3%,#EEE5FF 0%,#FBF7FF 75%);color:var(--registration-ink);
+ max-width:560px;min-height:100dvh;padding:calc(14px + env(safe-area-inset-top)) 19px calc(134px + env(safe-area-inset-bottom));overflow-x:clip;
+}
+.v2-onboarding .veyra-registration-2026 .center-logo{margin:0 auto 5px;height:53px}
+.v2-onboarding .veyra-registration-2026 .center-logo .logo{width:140px;max-height:51px;object-fit:contain}
+.v2-onboarding .veyra-registration-2026 .step-top{display:grid;grid-template-columns:45px 1fr 45px;align-items:center;padding-top:0}
+.v2-onboarding .veyra-registration-2026 .step-top small{text-align:center;color:#82798F;font-weight:680;font-size:12px}
+.v2-onboarding .veyra-registration-2026 .step-top .quiet{width:40px;height:40px;border:0;border-radius:13px;background:#FFFFFFBA;display:grid;place-items:center}
+.v2-onboarding .veyra-registration-2026 .progress{width:100%;margin:7px 0 28px;display:flex;gap:6px}
+.v2-onboarding .veyra-registration-2026 .progress span{flex:1;height:6px;background:#E9DFF8;overflow:hidden;border-radius:99px}
+.v2-onboarding .veyra-registration-2026 .progress span::after{background:#9165F2;transition:transform .4s cubic-bezier(.2,.75,.2,1)}
+.v2-onboarding .veyra-registration-2026 h1{font-size:clamp(26px,7vw,33px);font-weight:830;letter-spacing:-.8px;line-height:1.18;color:#292033;text-align:center;margin-bottom:9px;text-transform:none}
+.v2-onboarding .veyra-registration-2026 .subheading{text-align:center;font-size:13px;line-height:1.55;color:#80788F;margin:0 auto 28px;max-width:330px}
+.v2-onboarding .veyra-registration-2026 .registration-step{animation-duration:.36s}
+.v2-onboarding .veyra-registration-2026 .fields{gap:19px}
+.v2-onboarding .veyra-registration-2026 .fields>label{font-size:13px;gap:9px}
+.v2-onboarding .veyra-registration-2026 .fields input:not([type=range]):not([type=checkbox]){border:1px solid #E2D9F2;border-radius:18px;background:#fff;min-height:57px;font-size:16px;color:#292033}
+.v2-onboarding .veyra-registration-2026 .fields input:focus{border-color:#9165F2;box-shadow:0 0 0 4px #9165F21C}
+.v2-onboarding .veyra-registration-2026 .registration-telegram-hint{display:flex;gap:9px;align-items:center;padding:12px 14px;border:1px solid #E8DFF5;border-radius:15px;color:#82768E;font-size:12px;font-weight:540;background:#FFFFFFB8}
+.v2-onboarding .veyra-registration-2026 .registration-telegram-hint img{flex:none}
+.v2-onboarding .veyra-registration-2026 .registration-consent{align-items:flex-start;line-height:1.5;background:#FFFFFFBD;padding:15px;border:1px solid #E8DFF5;border-radius:16px;margin-top:8px}
+.v2-onboarding .veyra-registration-2026 .registration-consent input{accent-color:#9165F2;min-width:18px;min-height:18px}
+.v2-onboarding .veyra-registration-2026 .registration-consent span{font-size:12px;font-weight:520;color:#5E5670}
+.v2-onboarding .veyra-registration-2026 .registration-consent a{color:#8354E8;text-decoration:underline;text-underline-offset:2px;font-weight:730}
+.v2-onboarding .veyra-registration-2026 .gender-choice,.v2-onboarding .veyra-registration-2026 .looking-choice{border:1.5px solid #E6DDF1!important;border-radius:19px!important;background:#fff!important;min-height:90px;flex-direction:column;gap:9px;color:#342D45!important;box-shadow:0 6px 20px #4D34600A!important}
+.v2-onboarding .veyra-registration-2026 .gender-choice.selected,.v2-onboarding .veyra-registration-2026 .looking-choice.selected{border:2px solid #9165F2!important;background:#F4ECFF!important;box-shadow:0 7px 23px #9165F226!important}
+.v2-onboarding .veyra-registration-2026 .choices img{width:38px;height:38px;object-fit:contain}
+.v2-onboarding .veyra-registration-2026 .looking-choice img{width:43px;height:43px}
+.v2-onboarding .veyra-registration-2026 .location-card{border:1px solid #E6DDF4;border-radius:22px;background:#fff;box-shadow:0 12px 30px #3823510B;padding:28px 16px}
+.v2-onboarding .veyra-registration-2026 .location-mark{background:#F2E9FF;box-shadow:0 0 0 9px #9165F211}
+.v2-onboarding .veyra-registration-2026 .location-change{color:#8354E8}
+.v2-onboarding .veyra-registration-2026 .registration-actions{position:fixed;left:50%;transform:translateX(-50%);width:min(100%,560px);background:linear-gradient(0deg,#FBF7FF 76%,#FBF7FFEE 88%,transparent);border-top:0;bottom:0;padding:20px 19px calc(15px + env(safe-area-inset-bottom));box-shadow:none}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.primary,
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn:not(.outline){min-height:56px;background:linear-gradient(105deg,#9E78F6,#9165F2)!important;border:0;border-radius:19px;color:#fff!important;font-size:15px;font-weight:790;box-shadow:0 9px 23px #9165F237!important}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn:disabled{opacity:.48;box-shadow:none!important}
+.v2-onboarding .veyra-registration-2026 .photo-layout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;width:100%;align-items:start}
+.v2-onboarding .veyra-registration-2026 .photo-slot,.v2-onboarding .veyra-registration-2026 .photo-slot.primary{grid-column:auto;grid-row:auto;aspect-ratio:3/3.8;border-radius:17px;box-shadow:0 6px 18px #35225110;border:1.5px solid #E5D8F4;background:#F3ECFE}
+.v2-onboarding .veyra-registration-2026 .photo-slot-add{border:1.5px dashed #B69BF3;background:linear-gradient(160deg,#F9F5FF,#EEE5FD);color:#8056DC;gap:5px}
+.v2-onboarding .veyra-registration-2026 .photo-slot-add>span{font-size:11px}
+.v2-onboarding .veyra-registration-2026 .photo-slot:not(.photo-slot-add){touch-action:none}
+.v2-onboarding .veyra-registration-2026 .photo-slot .cover-label{position:absolute;bottom:7px;left:7px;background:#9165F2EE;color:#fff;border-radius:9px;font-size:9px}
+.v2-onboarding .veyra-registration-2026 .photo-order-number{position:absolute;left:7px;bottom:7px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#9165F2;color:white;font-size:11px;font-weight:800;box-shadow:0 3px 8px #25163B44;pointer-events:none}
+.v2-onboarding .veyra-registration-2026 .photo-slot.primary .photo-order-number{bottom:34px}
+.v2-onboarding .veyra-registration-2026 .photo-guidelines{display:grid;gap:10px;margin-top:4px;padding:15px;border:1px solid #E8DEF4;border-radius:17px;background:#FFFFFFCF}
+.v2-onboarding .veyra-registration-2026 .photo-guidelines p{display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.4;color:#665A79;margin:0}
+.v2-onboarding .veyra-registration-2026 .photo-guidelines img{flex:none}
+.v2-onboarding .veyra-registration-2026 .photo-footnote{font-size:12px;font-weight:690;color:#7B5AC8}
+.v2-onboarding .veyra-registration-2026 .tip{font-size:12px;line-height:1.5;color:#756B86;text-align:center}
+.v2-onboarding .veyra-registration-2026 .registration-photo-count{display:inline-flex;align-items:center;justify-content:center;background:#EFE6FF;color:#7951D0;padding:7px 11px;border-radius:99px;margin:auto;font-weight:780;font-size:12px}
+.v2-onboarding .veyra-registration-2026 .photo-slot:focus-visible{outline:3px solid #9165F2;outline-offset:3px}
+.v2-onboarding .veyra-registration-2026 .photo-slot.drop-target{outline:3px dashed #9165F2;outline-offset:2px}
+@media(max-width:360px){.v2-onboarding .veyra-registration-2026{padding-inline:13px}.v2-onboarding .veyra-registration-2026 .photo-layout{gap:6px}.v2-onboarding .veyra-registration-2026 .photo-slot{border-radius:13px}}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .registration-step{animation:none!important}.v2-onboarding .veyra-registration-2026 .progress span::after{transition:none!important}}
