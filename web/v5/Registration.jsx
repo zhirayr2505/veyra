@@ -9,6 +9,7 @@ import {ProfilePreview} from './ProfilePreview.jsx';
 import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './Registration2026.css';
 import {LegalScreen} from './Legal.jsx';
+import {OnboardingHeader} from './OnboardingHeader.jsx';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3;
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
@@ -163,9 +164,7 @@ export function Registration({me,refresh}){
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(7,'backward')}} onEdit={()=>{setPreview(false);go(7,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
-  <header className="veyra-onboarding-fixed-header"><div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><span/><span/></div>
-  <div className="center-logo veyra-shine-logo"><Logo width={136}/></div>
-  <div className="progress" aria-label={'Шаг '+step+' из 7'}>{[1,2,3,4,5,6,7].map(n=><span key={n} className={n<=step?'done':''}/>)}</div></header>
+  <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}/>
   <div className={'registration-step '+direction} key={step} ref={scrollRef}>
    <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Добавьте свои фото'][step-1]}</h1>
    <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
@@ -199,8 +198,8 @@ export function Registration({me,refresh}){
    {step===6&&<div className="fields"><label className="veyra-bio-box">Немного о себе <small>Необязательно · до 200 символов</small><textarea aria-label="О себе" maxLength={200} rows={3} placeholder="Каким ты бываешь? Что любишь и кого хочешь встретить?" value={f.bio||''} onChange={e=>change('bio',e.target.value)}/><span>{(f.bio||'').length}/200</span></label><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
    {step===7&&<div className="fields">
      <div className="photo-guidelines"><p><DesignGlyph name="camera" active size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
-    <span className="registration-photo-count">{photos.length} из 7 фото · минимум 3</span>
-     <p className="tip">Первое фото будет главным. Чтобы изменить порядок, удерживай фотографию и перетаскивай.</p>
+     <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 7':photos.length<MIN_PHOTOS?photos.length+' из 7 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 7 · Можно посмотреть анкету'}</span>
+      <p className="tip">Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
       return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
@@ -210,21 +209,21 @@ export function Registration({me,refresh}){
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
-        {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':'загрузка'}</small></span>}</span></>:
+        {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':'загрузка'}</small></span></span>}</span></>:
         <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button>}
        </div>:<button key={'empty'+i} className={'photo-slot photo-slot-add '+(i===0?'primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}>
         <Icon name={i===0?'camera':'plus'} tone="pink" size={i===0?31:23}/>{i===0&&<span>главное фото</span>}
        </button>})}
     </div>
     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
-    <p className="photo-footnote">{uploading?'Загружаем фотографии по очереди…':'Загружено '+photos.length+' из '+MAX_PHOTOS+' · минимум '+MIN_PHOTOS}</p>
+
     
    </div>}
   </div>
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-  <div className="registration-actions">{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===7&&photos.length<MIN_PHOTOS)} onClick={step===7?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===7?'посмотреть анкету':step===6?'добавить фото':'далее'}</Button>}</div>
+  <div className={'registration-actions '+(step===7&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===7&&photos.length<MIN_PHOTOS)} onClick={step===7?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===7?'посмотреть анкету':step===6?'к фотографиям':'далее'}</Button>}</div>
  {legalOpen&&<LegalScreen asModal initialTab={legalTab} onClose={()=>setLegalOpen(false)} onAccept={()=>{setConsent(true);setLegalOpen(false)}}/>}
  </div>;
 }
