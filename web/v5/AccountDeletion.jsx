@@ -1,13 +1,14 @@
 import React,{useEffect,useState} from 'react';
 import {Logo,Icon} from './UI.jsx';
+import {CompletionArt} from './CompletionScene.jsx';
 import './AccountDeletion.css';
 export function DeleteAccountConfirm({onCancel,onConfirm}){
  const [agreed,setAgreed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const confirm=async()=>{if(!agreed||busy)return;setBusy(true);setError('');try{await onConfirm()}catch(e){setError(e?.message||'Не получилось отправить запрос');setBusy(false)}};
  return <main className="veyra-delete-page" role="dialog" aria-modal="true" aria-label="Удаление аккаунта VEYRA">
-  <header><button type="button" aria-label="Назад" onClick={onCancel}><Icon name="back" size={23}/></button><Logo width={136}/><span/></header>
+  <header><button type="button" aria-label="Назад" onClick={onCancel}><Icon name="back" size={23}/></button><span className="veyra-deletion-wordmark"><Logo width={136}/></span><span/></header>
   <div className="veyra-delete-main">
-   <div className="veyra-delete-mark"><Icon name="heart" tone="pink" size={44}/></div>
+   <div className="veyra-delete-crystal" aria-hidden="true"><CompletionArt kind="deleted"/></div>
    <h1>Удалить аккаунт?</h1>
    <p>У тебя будет <strong>72 часа</strong>, чтобы передумать и вернуться в VEYRA.</p>
    <section className="veyra-delete-terms"><strong>После подтверждения:</strong><p>Профиль и фотографии сразу исчезнут из поиска, ленты и рекомендаций.</p><p>Тебе нельзя будет отправлять новые сообщения.</p><p>Через 72 часа анкета и фотографии удалятся окончательно. История переписки сохранится у собеседников с подписью «Удалённый аккаунт».</p></section>
@@ -27,7 +28,7 @@ export function DeletionPending({dueAt,onRestore}){
  return <main className="veyra-delete-page veyra-delete-wait">
   <header><span/><Logo width={136}/><span/></header>
   <div className="veyra-delete-main">
-   <div className="veyra-delete-mark"><Icon name="clock" tone="pink" size={45}/></div>
+   <div className="veyra-delete-crystal" aria-hidden="true"><CompletionArt kind="deleted"/></div>
    <h1>Ещё можно вернуться</h1>
    <p>Твоя анкета уже скрыта от других людей. Но пока ещё можно восстановить профиль, фотографии и переписки.</p>
    <section className="veyra-delete-timer" role="status"><small>До окончательного удаления осталось</small><strong>{pad(hours)}:{pad(minutes)}:{pad(sec)}</strong><span>часов : минут : секунд</span></section>
