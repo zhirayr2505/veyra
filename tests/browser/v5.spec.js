@@ -67,6 +67,45 @@ test('VEYRA legal documents accept consent and support a public legal page',asyn
  await expect(page.getByRole('heading',{name:'Документы VEYRA'})).toBeVisible();
 });
 
+test('VEYRA pending approval displays animated crystal, genuine status and close action',async({page})=>{
+ await telegram(page,10);
+ await page.route('**/api/me',async route=>{
+  const response=await route.fetch();
+  const data=await response.json();
+  if(data.profile)data.profile.moderation='pending';
+  await route.fulfill({response,json:data});
+ });
+ await page.goto('/');
+ const screen=page.locator('.vc-screen--pending');
+ await expect(screen).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'Анкета отправлена'})).toBeVisible();
+ await expect(screen.getByRole('status')).toContainText('На модерации');
+ await expect(screen.locator('.vc-crystal-symbol path')).toHaveCount(1);
+ await expect(screen.getByRole('button',{name:'Закрыть приложение'})).toBeVisible();
+ await screen.getByRole('button',{name:'Обновить статус'}).click();
+ await expect(screen.getByRole('status')).toContainText('На модерации');
+});
+
+test('VEYRA farewell displays only after confirmed deletion and keeps Telegram close button',async({page})=>{
+ await telegram(page,10);
+ await page.route('**/api/account',route=>{
+  if(route.request().method()==='DELETE')return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
+  return route.continue();
+ });
+ page.on('dialog',dialog=>dialog.accept());
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
+ await page.getByRole('button',{name:'удалить аккаунт'}).click();
+ const screen=page.locator('.vc-screen--deleted');
+ await expect(screen).toBeVisible();
+ await expect(screen.getByRole('heading',{name:'Нам жаль, что ты уходишь'})).toBeVisible();
+ await expect(screen.getByRole('status')).toContainText('Аккаунт удалён');
+ await expect(screen.locator('.vc-crystal-symbol path')).toHaveCount(1);
+ await expect(screen.getByRole('button',{name:'Выйти из приложения'})).toBeVisible();
+ await expect(screen.getByRole('button',{name:'Обновить статус'})).toHaveCount(0);
+});
+
 test('V5 admin bot signed auth opens private moderation queue',async({page})=>{
  await telegram(page,1,true);await page.goto('/admin');
  await expect(page.getByRole('heading',{name:'панель VEYRA'})).toBeVisible();
