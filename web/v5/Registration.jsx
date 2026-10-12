@@ -141,7 +141,7 @@ export function Registration({me,refresh}){
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
- if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(7,'backward')}} onEdit={()=>{setPreview(false);go(6,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
+ if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(7,'backward')}} onEdit={()=>{setPreview(false);go(7,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
   <header className="veyra-onboarding-fixed-header"><div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><span/><span/></div>
   <div className="center-logo veyra-shine-logo"><Logo width={136}/></div>
