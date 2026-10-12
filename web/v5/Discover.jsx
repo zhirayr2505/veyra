@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
 import {get,post,photoUrl,cachedPhoto} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
+import {CardCaption,CardPhotoBars} from './DatingCardLayers.jsx';
 import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
 import './Discover.css';
 
@@ -194,18 +195,10 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
       onClick={onCardClick} aria-label={'Открыть профиль: '+card.name}>
       <FeedPicture key={card.id} card={card} index={index}/>
-      <div className="feed-image-shade" aria-hidden="true"/>
-      <div className="photo-bars" aria-label="Фотографии анкеты">{photos.map((id,i)=><button
-       type="button" key={id} aria-label={'Фото '+(i+1)} aria-current={index===i?'true':undefined}
-       className={index===i?'active':''} onClick={()=>setIndex(i)}/>)}</div>
+      <div className="veyra-card-shade" aria-hidden="true"/>
+      <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
       <button className="feed-info-button" type="button" aria-label="Открыть профиль" onClick={()=>onProfile(card.id)}><Icon name="user" tone="white" size={22}/></button>
-      <div className="hero-info">
-       {card.online&&<span className="feed-online"><span className="feed-online-dot"/>в сети</span>}
-       <div className="feed-name-line"><button className="hero-name" onClick={()=>onProfile(card.id)} type="button">{card.name}, {card.age}</button><Icon name="verified" tone="white" size={20} className="feed-checked"/></div>
-       {location&&<p className="feed-location"><Icon name="pin" tone="white" size={14}/>{location}</p>}
-       {card.bio&&<p className="hero-bio">{card.bio}</p>}
-       {!!card.interests?.length&&<div className="hero-tags"><InterestReveal items={card.interests}/></div>}
-      </div>
+      <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}
       {motion==='exit-super'&&<div className="feed-flash feed-flash-super" aria-hidden="true"><Star size={76} fill="white"/><b>Суперлайк!</b></div>}
