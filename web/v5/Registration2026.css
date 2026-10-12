@@ -521,3 +521,96 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout) .photo-slot:not(.photo-slot-add) img{
  touch-action:pan-y!important;
 }
+
+
+/* VEYRA Smart Next: coherent branded navigation across all eight onboarding steps.
+   An animated highlight is triggered by interaction only, never loops when idle. */
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next{
+  position:relative!important;isolation:isolate;overflow:hidden!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;width:100%!important;min-height:58px!important;
+  padding:12px 24px!important;border:1px solid #9858F3!important;
+  border-radius:20px!important;
+  color:#fff!important;font-size:16px!important;font-weight:800!important;
+  background:linear-gradient(114deg,#AE88FA 0%,#965DF4 48%,#7B2CEA 100%)!important;
+  box-shadow:0 8px 23px #7847D75C,0 3px 8px #9560D935,
+             inset 0 1px 0 #FFFFFF75,inset 0 -1px 0 #5B25AF26!important;
+  text-shadow:0 1px 2px #42247C55;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;cursor:pointer;
+  transition:transform .2s cubic-bezier(.2,.9,.2,1),
+    box-shadow .25s ease,filter .2s ease!important;
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next::before{
+  content:"";position:absolute;z-index:0;inset:0 0 49%;
+  border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,#FFFFFF2E,transparent 95%);
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next::after{
+  content:"";position:absolute;z-index:0;top:-40%;bottom:-40%;left:-95%;
+  width:48%;transform:skewX(-20deg);pointer-events:none;
+  background:linear-gradient(90deg,transparent,#FFFFFF59 48%,transparent);
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled){
+  transform:scale(.98)!important;
+  filter:brightness(1.065);
+  box-shadow:0 5px 14px #7847D74D,inset 0 1px 3px #471C891F!important;
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled)::after{
+  animation:veyraSmartPressSweep .46s ease-out forwards;
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:focus-visible{
+  outline:3px solid #C5A8FE!important;outline-offset:3px!important;
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:disabled{
+  cursor:default;opacity:.77!important;
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions.is-ready .btn.veyra-smart-next{
+  animation:none!important;
+}
+.veyra-smart-next-content{
+  z-index:1;position:relative;display:inline-flex;align-items:center;
+  justify-content:center;max-width:100%;min-width:0;gap:12px;
+  pointer-events:none;
+}
+.veyra-smart-next-label{
+  display:block;min-width:0;white-space:nowrap;
+  font-size:clamp(14px,4vw,16px);font-weight:800;
+  line-height:1.3;letter-spacing:.05px;
+  animation:veyraSmartLabelIn .22s ease-out both;
+}
+.veyra-smart-next-arrow{
+  flex:0 0 21px;object-fit:contain;filter:drop-shadow(0 1px 1px #4B1B8340);
+  transition:transform .22s cubic-bezier(.2,.9,.2,1);
+}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled) .veyra-smart-next-arrow{
+  transform:translateX(3px);
+}
+.veyra-smart-next-spinner{
+  flex:0 0 20px;width:20px;height:20px;border-radius:50%;
+  border:2px solid #FFFFFF70;border-top-color:#fff;box-sizing:border-box;
+  animation:veyraSmartSpinner .75s linear infinite;
+}
+@keyframes veyraSmartPressSweep{
+  from{left:-95%;opacity:0}
+  14%{opacity:1}
+  to{left:150%;opacity:0}
+}
+@keyframes veyraSmartLabelIn{
+  from{opacity:.45;transform:translateY(5px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes veyraSmartSpinner{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+ .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next,
+ .veyra-smart-next-arrow{transition:none!important}
+ .veyra-smart-next-label,.veyra-smart-next-spinner,
+ .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next::after{
+  animation:none!important;
+ }
+}
+@media(max-width:350px){
+ .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next{padding-inline:12px!important}
+ .veyra-smart-next-content{gap:8px}
+ .veyra-smart-next-label{font-size:13px}
+}
