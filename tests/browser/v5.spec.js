@@ -78,7 +78,8 @@ test('VEYRA pending approval displays animated crystal, genuine status and close
  await expect(screen).toBeVisible();
  await expect(screen.getByRole('heading',{name:'Анкета отправлена'})).toBeVisible();
  await expect(screen.getByRole('status')).toContainText('На модерации');
- await expect(screen.locator('.vc-crystal-symbol path')).toHaveCount(1);
+ await expect(screen.locator('.vc-review-vector path')).toHaveCount(2);
+ await expect(screen.locator('.vc-real-review')).toHaveCount(0);
  await expect(screen.getByRole('button',{name:'Закрыть приложение'})).toBeVisible();
  await expect(screen.getByRole('button',{name:'Изменить анкету'})).toBeVisible();
  await screen.getByRole('button',{name:'Посмотреть профиль'}).click();
