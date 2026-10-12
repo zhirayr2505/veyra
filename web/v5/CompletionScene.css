@@ -146,3 +146,9 @@
 .v2-onboarding .vc-screen .vc-status{min-height:61px!important}
 .v2-onboarding .vc-screen .vc-actions{gap:7px!important}
 @media(max-height:730px){.v2-onboarding .vc-screen .vc-art:has(.vc-crystal){height:clamp(98px,20dvh,143px)!important}.vc-actions .vc-preview-btn{min-height:43px}.v2-onboarding .vc-screen .vc-close-btn{min-height:45px!important}}
+
+/* Recovered real transparent VEYRA glass check mark, with gentle composited shimmer. */
+.vc-real-review{transform-origin:215px 200px;animation:vc-real-review-drift 6s ease-in-out infinite}
+.vc-screen--pending .vc-crystal-symbol path{opacity:.13}
+@keyframes vc-real-review-drift{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.035)}}
+@media(prefers-reduced-motion:reduce){.vc-real-review{animation:none!important}}

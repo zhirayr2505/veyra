@@ -50,6 +50,7 @@ export function CompletionArt({kind='pending'}){
    <path d="M 111 158 Q 117 89 193 80" fill="none" stroke="#FFFFFF" strokeWidth="8" opacity=".49" strokeLinecap="round"/>
    <path d="M 275 292 Q 325 267 331 206" fill="none" stroke="#FFFFFF" strokeWidth="8" opacity=".25" strokeLinecap="round"/>
    <g className="vc-crystal-symbol">
+    {!deleted&&!rejected&&<image className="vc-real-review" href="/veyra-library/review-check.webp" x="109" y="94" width="212" height="212" preserveAspectRatio="xMidYMid meet"/>}
     {deleted?<g stroke={'url(#'+mark+')'} strokeWidth="10" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="208" cy="157" r="23"/><path d="M 159 237 V 223 C 159 189 172 183 208 183 C 242 183 256 189 256 223"/><circle cx="259" cy="228" r="21" fill="#F3DBFF" strokeWidth="7"/><path d="M 248 228 H 270" strokeWidth="8"/></g>:
       <path d="M 158 207 L 192 244 L 275 158" fill="none" stroke={'url(#'+mark+')'} strokeWidth="17" strokeLinecap="round" strokeLinejoin="round"/>}
    </g>
