@@ -27,7 +27,7 @@ export async function publicProfiles(q,ids){
  const rows=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,
   (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos
   FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
-  WHERE p.user_id=ANY($1::bigint[])`,[ids.map(String)])).rows;
+  WHERE p.user_id=ANY($1::bigint[]) AND u.status='active'`,[ids.map(String)])).rows;
  return new Map(rows.map(p=>{p.test_profile=isTestProfile(p.id);if(p.test_profile){p.online=false;p.last_seen=null}p.photos=p.photos||[];return [String(p.id),p]}));
 }
 export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover',filters={}){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};

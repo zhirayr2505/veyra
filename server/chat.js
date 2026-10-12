@@ -30,7 +30,7 @@ async function serialize(q,rows,uid){
  const ids=rows.filter(x=>!x.hidden&&!x.deleted_at).map(x=>x.id);
  const reactions=ids.length?(await q.query('SELECT message_id,emoji,count(*)::int AS count,bool_or(user_id=$2) AS mine FROM message_reactions WHERE message_id=ANY($1::uuid[]) GROUP BY message_id,emoji ORDER BY emoji',[ids,uid])).rows:[];
  const replyIds=[...new Set(rows.filter(x=>!x.hidden&&!x.deleted_at&&x.reply_to).map(x=>x.reply_to))];
- const replies=replyIds.length?(await q.query(`SELECT m.id,m.sender,m.kind,m.sticker_id,left(m.body,180) AS body,p.name FROM messages m LEFT JOIN profiles p ON p.user_id=m.sender WHERE m.id=ANY($1::uuid[]) AND ${visible}`,[replyIds,uid])).rows:[];
+ const replies=replyIds.length?(await q.query(`SELECT m.id,m.sender,m.kind,m.sticker_id,left(m.body,180) AS body,CASE WHEN u.status IN ('deleting','deleted') THEN 'Удалённый аккаунт' ELSE p.name END AS name FROM messages m JOIN users u ON u.id=m.sender LEFT JOIN profiles p ON p.user_id=m.sender WHERE m.id=ANY($1::uuid[]) AND ${visible}`,[replyIds,uid])).rows:[];
  return rows.map(m=>m.hidden||m.deleted_at?{id:m.id,revision:m.revision,deleted:true}:{...m,hidden:undefined,deleted_at:undefined,reply:m.reply_to?(replies.find(x=>x.id===m.reply_to)||{id:m.reply_to,unavailable:true}):null,reactions:reactions.filter(x=>x.message_id===m.id).map(({emoji,count,mine})=>({emoji,count,mine}))});
 }
 async function record(q,mid,id,uid){const m=await one(q,`SELECT ${fields} FROM messages m WHERE m.match_id=$1 AND m.id=$3`,[mid,uid,id]);if(!m||m.hidden||m.deleted_at)fail(404,'MESSAGE_NOT_FOUND');return m;}
@@ -54,7 +54,7 @@ export function chatRoutes(app,{db,rate,env,storage}){
   const ids=rows.map(m=>String(m.id));
   // Previous implementation sent 3-4 sequential SQL queries per match.
   // Gather message preview, unread count and block status in one batch query.
-  const [profiles,metaRows]=await Promise.all([
+  const [profiles,metaRows,departedRows]=await Promise.all([
    publicProfiles(db,[...new Set(rows.map(other))]),
    db.query(`SELECT mx.id,
       EXISTS(SELECT 1 FROM chat_presence cp WHERE cp.match_id=mx.id AND cp.user_id=
@@ -71,13 +71,16 @@ export function chatRoutes(app,{db,rate,env,storage}){
        WHERE (b.actor=$2 AND b.target=(CASE WHEN mx.a=$2 THEN mx.b ELSE mx.a END))
        OR (b.target=$2 AND b.actor=(CASE WHEN mx.a=$2 THEN mx.b ELSE mx.a END))
        ORDER BY (b.actor=$2) DESC LIMIT 1) AS block_actor
-     FROM matches mx WHERE mx.id=ANY($1::uuid[])`,[ids,uid])
+     FROM matches mx WHERE mx.id=ANY($1::uuid[])`,[ids,uid]),
+   db.query("SELECT id::text AS id FROM users WHERE id=ANY($1::bigint[]) AND status IN ('deleting','deleted')",[[...new Set(rows.map(other))]])
   ]);
   const meta=new Map(metaRows.rows.map(x=>[String(x.id),x]));
+  const ghosts=new Set(departedRows.rows.map(x=>String(x.id)));
+  const ghostProfile=id=>({id,name:'Удалённый аккаунт',age:null,city:'',country:'',bio:'',interests:[],photos:[],online:false,deleted:true});
   const result=rows.flatMap(m=>{
-   const profile=profiles.get(other(m));if(!profile)return [];
+   const ghost=ghosts.has(other(m)),profile=ghost?ghostProfile(other(m)):profiles.get(other(m));if(!profile)return [];
    const item=meta.get(String(m.id))||{},block=String(item.block_actor||'');
-   return [{...m,profile:{...profile,online:!!item.online},blocked_by_me:block===uid,unavailable:!!item.block_actor,last:item.last||null,unread:item.unread||0}];
+   return [{...m,profile:{...profile,online:!!item.online},blocked_by_me:block===uid,unavailable:!!item.block_actor||ghost,last:item.last||null,unread:item.unread||0}];
   });
   res.json(result);
  });
