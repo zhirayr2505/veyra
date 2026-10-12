@@ -1,0 +1,1 @@
+Approved VEYRA Design Master (12 Oct 2026): extracted onboarding SVG glyphs from ICONS. Brand purple #9165F2, light #FBF7FF. Additional artwork follows the original master ZIP.
