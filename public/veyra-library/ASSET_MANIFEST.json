@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "library": "VEYRA_RECOVERED_LIBRARY_77_ASSETS",
+  "asset_count_in_original_archive": 77,
+  "integrated_files": [
+    {
+      "path": "goal-heart.webp",
+      "role": "onboarding.relationship_goal",
+      "source": "original_png/Сияющее фиолетовое стеклянное сердце.png",
+      "derivative": "96x96 transparent WebP for fast preload",
+      "git_blob_sha": "850c29016d4ec8cf0aa4853ebf732d230eb13d07"
+    }
+  ],
+  "notes": "Only confirmed imported files are listed. Original approved text logo remains unchanged."
+}

@@ -24,10 +24,7 @@ export function GoalIllustration(){return <div className="veyra-goal-jewel" aria
   <rect x="105" y="45" width="190" height="193" rx="68" transform="rotate(-8 200 143)" fill="url(#goal-inner)"/>
   <path d="M129 99 Q142 52 206 51" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" opacity=".85"/>
   <path d="M269 195 Q277 186 283 169" fill="none" stroke="#FFFFFF" strokeWidth="9" strokeLinecap="round" opacity=".4"/>
-  <path className="goal-heart" d="M201 213C168 189 133 154 135 124C137 93 170 80 190 102L201 115C224 79 264 88 268 120C272 151 240 182 201 213Z" fill="url(#goal-heart)" stroke="#D493FB" strokeWidth="1.3" strokeLinejoin="round"/>
-  <path d="M153 122C159 104 179 103 190 115" fill="none" stroke="#FFEEFF" strokeWidth="8" strokeLinecap="round" opacity=".75"/>
-  <path d="M226 103C240 103 251 112 252 125" fill="none" stroke="#FBE2FF" strokeWidth="7" strokeLinecap="round" opacity=".45"/>
-  <path d="M169 169C180 180 190 191 201 200" fill="none" stroke="#EBBCFC" strokeWidth="4" strokeLinecap="round" opacity=".5"/>
+  <image className="goal-real-heart" href="/veyra-library/goal-heart.webp" x="126" y="79" width="148" height="148" preserveAspectRatio="xMidYMid meet" />
  </g>
  <g className="goal-star-field">
   <path d="M57 50Q61 72 83 76Q61 80 57 103Q53 80 30 76Q53 72 57 50Z" fill="#FFFFFF"/>
