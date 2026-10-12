@@ -38,6 +38,29 @@ test('at least one photo and explicit consent are enforced server-side; foreign 
  const p=await one(db,'SELECT * FROM profiles WHERE user_id=200');await db.tx(q=>moderate(q,'1','200','approved','',p.revision));
  assert.equal((await one(db,'SELECT moderation FROM profiles WHERE user_id=200')).moderation,'approved');
 });
+
+test('seven-step registration enforces consent and adult age, and reliably resumes on photo step',async()=>{
+ const response=await request(app).post('/api/auth').send({initData:initData(206)});
+ const header=r=>r.set('Authorization','Bearer '+response.body.token);
+ const data={...f,registration_ui_version:2,consent_to_terms:true};
+ const noConsent=await header(request(app).put('/api/registration')).send({step:2,data:{...data,consent_to_terms:false}});
+ assert.equal(noConsent.status,400);assert.equal(noConsent.body.error,'CONSENT_REQUIRED');
+ assert.equal((await header(request(app).put('/api/registration')).send({step:2,data})).status,200);
+ const minor=await header(request(app).put('/api/registration')).send({step:3,data:{...data,birth_date:'2017-01-01'}});
+ assert.equal(minor.status,400);assert.equal(minor.body.error,'AGE_18_REQUIRED');
+ assert.equal((await header(request(app).put('/api/registration')).send({step:3,data})).status,200);
+ assert.equal((await header(request(app).put('/api/registration')).send({step:4,data:{...data,city:'',lat:null}})).status,400);
+ for(const step of [4,5,6])assert.equal((await header(request(app).put('/api/registration')).send({step,data})).status,200);
+ const saved=await header(request(app).put('/api/registration/profile')).send({...f,registration_ui_version:2});
+ assert.equal(saved.status,200);
+ const me=(await header(request(app).get('/api/me'))).body;
+ assert.equal(me.registration.step,7);
+ assert.equal(me.registration.data.registration_ui_version,2);
+ assert.equal(me.registration.data.consent_to_terms,true);
+ assert.equal(me.profile.moderation,'draft');
+ assert.equal(me.photos.length,0);
+ assert.equal((await header(request(app).post('/api/profile/submit')).send({consent:true})).body.error,'PHOTO_REQUIRED');
+});
 test('gift placeholder cannot create a charge, reaction, notification or purchase',async()=>{
  const before=(await one(db,'SELECT count(*)::int AS n FROM outbox')).n;
  assert.deepEqual((await auth(request(app).get('/api/gifts'))).body,{enabled:false,status:'coming_soon',gifts:[]});
