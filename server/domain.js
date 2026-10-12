@@ -32,11 +32,12 @@ export async function notifyReview(q,env,userId){
  [{text:'✅ Одобрить',callback_data:'approve:'+p.user_id+':'+p.revision},{text:'✏️ На доработку',callback_data:'changes:'+p.user_id+':'+p.revision}]
  ]};
  for(let i=0;i<photos.length;i++){
-  const payload={text:i===0?text:'VEYRA · фото '+(i+1)+' из '+photos.length+' · ID '+p.user_id+' · версия '+p.revision,
+  const payload={text:i===0?text.slice(0,950):'VEYRA · фото '+(i+1)+' из '+photos.length+' · ID '+p.user_id+' · версия '+p.revision,
    photo_id:photos[i].id,review_user_id:String(p.user_id),review_revision:p.revision,
    ...(i===0?{reply_markup}:{})};
   await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify(payload)]);
  }
+ if(text.length>950)await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',env.OWNER_TELEGRAM_ID,JSON.stringify({text:'📋 Полная анкета · ID '+p.user_id+' · версия '+p.revision+'\n'+text,review_user_id:String(p.user_id),review_revision:p.revision})]);
 }
 
 export async function approved(q,id){const p=await one(q,"SELECT p.* FROM profiles p JOIN users u ON u.id=p.user_id WHERE user_id=$1 AND u.status='active'",[id]);if(p?.moderation!=='approved')fail(403,'PROFILE_NOT_APPROVED');return p;}
