@@ -79,7 +79,7 @@ export function InterestPicker({value=[],onChange,max=12}){
  };
  const options=items=>items.map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={18}/><span>{item}</span>{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>);
  return <div className="veyra-interest-picker veyra-interest-v9 veyra-interest-final">
-  <div className="veyra-picker-head"><strong>Выбери свои увлечения</strong><span>{selected.length}/{max}</span></div>
+  <div className="veyra-picker-head"><strong>Выбери свои увлечения</strong></div>
   <p className="veyra-picker-caption">До 12 интересов. Мы поможем найти людей, с которыми есть о чём поговорить.</p>
   <section className="veyra-interests-selected" aria-label="Выбранные интересы">
    <header><strong>Выбрано</strong><small>{selected.length} из {max}</small></header>
