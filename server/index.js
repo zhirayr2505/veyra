@@ -4,6 +4,7 @@ import {normalizeRedis} from './core.js';
 import {createApp} from './app.js';
 import {storage as makeStorage,telegram,geo} from './integrations.js';
 import {drainOutbox} from './bots.js';
+import {finalizeDueDeletions} from './privacy.js';
 import {setupBots} from '../scripts/setup-bots.js';
 /** @type {Record<string,string>} */
 const env={USER_BOT_USERNAME:'VeyraAppBot',ADMIN_BOT_USERNAME:'VeyraAdminBot',OFFICIAL_CHANNEL_USERNAME:'VeyraDating',...process.env};
@@ -18,8 +19,10 @@ console.log(JSON.stringify({event:'registration_v2',reset:registrationReset.stat
 const testProfiles={status:'disabled_for_production'};
 const deps={db,env,redis,storage,tg,geo:p=>geo(env,p),registrationReset,testProfiles};
 if(env.AUTO_SETUP_BOTS==='true')await setupBots(env);
+await finalizeDueDeletions({db});
 const app=createApp(deps);const server=app.listen(Number(env.PORT||3000),'0.0.0.0',()=>console.log('VEYRA listening'));
 let draining=false;const timer=setInterval(async()=>{if(draining)return;draining=true;try{await drainOutbox(deps);}catch{console.error('Outbox retry scheduled');}finally{draining=false;}},5000);timer.unref();
 setInterval(()=>db.query('DELETE FROM sessions WHERE expires_at<now()').catch(()=>{}),3600000).unref();
+setInterval(()=>finalizeDueDeletions({db}).catch(e=>console.error('Privacy finalization retry scheduled',e?.code||'error')),60000).unref();
 async function shutdown(){clearInterval(timer);server.close(async()=>{await redis.quit();await db.close();process.exit(0);});setTimeout(()=>process.exit(1),10000).unref();}process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
 

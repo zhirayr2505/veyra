@@ -30,13 +30,13 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  async function rate(key,limit,seconds=60){const n=await redis.eval("local n=redis.call('INCR',KEYS[1]);if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end;return n",{keys:['veyra:'+key],arguments:[String(seconds)]});if(n>limit)fail(429,'RATE_LIMIT');}
  app.get('/healthz',(req,res)=>res.json({ok:true,service:'veyra',revision:env.RENDER_GIT_COMMIT||null,registrationVersion:2,registrationReset:registrationReset||null,testProfiles:testProfiles||null}));app.get('/readyz',async(req,res)=>{await db.query('SELECT 1');await redis.ping();res.json({ok:true});});
  app.get('/api/config',async(req,res)=>res.json({brand:'VEYRA',userBot:env.USER_BOT_USERNAME,adminBot:env.ADMIN_BOT_USERNAME,channel:env.OFFICIAL_CHANNEL_USERNAME,flags:(await db.query('SELECT key,enabled FROM feature_flags')).rows}));
- app.post('/api/auth',async(req,res)=>{await rate('auth:'+req.ip,30);const scope=parse(z.enum(['user','admin']),req.body.scope||'user');const {user,start}=verifyInitData(req.body.initData,scope==='admin'?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN);const uid=String(user.id);if(scope==='admin'&&uid!==String(env.OWNER_TELEGRAM_ID)&&!adminRole(await one(db,'SELECT * FROM users WHERE id=$1',[uid]),env))fail(403,'ADMIN_FORBIDDEN');const s=token();await db.tx(async q=>{const existing=await one(q,'SELECT * FROM users WHERE id=$1',[uid]);if(existing?.status==='banned')fail(403,'ACCOUNT_DISABLED');if(!existing&&!await flag(q,'registrations'))fail(503,'REGISTRATIONS_CLOSED');let ref=null;if(start?.startsWith('ref_'))ref=await one(q,'SELECT id FROM users WHERE referral_code=$1 AND id<>$2',[start.slice(4),uid]);await q.query(`INSERT INTO users(id,username,first_name,language,referral_code,referrer_id,admin_role) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET username=EXCLUDED.username,first_name=EXCLUDED.first_name,last_seen=now(),status='active',notifications=CASE WHEN users.status='deleted' THEN true ELSE users.notifications END,paused=CASE WHEN users.status='deleted' THEN false ELSE users.paused END,invisible=CASE WHEN users.status='deleted' THEN false ELSE users.invisible END,admin_role=coalesce(EXCLUDED.admin_role,users.admin_role)`,[uid,user.username||null,user.first_name||'',user.language_code?.startsWith('ru')?'ru':'en',token().slice(0,12),ref?.id||null,uid===String(env.OWNER_TELEGRAM_ID)?'owner':null]);if(uid===String(env.OWNER_TELEGRAM_ID))await q.query("UPDATE users SET premium_until='2099-12-31',superlikes=greatest(superlikes,100000),prematches=greatest(prematches,100000),boosts=greatest(boosts,100000) WHERE id=$1",[uid]);await q.query("INSERT INTO sessions(hash,user_id,scope,expires_at) VALUES($1,$2,$3,now()+interval '12 hours')",[hash(s),uid,scope]);});res.json({token:s,scope});});
- const auth=async(req,res,next)=>{const raw=req.get('Authorization')?.replace(/^Bearer /,'');if(!raw)fail(401,'AUTH_REQUIRED');const u=await one(db,"SELECT u.*,s.scope FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=$1 AND s.expires_at>now() AND u.status='active'",[hash(raw)]);if(!u)fail(401,'AUTH_REQUIRED');req.user=u;await rate('user:'+u.id,180);if(req.method!=='GET'&&req.get('origin')&&req.get('origin')!==env.APP_URL)fail(403,'ORIGIN_FORBIDDEN');next();};
+ app.post('/api/auth',async(req,res)=>{await rate('auth:'+req.ip,30);const scope=parse(z.enum(['user','admin']),req.body.scope||'user');const {user,start}=verifyInitData(req.body.initData,scope==='admin'?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN);const uid=String(user.id);if(scope==='admin'&&uid!==String(env.OWNER_TELEGRAM_ID)&&!adminRole(await one(db,'SELECT * FROM users WHERE id=$1',[uid]),env))fail(403,'ADMIN_FORBIDDEN');const s=token();await db.tx(async q=>{const existing=await one(q,'SELECT * FROM users WHERE id=$1',[uid]);if(existing?.status==='banned')fail(403,'ACCOUNT_DISABLED');if(!existing&&!await flag(q,'registrations'))fail(503,'REGISTRATIONS_CLOSED');let ref=null;if(start?.startsWith('ref_'))ref=await one(q,'SELECT id FROM users WHERE referral_code=$1 AND id<>$2',[start.slice(4),uid]);await q.query(`INSERT INTO users(id,username,first_name,language,referral_code,referrer_id,admin_role) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET username=EXCLUDED.username,first_name=EXCLUDED.first_name,last_seen=now(),status=CASE WHEN users.status='deleting' THEN 'deleting' ELSE 'active' END,notifications=CASE WHEN users.status='deleted' THEN true ELSE users.notifications END,paused=CASE WHEN users.status='deleted' THEN false ELSE users.paused END,invisible=CASE WHEN users.status='deleted' THEN false ELSE users.invisible END,admin_role=coalesce(EXCLUDED.admin_role,users.admin_role)`,[uid,user.username||null,user.first_name||'',user.language_code?.startsWith('ru')?'ru':'en',token().slice(0,12),ref?.id||null,uid===String(env.OWNER_TELEGRAM_ID)?'owner':null]);if(uid===String(env.OWNER_TELEGRAM_ID))await q.query("UPDATE users SET premium_until='2099-12-31',superlikes=greatest(superlikes,100000),prematches=greatest(prematches,100000),boosts=greatest(boosts,100000) WHERE id=$1",[uid]);await q.query("INSERT INTO sessions(hash,user_id,scope,expires_at) VALUES($1,$2,$3,now()+interval '12 hours')",[hash(s),uid,scope]);});res.json({token:s,scope});});
+ const auth=async(req,res,next)=>{const raw=req.get('Authorization')?.replace(/^Bearer /,'');if(!raw)fail(401,'AUTH_REQUIRED');const u=await one(db,"SELECT u.*,s.scope FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.hash=$1 AND s.expires_at>now() AND u.status IN ('active','deleting')",[hash(raw)]);if(!u)fail(401,'AUTH_REQUIRED');req.user=u;if(u.status==='deleting'&&!((req.method==='GET'&&req.path==='/me')||(req.method==='POST'&&req.path==='/account/restore')||(req.method==='POST'&&req.path==='/logout')))fail(403,'ACCOUNT_PENDING_DELETION');await rate('user:'+u.id,180);if(req.method!=='GET'&&req.get('origin')&&req.get('origin')!==env.APP_URL)fail(403,'ORIGIN_FORBIDDEN');next();};
  app.use('/api',auth);
  app.use('/api/admin',guardAdmin(env));
  app.post('/api/owner/seed-test-profiles',async(req,res)=>{if(String(req.user.id)!==String(env.OWNER_TELEGRAM_ID))fail(403,'OWNER_ONLY');await approved(db,req.user.id);res.json(await seedTestProfiles(db,storage,env));});
  app.use('/api',async(req,res,next)=>{if(!req.path.startsWith('/admin')&&await flag(db,'maintenance'))fail(503,'MAINTENANCE');next();});
- app.get('/api/me',async(req,res)=>{const u=req.user;const p=await one(db,'SELECT * FROM profiles WHERE user_id=$1',[u.id]);res.json({user:{id:u.id,created_at:u.created_at,username:u.username,first_name:u.first_name,language:u.language,premium_until:u.premium_until,boost_until:u.boost_until,superlikes:u.superlikes,prematches:u.prematches,boosts:u.boosts,notifications:u.notifications,invisible:u.invisible,paused:u.paused,referral_code:u.referral_code,admin_role:u.admin_role},registration:(await one(db,'SELECT step,data,updated_at FROM registration_drafts WHERE user_id=$1',[u.id]))||null,profile:p||null,photos:(await db.query('SELECT id,position FROM photos WHERE user_id=$1 ORDER BY position,created_at',[u.id])).rows,veys_balance:await walletBalance(db,u.id),usage:await one(db,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE',[u.id]),today:await one(db,'SELECT * FROM today WHERE user_id=$1 AND expires_at>now()',[u.id])});});
+ app.get('/api/me',async(req,res)=>{const u=req.user;const p=await one(db,'SELECT * FROM profiles WHERE user_id=$1',[u.id]);res.json({user:{id:u.id,status:u.status,deletion_requested_at:u.deletion_requested_at,deletion_due_at:u.deletion_due_at,created_at:u.created_at,username:u.username,first_name:u.first_name,language:u.language,premium_until:u.premium_until,boost_until:u.boost_until,superlikes:u.superlikes,prematches:u.prematches,boosts:u.boosts,notifications:u.notifications,invisible:u.invisible,paused:u.paused,referral_code:u.referral_code,admin_role:u.admin_role},registration:(await one(db,'SELECT step,data,updated_at FROM registration_drafts WHERE user_id=$1',[u.id]))||null,profile:p||null,photos:(await db.query('SELECT id,position FROM photos WHERE user_id=$1 ORDER BY position,created_at',[u.id])).rows,veys_balance:await walletBalance(db,u.id),usage:await one(db,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE',[u.id]),today:await one(db,'SELECT * FROM today WHERE user_id=$1 AND expires_at>now()',[u.id])});});
  app.post('/api/logout',async(req,res)=>{await db.query('DELETE FROM sessions WHERE hash=$1',[hash(req.get('Authorization').slice(7))]);res.json({ok:true});});
  registrationRoutes(app,{db,storage,upload,rate});
  experienceRoutes(app,{db,rate,env});
@@ -83,40 +83,29 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
  app.post('/api/promo',async(req,res)=>{const code=parse(short(40),req.body.code).toUpperCase();await db.tx(async q=>{const p=await one(q,'SELECT * FROM promos WHERE code=$1 FOR UPDATE',[code]);if(!p||new Date(p.expires_at)<new Date()||p.uses>=p.max_uses)fail(400,'PROMO_INVALID');if(await one(q,'SELECT 1 FROM promo_redemptions WHERE code=$1 AND user_id=$2',[code,req.user.id]))fail(409,'PROMO_USED');await q.query('INSERT INTO promo_redemptions(code,user_id) VALUES($1,$2)',[code,req.user.id]);await q.query('UPDATE promos SET uses=uses+1 WHERE code=$1',[code]);await grant(q,req.user.id,p.kind,p.amount);});res.json({ok:true});});
  app.get('/api/export',async(req,res)=>{const id=req.user.id;await audit(db,id,'privacy.export',id);const out={user:{...req.user}};delete out.user.scope;for(const[t,c]of [['profiles','user_id'],['orders','user_id'],['tickets','user_id'],['messages','sender'],['reactions','actor'],['courtships','sender'],['veys_wallets','user_id'],['veys_ledger','user_id'],['veys_purchases','user_id']])out[t]=(await db.query(`SELECT * FROM ${t} WHERE ${c}=$1`,[id])).rows;out.courtships_received=(await db.query('SELECT * FROM courtships WHERE recipient=$1',[id])).rows;res.json(out);});
  app.delete('/api/account',async(req,res)=>{
-  if(req.body?.confirm!=='DELETE')fail(400,'CONFIRM_REQUIRED');
-  await db.tx(async q=>{
-   const uid=req.user.id;
-   await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[uid]);
-   await q.query('INSERT INTO storage_gc(object_key) SELECT object_key FROM photos WHERE user_id=$1 ON CONFLICT DO NOTHING',[uid]);
-   await q.query('INSERT INTO storage_gc(object_key) SELECT mm.object_key FROM message_media mm JOIN messages m ON m.id=mm.message_id JOIN matches mt ON mt.id=m.match_id WHERE mt.a=$1 OR mt.b=$1 ON CONFLICT DO NOTHING',[uid]);
-   await q.query("UPDATE courtships SET status='cancelled',expires_at=now() WHERE sender=$1 OR recipient=$1",[uid]);
-   await q.query('DELETE FROM message_media WHERE message_id IN (SELECT m.id FROM messages m JOIN matches mt ON mt.id=m.match_id WHERE mt.a=$1 OR mt.b=$1)',[uid]);
-   await q.query('DELETE FROM messages WHERE match_id IN (SELECT id FROM matches WHERE a=$1 OR b=$1)',[uid]);
-   await q.query('DELETE FROM photos WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM profiles WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM registration_drafts WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM sessions WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM today WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM impressions WHERE viewer=$1 OR target=$1',[uid]);
-   await q.query('DELETE FROM reactions WHERE actor=$1 OR target=$1',[uid]);
-   await q.query('DELETE FROM message_reactions WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM tickets WHERE user_id=$1',[uid]);
-   await q.query('DELETE FROM blocks WHERE actor=$1 OR target=$1',[uid]);
-   await q.query('DELETE FROM reports WHERE reporter=$1 OR target=$1',[uid]);
-   await q.query('DELETE FROM profile_hides WHERE actor=$1 OR target=$1',[uid]);
-   await q.query('DELETE FROM daily_usage WHERE user_id=$1',[uid]);
-    await q.query('DELETE FROM veys_ledger WHERE user_id=$1',[uid]);
-    await q.query('DELETE FROM veys_purchases WHERE user_id=$1',[uid]);
-    await q.query('DELETE FROM veys_wallets WHERE user_id=$1',[uid]);
-   await q.query('UPDATE matches SET active=false,a_exchange=false,b_exchange=false WHERE a=$1 OR b=$1',[uid]);
-   await q.query("UPDATE users SET status='deleted',username=NULL,first_name='',notifications=false,paused=true,invisible=false,premium_until=NULL,boost_until=NULL,superlikes=0,prematches=0,boosts=0 WHERE id=$1",[uid]);
-   await audit(q,uid,'privacy.delete',uid);
-   // The outbox worker explicitly permits only this confirmation for deleted accounts.
-   await notify(q,uid,'💔 Аккаунт VEYRA удалён. Спасибо, что были с нами. При следующем входе вы сможете зарегистрироваться заново.');
+  if(req.body?.confirm!=='DELETE'||req.body?.acknowledged!==true)fail(400,'CONFIRM_REQUIRED');
+  const deletion=await db.tx(async q=>{
+   const u=await one(q,'SELECT * FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
+   if(u.status!=='active')fail(409,'ACCOUNT_UNAVAILABLE');
+   const row=await one(q,`UPDATE users SET status='deleting',deletion_requested_at=now(),deletion_due_at=now()+interval '72 hours',deletion_snapshot=jsonb_build_object('paused',paused,'notifications',notifications,'invisible',invisible),paused=true,invisible=true,notifications=false WHERE id=$1 RETURNING deletion_due_at`,[req.user.id]);
+   await q.query("UPDATE courtships SET status='cancelled',expires_at=now() WHERE sender=$1 OR recipient=$1",[req.user.id]);
+   await audit(q,req.user.id,'privacy.deletion_scheduled',req.user.id,{days:3});
+   await notify(q,req.user.id,'🕒 Твой аккаунт VEYRA поставлен на удаление.\n\nАнкета скрыта. Через 72 часа профиль, фотографии и личные данные будут удалены. До этого момента ты можешь всё вернуть 💜','user',{inline_keyboard:[[{text:'💜 Восстановить аккаунт',web_app:{url:env.APP_URL}}]]});
+   return row;
   });
-  res.json({ok:true,deleted:true});
+  res.json({ok:true,pending:true,deletion_due_at:deletion.deletion_due_at});
  });
-
+ app.post('/api/account/restore',async(req,res)=>{
+  await db.tx(async q=>{
+   const u=await one(q,'SELECT * FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
+   if(!u||u.status!=='deleting')fail(409,'NOT_PENDING_DELETION');
+   if(!u.deletion_due_at||new Date(u.deletion_due_at).getTime()<=Date.now())fail(410,'RESTORE_WINDOW_EXPIRED');
+   await q.query(`UPDATE users SET status='active',deletion_requested_at=NULL,deletion_due_at=NULL,paused=coalesce((deletion_snapshot->>'paused')::boolean,false),notifications=coalesce((deletion_snapshot->>'notifications')::boolean,true),invisible=coalesce((deletion_snapshot->>'invisible')::boolean,false),deletion_snapshot=NULL WHERE id=$1`,[u.id]);
+   await audit(q,u.id,'privacy.deletion_restored',u.id);
+   await notify(q,u.id,'💜 Твой аккаунт VEYRA восстановлен! Профиль и фотографии снова доступны. Рады твоему возвращению!','user',{inline_keyboard:[[{text:'✨ Начать знакомиться',web_app:{url:env.APP_URL}}]]});
+  });
+  res.json({ok:true,restored:true});
+ });
  adminRoutes(app,{db,env,payments,storage,rate});botRoutes(app,{db,env,tg});
  app.use('/api',(req,res)=>res.status(404).json({error:'NOT_FOUND'}));
  app.use('/assets',express.static(fileURLToPath(new URL('../dist/assets/',import.meta.url)),{maxAge:'30d'}));app.use(express.static(fileURLToPath(new URL('../dist/',import.meta.url))));app.get('/{*path}',(req,res)=>res.sendFile(fileURLToPath(new URL('../dist/index.html',import.meta.url))));
