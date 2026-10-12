@@ -223,6 +223,16 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await page.getByRole('button',{name:'посмотреть анкету'}).click();
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
+ await expect(page.locator('.preview-card-chips .veyra-interest-inline-chip')).toHaveCount(2);
+ await expect(page.locator('.preview-gallery-slide').nth(1).locator('img')).toBeVisible({timeout:30000});
+ await expect.poll(async()=>page.locator('.preview-gallery-slide').nth(1).locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ const gallery=await page.locator('.preview-gallery').boundingBox();
+ const middleSlide=await page.locator('.preview-gallery-slide').nth(1).boundingBox();
+ expect(Math.abs(gallery.x-middleSlide.x)).toBeLessThan(8);
+ expect(middleSlide.width).toBeGreaterThan(240);
+ const primaryCta=await page.getByRole('button',{name:/отправить на проверку/i}).boundingBox();
+ expect(gallery.y+gallery.height).toBeLessThan(primaryCta.y+1);
+ await expect(page.locator('.preview-gallery')).toHaveCount(1);
  await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
  await page.getByRole('button',{name:'редактировать'}).click();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
