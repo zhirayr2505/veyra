@@ -112,3 +112,7 @@
 .discover .feed-photo .veyra-card-caption{bottom:14px;gap:6px!important}
 .discover .feed-photo .veyra-card-caption .veyra-card-bio{margin:2px 0!important}
 .discover .feed-photo .veyra-card-caption .veyra-card-tags{max-height:63px}
+
+.discover .feed-photo .veyra-card-top-goal{top:43px;right:12px}
+.discover .feed-photo .feed-info-button{top:94px;bottom:auto}
+.discover .feed-photo .veyra-card-tags{max-height:62px}

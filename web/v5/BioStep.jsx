@@ -1,30 +1,48 @@
-import React,{Suspense,useRef,useState} from 'react';
-import {Smile,Lightbulb,PenLine} from 'lucide-react';
+import React,{useEffect,useRef,useState} from 'react';
+import {Smile,Lightbulb,PenLine,X} from 'lucide-react';
 import './BioStep.css';
-const EmojiPicker=React.lazy(()=>import('emoji-picker-react'));
-const limit=257;
-const chars=value=>Array.from(String(value||''));
+
+const LIMIT=257;
+const cps=text=>Array.from(String(text||''));
+const CATEGORIES=[
+ {id:'smile',label:'Эмоции',icon:'😊',items:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😍','🥰','😘','😉','😎','🥹','😭','😌','🤩','😋','😇','🤗','🤔','😏','😴']},
+ {id:'love',label:'Любовь',icon:'💜',items:['💜','❤️','💕','💖','💗','💘','💝','💞','💟','🫶','💌','💋','🥰','😍','❤️‍🔥','🌹','🌷','💐','🩷','💙','🤍','💛']},
+ {id:'hands',label:'Жесты',icon:'🫶',items:['👍','👋','🙌','👏','🙏','👌','🤝','💪','🤞','✌️','🫶','🤟','🤘','👊','✋','👐','☝️','🤌','👉','👈']},
+ {id:'nature',label:'Природа',icon:'🌿',items:['🌿','🌸','🌻','🌺','🌼','🌞','🌙','⭐','✨','🌈','☀️','🌊','🌴','🍀','🌹','🦋','🐈','🐕','🍃','🌲']},
+ {id:'food',label:'Еда',icon:'🍕',items:['🍕','🍔','🍟','🍓','🍣','🍦','🍫','🍉','🍒','🥑','🍝','🥐','☕','🍵','🍹','🎂','🍩','🍪','🍇','🍋']},
+ {id:'travel',label:'Поездки',icon:'✈️',items:['✈️','🌍','🌎','🌏','🗺️','🏖️','🏔️','🚗','🚆','🚲','⛺','🌅','🌃','🛳️','🏝️','🏕️','🎒','📸','🛫','🏙️']},
+ {id:'hobby',label:'Хобби',icon:'🎨',items:['🎶','🎧','🎸','🎹','🎤','🎮','📚','🎨','🎬','🎭','🎯','🎲','⚽','🏀','🏋️','🏃','🧘','📷','💻','🪩']},
+ {id:'symbols',label:'Символы',icon:'✨',items:['✨','💫','🔥','💯','✅','💎','🎉','🎁','🎀','🎈','🔮','☮️','♾️','❣️','‼️','❓','💬','🔆','🕊️','🪄']}
+];
 export function BioStep({value='',onChange}){
- const [emojiOpen,setEmojiOpen]=useState(false);
- const ref=useRef(null);
- const update=text=>onChange(chars(text).slice(0,limit).join(''));
- const addEmoji=emoji=>{
-  const area=ref.current;
-  const start=area?.selectionStart??value.length,end=area?.selectionEnd??value.length;
-  const inserted=value.slice(0,start)+emoji.emoji+value.slice(end);
-  const capped=chars(inserted).slice(0,limit).join('');
-  onChange(capped);
-  setEmojiOpen(false);
-  requestAnimationFrame(()=>{area?.focus();const at=Math.min(capped.length,start+emoji.emoji.length);area?.setSelectionRange(at,at)});
+ const [open,setOpen]=useState(false),[category,setCategory]=useState(CATEGORIES[0].id);
+ const field=useRef(null),popup=useRef(null),toggle=useRef(null),sel=useRef({start:value.length,end:value.length});
+ const remember=()=>{if(field.current)sel.current={start:field.current.selectionStart,end:field.current.selectionEnd}};
+ useEffect(()=>{if(!open)return;const outside=e=>{if(!popup.current?.contains(e.target)&&!toggle.current?.contains(e.target))setOpen(false)};
+  const escape=e=>{if(e.key==='Escape'){setOpen(false);toggle.current?.focus()}};
+  document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);
+  return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape)};
+ },[open]);
+ const insert=emoji=>{
+  const a=Math.min(sel.current.start,value.length),b=Math.min(sel.current.end,value.length);
+  const text=cps(value.slice(0,a)+emoji+value.slice(b)).slice(0,LIMIT).join('');
+  onChange(text);const pos=Math.min(text.length,a+emoji.length);sel.current={start:pos,end:pos};
  };
+ const current=CATEGORIES.find(c=>c.id===category)||CATEGORIES[0];
  return <section className="veyra-bio-step" aria-label="Немного о себе">
-  <div className="veyra-bio-intro"><div className="veyra-bio-symbol"><PenLine size={27}/></div><h2>Твоя история начинается здесь</h2><p>Пиши так, как говоришь в жизни. Даже пара предложений помогут найти своего человека.</p></div>
+  <div className="veyra-bio-intro"><div className="veyra-bio-symbol"><PenLine size={23}/></div><h2>Твоя история начинается здесь</h2><p>Пара искренних предложений помогут начать знакомство.</p></div>
   <div className="veyra-bio-panel">
    <div className="veyra-bio-topline"><strong>О себе</strong><span>Необязательно</span></div>
-   <textarea ref={ref} aria-label="О себе" rows={6} value={value} onChange={e=>update(e.target.value)} placeholder="Чем увлекаешься? Как проводишь свободное время? Что тебя вдохновляет?" spellCheck/>
-   <div className="veyra-bio-tools"><button type="button" className={'veyra-bio-emoji-button'+(emojiOpen?' active':'')} onClick={()=>setEmojiOpen(v=>!v)} aria-expanded={emojiOpen} aria-label="Добавить эмодзи"><Smile size={20}/> Эмодзи</button><span className="veyra-bio-counter" aria-live="polite">{chars(value).length}/{limit}</span></div>
-   {emojiOpen&&<div className="veyra-bio-emoji-panel" aria-label="Выбор эмодзи"><Suspense fallback={<p>Загружаем эмодзи…</p>}><EmojiPicker onEmojiClick={addEmoji} height={300} width="100%" searchDisabled={false} skinTonesDisabled lazyLoadEmojis/></Suspense></div>}
+   <div className="veyra-bio-editor">
+    <textarea ref={field} aria-label="О себе" rows={5} value={value} onChange={e=>{onChange(cps(e.target.value).slice(0,LIMIT).join(''));remember()}} onSelect={remember} onClick={remember} onKeyUp={remember} placeholder="Чем увлекаешься? Как проводишь свободное время? Что тебя вдохновляет?" spellCheck/>
+    <button ref={toggle} type="button" className={'veyra-bio-emoji-button'+(open?' active':'')} onPointerDown={remember} onClick={()=>setOpen(v=>!v)} aria-label="Добавить эмодзи" aria-expanded={open} aria-controls="veyra-emoji-compact"><Smile size={20}/></button>
+    {open&&<div id="veyra-emoji-compact" className="veyra-bio-emoji-panel" ref={popup} role="group" aria-label="Выбор эмодзи">
+     <div className="veyra-bio-emoji-header"><div className="veyra-bio-emoji-categories" role="tablist" aria-label="Категории эмодзи">{CATEGORIES.map(cat=><button key={cat.id} type="button" role="tab" title={cat.label} aria-label={cat.label} aria-selected={category===cat.id} className={category===cat.id?'active':''} onClick={()=>setCategory(cat.id)}>{cat.icon}</button>)}</div><button type="button" className="veyra-bio-emoji-close" aria-label="Закрыть эмодзи" onClick={()=>setOpen(false)}><X size={15}/></button></div>
+     <div className="veyra-bio-emoji-rail" role="group" aria-label={'Эмодзи: '+current.label}>{current.items.map((emoji,i)=><button key={i} type="button" aria-label={'Вставить '+emoji} onPointerDown={e=>e.preventDefault()} onClick={()=>insert(emoji)}>{emoji}</button>)}</div>
+    </div>}
+   </div>
+   <div className="veyra-bio-tools"><span>Расскажи о себе в своём стиле</span><span className="veyra-bio-counter" aria-live="polite">{cps(value).length}/{LIMIT}</span></div>
   </div>
-  <div className="veyra-bio-inspiration"><Lightbulb size={18}/><p><strong>О чём можно рассказать?</strong><span>Хобби, любимый отдых, настроение или то, что делает тебя тобой.</span></p></div>
+  <div className="veyra-bio-inspiration"><Lightbulb size={17}/><p><strong>О чём можно рассказать?</strong><span>Хобби, любимый отдых или то, что делает тебя тобой.</span></p></div>
  </section>;
 }

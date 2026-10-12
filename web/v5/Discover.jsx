@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
 import {get,post,photoUrl,cachedPhoto} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
-import {CardCaption,CardPhotoBars} from './DatingCardLayers.jsx';
+import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
 import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
 import './Discover.css';
 
@@ -197,6 +197,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <FeedPicture key={card.id} card={card} index={index}/>
       <div className="veyra-card-shade" aria-hidden="true"/>
       <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
+       <CardGoalBadge goal={card.goal} compact top/>
       <button className="feed-info-button" type="button" aria-label="Открыть профиль" onClick={()=>onProfile(card.id)}><Icon name="user" tone="white" size={22}/></button>
       <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}

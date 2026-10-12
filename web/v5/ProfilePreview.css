@@ -222,3 +222,6 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-prev
  .veyra-profile-preview.mode-detail .preview-gallery{max-height:320px!important}
  .veyra-profile-preview .vp-member-detail .member-summary-title h2{font-size:23px}
 }
+
+.veyra-profile-preview.mode-feed .preview-gallery .veyra-card-top-goal{top:43px;right:12px;z-index:9;max-width:53%;margin:0!important}
+.veyra-profile-preview.mode-feed .preview-gallery .veyra-card-tags{max-height:62px}

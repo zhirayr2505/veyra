@@ -75,3 +75,20 @@
  .veyra-card-interest-row .veyra-interest-inline-chip{max-width:46%!important}
  .veyra-card-caption .veyra-card-bio{font-size:11px!important}
 }
+
+/* v10: the goal lives in the upper-right corner, never among interests. */
+.veyra-card-goal-badge.veyra-card-top-goal{
+ position:absolute;top:43px;right:12px;left:auto;z-index:9;
+ display:inline-flex;align-items:center;justify-content:flex-start;gap:5px;
+ width:max-content;min-width:0;max-width:min(55%,210px);min-height:29px;
+ border:1px solid #FFFFFFA8;border-radius:12px;
+ padding:3px 9px 3px 4px;font-size:10px;font-weight:800;line-height:1.2;
+ background:linear-gradient(125deg,#9464E6EB,#7647C3E8);color:#fff;
+ box-shadow:0 4px 12px #13092545;backdrop-filter:blur(8px);
+ -webkit-backdrop-filter:blur(8px);text-shadow:0 1px 3px #24123C99;
+ pointer-events:none;
+}
+.veyra-card-top-goal .veyra-card-goal-mark{width:21px;height:21px;min-width:21px;flex:none;background:#fff}
+.veyra-card-top-goal .veyra-card-goal-text{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.veyra-card-caption .veyra-card-tags>.veyra-interest-inline{width:100%;max-width:100%;max-height:58px;flex-wrap:wrap;overflow:hidden}
+@media(max-width:360px){.veyra-card-goal-badge.veyra-card-top-goal{right:9px;max-width:52%;font-size:9px}}
