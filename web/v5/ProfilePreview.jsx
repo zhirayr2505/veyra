@@ -14,17 +14,17 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
  return <main className={'veyra-profile-preview mode-'+mode}>
   <header className="vp-header"><button type="button" aria-label="Назад" onClick={onBack}><Icon name="back" size={23}/></button><Logo width={136}/><span/></header>
   <nav role="tablist" aria-label="Вид профиля" className="vp-tabs"><button type="button" role="tab" aria-selected={mode==='feed'} className={mode==='feed'?'active':''} onClick={()=>setMode('feed')}>В ленте</button><button type="button" role="tab" aria-selected={mode==='detail'} className={mode==='detail'?'active':''} onClick={()=>setMode('detail')}>Полный профиль</button></nav>
-  <div className="vp-scroll">
+  <div className="vp-scroll" data-preview-scroll={mode}>
    <h1>{mode==='feed'?'Так тебя увидят в ленте':'Твой полный профиль'}</h1>
    <p className="vp-subtitle">Первое впечатление начинается здесь ✨</p>
    <section className="preview-surface preview-dating-card">
     <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>touch.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
-     {galleryIds.length?<div className="preview-gallery-track" style={{transform:'translate3d(-100%,0,0)'}}>{galleryIds.map((id,i)=><div className="preview-gallery-slide" key={id+'-'+i}><Photo id={id} className="preview-photo" alt={'Фото '+(i===0?(index-1+ids.length)%ids.length+1:i===1?index+1:(index+1)%ids.length+1)}/></div>)}</div>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
+     {galleryIds.length?<div className="preview-gallery-track" style={{transform:'translate3d(-33.3333333%,0,0)'}}>{galleryIds.map((id,i)=><div className="preview-gallery-slide" key={id+'-'+i}><Photo id={id} className="preview-photo" alt={'Фото '+(i===0?(index-1+ids.length)%ids.length+1:i===1?index+1:(index+1)%ids.length+1)}/></div>)}</div>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
      <div className="preview-fade"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span>
      {ids.length>1&&<><button type="button" className="preview-arrow left" aria-label="Предыдущее фото" onClick={()=>slide(-1)}><Icon name="chevron-left" size={23} tone="white"/></button><button type="button" className="preview-arrow right" aria-label="Следующее фото" onClick={()=>slide(1)}><Icon name="chevron-right" size={23} tone="white"/></button></>}
      <div className="preview-card-caption"><h2>{profile.name||'Имя'}{years?', '+years:''}</h2>
       <p className="preview-card-location"><Icon name="pin" tone="white" size={16}/>{[profile.city,profile.country].filter(Boolean).join(', ')}</p>
-      {mode==='feed'&&<>{interests.length>0&&<InterestReveal items={interests} preview/>}<p className="preview-card-goal">✨ {goalTitle(profile.goal)}</p></>}
+      {mode==='feed'&&<><InterestReveal items={interests} preview/><p className="preview-card-goal">✨ {goalTitle(profile.goal)}</p></>}
      </div>
      {ids.length>1&&<div className="preview-dots" role="group" aria-label="Фотографии анкеты">{ids.map((id,i)=><button type="button" key={id} aria-label={'Фото '+(i+1)} aria-current={i===index?'true':undefined} className={i===index?'active':''} onClick={()=>setIndex(i)}/>)}</div>}
     </div>
@@ -38,7 +38,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
   </div>
   {error&&<p className="vp-error" role="alert">{error}</p>}
   <footer className="vp-actions">
-   {onSubmit?<><button type="button" className="vp-primary" disabled={submitting||ids.length<3} onClick={onSubmit}>{submitting?'Отправляем…':'✓ отправить на проверку'}</button><button type="button" className="vp-secondary" onClick={onEdit||onBack}>редактировать</button></>:
+   {onSubmit?<><button type="button" className="vp-primary" disabled={submitting||ids.length<3} onClick={onSubmit}>{submitting?'Отправляем…':<><Icon name="check" tone="white" size={22}/> отправить на проверку</>}</button><button type="button" className="vp-secondary" onClick={onEdit||onBack}>редактировать</button></>:
    <><button type="button" className="vp-primary" disabled={submitting} onClick={onEdit}>{submitting?'Открываем…':'Изменить профиль'}</button><button type="button" className="vp-secondary" onClick={onBack}>Назад</button></>}
   </footer>
  </main>;

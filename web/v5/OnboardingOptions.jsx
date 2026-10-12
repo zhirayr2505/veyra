@@ -1,4 +1,5 @@
 import React,{useMemo,useState} from 'react';
+import {Music2,Dumbbell,Clapperboard,Plane,UtensilsCrossed,Heart,Film,Bike,Palette,Coffee,PawPrint,Cpu,BookOpen,MapPin,Sparkles} from 'lucide-react';
 import {Icon,InterestIcon} from './UI.jsx';
 import './OnboardingOptions.css';
 
@@ -27,8 +28,23 @@ export const INTEREST_GROUPS=[
  {title:"Саморазвитие",icon:"книги",items:["самообразование","медитация","финансы","изучение культур","языковая практика","осознанность","история","публичные выступления","личный рост"]},
  {title:"Город и встречи",icon:"путешествия",items:["уютные кафе","городские прогулки","выставки","вечеринки","живая музыка","волонтёрские события","гастромаркеты","экскурсии","тематические встречи","квесты"]}
 ];
+
+/* A single palette and stroke language across all 14 interest categories. */
+const CATEGORY_ICON_MAP={
+ 'Музыка':Music2,'Активность':Dumbbell,'Культура':Clapperboard,
+ 'Путешествия':Plane,'Вкус и стиль':UtensilsCrossed,'Образ жизни':Heart,
+ 'Кино и развлечения':Film,'Спорт и движение':Bike,
+ 'Искусство и творчество':Palette,'Еда и напитки':Coffee,
+ 'Природа и питомцы':PawPrint,'Технологии и игры':Cpu,
+ 'Саморазвитие':BookOpen,'Город и встречи':MapPin
+};
+export function CategoryGlyph({title,size=18}){
+ const Art=CATEGORY_ICON_MAP[title]||Sparkles;
+ return <Art className="veyra-category-glyph" size={size} strokeWidth={2.15} aria-hidden="true"/>;
+}
+
 const interestIconMap=Object.fromEntries(INTEREST_GROUPS.flatMap(group=>group.items.map(x=>[x,group.icon])));
-export function CatalogueIcon({value,size=17}){return <InterestIcon name={interestIconMap[value]||value} size={size}/>;}
+export function CatalogueIcon({value,size=17}){const item=INTEREST_GROUPS.find(g=>g.items.includes(value));return item?<CategoryGlyph title={item.title} size={size}/>:<InterestIcon name={value} size={size}/>;}
 export const LANGUAGES=[
  ['ru','Русский'],['en','English'],['hy','Հայերեն'],['es','Español'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['pt','Português'],['tr','Türkçe'],['ar','العربية'],['uk','Українська'],['ka','ქართული'],['az','Azərbaycanca'],['kk','Қазақша'],['uz','Oʻzbekcha'],['fa','فارسی'],['hi','हिन्दी'],['zh','中文'],['ja','日本語'],['ko','한국어'],['pl','Polski'],['nl','Nederlands']
 ];
@@ -61,7 +77,7 @@ export function InterestPicker({value=[],onChange,max=12}){
   <p className="veyra-picker-caption">Из всех категорий можно выбрать до 12 увлечений.</p>
   <div className="veyra-interest-picked" aria-label="Выбранные интересы"><strong>Выбрано</strong><div className="veyra-selected-scroller">{selected.length?selected.map(item=><button type="button" key={item} aria-label={'Убрать '+item} onClick={()=>toggle(item)}>{item} ×</button>):<span className="veyra-empty-selected">Интересы появятся здесь</span>}</div></div>
   <input className="veyra-picker-search" aria-label="Поиск интересов" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск интересов…"/>
-  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={()=>setCategory(g.title)}><InterestIcon name={g.icon} size={17}/><span>{g.title}</span></button>)}</div>}
+  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={()=>setCategory(g.title)}><CategoryGlyph title={g.title} size={17}/><span>{g.title}</span></button>)}</div>}
   <section className="veyra-interest-panel"><h3>{query?'Результаты поиска':category}</h3><div className="veyra-interest-options">{matching.slice(0,40).map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={17}/>{item}{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>)}</div>{!matching.length&&<p className="veyra-picker-caption">Ничего не найдено. Попробуй другой запрос.</p>}</section>
   {(limitMessage||selected.length===max)&&<p className="veyra-interest-limit" role="status">Выбраны 12 интересов. Убери один, чтобы добавить новый.</p>}
  </div>;

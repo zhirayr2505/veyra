@@ -439,3 +439,28 @@ html.veyra-telegram-fullscreen .app-shell .v2-screen-header{
 html.veyra-telegram-fullscreen .bottom-nav{
  padding-bottom:calc(8px + max(env(safe-area-inset-bottom,0px),var(--veyra-telegram-bottom)))!important;
 }
+
+
+/* VEYRA fullscreen: native Telegram BackButton handles back navigation.
+   Keep the approved wordmark centered in the space between native controls. */
+html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-onboarding-fixed-header{
+ padding-top:calc(5px + var(--veyra-telegram-status-top,env(safe-area-inset-top,0px)))!important;
+}
+html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-onboarding-fixed-header .step-top>.quiet{
+ visibility:hidden!important;pointer-events:none!important;
+}
+/* Upload progress is strictly clipped inside the photo's bounds. */
+.v2-onboarding .veyra-registration-2026 .photo-slot{
+ box-sizing:border-box!important;overflow:hidden!important;isolation:isolate!important;
+}
+.v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress{
+ position:absolute!important;left:9px!important;right:9px!important;
+ bottom:9px!important;top:auto!important;width:auto!important;
+ max-width:calc(100% - 18px)!important;margin:0!important;
+ transform:none!important;height:5px!important;border-radius:99px!important;
+ box-sizing:border-box!important;overflow:hidden!important;contain:paint!important;
+}
+.v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress>span{
+ display:block!important;max-width:100%!important;height:100%!important;
+ border-radius:99px!important;transform:none!important;
+}

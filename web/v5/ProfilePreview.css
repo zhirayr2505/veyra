@@ -20,3 +20,71 @@
 .veyra-profile-preview .preview-gallery .preview-card-caption{z-index:3}
 .veyra-profile-preview .preview-gallery .preview-dots{z-index:5}
 .veyra-profile-preview .preview-gallery .preview-arrow{z-index:6}
+
+/* Registration preview: fit the complete feed card, actions and indicators
+   in one Telegram viewport. Full profile may scroll naturally. */
+.veyra-profile-preview.mode-feed .vp-scroll{
+ display:flex;flex-direction:column;overflow:hidden;min-height:0;flex:1 1 auto;
+ padding-bottom:8px;gap:0;
+}
+.veyra-profile-preview.mode-feed .vp-scroll h1{
+ flex:none;margin:0 0 5px!important;font-size:clamp(18px,5vw,25px)!important;
+ line-height:1.15!important;
+}
+.veyra-profile-preview.mode-feed .vp-subtitle{
+ flex:none;margin:0 0 10px!important;font-size:12px!important;
+}
+.veyra-profile-preview.mode-feed .preview-surface{
+ flex:1 1 auto;min-height:0;width:100%;max-width:440px;
+ display:flex;align-items:stretch;justify-content:center;
+}
+.veyra-profile-preview.mode-feed .preview-gallery{
+ flex:1 1 auto;min-height:0;height:auto!important;aspect-ratio:auto!important;
+ max-height:100%;width:100%;box-sizing:border-box;
+}
+.veyra-profile-preview .preview-gallery-track{transform-origin:0 50%}
+.veyra-profile-preview .preview-gallery-slide>.photo-box.preview-photo{
+ position:relative!important;inset:auto!important;width:100%!important;
+ height:100%!important;display:block!important;overflow:hidden;
+}
+.veyra-profile-preview .preview-gallery-slide>.photo-box.preview-photo>img{
+ display:block!important;position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;object-fit:cover!important;
+}
+.veyra-profile-preview .preview-gallery .preview-dots{
+ left:15px!important;right:15px!important;bottom:12px!important;
+ display:flex!important;justify-content:stretch!important;gap:5px!important;
+ margin:0!important;max-width:none!important;width:auto!important;
+ box-sizing:border-box!important;transform:none!important;
+}
+.veyra-profile-preview .preview-dots button{
+ display:block!important;min-width:0!important;flex:1 1 0!important;
+ max-width:none!important;height:5px!important;border-radius:99px!important;
+}
+.veyra-profile-preview .preview-card-caption{
+ bottom:30px!important;gap:6px!important;max-width:calc(100% - 34px);
+}
+.veyra-profile-preview .preview-card-caption .veyra-interest-inline{
+ display:flex!important;flex-wrap:wrap!important;max-width:100%;
+ gap:5px!important;
+}
+.veyra-profile-preview .preview-card-caption .veyra-interest-inline-chip{
+ max-width:46%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.veyra-profile-preview .vp-primary{
+ display:flex!important;align-items:center;justify-content:center;gap:10px;
+}
+.veyra-profile-preview .vp-actions{padding-top:7px;gap:7px}
+.veyra-profile-preview.mode-feed .vp-actions button{min-height:45px}
+html.veyra-telegram-fullscreen .veyra-profile-preview{
+ padding-top:calc(5px + var(--veyra-telegram-status-top,env(safe-area-inset-top,0px)))!important;
+}
+html.veyra-telegram-fullscreen .veyra-profile-preview .vp-header>button{
+ visibility:hidden;pointer-events:none;
+}
+@media(max-height:720px){
+ .veyra-profile-preview.mode-feed .vp-scroll h1{font-size:18px!important}
+ .veyra-profile-preview.mode-feed .vp-subtitle{margin-bottom:6px!important}
+ .veyra-profile-preview.mode-feed .vp-tabs{margin:5px 0!important}
+ .veyra-profile-preview.mode-feed .vp-actions button{min-height:41px}
+}

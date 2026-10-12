@@ -33,6 +33,7 @@ export function Registration({me,refresh}){
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
  const [legalOpen,setLegalOpen]=useState(false),[legalTab,setLegalTab]=useState('terms');
  const [goalScroll,setGoalScroll]=useState(0);
+ const [telegramFull,setTelegramFull]=useState(()=>Boolean(window.Telegram?.WebApp?.isFullscreen));
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
  const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
@@ -47,6 +48,17 @@ export function Registration({me,refresh}){
    try{if(miniApp?.isVersionAtLeast?.('9.1'))miniApp.hideKeyboard?.()}catch{}
   }
  }};
+ useEffect(()=>{
+  const tg=window.Telegram?.WebApp,back=tg?.BackButton;
+  if(!back)return;
+  const sync=()=>setTelegramFull(Boolean(tg.isFullscreen));
+  const onBack=()=>{if(busy||uploading)return;if(preview){setPreview(false);go(7,'backward')}else if(step>1)go(step-1,'backward')};
+  tg.onEvent?.('fullscreenChanged',sync);
+  if(tg.isFullscreen&&((preview||step>1)&&!busy&&!uploading)){
+   back.show?.();back.onClick?.(onBack);
+  }else back.hide?.();
+  return()=>{tg.offEvent?.('fullscreenChanged',sync);back.offClick?.(onBack);back.hide?.()};
+ },[step,preview,busy,uploading,telegramFull]);
  const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
  useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
