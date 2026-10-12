@@ -18,7 +18,8 @@ test('editing pending review withdraws old notices, retains photos, and invalida
  assert.equal((await auth(request(app).post('/api/profile/revise')).send({})).status,200);
  const draft=await one(db,'SELECT revision,moderation FROM profiles WHERE user_id=260');
  assert.equal(draft.moderation,'draft');assert.equal(draft.revision,prior.revision+1);
- assert.equal((await one(db,'SELECT step,data FROM registration_drafts WHERE user_id=260')).step,7);
+ const revisedDraft=await one(db,'SELECT step,data FROM registration_drafts WHERE user_id=260');
+ assert.equal(revisedDraft.step,8);assert.equal(revisedDraft.data.registration_ui_version,3);
  assert.equal((await one(db,"SELECT count(*)::int AS n FROM outbox WHERE bot='admin' AND payload->>'review_user_id'='260' AND delivered_at IS NULL")).n,0);
  assert.equal((await one(db,'SELECT count(*)::int AS n FROM photos WHERE user_id=260')).n,3);
  await assert.rejects(db.tx(q=>moderate(q,'1','260','approved','',prior.revision)),e=>e.status===409||e.code===409||e.message.includes('STALE_REVIEW'));

@@ -38,7 +38,6 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
     </div>
    </section>
    {mode==='detail'&&<div className="vp-detail">
-    <section><div className="vp-heading"><Icon name="heart" tone="pink" size={21}/> Цель знакомства</div><strong>{goalTitle(profile.goal)}</strong></section>
     <section><div className="vp-heading"><Icon name="user" tone="pink" size={21}/> Немного о себе</div><p>{profile.bio?.trim()||'Описание пока не заполнено'}</p></section>
     <section><div className="vp-heading"><Icon name="sparkle" tone="pink" size={21}/> Мои интересы <small>{interests.length}/12</small></div><div className="vp-interests">{interests.map(x=><span key={x}><CatalogueIcon value={x} size={16}/>{x}</span>)}{!interests.length&&<p>Интересы пока не выбраны</p>}</div></section>
     {ids.length>1&&<section><div className="vp-heading"><Icon name="image" tone="pink" size={21}/> Все фотографии</div><div className="vp-thumbnails">{ids.map((id,i)=><button type="button" key={id} onClick={()=>{setIndex(i);document.querySelector('.vp-scroll')?.scrollTo({top:0,behavior:'smooth'})}} aria-label={'Посмотреть фотографию '+(i+1)}><Photo id={id} alt={'Фото '+(i+1)}/></button>)}</div></section>}

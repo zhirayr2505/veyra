@@ -4,7 +4,8 @@ import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
 import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
-import {GoalIllustration} from './GoalIllustration.jsx';
+import {BioStep} from './BioStep.jsx';
+import {CountryFlag} from './CountryFlag.jsx';
 import {ProfilePreview} from './ProfilePreview.jsx';
 import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './Registration2026.css';
@@ -23,17 +24,17 @@ function Slider({value,min,max,step=1,onChange,label,disabled=false}){return <Br
 function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),end=Math.min(90,Math.max(start,max));return <div className="age-range"><div className="range-labels"><span>Возраст от <strong>{start}</strong></span><span>до <strong>{end}</strong></span></div><BrandedDualSlider min={18} max={90} lower={start} upper={end} onChange={onChange}/><div className="range-ends"><span>18 лет</span><span>90 лет</span></div></div>}
 
 export function Registration({me,refresh}){
- const start=me?.registration?.data||{},draftKey='veyra.registration.v8.'+String(me?.user?.id||'anonymous');
+ const start=me?.registration?.data||{},draftKey='veyra.registration.v9.'+String(me?.user?.id||'anonymous');
  const savedStep=me?.registration?.step||1;
- const initialStep=start.registration_ui_version===2?savedStep:1; // Legacy drafts restart at terms consent; previous answers stay filled.
- const [step,setStep]=useState(Math.min(7,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
+ const initialStep=start.registration_ui_version===3?savedStep:start.registration_ui_version===2?(savedStep>=7?8:savedStep):1; // Resume legacy drafts on their matching new step.
+ const [step,setStep]=useState(Math.min(8,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
  const [legalOpen,setLegalOpen]=useState(false),[legalTab,setLegalTab]=useState('terms');
- const [goalScroll,setGoalScroll]=useState(0);
+
  const [telegramFull,setTelegramFull]=useState(()=>Boolean(window.Telegram?.WebApp?.isFullscreen));
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
@@ -53,7 +54,7 @@ export function Registration({me,refresh}){
   const tg=window.Telegram?.WebApp,back=tg?.BackButton;
   if(!back)return;
   const sync=()=>setTelegramFull(Boolean(tg.isFullscreen));
-  const onBack=()=>{if(busy||uploading)return;if(preview){setPreview(false);go(7,'backward')}else if(step>1)go(step-1,'backward')};
+  const onBack=()=>{if(busy||uploading)return;if(preview){setPreview(false);go(8,'backward')}else if(step>1)go(step-1,'backward')};
   tg.onEvent?.('fullscreenChanged',sync);
   if(tg.isFullscreen&&((preview||step>1)&&!busy&&!uploading)){
    back.show?.();back.onClick?.(onBack);
@@ -75,10 +76,10 @@ export function Registration({me,refresh}){
   if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери город из предложенного списка');
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь предпочтения поиска');
  };
- useEffect(()=>{setGoalScroll(0);if(step!==5)return;const node=scrollRef.current;if(!node)return;const update=()=>setGoalScroll(Math.max(0,Math.min(1,node.scrollTop/175)));node.addEventListener('scroll',update,{passive:true});update();return()=>node.removeEventListener('scroll',update)},[step]);
- const go=(n,dir)=>{setDirection(dir);setStep(Math.min(7,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
+
+ const go=(n,dir)=>{setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
  const next=()=>work(async()=>{valid();const data={...f,min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
-  if(step===6){await put('/registration/profile',{...data,registration_ui_version:2});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:2,consent_to_terms:consent}});
+  if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
   go(step+1,'forward');
  });
  const choosePlace=p=>{setF(old=>({...old,city:p.city,country:p.country,lat:p.lat,lon:p.lon}));setPlaces([]);setQuery('');setCityEdit(false);setError('')};
@@ -162,12 +163,12 @@ export function Registration({me,refresh}){
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
- if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(7,'backward')}} onEdit={()=>{setPreview(false);go(7,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
+ if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
   <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}/>
   <div className={'registration-step '+direction} key={step} ref={scrollRef}>
-   <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Добавьте свои фото'][step-1]}</h1>
-   <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
+   <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
+   <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
      <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
      <p className="registration-telegram-hint">Имя подставлено из Telegram. Вы можете изменить его.</p>
@@ -178,25 +179,26 @@ export function Registration({me,refresh}){
      <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><DesignGlyph name={k==='man'?'male':'female'} active={f.gender===k} size={34}/>{v}</button>)}</div>
     </div>}
     {step===3&&<div className="fields">
-    {selectedCity&&<div className="location-card veyra-city-row"><span className="location-mark"><DesignGlyph name="my-location" active size={27}/></span><div className="veyra-city-info"><small>ТВОЁ МЕСТОПОЛОЖЕНИЕ</small><h2>{f.city}</h2><p>{f.country}</p></div><button type="button" className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'Закрыть':'Изменить город'}</button></div>}
+    {selectedCity&&<div className="location-card veyra-city-row"><span className="location-mark"><DesignGlyph name="my-location" active size={27}/></span><div className="veyra-city-info"><small>ТВОЁ МЕСТОПОЛОЖЕНИЕ</small><h2>{f.city}</h2><p><CountryFlag country={f.country}/> {f.country}</p></div><button type="button" className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'Закрыть':'Изменить город'}</button></div>}
     {(!selectedCity||cityEdit)&&<Button className="locate-button" onClick={locate} disabled={locating||busy}>{locating?<><span className="spinner-ring"/> определяем город…</>:<><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</>}</Button>}
     {(cityEdit||!selectedCity)&&<><p className="or">{selectedCity?'выбери другой город':'или найди свой город'}</p>
      <div className="city-search"><Icon name="search" size={21}/><input aria-label="Поиск города" autoComplete="off" placeholder="Начни вводить название города" value={query} onChange={e=>{setQuery(e.target.value)}}/>{searching&&<span className="city-spinner"/>}</div>
-     {places.length>0&&<div className="city-results" role="listbox" aria-label="Результаты поиска городов">{places.map((p,i)=><button type="button" role="option" aria-selected="false" key={p.label+'-'+i} onClick={()=>choosePlace(p)}><Icon name="pin" tone="pink" size={17}/><span><b>{p.city}</b><small>{p.country}</small></span></button>)}</div>}
+     {places.length>0&&<div className="city-results" role="listbox" aria-label="Результаты поиска городов">{places.map((p,i)=><button type="button" role="option" aria-selected="false" key={p.label+'-'+i} onClick={()=>choosePlace(p)}><Icon name="pin" tone="pink" size={17}/><span><b>{p.city}</b><small><CountryFlag country={p.country}/> {p.country}</small></span></button>)}</div>}
      {!searching&&query.trim().length>=2&&!places.length&&<p className="city-empty">Не нашли такой город. Проверь написание.</p>}
     </>}
     {selectedCity&&<div className="distance-control"><div className="range-labels"><span>Радиус поиска</span><strong>{f.radius_km>=20000?'весь мир':f.radius_km+' км'}</strong></div>
-      <Slider min={5} max={500} step={5} label="Радиус поиска" value={Math.min(500,f.radius_km)} onChange={v=>change('radius_km',v)} disabled={f.radius_km===20000}/>
-      <div className="range-ends"><span>5 км</span><span>500 км</span></div>
-      <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check">{f.radius_km===20000&&<Icon name="check" tone="pink" size={15}/>}</span><span>Искать по всему миру</span></label>
+      <Slider min={1} max={1000} step={1} label="Радиус поиска" value={Math.max(1,Math.min(1000,f.radius_km))} onChange={v=>change('radius_km',v)} disabled={f.radius_km===20000}/>
+      <div className="range-ends"><span>1 км</span><span>1000 км</span></div>
+      <label className="veyra-world-switch"><span>Искать по всему миру</span><input type="checkbox" role="switch" aria-label="Искать по всему миру" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:100)}/><span className="veyra-switch-track" aria-hidden="true"><span/></span></label>
      </div>}
    </div>}
    {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><DesignGlyph name={k==='man'?'male':k==='woman'?'female':'everyone'} active={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} size={42}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
-   {step===5&&<div className="fields"><div className="veyra-orb-stage" aria-hidden="true" style={{height:Math.round(201-goalScroll*129)+'px'}}><div className="veyra-orb-glow" style={{transform:'scale('+(1-goalScroll*.58)+')'}}><GoalIllustration/></div></div><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
-   {step===6&&<div className="fields"><label className="veyra-bio-box">Немного о себе <small>Необязательно · до 200 символов</small><textarea aria-label="О себе" maxLength={200} rows={3} placeholder="Каким ты бываешь? Что любишь и кого хочешь встретить?" value={f.bio||''} onChange={e=>change('bio',e.target.value)}/><span>{(f.bio||'').length}/200</span></label><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
-   {step===7&&<div className="fields">
+   {step===5&&<div className="fields veyra-goal-step"><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
+   {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
+   {step===7&&<BioStep value={f.bio||''} onChange={v=>change('bio',v)}/>}
+   {step===8&&<div className="fields">
      <div className="photo-guidelines"><p><DesignGlyph name="camera" active size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
      <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 7':photos.length<MIN_PHOTOS?photos.length+' из 7 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 7 · Можно посмотреть анкету'}</span>
       <p className="tip">Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
@@ -210,8 +212,7 @@ export function Registration({me,refresh}){
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
         {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':'загрузка'}</small></span></span>}</span></>:
-        <>{i>0&&<button type="button" className="photo-make-main" aria-label={'Сделать фото '+(i+1)+' главным'} title="Сделать главным" disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>reorder(i,0)}><Icon name="star" tone="pink" size={15}/></button>}
-         <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
+        <><button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
        </div>:<button key={'empty'+i} className={'photo-slot photo-slot-add '+(i===0?'primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}>
         <Icon name={i===0?'camera':'plus'} tone="pink" size={i===0?31:23}/>{i===0&&<span>главное фото</span>}
        </button>})}
@@ -224,7 +225,7 @@ export function Registration({me,refresh}){
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-  <div className={'registration-actions '+(step===7&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>{busy?<Spinner/>:<Button className="full" disabled={busy||uploading||(step===7&&photos.length<MIN_PHOTOS)} onClick={step===7?()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===7?'посмотреть анкету':step===6?'к фотографиям':'далее'}</Button>}</div>
+   <div className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>{busy?<Spinner/>:<Button className="full" disabled={busy||uploading} onClick={step===8?photos.length<MIN_PHOTOS?()=>photoInput.current?.click():()=>{setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true)}:next}>{step===8?(photos.length<MIN_PHOTOS?'добавь ещё '+(MIN_PHOTOS-photos.length)+' фото':'посмотреть анкету'):step===7?'к фотографиям':'далее'}</Button>}</div>
  {legalOpen&&<LegalScreen asModal initialTab={legalTab} onClose={()=>setLegalOpen(false)} onAccept={()=>{setConsent(true);setLegalOpen(false)}}/>}
  </div>;
 }

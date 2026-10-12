@@ -8,8 +8,10 @@ export const GOALS=[
  {value:'dating',title:'Свидания',subtitle:'Знакомиться, встречаться и узнавать друг друга',icon:'flirt'},
  {value:'friends',title:'Общение',subtitle:'Новые люди и интересные разговоры',icon:'chats'},
  {value:'unsure',title:'Пока не определился',subtitle:'Посмотрим, куда приведёт знакомство',icon:'sparkle'},
- {value:'friendship',title:'Дружба',subtitle:'Найти близких по духу друзей',icon:'everyone'},
- {value:'flirt',title:'Лёгкий флирт',subtitle:'Лёгкость, улыбки и взаимная симпатия',icon:'flirt'}
+ {value:'friendship',title:'Новые друзья',subtitle:'Найти близких по духу людей',icon:'everyone'},
+ {value:'flirt',title:'Лёгкий флирт',subtitle:'Лёгкость, улыбки и взаимная симпатия',icon:'flirt'},
+ {value:'casual',title:'Свободные отношения',subtitle:'Честное знакомство без обязательств',icon:'sparkle'},
+ {value:'travel',title:'Компания для путешествий',subtitle:'Исследовать мир вместе',icon:'everyone'}
 ];
 export const goalTitle=value=>GOALS.find(x=>x.value===value)?.title||'Пока не определился';
 export const INTEREST_GROUPS=[
@@ -66,29 +68,30 @@ export const profileCompletion=(p,photoCount=0)=>{
  const checks=[!!p?.name,!!p?.city,photoCount>=3,!!p?.goal,(p?.interests||[]).length>=3,(p?.languages||[]).length>0,!!p?.bio?.trim(),(p?.prompts||[]).some(x=>x.answer?.trim())];
  return Math.round(checks.filter(Boolean).length/checks.length*100);
 };
-export function GoalPicker({value,onChange}){return <div className="veyra-goal-list" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><button type="button" key={goal.value} className={'veyra-goal-choice '+(value===goal.value?'is-active':'')} aria-pressed={value===goal.value} onClick={()=>onChange(goal.value)}><span className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={25}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></button>)}</div>;}
+export function GoalPicker({value,onChange}){return <div className="veyra-goal-list veyra-goal-list-v9" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><button type="button" key={goal.value} className={'veyra-goal-choice '+(value===goal.value?'is-active':'')} aria-pressed={value===goal.value} onClick={()=>onChange(goal.value)}><span key={value===goal.value?goal.value+'-on':goal.value+'-off'} className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={26}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></button>)}</div>;}
 export function InterestPicker({value=[],onChange,max=12}){
- const [search,setSearch]=useState(''),[category,setCategory]=useState(INTEREST_GROUPS[0].title),[limitMessage,setLimitMessage]=useState(false),[showAll,setShowAll]=useState(false);
-  const selectCategory=(e,title)=>{
-   setCategory(title);
-   const tab=e.currentTarget,rail=tab.parentElement;
-   if(!rail)return;
-   // Move the horizontal categories only; never jump the full page vertically.
-   const left=tab.offsetLeft-rail.offsetLeft-(rail.clientWidth-tab.clientWidth)/2;
-   rail.scrollTo?.({left:Math.max(0,left),behavior:'smooth'});
-  };
+ const [search,setSearch]=useState(''),[expanded,setExpanded]=useState(INTEREST_GROUPS[0].title),[limitMessage,setLimitMessage]=useState(false);
  const selected=Array.isArray(value)?value:[],query=search.trim().toLocaleLowerCase('ru');
- const matching=useMemo(()=>query?INTEREST_GROUPS.flatMap(group=>group.items.filter(item=>item.toLocaleLowerCase('ru').includes(query))):INTEREST_GROUPS.find(group=>group.title===category)?.items||[],[query,category]);
+ const popular=['музыка','путешествия','кино','спорт','концерты','прогулки'];
+ const matches=useMemo(()=>[...new Set(INTEREST_GROUPS.flatMap(group=>group.items.filter(item=>item.toLocaleLowerCase('ru').includes(query))))],[query]);
  const toggle=item=>{if(selected.includes(item)){setLimitMessage(false);onChange(selected.filter(x=>x!==item))}else if(selected.length<max){setLimitMessage(false);onChange([...selected,item])}else setLimitMessage(true)};
- return <div className="veyra-interest-picker veyra-interest-tabs">
-  <div className="veyra-picker-head"><strong>Твои интересы</strong><span>{selected.length}/{max}</span></div>
-  <p className="veyra-picker-caption">Из всех категорий можно выбрать до 12 увлечений.</p>
-  <div className="veyra-interest-picked" aria-label="Выбранные интересы"><strong>Выбрано</strong><div className="veyra-selected-scroller">{selected.length?selected.map(item=><button type="button" key={item} aria-label={'Убрать '+item} onClick={()=>toggle(item)}>{item} ×</button>):<span className="veyra-empty-selected">Интересы появятся здесь</span>}</div>{selected.length>3&&<button type="button" className="veyra-picked-all" aria-expanded={showAll} onClick={()=>setShowAll(v=>!v)}>{showAll?'Свернуть':'Все '+selected.length}</button>}</div>
-  {showAll&&selected.length>3&&<div className="veyra-interest-all-panel" aria-label="Все выбранные интересы">{selected.map(item=><button type="button" key={item} aria-label={'Убрать '+item} onClick={()=>toggle(item)}>{item} ×</button>)}</div>}
-  <input className="veyra-picker-search" aria-label="Поиск интересов" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск интересов…"/>
-  {!query&&<div className="veyra-interest-tabs-scroll" role="tablist" aria-label="Категории интересов">{INTEREST_GROUPS.map(g=><button type="button" role="tab" aria-selected={category===g.title} className={category===g.title?'active':''} key={g.title} onClick={e=>selectCategory(e,g.title)}><CategoryGlyph title={g.title} size={17}/><span>{g.title}</span></button>)}</div>}
-  <section className="veyra-interest-panel"><h3>{query?'Результаты поиска':category}</h3><div className="veyra-interest-options">{matching.slice(0,40).map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={17}/>{item}{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>)}</div>{!matching.length&&<p className="veyra-picker-caption">Ничего не найдено. Попробуй другой запрос.</p>}</section>
-  {(limitMessage||selected.length===max)&&<p className="veyra-interest-limit" role="status">Выбраны 12 интересов. Убери один, чтобы добавить новый.</p>}
+ const options=(items)=>items.map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={18}/><span>{item}</span>{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>);
+ return <div className="veyra-interest-picker veyra-interest-v9">
+  <div className="veyra-picker-head"><strong>Выбери свои увлечения</strong><span>{selected.length}/{max}</span></div>
+  <p className="veyra-picker-caption">До 12 интересов. Мы поможем найти людей, с которыми есть о чём поговорить.</p>
+  <section className="veyra-interests-selected" aria-label="Выбранные интересы"><header><strong>Выбрано</strong><small>{selected.length} из {max}</small></header>{selected.length?<div className="veyra-interests-selected-grid">{selected.map(item=><button key={item} type="button" aria-label={'Убрать '+item} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={15}/><span>{item}</span><span className="veyra-chip-remove" aria-hidden="true">×</span></button>)}</div>:<p>Нажми на понравившиеся интересы — они появятся здесь.</p>}</section>
+  <label className="veyra-interest-search-label"><Icon name="search" tone="pink" size={19}/><input className="veyra-picker-search" aria-label="Поиск интересов" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск интересов…"/></label>
+  {query?<section className="veyra-interest-panel"><h3>Результаты поиска</h3><div className="veyra-interest-options">{options(matches.slice(0,50))}</div>{!matches.length&&<p className="veyra-picker-caption">Не найдено. Попробуй другой запрос.</p>}</section>:
+  <>
+   {selected.length<5&&<section className="veyra-interest-popular"><strong>Популярные интересы</strong><div className="veyra-interest-options">{options(popular)}</div></section>}
+   <div className="veyra-interest-accordion-list" aria-label="Категории интересов">{INTEREST_GROUPS.map(group=><section key={group.title} className={'veyra-interest-accordion-item'+(expanded===group.title?' expanded':'')}>
+    <button className="veyra-interest-accordion-trigger" type="button" aria-expanded={expanded===group.title} onClick={()=>setExpanded(current=>current===group.title?'':group.title)}>
+     <span className="veyra-interest-group-glyph"><CategoryGlyph title={group.title} size={22}/></span><strong>{group.title}</strong><small>{group.items.filter(item=>selected.includes(item)).length||''}</small><span className="veyra-interest-accordion-chevron" aria-hidden="true">⌄</span>
+    </button>
+    {expanded===group.title&&<div className="veyra-interest-accordion-content"><div className="veyra-interest-options">{options(group.items)}</div></div>}
+   </section>)}</div>
+  </>}
+  {(limitMessage||selected.length===max)&&<p className="veyra-interest-limit" role="status">{selected.length===max?'Выбраны все 12 интересов. Убери один, чтобы добавить новый.':'Можно выбрать до 12 интересов.'}</p>}
  </div>;
 }
 export function LanguagesPicker({value=[],onChange}){const [q,setQ]=useState('');const selected=Array.isArray(value)?value:[];return <div className="veyra-picker"><div className="veyra-picker-head"><strong>Языки общения</strong><span>{selected.length}/5</span></div><p className="veyra-picker-caption">На каких языках тебе удобно переписываться?</p><input className="veyra-picker-search" aria-label="Поиск языка" value={q} onChange={e=>setQ(e.target.value)} placeholder="Найти язык…"/><div className="veyra-language-options">{LANGUAGES.filter(([code,label])=>code.includes(q.trim().toLowerCase())||label.toLowerCase().includes(q.trim().toLowerCase())).map(([code,label])=><button type="button" key={code} className={selected.includes(code)?'selected':''} aria-pressed={selected.includes(code)} disabled={!selected.includes(code)&&selected.length>=5} onClick={()=>onChange(selected.includes(code)?selected.filter(x=>x!==code):[...selected,code])}>{label}{selected.includes(code)&&<Icon name="check" tone="pink" size={15}/>}</button>)}</div></div>;}

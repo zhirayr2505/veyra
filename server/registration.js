@@ -14,16 +14,18 @@ export async function saveProfile(q,userId,p,consent=false){
  await q.query('UPDATE profiles SET location_updated_at=now(),location_consent_at=coalesce(location_consent_at,now()) WHERE user_id=$1',[userId]);
 }
 
-const draftData=profileFields.partial().extend({name:z.string().max(50).regex(/^[\p{L}\p{M} ]*$/u),birth_date:z.string().max(10),gender:z.enum(['','man','woman']),looking_for:z.array(z.enum(['man','woman'])).max(2),city:z.string().max(100),country:z.string().max(100),lat:z.number().min(-90).max(90).nullable(),lon:z.number().min(-180).max(180).nullable(),registration_ui_version:z.literal(2).optional(),consent_to_terms:z.boolean().optional()});
+const draftData=profileFields.partial().extend({name:z.string().max(50).regex(/^[\p{L}\p{M} ]*$/u),birth_date:z.string().max(10),gender:z.enum(['','man','woman']),looking_for:z.array(z.enum(['man','woman'])).max(2),city:z.string().max(100),country:z.string().max(100),lat:z.number().min(-90).max(90).nullable(),lon:z.number().min(-180).max(180).nullable(),registration_ui_version:z.union([z.literal(2),z.literal(3)]).optional(),consent_to_terms:z.boolean().optional()});
 export function registrationRoutes(app,{db,storage,upload,rate}){
  app.put('/api/registration',async(req,res)=>{
-  const {step,data}=parse(z.object({step:z.number().int().min(1).max(7),data:draftData}),req.body);
-  if(data.registration_ui_version===2){
+  const {step,data}=parse(z.object({step:z.number().int().min(1).max(8),data:draftData}),req.body);
+  if(data.registration_ui_version===2||data.registration_ui_version===3){
+   const newOnboarding=data.registration_ui_version===3;
    if(step>1&&(!data.name?.trim()||!data.consent_to_terms))fail(400,'CONSENT_REQUIRED');
    if(step>2&&(!validBirth(data.birth_date)||!data.gender))fail(400,'AGE_18_REQUIRED');
    if(step>3&&(!data.city?.trim()||!data.country?.trim()||data.lat==null||data.lon==null))fail(400,'LOCATION_REQUIRED');
    if(step>4&&(!data.looking_for?.length||data.max_age<data.min_age))fail(400,'SEARCH_PREFERENCES_REQUIRED');
-   if(step>6)parse(profileFields,data);
+   if(step>(newOnboarding?7:6))parse(profileFields,data);
+   if(newOnboarding&&data.bio?.length>257)fail(400,'BIO_TOO_LONG');
   }else{
    if(step>1&&(!data.name.trim()||!validBirth(data.birth_date)||!data.gender))fail(400,'AGE_18_REQUIRED');
    if(step>2&&(!data.city.trim()||!data.country.trim()||data.lat===null||data.lon===null))fail(400,'LOCATION_REQUIRED');
@@ -38,8 +40,10 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
  });
  app.put('/api/registration/profile',async(req,res)=>{
   const p=parse(profileFields.refine(p=>p.max_age>=p.min_age),req.body);
-  const finalStep=req.body?.registration_ui_version===2?7:6;
-  const draftProfile=finalStep===7?{...p,registration_ui_version:2,consent_to_terms:true}:p;
+  const v=req.body?.registration_ui_version===3?3:req.body?.registration_ui_version===2?2:0;
+  if(v===3&&p.bio.length>257)fail(400,'BIO_TOO_LONG');
+  const finalStep=v===3?8:v===2?7:6;
+  const draftProfile=v?{...p,registration_ui_version:v,consent_to_terms:true}:p;
   await db.tx(async q=>{await saveProfile(q,req.user.id,p);await q.query(`INSERT INTO registration_drafts(user_id,step,data) VALUES($1,${finalStep},$2) ON CONFLICT(user_id) DO UPDATE SET step=${finalStep},data=$2,updated_at=now()`,[req.user.id,JSON.stringify(draftProfile)]);});res.json({ok:true});
  });
  app.put('/api/photos/order',async(req,res)=>{

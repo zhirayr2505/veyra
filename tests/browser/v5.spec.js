@@ -78,7 +78,8 @@ test('VEYRA pending approval displays animated crystal, genuine status and close
  await expect(screen).toBeVisible();
  await expect(screen.getByRole('heading',{name:'Анкета отправлена'})).toBeVisible();
  await expect(screen.getByRole('status')).toContainText('На модерации');
- await expect(screen.locator('.vc-crystal-symbol path')).toHaveCount(1);
+ await expect(screen.locator('.vc-review-vector path')).toHaveCount(2);
+ await expect(screen.locator('.vc-real-review')).toHaveCount(0);
  await expect(screen.getByRole('button',{name:'Закрыть приложение'})).toBeVisible();
  await expect(screen.getByRole('button',{name:'Изменить анкету'})).toBeVisible();
  await screen.getByRole('button',{name:'Посмотреть профиль'}).click();
@@ -168,7 +169,7 @@ test('V5 like/pass immediately returns the next card in one API request',async({
  expect(feedRequests).toBe(before);
 });
 
-test('VEYRA new onboarding has seven animated steps, verified location and 3-7 reordered photos',async({page})=>{
+test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photos',async({page})=>{
  await telegram(page,22);await page.goto('/');
  await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
  await expect(page.getByRole('textbox',{name:'Ваше имя'})).toHaveValue('Tester');
@@ -192,6 +193,8 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await expect(page.locator('.location-card')).toContainText('Paris');
   expect((await page.locator('.location-card').boundingBox()).height).toBeLessThan(130);
   await expect(page.locator('.vy-range input[type=range]')).toHaveCount(1);
+ await expect(page.locator('.distance-control .range-ends')).toContainText('1000 км');
+ await expect(page.locator('.distance-control .range-ends')).toContainText('1 км');
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Кого вы ищете?'})).toBeVisible();
  await expect(page.locator('.vy-range-dual input[type=range]')).toHaveCount(2);
@@ -202,8 +205,13 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await page.locator('.veyra-interest-options button').first().click();
  await page.locator('.veyra-interest-options button').nth(1).click();
+ await page.getByRole('button',{name:'далее'}).click();
+ await expect(page.getByRole('heading',{name:'Немного о себе'})).toBeVisible();
+ await page.getByRole('textbox',{name:'О себе'}).fill('Люблю музыку 🎵 и путешествия');
+ await expect(page.getByRole('button',{name:'Добавить эмодзи'})).toBeVisible();
  await page.getByRole('button',{name:'к фотографиям'}).click();
  await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'добавь ещё 3 фото'})).toBeEnabled();
  await expect(page.locator('.photo-slot')).toHaveCount(7);
  await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
  const png=await sharp({create:{width:120,height:120,channels:3,background:{r:238,g:131,b:155}}}).png().toBuffer();
@@ -211,7 +219,8 @@ test('VEYRA new onboarding has seven animated steps, verified location and 3-7 r
  await page.locator('input[type=file]').setInputFiles(files);
  await expect(page.locator('.registration-toast')).toContainText('максимум 7 фото');
  await expect(page.locator('.registration-photo-count')).toContainText('7 из 7',{timeout:45000});
- await expect(page.locator('.photo-make-main')).toHaveCount(6);
+ await expect(page.locator('.photo-make-main')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeEnabled();
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
  const dragged=page.locator('.photo-slot').nth(1),drop=page.locator('.photo-slot').nth(3);
  const firstRect=await dragged.boundingBox(),targetRect=await drop.boundingBox();
@@ -283,11 +292,15 @@ test('New registration has a pinned CTA and working location edit + interests',a
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await expect(page.locator('.veyra-interest-options button').first()).toBeVisible();
+  await expect(page.locator('.veyra-interest-accordion-trigger')).toHaveCount(14);
+  await expect(page.locator('.veyra-interests-selected')).toBeVisible();
+  await page.locator('.veyra-interest-accordion-trigger').nth(1).click();
+  await expect(page.locator('.veyra-interest-accordion-item.expanded')).toHaveCount(1);
+  await page.getByRole('button',{name:'далее'}).click();
   await expect(page.getByRole('textbox',{name:'О себе'})).toBeVisible();
-  await expect(page.locator('.veyra-interest-tabs-scroll [role=tab]')).toHaveCount(14);
-  const bioTop=await page.getByRole('textbox',{name:'О себе'}).evaluate(e=>e.getBoundingClientRect().top);
-  const pickerTop=await page.locator('.veyra-interest-picker').evaluate(e=>e.getBoundingClientRect().top);
-  expect(bioTop).toBeLessThan(pickerTop);
+  const bio=page.getByRole('textbox',{name:'О себе'});
+  await bio.fill('😃'.repeat(260));
+  expect([...await bio.inputValue()].length).toBe(257);
 });
 
 test('City set manually can be corrected via device location without a navigation',async({page,context})=>{
