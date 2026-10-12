@@ -33,7 +33,7 @@ export function CardCaption({profile={},age,location,preview=false,showInterests
   </p>}
   {profile.bio?.trim()&&<p className="hero-bio veyra-card-bio">{profile.bio.trim()}</p>}
   {showInterests&&interestList.length>0&&<div className={preview?'veyra-preview-tags veyra-card-tags':'hero-tags veyra-card-tags'}>
-   <InterestReveal items={interestList} preview={preview} maxVisible={3}/>
+   <InterestReveal items={interestList} preview={preview} maxVisible={2}/>
   </div>}
  </div>;
 }
