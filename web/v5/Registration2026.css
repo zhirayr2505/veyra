@@ -503,3 +503,8 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 @keyframes veyraCtaReady{0%{filter:brightness(1);transform:scale(.985)}60%{filter:brightness(1.1);transform:scale(1.008)}100%{filter:brightness(1);transform:scale(1)}}
 @keyframes veyraPhotoAppear{from{opacity:.28}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .photo-slot .veyra-photo-upload-tick,.v2-onboarding .veyra-registration-2026 .photo-slot .upload-preview,.v2-onboarding .veyra-registration-2026 .photo-slot:not(.uploading) .photo-box>img,.v2-onboarding .veyra-registration-2026 .registration-actions.is-ready .btn{animation:none!important}}
+
+/* A secondary photo can become the cover without drag-and-drop. */
+.v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main{position:absolute!important;top:7px!important;left:7px!important;z-index:9!important;width:29px;height:29px;min-height:0!important;border:1px solid #FFFFFFAB!important;border-radius:10px!important;background:#FFFFFFE9!important;display:grid;place-items:center;padding:0!important;box-shadow:0 3px 9px #2A174A2A}
+.v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main:active{transform:scale(.93)}
+.v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main .kit-icon{width:15px;height:15px}
