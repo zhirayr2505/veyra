@@ -101,3 +101,14 @@
 .discover .feed-photo .veyra-card-caption .hero-tags{margin-top:3px}
 .discover .feed-photo .veyra-card-name-row{max-width:100%}
 .discover .feed-photo .veyra-card-name-row .hero-name{max-width:calc(100% - 32px)}
+
+
+/* Keep profile-launch icon away from the new two-line biography overlay. */
+.discover .feed-photo .feed-info-button{top:60px;bottom:auto}
+.discover .feed-photo .veyra-card-shade{
+ background:linear-gradient(180deg,#09061340 0%,transparent 23%,transparent 33%,
+ #09071312 45%,#0A071C81 68%,#070416F0 100%)!important;
+}
+.discover .feed-photo .veyra-card-caption{bottom:14px;gap:6px!important}
+.discover .feed-photo .veyra-card-caption .veyra-card-bio{margin:2px 0!important}
+.discover .feed-photo .veyra-card-caption .veyra-card-tags{max-height:63px}

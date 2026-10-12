@@ -75,3 +75,56 @@
 .v2-onboarding .veyra-registration-2026 .photo-slot .thumb-delete img{height:16px!important;width:16px!important}
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn:disabled{opacity:.48}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .veyra-goal-choice.is-active,.v2-onboarding .veyra-registration-2026 .veyra-goal-choice.is-active .veyra-goal-icon,.v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-content{animation:none!important}}
+
+
+/* Final interest shelf: compact, single-row swipe navigation. */
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected{
+ display:flex!important;flex-direction:column!important;gap:9px!important;
+ min-height:0!important;padding:12px 12px 11px!important;border-radius:20px;
+ background:linear-gradient(115deg,#F0E5FF,#F8F3FF);
+ overflow:hidden;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected header{padding:0 2px;flex:none}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected-grid{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ width:100%;max-width:100%;gap:7px!important;min-height:38px;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ scrollbar-width:none;overscroll-behavior-x:contain;scroll-behavior:smooth;
+ touch-action:pan-x;-webkit-overflow-scrolling:touch;padding:2px 1px 5px;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interests-selected-grid::-webkit-scrollbar{display:none}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected-grid button{
+ flex:0 0 auto!important;white-space:nowrap!important;max-width:none!important;
+ min-height:34px!important;padding:7px 11px!important;
+ box-shadow:0 2px 7px #A48DCA13;font-size:11px!important;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected-grid button>span:not(.veyra-chip-remove){
+ overflow:visible;text-overflow:clip;white-space:nowrap;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected p{font-size:12px;margin:2px 1px;color:#8E79A3}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-accordion-list{gap:9px}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-accordion-trigger{
+ gap:11px;min-height:63px!important;padding:10px 12px!important;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-accordion-trigger>strong{min-width:0;font-size:13px}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-category-count{
+ flex:0 0 auto;display:grid;place-items:center;width:27px;height:27px;
+ border-radius:9px;background:#F3EDF9;color:#B4A3C6;font-size:11px;
+ font-weight:800;font-variant-numeric:tabular-nums;border:1px solid #EEE4F8;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-category-count.has-items{
+ background:linear-gradient(135deg,#EFE2FF,#E9DBFF);color:#7D44D1;
+ border-color:#DCC4FB;box-shadow:0 2px 8px #8E5CEE16;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-accordion-chevron{
+ display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;
+ border-radius:10px;background:#F5F0FB;border:1px solid #E9E0F7;
+ color:#8150D4;transition:transform .22s ease,background .22s ease;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-final .expanded .veyra-interest-accordion-chevron{
+ transform:rotate(180deg);background:#EEE2FF;
+}
+@media(prefers-reduced-motion:reduce){
+ .v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interest-accordion-chevron{transition:none}
+ .v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected-grid{scroll-behavior:auto}
+}

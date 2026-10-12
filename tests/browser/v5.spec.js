@@ -233,6 +233,8 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await page.getByRole('button',{name:'посмотреть анкету'}).click();
  await expect(page.locator('.preview-gallery .veyra-card-shade')).toHaveCount(1);
  await expect(page.locator('.preview-card-caption .veyra-card-goal-badge')).toContainText('Свидания');
+ await expect(page.locator('.preview-card-caption .veyra-card-bio')).toContainText('Люблю музыку');
+ await expect(page.locator('.preview-card-caption .veyra-card-interest-divider')).toHaveCount(1);
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
  await expect(page.locator('.preview-card-chips .veyra-interest-inline-chip')).toHaveCount(2);
@@ -248,6 +250,10 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await expect(page.locator('.preview-card-caption')).toContainText('Seven Photos Test');
  // Switching between feed and full-profile must not retain a previous scroll.
  await page.getByRole('tab',{name:'Полный профиль'}).click();
+ await expect(page.locator('.vp-member-detail .member-summary-title')).toContainText('Seven Photos Test');
+ await expect(page.locator('.vp-member-detail .veyra-detail-card')).toContainText('Свидания');
+ await expect(page.locator('.mode-detail .preview-gallery .veyra-card-caption')).toHaveCount(0);
+ await expect(page.locator('.vp-member-detail .vp-thumbnails button')).toHaveCount(7);
  const fullScroll=page.locator('.vp-scroll');
  await fullScroll.evaluate(el=>{el.scrollTop=300});
  await page.getByRole('tab',{name:'В ленте'}).click();
@@ -293,6 +299,12 @@ test('New registration has a pinned CTA and working location edit + interests',a
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await expect(page.locator('.veyra-interest-options button').first()).toBeVisible();
   await expect(page.locator('.veyra-interest-accordion-trigger')).toHaveCount(14);
+  await expect(page.getByRole('textbox',{name:'Поиск интересов'})).toHaveCount(0);
+  await expect(page.locator('.veyra-interests-selected-grid')).toHaveCount(0);
+  await page.locator('.veyra-interest-options button').first().click();
+  await expect(page.locator('.veyra-interests-selected-grid')).toBeVisible();
+  const style=await page.locator('.veyra-interests-selected-grid').evaluate(el=>({flexWrap:getComputedStyle(el).flexWrap,overflowX:getComputedStyle(el).overflowX}));
+  expect(style.flexWrap).toBe('nowrap');expect(style.overflowX).toBe('auto');
   await expect(page.locator('.veyra-interests-selected')).toBeVisible();
   await page.locator('.veyra-interest-accordion-trigger').nth(1).click();
   await expect(page.locator('.veyra-interest-accordion-item.expanded')).toHaveCount(1);

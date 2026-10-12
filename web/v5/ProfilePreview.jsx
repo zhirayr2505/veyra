@@ -2,9 +2,11 @@ import React,{useRef,useState,useEffect,useLayoutEffect} from 'react';
 import {photoUrl} from './api.js';
 import {Logo,Photo,Icon} from './UI.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
-import {CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
+import {CatalogueIcon,ProfileHighlights} from './OnboardingOptions.jsx';
+import {CountryFlag} from './CountryFlag.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 import {CardCaption,CardPhotoBars} from './DatingCardLayers.jsx';
+import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
 export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,submitting=false,error='',submitted=false}){
@@ -30,17 +32,24 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
    <section className="preview-surface preview-dating-card">
     <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>touch.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
      {galleryIds.length?<div className="preview-gallery-track" style={{transform:'translate3d(-33.3333333%,0,0)'}}>{galleryIds.map((id,i)=><div className="preview-gallery-slide" key={id+'-'+i}><Photo id={id} className="preview-photo" alt={'Фото '+(i===0?(index-1+ids.length)%ids.length+1:i===1?index+1:(index+1)%ids.length+1)}/></div>)}</div>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
-     <div className="veyra-card-shade" aria-hidden="true"/>
-     <span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span>
+     {mode==='feed'&&<><div className="veyra-card-shade" aria-hidden="true"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span></>}
      {ids.length>1&&<><button type="button" className="preview-photo-tap left" aria-label="Предыдущее фото" onClick={()=>slide(-1)}/><button type="button" className="preview-photo-tap right" aria-label="Следующее фото" onClick={()=>slide(1)}/></>}
-     <CardCaption profile={profile} age={years} location={[profile.city,profile.country].filter(Boolean).join(', ')} preview showInterests={mode==='feed'}/>
+     {mode==='feed'&&<CardCaption profile={profile} age={years} location={profile.city} preview/>}
      <CardPhotoBars photos={ids} index={index} onSelect={setIndex} preview/>
+     {mode==='detail'&&ids.length>1&&<div className="preview-member-thumbnails" aria-label="Выбор фотографии">{ids.map((id,i)=><button type="button" key={id} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={'Показать фото '+(i+1)}><Photo id={id} alt=""/></button>)}</div>}
     </div>
    </section>
-   {mode==='detail'&&<div className="vp-detail">
-    <section><div className="vp-heading"><Icon name="user" tone="pink" size={21}/> Немного о себе</div><p>{profile.bio?.trim()||'Описание пока не заполнено'}</p></section>
-    <section><div className="vp-heading"><Icon name="sparkle" tone="pink" size={21}/> Мои интересы <small>{interests.length}/12</small></div><div className="vp-interests">{interests.map(x=><span key={x}><CatalogueIcon value={x} size={16}/>{x}</span>)}{!interests.length&&<p>Интересы пока не выбраны</p>}</div></section>
-    {ids.length>1&&<section><div className="vp-heading"><Icon name="image" tone="pink" size={21}/> Все фотографии</div><div className="vp-thumbnails">{ids.map((id,i)=><button type="button" key={id} onClick={()=>{setIndex(i);document.querySelector('.vp-scroll')?.scrollTo({top:0,behavior:'smooth'})}} aria-label={'Посмотреть фотографию '+(i+1)}><Photo id={id} alt={'Фото '+(i+1)}/></button>)}</div></section>}
+   {mode==='detail'&&<div className="vp-detail vp-member-detail member-feed-profile" aria-label="Полная анкета">
+    <section className="member-summary vp-member-summary">
+     <div className="member-summary-title"><h2>{profile.name||'Имя'}{years?', '+years:''}</h2></div>
+     <p className="member-summary-location"><Icon name="pin" tone="pink" size={17}/><span>{profile.city||'Город не указан'}{profile.country?', ':''}{profile.country&&<><CountryFlag country={profile.country}/> {profile.country}</>}</span></p>
+    </section>
+    <div className="vp-member-info">
+     <ProfileHighlights profile={profile}/>
+     <section className="info-block vp-member-card"><h3><Icon name="user" tone="pink" size={20}/> Немного о себе</h3><p>{profile.bio?.trim()||'О себе пока ничего не написано'}</p></section>
+     <section className="info-block vp-member-card"><h3><Icon name="sparkle" tone="pink" size={20}/> Интересы <small>{interests.length}/12</small></h3><div className="vp-interests">{interests.map(x=><span key={x}><CatalogueIcon value={x} size={17}/>{x}</span>)}{!interests.length&&<p>Интересы пока не выбраны</p>}</div></section>
+     {ids.length>1&&<section className="info-block vp-member-card"><h3><Icon name="image" tone="pink" size={20}/> Фотографии <small>{ids.length}</small></h3><div className="vp-thumbnails">{ids.map((id,i)=><button type="button" key={id} onClick={()=>{setIndex(i);scrollRef.current?.scrollTo({top:0,behavior:'smooth'})}} aria-label={'Посмотреть фотографию '+(i+1)}><Photo id={id} alt={'Фото '+(i+1)}/></button>)}</div></section>}
+    </div>
    </div>}
   </div>
   {error&&<p className="vp-error" role="alert">{error}</p>}
