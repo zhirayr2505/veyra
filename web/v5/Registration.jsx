@@ -11,6 +11,7 @@ const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:'',languages:[],prompts:[],height_cm:null};
 const age=b=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return 0;const d=new Date(b+'T00:00:00Z'),n=new Date();if(Number.isNaN(+d))return 0;let y=n.getUTCFullYear()-d.getUTCFullYear();if(n.getUTCMonth()<d.getUTCMonth()||(n.getUTCMonth()===d.getUTCMonth()&&n.getUTCDate()<d.getUTCDate()))y--;return y;};
 const progress=(value,min,max)=>Math.max(0,Math.min(100,100*(value-min)/(max-min)));
+function DesignGlyph({name,active=false,size=34}){const image='url("/veyra-design/icons/'+name+'.svg")';return <span aria-hidden="true" className="veyra-brand-glyph" style={{width:size,height:size,WebkitMaskImage:image,maskImage:image,backgroundColor:active?'#9165F2':'#92899F'}}/>;}
 function InterestSymbol({value,size=16}){return <CatalogueIcon value={value} size={size}/>;}
 function Slider({value,min,max,step=1,onChange,label}){return <div className="veyra-slider"><input aria-label={label} type="range" min={min} max={max} step={step} value={value} style={{'--slider-fill':progress(value,min,max)+'%'}} onChange={e=>onChange(+e.target.value)}/></div>}
 function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),end=Math.min(90,Math.max(start,max));return <div className="age-range">
@@ -44,7 +45,7 @@ export function Registration({me,refresh}){
  const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message);
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{
-  if(step===1){if(!f.name.trim())throw Error('Введи своё имя');if(!consent)throw Error('Прими условия использования и политику конфиденциальности')}
+  if(step===1){if(f.name.trim().length<2)throw Error('Имя должно содержать минимум 2 буквы');if(!consent)throw Error('Прими условия использования и политику конфиденциальности')}
   if(step===2){if(!f.gender)throw Error('Выбери свой пол');if(age(f.birth_date)<18||age(f.birth_date)>110)throw Error('VEYRA доступна с 18 лет')}
   if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери город из предложенного списка');
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь предпочтения поиска');
@@ -154,11 +155,11 @@ export function Registration({me,refresh}){
     </div>}
     {step===2&&<div className="fields">
      <label>Дата рождения<input type="date" min="1900-01-01" max={adultDate()} value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
-     <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+(f.gender===k?'active':'inactive')+'/'+k+'.svg'}/>{v}</button>)}</div>
+     <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><DesignGlyph name={k==='man'?'male':'female'} active={f.gender===k} size={38}/>{v}</button>)}</div>
     </div>}
     {step===3&&<div className="fields">
     {selectedCity&&<div className="location-card">
-     <span className="location-mark"><Icon name="pin" tone="pink" size={32}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
+     <span className="location-mark"><DesignGlyph name="my-location" active size={34}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
     </div>}
     {(!selectedCity||cityEdit)&&<Button className="locate-button" onClick={locate} disabled={locating||busy}>{locating?<><span className="spinner-ring"/> определяем город…</>:<><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</>}</Button>}
     {(cityEdit||!selectedCity)&&<><p className="or">{selectedCity?'выбери другой город':'или найди свой город'}</p>
@@ -172,7 +173,7 @@ export function Registration({me,refresh}){
       <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
    </div>}
-   {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><img alt="" draggable="false" src={'/veyra-approved/01_icons/'+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'active':'inactive')+'/'+(k==='all'?'everyone':k)+'.svg'}/><span>{v}</span></button>)}</div>
+   {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><DesignGlyph name={k==='man'?'male':k==='woman'?'female':'everyone'} active={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} size={42}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
    {step===5&&<div className="fields"><img className="veyra-registration-art" src="/graphics/illustrations/match-hearts-512.webp" alt="" onError={e=>e.currentTarget.style.display='none'}/><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
@@ -197,7 +198,7 @@ export function Registration({me,refresh}){
     </div>
     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
     <p className="photo-footnote">{uploading?'Загружаем фотографии по очереди…':'Загружено '+photos.length+' из '+MAX_PHOTOS+' · минимум '+MIN_PHOTOS}</p>
-    <div className="photo-guidelines"><p><Icon name="camera" tone="pink" size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
+    <div className="photo-guidelines"><p><DesignGlyph name="camera" active size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
    </div>}
   </div>
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}

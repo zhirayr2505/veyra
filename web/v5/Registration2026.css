@@ -54,3 +54,15 @@
 .v2-onboarding .veyra-registration-2026 .photo-slot.drop-target{outline:3px dashed #9165F2;outline-offset:2px}
 @media(max-width:360px){.v2-onboarding .veyra-registration-2026{padding-inline:13px}.v2-onboarding .veyra-registration-2026 .photo-layout{gap:6px}.v2-onboarding .veyra-registration-2026 .photo-slot{border-radius:13px}}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .registration-step{animation:none!important}.v2-onboarding .veyra-registration-2026 .progress span::after{transition:none!important}}
+
+/* Approved outline icons from VEYRA_DESIGN_MASTER.zip */
+.v2-onboarding .veyra-brand-glyph{display:inline-block;flex:none;vertical-align:middle;mask-position:center;mask-repeat:no-repeat;mask-size:contain;-webkit-mask-position:center;-webkit-mask-repeat:no-repeat;-webkit-mask-size:contain;transition:background-color .2s,transform .2s}
+.v2-onboarding .choice.selected .veyra-brand-glyph{transform:scale(1.05)}
+/* Animated splash uses actual preloaded asset completion, not a fake indefinite bar. */
+.splash{background:radial-gradient(ellipse 100% 65% at 50% 20%,#EEE4FF,#FBF7FF 78%);color:#292033;gap:19px;overflow:hidden}
+.splash .logo{width:min(57vw,220px);height:auto;filter:drop-shadow(0 12px 28px #9165F228);animation:veyraSplash 1s cubic-bezier(.2,.8,.2,1) both}
+.splash-progress{width:min(72vw,260px);height:7px;border-radius:999px;background:#E7DEF6}
+.splash-progress span{width:var(--veyra-progress,0%);height:100%;background:linear-gradient(100deg,#A985F8,#9165F2);animation:none;transition:width .25s ease;border-radius:inherit}
+.splash-copy{font-size:12px;font-weight:700;color:#766A87}
+@keyframes veyraSplash{from{opacity:0;transform:translateY(16px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.splash .logo{animation:none}.splash-progress span{transition:none}}

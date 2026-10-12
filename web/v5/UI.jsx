@@ -21,7 +21,7 @@ function iconSrc(name,tone='dark'){
   ?approvedBase+'01_icons/'+state+'/'+id+'.svg'
   :approvedBase+'01_icons/'+state+'/info.svg';
 }
-export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="VEYRA" src={approvedBase+'00_brand/veyra_logo_primary.svg'}/>;}
+export function Logo({className='',width=125}){return <img draggable="false" className={'logo '+className} width={width} alt="VEYRA" src="/veyra-design/veyra-wordmark-purple.svg"/>;}
 export function Icon({name,tone='dark',size=24,className=''}){return <img className={'kit-icon '+className} draggable="false" src={iconSrc(name,tone)} width={size} height={size} alt="" aria-hidden="true"/>;}
 export function DetailIcon({name,size=20,className=''}){return <img className={'veyra-detail-icon '+className} src={iconSrc(name,'pink')} alt="" aria-hidden="true" draggable="false" width={size} height={size}/>;}
 const interestSlugs={'музыка':'music','путешествия':'travel','кино':'movies','спорт':'sports','книги':'books','кофе':'coffee','технологии':'technology','животные':'pets','фото':'photography','прогулки':'travel','искусство':'art','вкусная еда':'food','танцы':'fitness','йога':'wellness','мода':'fashion'};
