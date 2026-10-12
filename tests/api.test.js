@@ -16,5 +16,5 @@ test('account deletion hides profile for 72 hours and allows timely recovery',as
  assert.equal((await aut(request(app).get('/api/feed'),t12)).status,403);
  assert.equal((await aut(request(app).post('/api/account/restore'),t12).send({})).status,200);
  assert.equal((await aut(request(app).get('/api/me'),t12)).body.user.status,'active');
-});assert.equal(r.status,200);assert.equal((await aut(request(app).get('/api/me'),t12)).status,401);assert.equal(await one(db,'SELECT * FROM profiles WHERE user_id=12'),undefined);assert.equal((await one(db,"SELECT count(*)::int AS n FROM storage_gc WHERE object_key LIKE '12/%'")).n,3);});
+});
 
