@@ -15,7 +15,7 @@ const age=b=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return 0;const d=new Date(b+'T00
 const progress=(value,min,max)=>Math.max(0,Math.min(100,100*(value-min)/(max-min)));
 function DesignGlyph({name,active=false,size=34}){const image='url("/veyra-design/icons/'+name+'.svg")';return <span aria-hidden="true" className="veyra-brand-glyph" style={{width:size,height:size,WebkitMaskImage:image,maskImage:image,backgroundColor:active?'#9165F2':'#92899F'}}/>;}
 function InterestSymbol({value,size=16}){return <CatalogueIcon value={value} size={size}/>;}
-function Slider({value,min,max,step=1,onChange,label}){return <div className="veyra-slider"><input aria-label={label} type="range" min={min} max={max} step={step} value={value} style={{'--slider-fill':progress(value,min,max)+'%'}} onChange={e=>onChange(+e.target.value)}/></div>}
+function Slider({value,min,max,step=1,onChange,label,disabled=false}){return <div className="veyra-slider"><input aria-label={label} type="range" min={min} max={max} step={step} value={value} disabled={disabled} style={{'--slider-fill':progress(value,min,max)+'%'}} onChange={e=>onChange(+e.target.value)}/></div>}
 function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),end=Math.min(90,Math.max(start,max));return <div className="age-range">
  <div className="range-labels"><span>Возраст от <strong>{start}</strong></span><span>до <strong>{end}</strong></span></div>
  <div className="age-range-rails" style={{'--range-start':progress(start,18,90)+'%','--range-end':progress(end,18,90)+'%'}}>
@@ -170,9 +170,9 @@ export function Registration({me,refresh}){
   <div className="registration-actions preview-actions"><Button className="full" disabled={busy||uploading||photos.length<MIN_PHOTOS} onClick={send}>{busy?<Spinner/>:<><Icon name="check" tone="white" size={20}/> отправить на проверку</>}</Button><Button kind="outline" className="full" onClick={()=>{setPreview(false);go(7,'backward')}}><Icon name="back" tone="pink" size={17}/> редактировать</Button></div>
  </main>;
  return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
-  <div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><span/><span/></div>
+  <header className="veyra-onboarding-fixed-header"><div className="step-top"><button aria-label="Назад" className="quiet" onClick={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}><Icon name="back"/></button><span/><span/></div>
   <div className="center-logo veyra-shine-logo"><Logo width={136}/></div>
-  <div className="progress" aria-label={'Шаг '+step+' из 7'}>{[1,2,3,4,5,6,7].map(n=><span key={n} className={n<=step?'done':''}/>)}</div>
+  <div className="progress" aria-label={'Шаг '+step+' из 7'}>{[1,2,3,4,5,6,7].map(n=><span key={n} className={n<=step?'done':''}/>)}</div></header>
   <div className={'registration-step '+direction} key={step}>
    <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Добавьте свои фото'][step-1]}</h1>
    <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
@@ -186,9 +186,7 @@ export function Registration({me,refresh}){
      <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><DesignGlyph name={k==='man'?'male':'female'} active={f.gender===k} size={34}/>{v}</button>)}</div>
     </div>}
     {step===3&&<div className="fields">
-    {selectedCity&&<div className="location-card">
-     <span className="location-mark"><DesignGlyph name="my-location" active size={34}/></span><small>Твоё местоположение</small><h2>{f.city}</h2><p>{f.country}</p><button className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'скрыть поиск':'изменить город'}</button>
-    </div>}
+    {selectedCity&&<div className="location-card veyra-city-row"><span className="location-mark"><DesignGlyph name="my-location" active size={27}/></span><div className="veyra-city-info"><small>ТВОЁ МЕСТОПОЛОЖЕНИЕ</small><h2>{f.city}</h2><p>{f.country}</p></div><button type="button" className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'закрыть':'изменить'}</button></div>}
     {(!selectedCity||cityEdit)&&<Button className="locate-button" onClick={locate} disabled={locating||busy}>{locating?<><span className="spinner-ring"/> определяем город…</>:<><Icon name="pin" tone="white" size={18}/> использовать моё местоположение</>}</Button>}
     {(cityEdit||!selectedCity)&&<><p className="or">{selectedCity?'выбери другой город':'или найди свой город'}</p>
      <div className="city-search"><Icon name="search" size={21}/><input aria-label="Поиск города" autoComplete="off" placeholder="Начни вводить название города" value={query} onChange={e=>{setQuery(e.target.value)}}/>{searching&&<span className="city-spinner"/>}</div>
@@ -196,7 +194,7 @@ export function Registration({me,refresh}){
      {!searching&&query.trim().length>=2&&!places.length&&<p className="city-empty">Не нашли такой город. Проверь написание.</p>}
     </>}
     {selectedCity&&<div className="distance-control"><div className="range-labels"><span>Радиус поиска</span><strong>{f.radius_km>=20000?'весь мир':f.radius_km+' км'}</strong></div>
-      <Slider min={5} max={500} step={5} label="Радиус поиска" value={Math.min(500,f.radius_km)} onChange={v=>change('radius_km',v)}/>
+      <Slider min={5} max={500} step={5} label="Радиус поиска" value={Math.min(500,f.radius_km)} onChange={v=>change('radius_km',v)} disabled={f.radius_km===20000}/>
       <div className="range-ends"><span>5 км</span><span>500 км</span></div>
       <label className="checkline registration-check"><input type="checkbox" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:50)}/><span className="custom-check"><Icon name="check" tone="pink" size={15}/></span><span>Искать по всему миру</span></label>
      </div>}
@@ -205,7 +203,7 @@ export function Registration({me,refresh}){
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
    {step===5&&<div className="fields"><div className="veyra-orb-stage" aria-hidden="true" style={{height:Math.round(158-goalScroll*99)+'px'}}><div className="veyra-orb-glow" style={{transform:'scale('+(1-goalScroll*.52)+')'}}><div className="veyra-orb-orbit"/><div className="veyra-orb-core"><Icon name="heart" tone="pink" size={48}/></div><span className="veyra-orb-spark first">✦</span><span className="veyra-orb-spark second">✦</span></div></div><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
-   {step===6&&<div className="fields"><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/><label className="veyra-bio-box">Немного о себе <small>Необязательно · до 200 символов</small><textarea aria-label="О себе" maxLength={200} rows={3} placeholder="Каким ты бываешь? Что любишь и кого хочешь встретить?" value={f.bio||''} onChange={e=>change('bio',e.target.value)}/><span>{(f.bio||'').length}/200</span></label></div>}
+   {step===6&&<div className="fields"><label className="veyra-bio-box">Немного о себе <small>Необязательно · до 200 символов</small><textarea aria-label="О себе" maxLength={200} rows={3} placeholder="Каким ты бываешь? Что любишь и кого хочешь встретить?" value={f.bio||''} onChange={e=>change('bio',e.target.value)}/><span>{(f.bio||'').length}/200</span></label><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
    {step===7&&<div className="fields">
     <span className="registration-photo-count">{photos.length} из 7 фото · минимум 3</span>
      <p className="tip">Первое фото будет главным. Чтобы изменить порядок, удерживай фотографию и перетаскивай.</p>
