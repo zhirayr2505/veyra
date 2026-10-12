@@ -6,9 +6,9 @@ import {CountryFlag} from './CountryFlag.jsx';
 import './DatingCardLayers.css';
 
 const goalIcons={relationship:'heart',dating:'flirt',friends:'chats',friendship:'everyone',unsure:'sparkle',flirt:'flirt',casual:'sparkle',travel:'map'};
-export function CardGoalBadge({goal,compact=false}){
- if(!goal)return null;
- return <span className={'veyra-card-goal-badge'+(compact?' is-compact':'')}><span className="veyra-card-goal-mark"><Icon name={goalIcons[goal]||'sparkle'} tone="pink" size={compact?13:15}/></span><span className="veyra-card-goal-text">{goalTitle(goal)}</span></span>;
+export function CardGoalBadge({goal,compact=false,top=false}){
+ if(!goal||goal==='unsure')return null;
+ return <span className={'veyra-card-goal-badge'+(compact?' is-compact':'')+(top?' veyra-card-top-goal':'')}><span className="veyra-card-goal-mark"><Icon name={goalIcons[goal]||'sparkle'} tone="pink" size={compact?13:15}/></span><span className="veyra-card-goal-text">{goalTitle(goal)}</span></span>;
 }
 export function CardPhotoBars({photos=[],index=0,onSelect,preview=false}){
  if(photos.length<2)return null;
@@ -32,11 +32,8 @@ export function CardCaption({profile={},age,location,preview=false,showInterests
    <span>{city||location}{country?', ':''}{country&&<><CountryFlag country={country}/> {country}</>}{distance&&<span className="veyra-card-distance"> · {distance}</span>}</span>
   </p>}
   {profile.bio?.trim()&&<p className="hero-bio veyra-card-bio">{profile.bio.trim()}</p>}
-  {showInterests&&(profile.goal||interestList.length>0)&&<div className={preview?'veyra-preview-tags veyra-card-tags':'hero-tags veyra-card-tags'}>
-   <div className="veyra-card-interest-row">{profile.goal&&<CardGoalBadge goal={profile.goal} compact/>}
-    {profile.goal&&interestList.length>0&&<span className="veyra-card-interest-divider" aria-hidden="true"/>}
-    {!!interestList.length&&<InterestReveal items={interestList} preview={preview}/>}
-   </div>
+  {showInterests&&interestList.length>0&&<div className={preview?'veyra-preview-tags veyra-card-tags':'hero-tags veyra-card-tags'}>
+   <InterestReveal items={interestList} preview={preview} maxVisible={3}/>
   </div>}
  </div>;
 }

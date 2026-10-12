@@ -5,7 +5,7 @@ import {InterestReveal} from './InterestReveal.jsx';
 import {CatalogueIcon,ProfileHighlights} from './OnboardingOptions.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
-import {CardCaption,CardPhotoBars} from './DatingCardLayers.jsx';
+import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
 import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
@@ -32,7 +32,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
    <section className="preview-surface preview-dating-card">
     <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>touch.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
      {galleryIds.length?<div className="preview-gallery-track" style={{transform:'translate3d(-33.3333333%,0,0)'}}>{galleryIds.map((id,i)=><div className="preview-gallery-slide" key={id+'-'+i}><Photo id={id} className="preview-photo" alt={'Фото '+(i===0?(index-1+ids.length)%ids.length+1:i===1?index+1:(index+1)%ids.length+1)}/></div>)}</div>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
-     {mode==='feed'&&<><div className="veyra-card-shade" aria-hidden="true"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span></>}
+     {mode==='feed'&&<><div className="veyra-card-shade" aria-hidden="true"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span><CardGoalBadge goal={profile.goal} compact top/></>}
      {ids.length>1&&<><button type="button" className="preview-photo-tap left" aria-label="Предыдущее фото" onClick={()=>slide(-1)}/><button type="button" className="preview-photo-tap right" aria-label="Следующее фото" onClick={()=>slide(1)}/></>}
      {mode==='feed'&&<CardCaption profile={profile} age={years} location={profile.city} preview/>}
      <CardPhotoBars photos={ids} index={index} onSelect={setIndex} preview/>
