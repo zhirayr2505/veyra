@@ -25,7 +25,7 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
    if(step>3&&(!data.city?.trim()||!data.country?.trim()||data.lat==null||data.lon==null))fail(400,'LOCATION_REQUIRED');
    if(step>4&&(!data.looking_for?.length||data.max_age<data.min_age))fail(400,'SEARCH_PREFERENCES_REQUIRED');
    if(step>(newOnboarding?7:6))parse(profileFields,data);
-   if(newOnboarding&&data.bio?.length>257)fail(400,'BIO_TOO_LONG');
+   if(newOnboarding&&Array.from(data.bio||'').length>250)fail(400,'BIO_TOO_LONG');
   }else{
    if(step>1&&(!data.name.trim()||!validBirth(data.birth_date)||!data.gender))fail(400,'AGE_18_REQUIRED');
    if(step>2&&(!data.city.trim()||!data.country.trim()||data.lat===null||data.lon===null))fail(400,'LOCATION_REQUIRED');
@@ -41,7 +41,7 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
  app.put('/api/registration/profile',async(req,res)=>{
   const p=parse(profileFields.refine(p=>p.max_age>=p.min_age),req.body);
   const v=req.body?.registration_ui_version===3?3:req.body?.registration_ui_version===2?2:0;
-  if(v===3&&p.bio.length>257)fail(400,'BIO_TOO_LONG');
+  if(v===3&&Array.from(p.bio).length>250)fail(400,'BIO_TOO_LONG');
   const finalStep=v===3?8:v===2?7:6;
   const draftProfile=v?{...p,registration_ui_version:v,consent_to_terms:true}:p;
   await db.tx(async q=>{await saveProfile(q,req.user.id,p);await q.query(`INSERT INTO registration_drafts(user_id,step,data) VALUES($1,${finalStep},$2) ON CONFLICT(user_id) DO UPDATE SET step=${finalStep},data=$2,updated_at=now()`,[req.user.id,JSON.stringify(draftProfile)]);});res.json({ok:true});
