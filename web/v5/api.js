@@ -8,6 +8,20 @@ export async function request(path,{method='GET',body,signal}={}){
  if(!res.ok){const j=await res.json().catch(()=>({}));throw Error(j.error||('HTTP_'+res.status));}
  return res.status===204?null:res.json();
 }
+export function uploadPhoto(file,onProgress){
+ return new Promise((resolve,reject)=>{
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST','/api/photos');
+  if(bearer)xhr.setRequestHeader('Authorization','Bearer '+bearer);
+  xhr.upload.onprogress=e=>{if(e.lengthComputable&&e.total>0)onProgress?.(Math.min(99,Math.round(e.loaded/e.total*100)))};
+  xhr.onload=()=>{let data={};try{data=JSON.parse(xhr.responseText||'{}')}catch{}
+   if(xhr.status>=200&&xhr.status<300){onProgress?.(100);resolve(data)}else reject(Error(data.error||('HTTP_'+xhr.status)))};
+  xhr.onerror=()=>reject(Error('NETWORK_UPLOAD_FAILED'));
+  xhr.onabort=()=>reject(Error('UPLOAD_ABORTED'));
+  const form=new FormData();form.append('photo',file);
+  onProgress?.(0);xhr.send(form);
+ });
+}
 export const get=path=>request(path);
 export const post=(path,body)=>request(path,{method:'POST',body});
 export const put=(path,body)=>request(path,{method:'PUT',body});

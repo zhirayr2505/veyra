@@ -1,9 +1,10 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
-import {get,put,post,request,photoOrder} from './api.js';
+import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
 import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
+import {GoalIllustration} from './GoalIllustration.jsx';
 import './Registration2026.css';
 import {LegalScreen} from './Legal.jsx';
 
@@ -74,14 +75,14 @@ export function Registration({me,refresh}){
  if(bad){setError('Каждое фото должно быть JPG, PNG или WEBP, до 5 МБ');return}
  if(!selected.length)return;
  uploadRunning.current=true;setUploading(true);setError('');
- const initial=selected.map((file,i)=>({id:'upload-'+i+'-'+Date.now(),file,preview:URL.createObjectURL(file),status:'waiting',serverId:null}));
+ const initial=selected.map((file,i)=>({id:'upload-'+i+'-'+Date.now(),file,preview:URL.createObjectURL(file),status:'waiting',progress:0,serverId:null}));
  setJobs(initial);
  try{for(const item of initial){
-  setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'loading'}:x));
-  try{const fd=new FormData();fd.append('photo',item.file);let result;for(let attempt=0;attempt<2;attempt++){try{result=await post('/photos',fd);break}catch(e){if(attempt||!(/fetch|network|HTTP_502|HTTP_503|HTTP_504/i.test(e.message)))throw e;await new Promise(resolve=>setTimeout(resolve,850))}}
+  setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'loading',progress:0}:x));
+  try{const fd=new FormData();fd.append('photo',item.file);let result;for(let attempt=0;attempt<2;attempt++){try{result=await uploadPhoto(item.file,n=>setJobs(old=>old.map(x=>x.id===item.id?{...x,progress:n}:x)));break}catch(e){if(attempt||!(/fetch|network|HTTP_502|HTTP_503|HTTP_504/i.test(e.message)))throw e;await new Promise(resolve=>setTimeout(resolve,850))}}
    setPhotos(old=>[...old,{id:result.id,position:old.length}]);
-   setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'done',serverId:result.id}:x));
-  }catch(e){setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'failed'}:x));setError('Не удалось загрузить «'+item.file.name+'»: '+e.message)}
+   setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'done',progress:100,serverId:result.id}:x));
+  }catch(e){setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'failed',progress:0}:x));setError('Не удалось загрузить «'+item.file.name+'»: '+e.message)}
  }
  await refresh();
  await new Promise(resolve=>setTimeout(resolve,700));
@@ -202,7 +203,7 @@ export function Registration({me,refresh}){
    {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><DesignGlyph name={k==='man'?'male':k==='woman'?'female':'everyone'} active={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} size={42}/><span>{v}</span></button>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
-   {step===5&&<div className="fields"><div className="veyra-orb-stage" aria-hidden="true" style={{height:Math.round(158-goalScroll*99)+'px'}}><div className="veyra-orb-glow" style={{transform:'scale('+(1-goalScroll*.52)+')'}}><div className="veyra-orb-orbit"/><div className="veyra-orb-core"><Icon name="heart" tone="pink" size={48}/></div><span className="veyra-orb-spark first">✦</span><span className="veyra-orb-spark second">✦</span></div></div><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
+   {step===5&&<div className="fields"><div className="veyra-orb-stage" aria-hidden="true" style={{height:Math.round(158-goalScroll*99)+'px'}}><div className="veyra-orb-glow" style={{transform:'scale('+(1-goalScroll*.52)+')'}}><GoalIllustration/></div></div><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
    {step===6&&<div className="fields"><label className="veyra-bio-box">Немного о себе <small>Необязательно · до 200 символов</small><textarea aria-label="О себе" maxLength={200} rows={3} placeholder="Каким ты бываешь? Что любишь и кого хочешь встретить?" value={f.bio||''} onChange={e=>change('bio',e.target.value)}/><span>{(f.bio||'').length}/200</span></label><InterestPicker value={f.interests||[]} onChange={v=>change('interests',v)}/></div>}
    {step===7&&<div className="fields">
     <span className="registration-photo-count">{photos.length} из 7 фото · минимум 3</span>
@@ -216,7 +217,7 @@ export function Registration({me,refresh}){
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
-        {loading?<span className={'upload-state '+item.status}>{item.status==='done'?<Icon name="check" tone="white" size={23}/>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="spinner-ring"/>}</span>:
+        {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<Icon name="check" tone="white" size={23}/>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="spinner-ring"/>}</span></>:
         <button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button>}
        </div>:<button key={'empty'+i} className={'photo-slot photo-slot-add '+(i===0?'primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}>
         <Icon name={i===0?'camera':'plus'} tone="pink" size={i===0?31:23}/>{i===0&&<span>главное фото</span>}
