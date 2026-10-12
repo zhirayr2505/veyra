@@ -205,6 +205,14 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await page.locator('.veyra-interest-options button').first().click();
  await page.locator('.veyra-interest-options button').nth(1).click();
+ // Fill all twelve selections to verify the overflow badge stays inside the feed photo.
+ const chosen=page.locator('.veyra-interests-selected-grid button');
+ for(let group=0;group<14&&await chosen.count()<12;group++){
+  if(group>0)await page.locator('.veyra-interest-accordion-trigger').nth(group).click();
+  const remaining=page.locator('.veyra-interest-accordion-item.expanded .veyra-interest-options button:not(.selected)');
+  while(await chosen.count()<12&&await remaining.count()>0)await remaining.first().click();
+ }
+ await expect(chosen).toHaveCount(12);
  await page.getByRole('button',{name:'далее'}).click();
  await expect(page.getByRole('heading',{name:'Немного о себе'})).toBeVisible();
  await page.getByRole('textbox',{name:'О себе'}).fill('Люблю музыку 🎵 и путешествия');
@@ -212,7 +220,8 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await page.getByRole('button',{name:'к фотографиям'}).click();
  await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
  await expect(page.getByRole('button',{name:'добавь ещё 3 фото'})).toBeEnabled();
- await expect(page.locator('.photo-slot')).toHaveCount(7);
+ await expect(page.locator('.photo-slot')).toHaveCount(1);
+ await expect(page.locator('.photo-slot-add')).toHaveCount(1);
  await expect(page.locator('.photo-slot.primary')).toHaveCount(1);
  const png=await sharp({create:{width:120,height:120,channels:3,background:{r:238,g:131,b:155}}}).png().toBuffer();
  const files=Array.from({length:8},(_,i)=>({name:'test'+i+'.png',mimeType:'image/png',buffer:png}));
@@ -222,6 +231,7 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await expect(page.locator('.photo-make-main')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'посмотреть анкету'})).toBeEnabled();
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(7);
+ await expect(page.locator('.photo-slot-add')).toHaveCount(0);
  const dragged=page.locator('.photo-slot').nth(1),drop=page.locator('.photo-slot').nth(3);
  const firstRect=await dragged.boundingBox(),targetRect=await drop.boundingBox();
  await page.mouse.move(firstRect.x+firstRect.width/2,firstRect.y+firstRect.height/2);
@@ -239,6 +249,12 @@ test('VEYRA eight-step onboarding verifies location, bio and 3-7 reordered photo
  await expect(page.locator('.preview-gallery-slide')).toHaveCount(3);
  await expect(page.locator('.preview-dots button')).toHaveCount(7);
  await expect(page.locator('.preview-card-chips .veyra-interest-inline-chip')).toHaveCount(2);
+  await expect(page.locator('.preview-card-chips .veyra-interest-more')).toContainText('+10 ещё');
+  const fits=await page.locator('.preview-card-chips .veyra-interest-more').evaluate(el=>{
+   const a=el.getBoundingClientRect(),frame=el.closest('.preview-gallery').getBoundingClientRect();
+   return a.left>=frame.left&&a.right<=frame.right&&a.top>=frame.top&&a.bottom<=frame.bottom;
+  });
+  expect(fits).toBe(true);
  await expect(page.locator('.preview-gallery-slide').nth(1).locator('img')).toBeVisible({timeout:30000});
  await expect.poll(async()=>page.locator('.preview-gallery-slide').nth(1).locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
  const gallery=await page.locator('.preview-gallery').boundingBox();
@@ -336,7 +352,11 @@ test('New registration has a pinned CTA and working location edit + interests',a
   await expect(bio).toHaveValue('💜');
   await page.getByRole('button',{name:'Закрыть эмодзи'}).click();
   await bio.fill('😃'.repeat(260));
-  expect([...await bio.inputValue()].length).toBe(257);
+  expect([...await bio.inputValue()].length).toBe(250);
+  await expect(page.locator('.veyra-bio-limit-bubble')).toContainText('Максимум 250 символов');
+  await page.getByRole('button',{name:'к фотографиям'}).click();
+  await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
+  await expect(page.locator('.photo-slot-add')).toHaveCount(1);
 });
 
 test('City set manually can be corrected via device location without a navigation',async({page,context})=>{

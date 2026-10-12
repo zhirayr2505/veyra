@@ -32,3 +32,9 @@
 @keyframes veyraEmojiPop{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 @media(max-height:700px){.veyra-bio-step{gap:8px}.veyra-bio-intro p{display:none}.veyra-bio-editor textarea{height:126px!important;min-height:126px!important}.veyra-bio-inspiration{padding:10px}}
 @media(prefers-reduced-motion:reduce){.veyra-bio-emoji-panel{animation:none}}
+
+/* Compact name-field-like note when the bio limit is exceeded. */
+.veyra-bio-limit-bubble{width:max-content;max-width:100%;margin:1px 0 1px auto;position:relative;background:#F0E4FF;border:1px solid #DCC4FB;color:#6C36BA;border-radius:13px;padding:9px 12px;box-shadow:0 6px 16px #7243A629;font-size:11px;font-weight:750;line-height:1.35;animation:veyraBioLimitIn .17s ease-out}
+.veyra-bio-limit-bubble:before{content:"";position:absolute;top:-6px;right:22px;width:9px;height:9px;background:#F0E4FF;border-top:1px solid #DCC4FB;border-left:1px solid #DCC4FB;transform:rotate(45deg)}
+@keyframes veyraBioLimitIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.veyra-bio-limit-bubble{animation:none}}

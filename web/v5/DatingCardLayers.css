@@ -92,3 +92,11 @@
 .veyra-card-top-goal .veyra-card-goal-text{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .veyra-card-caption .veyra-card-tags>.veyra-interest-inline{width:100%;max-width:100%;max-height:58px;flex-wrap:wrap;overflow:hidden}
 @media(max-width:360px){.veyra-card-goal-badge.veyra-card-top-goal{right:9px;max-width:52%;font-size:9px}}
+
+/* Two interest chips, then one always-visible +N control: prevent wrapping under frame. */
+.veyra-card-caption .veyra-card-tags{max-width:100%;min-width:0;overflow:visible!important}
+.veyra-card-caption .veyra-card-tags>.veyra-interest-inline{box-sizing:border-box;display:flex!important;align-items:center!important;width:100%;max-width:100%!important;min-width:0;flex-wrap:nowrap!important;gap:5px!important;height:30px;max-height:30px!important;overflow:hidden!important}
+.veyra-card-caption .veyra-card-tags .veyra-interest-inline-chip{flex:0 1 auto;min-width:0;max-width:40%!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis!important}
+.veyra-card-caption .veyra-card-tags .veyra-interest-inline-chip:nth-of-type(2){flex:1 1 auto;max-width:unset!important}
+.veyra-card-caption .veyra-card-tags .veyra-interest-more{flex:0 0 auto;min-width:max-content;max-width:none!important;display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap;position:relative;z-index:1;padding:5px 10px!important;background:#9868E9F2!important;border:1px solid #E9D9FFB3!important;border-radius:99px}
+@media(max-width:360px){.veyra-card-caption .veyra-card-tags .veyra-interest-inline-chip{max-width:35%!important}.veyra-card-caption .veyra-card-tags .veyra-interest-more{padding-inline:7px!important}}

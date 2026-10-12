@@ -12,7 +12,8 @@ import './Registration2026.css';
 import {LegalScreen} from './Legal.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 
-const MAX_PHOTOS=7,MIN_PHOTOS=3;
+const MAX_PHOTOS=7,MIN_PHOTOS=3,MAX_BIO=250;
+const truncateBio=value=>Array.from(String(value||'')).slice(0,MAX_BIO).join('');
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
 const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:'',languages:[],prompts:[],height_cm:null};
@@ -28,7 +29,7 @@ export function Registration({me,refresh}){
  const savedStep=me?.registration?.step||1;
  const initialStep=start.registration_ui_version===3?savedStep:start.registration_ui_version===2?(savedStep>=7?8:savedStep):1; // Resume legacy drafts on their matching new step.
  const [step,setStep]=useState(Math.min(8,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
- const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10)});
+ const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10),bio:truncateBio(start.bio??me?.profile?.bio??'')});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
@@ -68,7 +69,7 @@ export function Registration({me,refresh}){
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
   return()=>{alive=false;clearTimeout(timer)};
  },[query,cityEdit]);
- const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message);
+ const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message==='BIO_TOO_LONG'?'Максимум 250 символов в описании. Сократи текст.':e.message);
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{
   if(step===1){if(f.name.trim().length<2)throw Error('Имя должно содержать минимум 2 буквы');if(!consent)throw Error('Прими условия использования и политику конфиденциальности')}
@@ -78,7 +79,7 @@ export function Registration({me,refresh}){
  };
 
  const go=(n,dir)=>{setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
- const next=()=>work(async()=>{valid();const data={...f,min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
+ const next=()=>work(async()=>{valid();const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
   go(step+1,'forward');
  });
@@ -203,8 +204,8 @@ export function Registration({me,refresh}){
      <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 7':photos.length<MIN_PHOTOS?photos.length+' из 7 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 7 · Можно посмотреть анкету'}</span>
       <p className="tip">Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
-     {Array.from({length:MAX_PHOTOS},(_,i)=>{const item=display[i],loading=!!item?.file;
-      return item?<div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
+     {display.map((item,i)=>{const loading=!!item?.file;
+      return <div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
        onContextMenuCapture={e=>e.preventDefault()} onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
        onPointerMove={dragMove} onPointerUp={dragFinish} onPointerCancel={dragCancel}
        tabIndex={!loading?0:-1} aria-label={'Фотография '+(i+1)+', перетащи для смены позиции'}
@@ -213,9 +214,8 @@ export function Registration({me,refresh}){
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
         {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':'загрузка'}</small></span></span>}</span></>:
         <><button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
-       </div>:<button key={'empty'+i} className={'photo-slot photo-slot-add '+(i===0?'primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}>
-        <Icon name={i===0?'camera':'plus'} tone="pink" size={i===0?31:23}/>{i===0&&<span>главное фото</span>}
-       </button>})}
+       </div>})}
+     {uploaded.length<MAX_PHOTOS&&<button type="button" aria-label="Добавить фото" className={'photo-slot photo-slot-add'+(uploaded.length===0?' primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}><Icon name="plus" tone="pink" size={30}/></button>}
     </div>
     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
 
