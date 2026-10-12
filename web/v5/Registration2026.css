@@ -508,3 +508,8 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main{position:absolute!important;top:7px!important;left:7px!important;z-index:9!important;width:29px;height:29px;min-height:0!important;border:1px solid #FFFFFFAB!important;border-radius:10px!important;background:#FFFFFFE9!important;display:grid;place-items:center;padding:0!important;box-shadow:0 3px 9px #2A174A2A}
 .v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main:active{transform:scale(.93)}
 .v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main .kit-icon{width:15px;height:15px}
+
+/* One photo add control; gallery grows naturally and can scroll under the pinned CTA. */
+.v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout){overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:38px!important}
+.v2-onboarding .veyra-registration-2026 .photo-layout{align-items:stretch!important;padding-bottom:24px;grid-auto-flow:row}
+.v2-onboarding .veyra-registration-2026 .photo-layout .photo-slot-add{display:flex;align-items:center;justify-content:center;border:1.5px dashed #B698F4!important;background:#F1E8FF!important}
