@@ -100,6 +100,7 @@ const mergeMessages=(existing,incoming)=>{
  return [...byId.values()].filter(x=>x.created_at).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)||String(a.id).localeCompare(String(b.id)));
 };
 export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
+ const archived=!!partner?.deleted;
  const [messages,setMessages]=useState([]),[gifts,setGifts]=useState([]),[body,setBody]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[before,setBefore]=useState(null),[more,setMore]=useState(false);
  const [stickerMode,setStickerMode]=useState(false),[stickers,setStickers]=useState([]),[selected,setSelected]=useState(null),[reply,setReply]=useState(null);
@@ -251,9 +252,9 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
  return <div className="conversation ve-conversation" ref={frame}>
   <header className="conversation-head">
    <button type="button" onClick={onBack} aria-label="Назад" className="quiet"><Icon name="back"/></button>
-   <button type="button" className="chat-user" onClick={()=>onProfile(partner?.id,matchId)}>
+   <button type="button" className="chat-user" disabled={archived} onClick={()=>!archived&&onProfile(partner?.id,matchId)}>
     <span className="ve-avatar-wrap"><Photo id={partner?.photos?.[0]} className="mini-avatar"/>{online&&<i className="ve-online-dot" aria-label="В сети"/>}</span>
-    <span><b>{partner?.name||'Собеседник'}{partner?.age?', '+partner.age:''}</b><small className={typing?'ve-typing-status':''}>{typing?'печатает…':online?'в сети':'не в сети'}</small></span>
+    <span><b>{partner?.name||'Собеседник'}{partner?.age?', '+partner.age:''}</b><small className={typing?'ve-typing-status':''}>{archived?'Переписка сохранена':typing?'печатает…':online?'в сети':'не в сети'}</small></span>
    </button>
    <button type="button" className="quiet ve-header-more" title="Дополнительно" aria-label="Меню переписки" onClick={()=>setMenu(true)}><Icon name="more"/></button>
   </header>
@@ -294,14 +295,14 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
   {reply&&<div className="reply-composer"><span><b><DetailIcon name="reply" size={16}/> Ответ на сообщение</b><small>{reply.body||'Фото или стикер'}</small></span><button type="button" aria-label="Отменить ответ" onClick={()=>setReply(null)}><Icon name="close" size={17}/></button></div>}
   {stickerMode&&<div className="sticker-tray">{stickers.map(st=><button type="button" key={st.id} title={st.label} disabled={busy} onClick={()=>sendSticker(st)}><img loading="lazy" src={st.src} alt={st.label}/></button>)}</div>}
   {attachments&&<div className="ve-attachment-tray"><button type="button" onClick={()=>photoInput.current?.click()}><Icon name="camera" tone="pink"/> Фото</button><button type="button" onClick={()=>{setStickerMode(v=>!v);setAttachments(false)}}><Icon name="sparkle" tone="pink"/> Стикеры</button><button type="button" onClick={()=>{setAttachments(false);onGift(partner)}}><Icon name="gift" tone="pink"/> Подарок</button></div>}
-  <form className="message-composer ve-message-composer" onSubmit={send}>
+  {archived?<div className="ve-archive-note" role="status"><Icon name="info" tone="pink" size={19}/> Аккаунт удалён. История сообщений доступна только для чтения.</div>:<form className="message-composer ve-message-composer" onSubmit={send}>
    <button className="ve-composer-plus" type="button" title="Вложения" aria-label="Вложения" onClick={()=>{haptic();setAttachments(v=>!v)}}><Icon name="plus" tone="white" size={23}/></button>
    <input ref={input} maxLength={2000} placeholder="Написать сообщение…" value={body} onChange={onTyping} aria-label="Сообщение"/>
    <button className="ve-composer-tool" type="button" title="Отправить фото" onClick={()=>photoInput.current?.click()}><Icon name="camera" size={22}/></button>
    <button className="ve-composer-tool" type="button" title="Отправить подарок" onClick={()=>onGift(partner)}><Icon name="gift" size={22}/></button>
    <button className="ve-composer-send" disabled={!body.trim()||busy} title="Отправить" type="submit"><Icon name="send" tone="white" size={22}/></button>
    <input type="file" hidden ref={photoInput} onChange={sendPhoto} accept="image/jpeg,image/png,image/webp"/>
-  </form>
+  </form>}
   {selected&&<Sheet title="Сообщение" onClose={()=>setSelected(null)}>
    {!selected.deleted&&<div className="ve-emoji-reactions">{['❤️','😍','🥰','😂','🔥','👍'].map(emoji=><button type="button" key={emoji} onClick={()=>chooseReaction(emoji)}>{emoji}</button>)}</div>}
    {!selected.deleted&&<button className="menu-item" onClick={()=>{setReply(selected);setSelected(null);input.current?.focus()}}><DetailIcon name="reply" size={18}/> Ответить</button>}

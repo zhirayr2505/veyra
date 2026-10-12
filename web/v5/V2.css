@@ -222,3 +222,5 @@ body,#root{background:var(--milk);color:var(--ink)}
 .veyra-v2 .feed-content{overflow:visible!important}
 .veyra-v2 .v2-encounters-view{min-height:0}
 @media(max-height:700px){.veyra-v2 .feed-photo{height:clamp(255px,calc(100dvh - 300px),460px)!important;max-height:52dvh!important}.veyra-v2 .feed-actions{min-height:64px}}
+
+.ve-archive-note{margin:8px 15px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:9px;background:#F0E8FC;border:1px solid #DAC9F4;border-radius:18px;color:#7252B2;padding:13px 15px;font-size:12px;font-weight:730;text-align:center;line-height:1.4}.ve-conversation .chat-user:disabled{opacity:1;cursor:default}
