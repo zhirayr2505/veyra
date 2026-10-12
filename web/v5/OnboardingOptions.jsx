@@ -8,8 +8,10 @@ export const GOALS=[
  {value:'dating',title:'Свидания',subtitle:'Знакомиться, встречаться и узнавать друг друга',icon:'flirt'},
  {value:'friends',title:'Общение',subtitle:'Новые люди и интересные разговоры',icon:'chats'},
  {value:'unsure',title:'Пока не определился',subtitle:'Посмотрим, куда приведёт знакомство',icon:'sparkle'},
- {value:'friendship',title:'Дружба',subtitle:'Найти близких по духу друзей',icon:'everyone'},
- {value:'flirt',title:'Лёгкий флирт',subtitle:'Лёгкость, улыбки и взаимная симпатия',icon:'flirt'}
+ {value:'friendship',title:'Новые друзья',subtitle:'Найти близких по духу людей',icon:'everyone'},
+ {value:'flirt',title:'Лёгкий флирт',subtitle:'Лёгкость, улыбки и взаимная симпатия',icon:'flirt'},
+ {value:'casual',title:'Свободные отношения',subtitle:'Честное знакомство без обязательств',icon:'sparkle'},
+ {value:'travel',title:'Компания для путешествий',subtitle:'Исследовать мир вместе',icon:'everyone'}
 ];
 export const goalTitle=value=>GOALS.find(x=>x.value===value)?.title||'Пока не определился';
 export const INTEREST_GROUPS=[
@@ -66,7 +68,7 @@ export const profileCompletion=(p,photoCount=0)=>{
  const checks=[!!p?.name,!!p?.city,photoCount>=3,!!p?.goal,(p?.interests||[]).length>=3,(p?.languages||[]).length>0,!!p?.bio?.trim(),(p?.prompts||[]).some(x=>x.answer?.trim())];
  return Math.round(checks.filter(Boolean).length/checks.length*100);
 };
-export function GoalPicker({value,onChange}){return <div className="veyra-goal-list" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><button type="button" key={goal.value} className={'veyra-goal-choice '+(value===goal.value?'is-active':'')} aria-pressed={value===goal.value} onClick={()=>onChange(goal.value)}><span className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={25}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></button>)}</div>;}
+export function GoalPicker({value,onChange}){return <div className="veyra-goal-list veyra-goal-list-v9" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><button type="button" key={goal.value} className={'veyra-goal-choice '+(value===goal.value?'is-active':'')} aria-pressed={value===goal.value} onClick={()=>onChange(goal.value)}><span key={value===goal.value?goal.value+'-on':goal.value+'-off'} className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={26}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></button>)}</div>;}
 export function InterestPicker({value=[],onChange,max=12}){
  const [search,setSearch]=useState(''),[category,setCategory]=useState(INTEREST_GROUPS[0].title),[limitMessage,setLimitMessage]=useState(false),[showAll,setShowAll]=useState(false);
   const selectCategory=(e,title)=>{

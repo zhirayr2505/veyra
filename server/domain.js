@@ -10,7 +10,7 @@ export async function notifyReview(q,env,userId){
  if(!p)return;
  const photos=(await q.query('SELECT id FROM photos WHERE user_id=$1 ORDER BY position,created_at LIMIT 7',[userId])).rows;
  const answers=(Array.isArray(p.prompts)?p.prompts:[]).filter(item=>item?.answer).map(item=>item.key+': '+String(item.answer).slice(0,180)).join('\n');
- const goals={relationship:'Серьёзные отношения',dating:'Свидания',friends:'Общение',unsure:'Не определился',friendship:'Дружба',flirt:'Лёгкий флирт'};
+ const goals={relationship:'Серьёзные отношения',dating:'Свидания',friends:'Общение',unsure:'Не определился',friendship:'Новые друзья',flirt:'Лёгкий флирт',casual:'Свободные отношения',travel:'Компания для путешествий'};
  const text=[
  '💜 VEYRA · новая заявка на модерацию',
  'ID: '+p.user_id+' · версия '+p.revision,

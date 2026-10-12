@@ -54,8 +54,8 @@ export function createApp({db,env,redis,storage,tg,geo,registrationReset,testPro
    const p=await one(q,'SELECT * FROM profiles WHERE user_id=$1 FOR UPDATE',[req.user.id]);
    if(!p||p.moderation!=='pending')fail(409,'PROFILE_NOT_PENDING');
    const changed=await one(q,"UPDATE profiles SET moderation='draft',moderation_reason=NULL,revision=revision+1,updated_at=now() WHERE user_id=$1 RETURNING revision",[req.user.id]);
-   const data={...p,registration_ui_version:2,consent_to_terms:true,birth_date:String(p.birth_date instanceof Date?p.birth_date.toISOString():p.birth_date).slice(0,10)};
-   await q.query('INSERT INTO registration_drafts(user_id,step,data) VALUES($1,7,$2) ON CONFLICT(user_id) DO UPDATE SET step=7,data=$2,updated_at=now()',[req.user.id,JSON.stringify(data)]);
+   const data={...p,registration_ui_version:3,consent_to_terms:true,birth_date:String(p.birth_date instanceof Date?p.birth_date.toISOString():p.birth_date).slice(0,10)};
+   await q.query('INSERT INTO registration_drafts(user_id,step,data) VALUES($1,8,$2) ON CONFLICT(user_id) DO UPDATE SET step=8,data=$2,updated_at=now()',[req.user.id,JSON.stringify(data)]);
    await q.query("UPDATE outbox SET delivered_at=now() WHERE bot='admin' AND delivered_at IS NULL AND payload->>'review_user_id'=$1",[String(req.user.id)]);
    const messages=(await q.query('SELECT chat_id,message_id FROM review_bot_messages WHERE user_id=$1',[req.user.id])).rows;
    for(const msg of messages)await q.query('INSERT INTO outbox(id,bot,recipient,payload) VALUES($1,$2,$3,$4)',[randomUUID(),'admin',msg.chat_id,JSON.stringify({action:'deleteMessage',message_id:msg.message_id})]);
