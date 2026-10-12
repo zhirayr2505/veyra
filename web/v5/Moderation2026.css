@@ -1,0 +1,36 @@
+
+.v2-onboarding .veyra-moderation-finish{position:relative;display:flex;flex-direction:column;overflow:hidden;min-height:100dvh;max-width:560px;margin:0 auto;padding:calc(17px + env(safe-area-inset-top)) 23px calc(18px + env(safe-area-inset-bottom));background:radial-gradient(ellipse 115% 60% at 50% 38%,#EFE5FF,#FBF8FF 75%);color:#292033;box-sizing:border-box}
+.v2-onboarding .veyra-finish-brand{display:flex;justify-content:center}
+.v2-onboarding .veyra-finish-shine{position:relative;overflow:hidden;width:161px;height:63px;display:grid;place-items:center;border-radius:13px}
+.v2-onboarding .veyra-finish-shine .logo{width:161px;height:auto;object-fit:contain}
+.v2-onboarding .veyra-finish-shine:after{content:"";position:absolute;inset:-50%;pointer-events:none;background:linear-gradient(110deg,transparent 35%,#FFFFFFCC 50%,transparent 65%);mix-blend-mode:screen;transform:translateX(-140%) rotate(-13deg);animation:veyraFinishShine 5.6s ease-in-out infinite}
+.v2-onboarding .veyra-finish-center{display:flex;flex:1;flex-direction:column;align-items:center;text-align:center;justify-content:center;padding:34px 0 20px}
+.v2-onboarding .veyra-finish-hero{position:relative;width:220px;height:205px;display:grid;place-items:center;margin-bottom:9px}
+.v2-onboarding .veyra-finish-halo{position:absolute;width:172px;height:172px;border-radius:50%;background:radial-gradient(circle,#DDD0FA 0%,#E7DBFE 55%,#F2ECFF 65%,transparent 71%);box-shadow:0 0 0 15px #AE8AF615;animation:veyraHalo 3.1s ease-in-out infinite}
+.v2-onboarding .veyra-finish-mark{position:relative;z-index:1;display:grid;place-items:center;width:115px;height:115px;border-radius:39px;background:linear-gradient(145deg,#B38CFF,#8952F0);box-shadow:0 15px 36px #7851D84D,inset 0 2px 3px #FFFFFF75;transform:rotate(-6deg);animation:veyraMarkArrive .75s cubic-bezier(.2,1.4,.3,1) both}
+.v2-onboarding .veyra-finish-mark .kit-icon{width:60px;height:60px;animation:veyraTickDraw .65s ease .5s both}
+.v2-onboarding .veyra-finish-star{position:absolute;z-index:2;width:12px;height:12px;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);background:#9165F2;animation:veyraStarFloat 3s ease-in-out infinite}
+.v2-onboarding .veyra-finish-star.star-one{left:15%;top:27%;width:13px;height:13px;animation-delay:.3s}
+.v2-onboarding .veyra-finish-star.star-two{right:10%;top:18%;width:17px;height:17px;background:#B8A0F9;animation-delay:.9s}
+.v2-onboarding .veyra-finish-star.star-three{left:20%;bottom:14%;width:8px;height:8px;animation-delay:.2s}
+.v2-onboarding .veyra-finish-star.star-four{right:17%;bottom:20%;width:12px;height:12px;background:#C5B0F5;animation-delay:1.4s}
+.v2-onboarding .veyra-finish-star.star-five{right:34%;top:2%;width:7px;height:7px;animation-delay:1.1s}
+.v2-onboarding .veyra-finish-center h1{font-size:clamp(26px,7vw,33px);color:#292033;margin:10px 0 13px;letter-spacing:-.8px;font-weight:840}
+.v2-onboarding .veyra-finish-center>p{color:#776F88;font-size:14px;line-height:1.7;margin:0 auto 26px;max-width:385px}
+.v2-onboarding .veyra-finish-status{width:100%;display:flex;align-items:center;text-align:left;gap:13px;padding:17px;background:white;border:1px solid #E8DDF5;border-radius:23px;box-shadow:0 10px 26px #5B39900D;box-sizing:border-box}
+.v2-onboarding .veyra-finish-status-icon{display:grid;place-items:center;flex:none;width:45px;height:45px;border-radius:15px;background:#F1EAFF}
+.v2-onboarding .veyra-finish-status>span:nth-child(2){flex:1;display:grid;gap:5px}
+.v2-onboarding .veyra-finish-status small{font-size:11px;color:#8C8398}
+.v2-onboarding .veyra-finish-status strong{color:#292033;font-size:14px}
+.v2-onboarding .veyra-finish-status-pulse{width:9px;height:9px;border-radius:50%;background:#9165F2;box-shadow:0 0 0 5px #9165F217;animation:veyraDot 2.4s ease-in-out infinite}
+.v2-onboarding .veyra-finish-telegram{display:flex;align-items:center;justify-content:center;gap:9px;color:#7F65BD;font-size:12px;margin-top:21px}
+.v2-onboarding .veyra-finish-actions{display:grid;gap:12px;margin-top:auto}
+.v2-onboarding .veyra-finish-actions .btn{min-height:55px;background:linear-gradient(115deg,#A17DF8,#8D5BEF);border:0;border-radius:19px;color:white;font-weight:780;box-shadow:0 10px 25px #9165F22A}
+.v2-onboarding .veyra-finish-refresh{border:0;background:none;display:flex;align-items:center;justify-content:center;gap:8px;color:#7F6A99;padding:12px;font-size:12px;font-weight:700}
+@keyframes veyraFinishShine{0%,20%{transform:translateX(-140%) rotate(-13deg)}48%,100%{transform:translateX(140%) rotate(-13deg)}}
+@keyframes veyraMarkArrive{0%{transform:translateY(25px) scale(.65) rotate(-18deg);opacity:0}100%{transform:translateY(0) scale(1) rotate(-6deg);opacity:1}}
+@keyframes veyraTickDraw{0%{transform:scale(.3) rotate(-15deg);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes veyraHalo{50%{transform:scale(1.08);opacity:.75}}
+@keyframes veyraStarFloat{50%{transform:translateY(-8px) rotate(30deg);opacity:.6}}
+@keyframes veyraDot{50%{box-shadow:0 0 0 9px #9165F20F}}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-moderation-finish :is(.veyra-finish-shine:after,.veyra-finish-mark,.veyra-finish-halo,.veyra-finish-mark .kit-icon,.veyra-finish-star,.veyra-finish-status-pulse){animation:none}}
