@@ -39,7 +39,8 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
  app.put('/api/registration/profile',async(req,res)=>{
   const p=parse(profileFields.refine(p=>p.max_age>=p.min_age),req.body);
   const finalStep=req.body?.registration_ui_version===2?7:6;
-  await db.tx(async q=>{await saveProfile(q,req.user.id,p);await q.query(`INSERT INTO registration_drafts(user_id,step,data) VALUES($1,${finalStep},$2) ON CONFLICT(user_id) DO UPDATE SET step=${finalStep},data=$2,updated_at=now()`,[req.user.id,JSON.stringify(p)]);});res.json({ok:true});
+  const draftProfile=finalStep===7?{...p,registration_ui_version:2,consent_to_terms:true}:p;
+  await db.tx(async q=>{await saveProfile(q,req.user.id,p);await q.query(`INSERT INTO registration_drafts(user_id,step,data) VALUES($1,${finalStep},$2) ON CONFLICT(user_id) DO UPDATE SET step=${finalStep},data=$2,updated_at=now()`,[req.user.id,JSON.stringify(draftProfile)]);});res.json({ok:true});
  });
  app.put('/api/photos/order',async(req,res)=>{
   const {ids}=parse(z.object({ids:z.array(uuid).min(1).max(7)}),req.body);
