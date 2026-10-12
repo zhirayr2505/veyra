@@ -90,3 +90,14 @@
 .discover.screen.discover-embedded{padding:0 0 8px;min-height:0;max-width:none;background:transparent;overflow:visible}
 .discover.discover-embedded .feed-photo{height:clamp(320px,calc(100dvh - 294px - env(safe-area-inset-top) - env(safe-area-inset-bottom)),670px)}
 @media(max-height:690px){.discover.discover-embedded .feed-photo{height:clamp(288px,calc(100dvh - 260px - env(safe-area-inset-top)),485px)}}
+
+
+/* Feed and registration preview share the same gentle shade and UI layers. */
+.discover .feed-photo::after{content:none!important;display:none!important}
+.discover .feed-photo .veyra-card-shade{z-index:1}
+.discover .feed-photo .veyra-card-photo-bars{top:12px;left:13px;right:13px;z-index:7}
+.discover .feed-photo .veyra-card-caption{bottom:15px;left:14px;right:16px;gap:6px!important}
+.discover .feed-photo .veyra-card-caption .feed-location{margin:0;font-size:12px}
+.discover .feed-photo .veyra-card-caption .hero-tags{margin-top:3px}
+.discover .feed-photo .veyra-card-name-row{max-width:100%}
+.discover .feed-photo .veyra-card-name-row .hero-name{max-width:calc(100% - 32px)}
