@@ -11,7 +11,9 @@ after(()=>db.close());
 test('moderation card delivers private photo as binary to owner, with revision-bound action',async()=>{
  await db.tx(q=>notifyReview(q,env,'51'));
  const calls=[];await drainOutbox({...deps(db),tg:async(...args)=>calls.push(args)});
- assert.equal(calls.length,1);const[bot,method,body]=calls[0];
+ assert.equal(calls.length,3);const[bot,method,body]=calls[0];
+ assert.deepEqual(calls.map(call=>call[1]),['sendPhoto','sendPhoto','sendPhoto']);
+ assert.equal(calls[1][2].caption.includes('фото 2 из 3'),true);
  assert.equal(bot,'admin');assert.equal(method,'sendPhoto');assert.equal(String(body.chat_id),env.OWNER_TELEGRAM_ID);
  assert.ok(Buffer.isBuffer(body.photo));assert.match(body.caption,/User 51/);
  assert.equal(body.reply_markup.inline_keyboard[1][0].callback_data,'approve:51:1');

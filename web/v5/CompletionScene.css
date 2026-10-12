@@ -133,3 +133,16 @@
  .v2-onboarding .vc-screen .vc-status{min-height:56px!important}
  .v2-onboarding .vc-screen .vc-close-btn{min-height:47px!important}
 }
+
+/* Reviewed profile actions, designed to fit short Android WebView heights. */
+.vc-actions .vc-preview-btn{min-height:48px;width:100%;border:0;border-radius:100px;background:linear-gradient(95deg,#B294FC,#7330ED);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+.vc-screen--pending .vc-actions:has(.vc-preview-btn) .vc-close-btn{background:#fff!important;color:#773FE5!important;border:1px solid #E4D4FA!important;box-shadow:none!important}
+.vc-footer-links{display:flex;align-items:center;justify-content:center;gap:14px}
+.vc-footer-links .vc-refresh-btn{flex:1;color:#7540DD!important;font-weight:700;font-size:12px!important;min-height:31px!important}
+.vc-feedback-error{color:#AD426C;font-size:12px;text-align:center;margin:1px}
+.v2-onboarding .vc-screen .vc-art:has(.vc-crystal){height:clamp(108px,24dvh,195px)!important;max-height:195px!important}
+.v2-onboarding .vc-screen .vc-copy{gap:5px!important}
+.v2-onboarding .vc-screen .vc-telegram-hint{margin:1px auto!important}
+.v2-onboarding .vc-screen .vc-status{min-height:61px!important}
+.v2-onboarding .vc-screen .vc-actions{gap:7px!important}
+@media(max-height:730px){.v2-onboarding .vc-screen .vc-art:has(.vc-crystal){height:clamp(98px,20dvh,143px)!important}.vc-actions .vc-preview-btn{min-height:43px}.v2-onboarding .vc-screen .vc-close-btn{min-height:45px!important}}

@@ -72,7 +72,7 @@ export function CompletionArt({kind='pending'}){
  </div>;
 }
 
-export function CompletionScreen({kind='pending',reason='',onClose,onRefresh}){
+export function CompletionScreen({kind='pending',reason='',onClose,onRefresh,onPreview,onEdit,busy=false,error=''}){
  const [checking,setChecking]=useState(false);
  const deleted=kind==='deleted',rejected=kind==='rejected',pending=!deleted&&!rejected;
  const close=()=>{if(onClose){onClose();return;}const tg=window.Telegram?.WebApp;
@@ -92,8 +92,10 @@ export function CompletionScreen({kind='pending',reason='',onClose,onRefresh}){
    <div className="vc-status" role="status"><div className="vc-status-icon"><Icon name={deleted?'broken_heart':rejected?'info':'verified'} tone="pink" size={29}/></div><div className="vc-status-info"><span>Статус</span><strong>{status}</strong></div>{pending&&<span className="vc-status-dot" aria-hidden="true"/>}</div>
   </section>
   <footer className="vc-actions">
+   {!deleted&&onPreview&&<button type="button" className="vc-preview-btn" onClick={onPreview}><Icon name="user" tone="white" size={19}/> Посмотреть профиль</button>}
    <button type="button" className="vc-close-btn" onClick={close}>{deleted?'Выйти из приложения':'Закрыть приложение'}</button>
-   {!deleted&&<button type="button" className="vc-refresh-btn" disabled={checking} onClick={refresh}>{checking?'Проверяем…':'Обновить статус'}</button>}
+   {!deleted&&<div className="vc-footer-links"><button type="button" className="vc-refresh-btn" disabled={checking} onClick={refresh}>{checking?'Проверяем…':'Обновить статус'}</button>{onEdit&&<button type="button" className="vc-refresh-btn" disabled={busy} onClick={onEdit}>{busy?'Открываем…':'Изменить анкету'}</button>}</div>}
+   {error&&<p role="alert" className="vc-feedback-error">{error}</p>
   </footer>
  </main>;
 }
