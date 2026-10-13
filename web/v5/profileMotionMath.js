@@ -37,6 +37,7 @@ export function profileFrame(progress,width,height,compactHeight=292){
  return {
   ...frame,
   sheetY:mix(expandedPanelY,compactPanelY,sheet),
+  sheetLipOpacity:1-segment(p,.13,.33),
   backdropOpacity:segment(p,.40,.94),
   nameX:xName,
   nameY:mix(nameFrom,nameTo,sheet),
