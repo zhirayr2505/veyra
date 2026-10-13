@@ -60,6 +60,7 @@ export function formatPerformanceSummary(metrics,{elapsedSec=0,longTaskCount=0,l
    'Motion JS frames >8.33ms: '+profile.framesOverBudget,
    'Profile geometry: '+profile.heroWidth+'×'+profile.heroHeight+'; collapse '+Math.round(profile.collapseDistance)+'px',
    'Profile recalibrations: '+profile.calibrations,
+   'Actions animation backend: '+profile.backend,
   ]:['Profile not open']),
   ...(samples.length?['FPS samples (newest last, 1 second cadence): '+samples.map(n=>n.toFixed(0)).join(', ')]:[]),
  ].join('\n');
