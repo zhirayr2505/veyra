@@ -142,7 +142,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-tab-page{
  background:#faf6ff!important;border:0!important;border-radius:0!important;
  width:100%;max-width:none;position:relative;z-index:2;overflow:hidden;
- min-height:calc(100dvh - 325px);padding:13px 16px 62px;margin:0;
+ min-height:calc(100dvh - var(--vx-profile-compact-height) - 52px + 260px);padding:13px 16px 62px;margin:0;
  box-sizing:border-box;
 }
 .veyra-v2 .vx-master-profile .vx-profile-section-body{gap:12px;animation:none}
