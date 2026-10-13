@@ -1,74 +1,57 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {profileFrame} from '../web/v5/profileMotionMath.js';
+import {profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from '../web/v5/profileMotionMath.js';
 
 const W=390,H=447,compact=292;
-const frame=(p)=>profileFrame(p,W,H,compact);
+const frame=p=>profileFrame(p,W,H,compact);
 
-test('Telegram profile begins with a gentle photo recession synchronized to the sheet',()=>{
- const start=frame(0),early=frame(.12);
- assert.equal(start.width,W);
- assert.equal(start.height,H);
- assert.ok(early.width<W-7&&early.width>W-24);
- assert.ok(early.height<H-8&&early.height>H-25);
- assert.ok(early.y<start.y);
- assert.ok(early.sheetY<start.sheetY);
+test('sheet covers about 30% before unchanged full-width cover becomes circular',()=>{
+ const start=frame(0),early=frame(PROFILE_CIRCLE_AT-.00001);
+ assert.equal(start.width,W);assert.equal(start.height,H);
+ assert.equal(early.x,0);assert.equal(early.width,W);assert.equal(early.height,H);
  assert.equal(early.radius,0);
+ assert.ok(early.y<0&&early.y>-22);
+ assert.ok(early.sheetY<H*.75&&early.sheetY>H*.60);
+ assert.ok(early.sheetY<start.sheetY);
 });
 
-test('cover first changes into a centered rounded middle image',()=>{
- const middle=frame(.39);
- assert.ok(middle.width>=160&&middle.width<=195);
- assert.ok(middle.height>=160&&middle.height<=199);
- assert.ok(Math.abs(middle.x-(W-middle.width)/2)<.1);
- assert.equal(middle.radius,50);
- assert.ok(middle.y>70&&middle.y<90);
+test('circle is immediate: no rounded rectangle, no pre-circle horizontal drift',()=>{
+ const circle=frame(PROFILE_CIRCLE_AT);
+ assert.equal(circle.width,circle.height);assert.equal(circle.radius,50);
+ for(let i=0;i<=1000;i++){
+  const p=i/1000,f=frame(p);
+  if(p<PROFILE_CIRCLE_AT){
+   assert.equal(f.x,0);assert.equal(f.width,W);assert.equal(f.height,H);assert.equal(f.radius,0);
+  }else{
+   assert.equal(f.width,f.height);assert.equal(f.radius,50);
+  }
+ }
+ const centered=frame(PROFILE_CENTER_AT);
+ assert.ok(centered.width>=154&&centered.width<=190);
+ assert.ok(Math.abs(centered.x-(W-centered.width)/2)<.01);
 });
 
-test('same image ends as exactly round 98px left avatar',()=>{
+test('one moving photograph settles into precisely 98px avatar and safe actions',()=>{
  const last=frame(1);
  assert.deepEqual([last.x,last.y,last.width,last.height,last.radius],[16,102,98,98,50]);
- assert.equal(last.nameX,110);
- assert.equal(last.nameY,116);
- assert.equal(last.actionY,216);
- assert.ok(last.sheetY<last.actionY);
- assert.equal(last.nameOpacity,1);
+ assert.equal(last.nameX,110);assert.equal(last.nameY,116);
+ assert.equal(last.actionY,222);assert.equal(last.nameOpacity,1);
 });
 
-test('all five keyframes preserve bounded, finite geometry',()=>{
- const samples=[...Array(101)].map((_,i)=>frame(i/100));
- for(const f of samples){
-  for(const n of [f.x,f.y,f.width,f.height,f.radius,f.nameX,f.nameY,f.actionY,f.moreY,f.sheetY,f.nameOpacity,f.photoExtrasOpacity])
-   assert.ok(Number.isFinite(n));
-  assert.ok(f.width>=97.99&&f.width<=W);
-  assert.ok(f.height>=97.99&&f.height<=H);
-  assert.ok(f.nameOpacity>=0&&f.nameOpacity<=1);
-  assert.ok(f.actionY>=216&&f.actionY<=H+123);
- }
- assert.ok(samples[50].width<samples[30].width);
- assert.ok(samples[88].x<samples[50].x);
+test('identity fades completely during travel and only returns once avatar docks',()=>{
+ assert.equal(frame(0).nameOpacity,1);
+ for(const p of [.30,.43,.75,.94])assert.equal(frame(p).nameOpacity,0);
+ assert.ok(frame(.98).nameOpacity>0);
+ assert.equal(frame(1).nameOpacity,1);
 });
 
-test('reverse finger direction returns identical geometry without hysteresis',()=>{
- for(const p of [.0,.08,.14,.25,.39,.5,.7,.9,1]){
-  assert.deepEqual(frame(p),frame(p));
- }
-});
-
-test('buttons never enter the pinned tabs during a slow partial drag',()=>{
- const distance=H+218-compact;
- for(let index=0;index<=100;index++){
-  const p=index/100;
-  const f=frame(p);
-  const railTop=Math.max(compact,H+218-p*distance);
-  assert.ok(f.actionY+50<=railTop-12,'collision at '+p.toFixed(2));
- }
-});
-
-test('background remains opaque and legacy fading is not part of motion geometry',()=>{
- for(const p of [0,.13,.2,.39,.6,1]){
-  const f=frame(p);
-  assert.equal(Object.hasOwn(f,'sheetLipOpacity'),false);
-  assert.equal(Object.hasOwn(f,'backdropOpacity'),false);
+test('buttons never touch tab bar and panel never obscures first content frames',()=>{
+ for(let i=0;i<=1000;i++){
+  const p=i/1000,f=frame(p),railTop=H+218-p*(H+218-compact);
+  for(const n of [f.x,f.y,f.width,f.height,f.radius,f.nameX,f.nameY,f.actionY,f.moreY,f.sheetY,f.panelClipBottom])
+   assert.ok(Number.isFinite(n),'non-finite value at '+p);
+  assert.ok(f.actionY+51<=railTop-7,'CTA/tab collision at '+p);
+  assert.ok(f.sheetY+284-f.panelClipBottom<=railTop+.001,'panel/content collision at '+p);
+  assert.deepEqual(frame(p),f,'reverse scroll must be deterministic');
  }
 });

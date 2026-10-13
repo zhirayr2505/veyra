@@ -1,4 +1,4 @@
-import {profileFrame} from './profileMotionMath.js';
+import {profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 
 // ScrollTimeline spans the full scrollable range. Scale the 0..1 collapse
 // progress to its actual distance, then hold the compact frame through
@@ -11,7 +11,7 @@ const fade=(p,a,b)=>{
 export const profileTranslate=(x,y)=>'translate3d('+x.toFixed(3)+'px,'+y.toFixed(3)+'px,0)';
 export function buildProfileScrollKeyframes(width,height,distance,maxScroll,compactHeight=292){
  const full=Math.max(1,maxScroll),limit=Math.min(1,Math.max(1,distance)/full);
- const points=[0,.14,.39,.78,.85,.9,1];
+ const points=[0,PROFILE_CIRCLE_AT-.002,PROFILE_CIRCLE_AT,PROFILE_CIRCLE_AT+.012,.365,.39,PROFILE_CENTER_AT,.78,.85,.9,.94,1];
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
  const tracks={hero:[],image:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],
@@ -21,7 +21,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   const transform=profileTranslate(f.x,f.y)+' scale('+scaleX.toFixed(7)+','+scaleY.toFixed(7)+')';
   tracks.hero.push({offset,transform});
   tracks.image.push({offset,transform:'scaleY('+(scaleX/scaleY).toFixed(7)+')'});
-  tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
+  tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30)),clipPath:'inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)'});
   tracks.lip.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
   tracks.identity.push({offset,transform:profileTranslate(f.nameX,f.nameY-(height+9)),opacity:f.nameOpacity});
   tracks.actions.push({offset,transform:profileTranslate(0,f.actionY-(height+123))});
@@ -34,7 +34,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   // Decorative layers only: the approved hero trajectory stays unchanged.
   tracks.blur.push({offset,opacity:fade(f.progress,.025,.23)});
   tracks.ring.push({offset,opacity:0}); // legacy fixed ring replaced by hero-attached rim
-  tracks.rim.push({offset,opacity:fade(f.progress,.23,.35)});
+  tracks.rim.push({offset,opacity:fade(f.progress,PROFILE_CIRCLE_AT-.004,PROFILE_CIRCLE_AT+.026)});
   tracks.onlineDot.push({offset,opacity:fade(f.progress,.85,1)});
   tracks.grabber.push({
    offset,

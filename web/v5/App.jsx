@@ -37,6 +37,7 @@ import './MemberMotionV2.css'; // Single authoritative profile layout and compos
 import './MemberReferencePolish.css'; // Approved exact-look profile surfaces and portrait-derived header
 import './MemberFinish.css'; // Opaque sheet, contextual photo backdrop, elastic feel and premium content
 import './MemberMotion5.css'; // Motion 5 brand, flags, attached avatar border, actions, accessible icon tabs
+import './MemberMotion6.css'; // Direct circle + spring/haptic, safe text and adaptive wordmark
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
