@@ -51,8 +51,10 @@ export function profileFrame(progress,width,height,compactHeight=292){
   photoExtrasOpacity:1-segment(p,.07,.19),
   compactOnlineOpacity:segment(p,.78,.97),
   shadeOpacity:1-segment(p,.12,.43),
-  goalX:-120*segment(p,.48,.90),
-  goalY:26*segment(p,.48,.90),
+  // Keep location and goal on the SAME line at both approved endpoints.
+  // Both follow the existing identity transform; no separate flight path.
+  goalX:0,
+  goalY:0,
   compactHeight:contentTop,
  };
 }
