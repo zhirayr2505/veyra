@@ -1,4 +1,4 @@
-import React,{useEffect,useRef} from 'react';
+import React,{useLayoutEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {Photo,Icon} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
@@ -24,7 +24,7 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
  const photos=person.photos||[];
  const hasGallery=photos.length>1;
 
- useEffect(()=>{
+ useLayoutEffect(()=>{
   if(!visible)return;
   const frame=frameRef.current,copy=textRef.current,controls=controlsRef.current;
   if(!frame||!copy||!stageRef.current)return;
