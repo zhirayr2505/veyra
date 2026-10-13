@@ -98,6 +98,7 @@ test('VEYRA pending approval displays animated crystal, genuine status and close
 test('VEYRA scheduled deletion shows in-app consent without deleting immediately',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await page.getByRole('tab',{name:'Ещё'}).click();
  await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
  await page.getByRole('button',{name:'удалить аккаунт'}).click();
  const dialog=page.getByRole('dialog',{name:'Удаление аккаунта VEYRA'});
@@ -152,6 +153,7 @@ test('V5 member uses full-screen navigation and returns to the same chat',async(
 test('V5 support requests use the real authenticated ticket API',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await page.getByRole('tab',{name:'Ещё'}).click();
  await page.locator('.own-shortcuts').getByRole('button',{name:'настройки'}).click();
  await page.getByRole('button',{name:/помощь и поддержка/}).click();
  await expect(page.getByRole('dialog',{name:'Поддержка VEYRA'})).toBeVisible();
@@ -632,7 +634,8 @@ test('VEYRA mobile QA: 320px screen, all five tabs, working wallet and no horizo
   expect(metrics.top,label+' bottom navigation').toBeGreaterThan(0);
   expect(metrics.bottom,label+' bottom navigation').toBeLessThanOrEqual(642);
  }
- await page.getByRole('button',{name:'Открыть кошелёк VEYS'}).click();
+ await page.getByRole('tab',{name:'Ещё'}).click();
+ await page.getByRole('button',{name:/Мой кошелёк VEYS/}).click();
  const wallet=page.getByRole('dialog',{name:'Мои VEYS'});
  await expect(wallet).toBeVisible();
  await expect(wallet.locator('.veys-balance-card')).toBeVisible();
@@ -997,8 +1000,8 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  await expect(rail.getByRole('tab')).toHaveCount(4);
  await expect(rail.getByRole('tab',{name:'Обо мне'})).toHaveAttribute('aria-selected','true');
  await expect(actions.locator('button')).toHaveCount(3);
- await expect(member.locator('.vx-profile-section-body')).toContainText('Интересы');
- await expect(member.locator('.vx-profile-goal-detail')).toBeVisible();
+ await expect(member.locator('.vx-profile-swipe-page[aria-hidden="false"]')).toContainText('Интересы');
+ await expect(member.locator('.vx-profile-swipe-page[aria-hidden="false"] .vx-profile-goal-detail')).toBeVisible();
  const opened=await photo.boundingBox(),logo=page.locator('body > .vx-member-native-header .vx-member-floating-logo');
  const logoBefore=await logo.boundingBox();
  const state=await root.evaluate(el=>({height:el.querySelector('.vx-profile-open-spacer').getBoundingClientRect().height,compact:parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))}));
@@ -1092,4 +1095,39 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  await expect(page.locator('.vx-profile-photos-grid')).toBeVisible();
  await rail.getByRole('tab',{name:'Подарки'}).click();
  await expect(page.getByRole('tabpanel',{name:'Подарки'})).toBeVisible();
+});
+
+test('VEYRA swipe track follows finger and own profile uses the editable hero',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const rail=page.getByRole('tablist',{name:'Разделы анкеты'});
+ const track=page.locator('.vx-profile-swipe-track');
+ const scroller=page.locator('.vx-profile-scroller');
+ await scroller.evaluate(el=>{el.scrollTop=650});
+ await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).toBe('compact');
+ const before=await track.evaluate(el=>getComputedStyle(el).transform);
+ await page.evaluate(()=>{
+  const el=document.querySelector('.vx-profile-swipe-viewport');
+  const touch=(x,y)=>new Touch({identifier:1,target:el,clientX:x,clientY:y});
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[touch(304,580)],changedTouches:[touch(304,580)]}));
+  el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:[touch(220,584)],changedTouches:[touch(220,584)]}));
+ });
+ await expect(track).toHaveClass(/is-dragging/);
+ const during=await track.evaluate(el=>getComputedStyle(el).transform);
+ expect(during).not.toBe(before);
+ await page.evaluate(()=>{
+  const el=document.querySelector('.vx-profile-swipe-viewport');
+  const t=new Touch({identifier:1,target:el,clientX:200,clientY:585});
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[t]}));
+ });
+ await expect(rail.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await expect(page.locator('.vx-own-member')).toBeVisible();
+ await expect(page.locator('.vx-own-member .vx-profile-hero-photo .photo-box')).toHaveCount(1);
+ await expect(page.locator('.vx-own-member .vx-profile-primary-actions button')).toHaveCount(3);
+ await expect(page.getByRole('tab',{name:'Ещё'})).toBeVisible();
+ await page.getByRole('button',{name:'Изменить описание'}).click();
+ await expect(page.locator('.vx-own-member')).toHaveCount(0);
 });
