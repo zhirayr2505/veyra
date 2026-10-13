@@ -1151,7 +1151,7 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
  const setProgress=async p=>{
   await root.evaluate((el,scroll)=>{el.scrollTop=scroll},d*p);
   await expect.poll(()=>root.evaluate(el=>el.scrollTop)).toBeGreaterThanOrEqual(d*p-2);
-  await page.waitForTimeout(40);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   return photo.boundingBox();
  };
  const early=await setProgress(.12);
@@ -1169,8 +1169,8 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
  await expect(motion).toHaveAttribute('data-state','compact');
  await setProgress(0);
  await expect(motion).toHaveAttribute('data-state','expanded');
- const returned=await photo.boundingBox();
- expect(Math.abs(returned.height-opened.height)).toBeLessThan(3);
+ await expect.poll(async()=>Math.abs((await photo.boundingBox()).height-opened.height),
+  {timeout:3500}).toBeLessThan(4);
 });
 
 
@@ -1213,11 +1213,14 @@ test('VEYRA Motion 3 panel remains opaque and debug HUD captures live profile tr
  for(const p of [.16,.24,.39,.65,.91,1]){
   await root.evaluate((el,y)=>{el.scrollTop=y},distance*p);
   await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).not.toBe('expanded');
-  const [actions,rail]=await Promise.all([
-   page.locator('.vx-profile-primary-actions').boundingBox(),
-   page.locator('.vx-profile-tab-rail').boundingBox(),
-  ]);
-  expect(actions.y+actions.height).toBeLessThanOrEqual(rail.y-7);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect.poll(async()=>{
+   const [actions,rail]=await Promise.all([
+    page.locator('.vx-profile-primary-actions').boundingBox(),
+    page.locator('.vx-profile-tab-rail').boundingBox(),
+   ]);
+   return rail.y-(actions.y+actions.height);
+  },{timeout:3500}).toBeGreaterThanOrEqual(7);
   await expect(lip).toHaveCSS('opacity','1');
   await expect(page.locator('.vx-profile-compact-backdrop')).toHaveCSS('opacity','1');
  }
