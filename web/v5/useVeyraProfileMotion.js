@@ -55,7 +55,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // Haptic is edge-triggered once for a deliberate finger-driven circle.
    // Never pulse on reverse scroll or when opening an already compact profile.
    if(p<.22)s.circleHapticFired=false;
-   if(s.touching&&previous>=0&&previous<PROFILE_CIRCLE_AT&&p>=PROFILE_CIRCLE_AT&&!s.circleHapticFired){
+   if((s.touching||s.released)&&previous>=0&&previous<PROFILE_CIRCLE_AT&&p>=PROFILE_CIRCLE_AT&&!s.circleHapticFired){
     s.circleHapticFired=true;
     try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light')}catch{}
    }
