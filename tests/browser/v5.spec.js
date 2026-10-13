@@ -956,7 +956,7 @@ test('owner can preview photographic women and men in all dating tabs without DB
  await showroom.getByRole('tab',{name:'Рядом'}).click();
  await expect(showroom.locator('.vx-person.vx-person-nearby')).toHaveCount(12);
  await expect(showroom.locator('#vx-panel-nearby .vx-person-demo')).toHaveCount(12);
- await showroom.locator('.vx-person-open').first().click();
+ await showroom.locator('#vx-panel-nearby .vx-person-open').first().click();
  await expect(page.locator('.member-feed-profile .veyra-demo-member-badge')).toHaveText('ДЕМО');
  await expect(page.locator('.member-thumbnails button')).toHaveCount(3);
  await page.getByRole('button',{name:'Назад',exact:true}).last().click();
