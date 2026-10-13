@@ -53,6 +53,7 @@ function SectionTitle({children,action,onAction}){
 function Portrait({person,onProfile,interest}){
  return <button className="vx-portrait-card" type="button" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
   <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name}/></span>
+  {person.test_profile&&<span className="vx-portrait-demo-tag">демо</span>}
   {interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
    person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null}
   <span className="vx-portrait-name">{person.name}</span>
@@ -178,7 +179,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
    </section>
    {!hasCoordinates&&<div className="vx-location-hint"><Icon name="pin" tone="pink" size={19}/><p>Чтобы искать поблизости, выбери город и расстояние в фильтрах.</p><button onClick={onFilters}>Выбрать город</button></div>}
    <div className="vx-filter-pills" role="group" aria-label="Фильтры рядом">
-    {[['all','Все','everyone'],['online','В сети','online'],['common','Общие интересы','everyone']].map(([key,label,icon])=>
+    {[['all','Все','everyone'],...(demoMode?[]:[['online','В сети','online']]),['common','Общие интересы','everyone']].map(([key,label,icon])=>
      <button type="button" key={key} className={choice===key?'chosen':''} aria-pressed={choice===key}
       onClick={()=>{haptic();setChoice(key)}}><Icon name={icon} tone={choice===key?'white':'pink'} size={17}/>{label}</button>)}
    </div>
@@ -187,7 +188,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
     {people.slice(0,6).map(p=><Portrait person={p} key={p.id} onProfile={onProfile}/>)}
    </div>
   </>}
-  {loading?<div className="vx-state" role="status"><Spinner/><p>Подбираем настоящие анкеты…</p></div>:
+  {loading?<div className="vx-state" role="status"><Spinner/><p>{demoMode?'Готовим демо-подборку…':'Подбираем настоящие анкеты…'}</p></div>:
    people.length>0?<>
     {rows.length>0?<div className={'vx-people'+(personal?' vx-recommendations':' vx-nearby-grid')}>
      {rows.map(p=><BrowsePerson person={p} key={p.id} variant={personal?'recommended':'nearby'}
@@ -199,7 +200,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
    </>:<div className="vx-state vx-empty">
     <img src="/veyra-approved/04_empty_states/svg/no_nearby_people.svg" alt="" className="vx-state-illustration"/>
     <h3>{limited?'Дневной лимит исчерпан':error?'Не удалось загрузить анкеты':'Пока нет подходящих людей'}</h3>
-    <p>{limited?'Больше знакомств доступно с Premium.':error?'Проверь соединение и попробуй снова.':'Анкеты проходят модерацию. Попробуй изменить фильтры или вернись позже.'}</p>
+    <p>{limited?'Больше знакомств доступно с Premium.':error?'Проверь соединение и попробуй снова.':demoMode?'В этой подборке пока пусто. Попробуй другую категорию или сбрось фильтры.':'Анкеты проходят модерацию. Попробуй изменить фильтры или вернись позже.'}</p>
     <Button onClick={limited?onPremium:error?retryLoad:onFilters}>{limited?'Открыть Premium':error?'Повторить':'Настроить поиск'}</Button>
    </div>}
   <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
