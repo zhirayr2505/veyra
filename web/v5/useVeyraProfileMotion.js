@@ -47,6 +47,10 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    }
    if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
    if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
+   if(parts.lip){
+    parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
+    parts.lip.style.opacity=f.sheetLipOpacity.toFixed(3);
+   }
    if(parts.backdrop)parts.backdrop.style.opacity=f.backdropOpacity.toFixed(3);
    if(parts.identity){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
@@ -129,6 +133,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.refs={
    hero,image:hero.querySelector('.photo-box img'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
+   lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
    identity:motion.querySelector('.vx-profile-identity'),
    actions:motion.querySelector('.vx-profile-primary-actions'),
