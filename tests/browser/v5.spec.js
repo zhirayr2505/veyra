@@ -1004,6 +1004,11 @@ test('VEYRA member photo is a single shared image: full cover -> centered circle
  await expect(page.getByRole('menu',{name:'Действия с анкетой'})).toBeVisible();
  await expect(page.getByRole('menuitem',{name:'Пожаловаться'})).toBeVisible();
  await page.getByRole('button',{name:'Закрыть',exact:true}).click();
+ // Opening action menus may make Playwright adjust the scroll position slightly.
+ // Reestablish the true resting expanded state before comparing the live
+ // photograph with its layout rectangle; intermediate motion is tested below.
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await expect.poll(()=>photo.evaluate(el=>Math.abs(el.getBoundingClientRect().y-document.querySelector('.member-photos').getBoundingClientRect().y))).toBeLessThan(3);
  const initial=await photo.boundingBox();
  const hero=await member.locator('.member-photos').boundingBox();
  expect(Math.abs(initial.x-hero.x)).toBeLessThan(3);
