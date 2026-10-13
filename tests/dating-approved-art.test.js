@@ -5,8 +5,8 @@ import sharp from 'sharp';
 
 const root=new URL('../public/veyra-approved/dating_stage02/',import.meta.url);
 const entries=[
- ['for_you_hero.webp',768,384],
- ['nearby_hero.webp',768,384],
+ ['for_you_hero.webp',600,300],
+ ['nearby_hero.webp',600,300],
  ['collection_common_interests.webp',320,426],
  ['collection_serious_relationships.webp',320,426],
  ['collection_travel.webp',320,426]
