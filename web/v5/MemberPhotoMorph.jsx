@@ -20,7 +20,7 @@ const lerp=(a,b,t)=>a+(b-a)*t;
  */
 export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGallery,visible=true}){
  const frameRef=useRef(null),textRef=useRef(null),controlsRef=useRef(null);
- const startX=useRef(null),baseline=useRef(null);
+ const startX=useRef(null),baseline=useRef(null),swiped=useRef(false),swipeTimer=useRef(null);
  const photos=person.photos||[];
  const hasGallery=photos.length>1;
 
@@ -91,7 +91,7 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
   window.addEventListener('resize',paint,{passive:true});
   window.visualViewport?.addEventListener('resize',paint,{passive:true});
   return()=>{
-   cancelAnimationFrame(raf);resizeObserver?.disconnect();
+   cancelAnimationFrame(raf);clearTimeout(swipeTimer.current);resizeObserver?.disconnect();
    window.removeEventListener('scroll',paint,true);
    document.removeEventListener('scroll',paint,true);
    window.removeEventListener('resize',paint);
@@ -106,8 +106,8 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
  return createPortal(<React.Fragment>
    <div className="vx-member-morph-frame" ref={frameRef} data-phase="expanded"
     onTouchStart={e=>{startX.current=e.touches[0]?.clientX??null}}
-    onTouchEnd={e=>{if(startX.current===null)return;const dx=e.changedTouches[0].clientX-startX.current;startX.current=null;if(Math.abs(dx)>45&&hasGallery)(dx<0?next:previous)()}}>
-    <Photo className="vx-member-morph-image" id={photos[index]} alt={person.name} onClick={onGallery}/>
+    onTouchEnd={e=>{if(startX.current===null)return;const dx=e.changedTouches[0].clientX-startX.current;startX.current=null;if(Math.abs(dx)>45&&hasGallery){swiped.current=true;(dx<0?next:previous)();clearTimeout(swipeTimer.current);swipeTimer.current=setTimeout(()=>{swiped.current=false},230)}}}>
+    <Photo className="vx-member-morph-image" id={photos[index]} alt={person.name} onClick={()=>{if(!swiped.current)onGallery?.()}}/>
     {hasGallery&&<div className="vx-member-morph-controls" ref={controlsRef}>
      <div className="vx-member-morph-bars">{photos.map((p,i)=><button type="button" key={p} className={i===index?'active':''} aria-label={'Фото '+(i+1)} onClick={()=>select(i)}/>)}</div>
      <button className="vx-member-morph-previous" type="button" aria-label="Предыдущее фото" onClick={previous}>‹</button>
