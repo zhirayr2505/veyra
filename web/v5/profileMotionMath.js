@@ -14,13 +14,13 @@ export function profileFrame(progress,width,height,compactHeight=292){
  const cover=p<PROFILE_CIRCLE_AT;
  const centering=segment(p,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT);
  const docking=segment(p,PROFILE_CENTER_AT,1);
- const bumpPhase=clamp((p-PROFILE_CIRCLE_AT)/.115);
+ const bumpPhase=clamp((p-PROFILE_CIRCLE_AT)/.06);
  // Linked elastic lift during formation, rather than an extra delayed timer.
- const bump=!cover&&p<PROFILE_CIRCLE_AT+.115?Math.sin(Math.PI*bumpPhase):0;
+ const bump=!cover&&p<PROFILE_CIRCLE_AT+.06?Math.sin(Math.PI*bumpPhase):0;
  const photoW=cover?w:p<PROFILE_CENTER_AT?mix(w,midW,centering):mix(midW,98,docking);
  const photoX=cover?0:p<PROFILE_CENTER_AT?mix(0,midX,centering):mix(midX,16,docking);
  const photoY=cover?mix(0,-16,segment(p,0,PROFILE_CIRCLE_AT)):
-  p<PROFILE_CENTER_AT?mix(-16,82,centering)-7*bump:mix(82,102,docking);
+  p<PROFILE_CENTER_AT?mix(-16,82,centering)-12*bump:mix(82,102,docking);
  const sheetY=mix(h-30,109,smooth(clamp(p/.78)));
  // Paint the opaque white sheet only up to the sticky tab rail. Any overflow
  // was previously hiding the first ~100px of the gallery below the tabs.
