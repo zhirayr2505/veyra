@@ -7,7 +7,11 @@ export function MemberSwipePages({tabs,active,onChange,onProgress,carouselApiRef
  const [viewportRef,embla]=useEmblaCarousel({
   axis:'x',loop:false,align:'start',containScroll:false,
   dragFree:false,duration:24,
-  watchDrag:(_api,event)=>!event.target?.closest?.('button,a,input,textarea,select,[role="button"],.photo-gallery-mini')
+  watchDrag:(_api,event)=>{
+   // The photo grid is interactive but horizontal drags must reach Embla.
+   if(event.target?.closest?.('.vx-profile-photos-grid'))return true;
+   return !event.target?.closest?.('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
+  }
  });
  const selected=useRef(active);
  selected.current=active;

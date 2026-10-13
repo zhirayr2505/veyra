@@ -33,7 +33,7 @@ test('ScrollTimeline frame geometry matches the existing approved three stage pr
 test('Reference overlays preserve photo trajectory while tracking the collapse',()=>{
  const width=390,height=447,distance=373,total=1200;
  const tracks=buildProfileScrollKeyframes(width,height,distance,total,292);
- for(const name of ['blur','ring','onlineDot','grabber']){
+ for(const name of ['blur','ring','rim','onlineDot','grabber']){
   assert.ok(tracks[name].length>=41,'track '+name);
   assert.equal(tracks[name][0].offset,0);
   assert.equal(tracks[name].at(-1).offset,1);
@@ -41,7 +41,9 @@ test('Reference overlays preserve photo trajectory while tracking the collapse',
  assert.equal(tracks.blur[0].opacity,0);
  assert.equal(tracks.blur.at(-1).opacity,1);
  assert.equal(tracks.ring[0].opacity,0);
- assert.equal(tracks.ring.at(-1).opacity,1);
+ assert.equal(tracks.ring.at(-1).opacity,0);
+ assert.equal(tracks.rim[0].opacity,0);
+ assert.equal(tracks.rim.at(-1).opacity,1);
  assert.equal(tracks.onlineDot.at(-1).opacity,1);
  assert.equal(tracks.grabber[0].opacity,1);
  assert.equal(tracks.grabber.at(-1).opacity,0);

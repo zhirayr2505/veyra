@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound} from 'lucide-react';
+import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound,UserRound} from 'lucide-react';
 import {Logo,Icon,DetailIcon,Photo,Button,Sheet,Empty,InlineAlert,Spinner} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {get,post} from './api.js';
@@ -13,20 +13,22 @@ import {useVeyraProfileMotion} from './useVeyraProfileMotion.js';
 import {MemberSwipePages} from './MemberSwipePages.jsx';
 import {Pencil,Settings2,Wallet,ShieldCheck,Crown,Medal,ImagePlus,MessageCircleHeart} from 'lucide-react';
 
-const TABS=[['about','Обо мне'],['photos','Фото'],['gifts','Подарки'],['common','Общее']];
+const TABS=[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Общее']];
+const TAB_ICONS={about:UserRound,photos:Images,gifts:Gift,common:UsersRound};
 const ICONS_BY_GROUP={'Музыка':Music2,'Активность':Dumbbell,'Культура':Clapperboard,'Путешествия':Plane,'Вкус и стиль':Coffee,'Образ жизни':Heart,'Кино и развлечения':Clapperboard,'Спорт и движение':Dumbbell,'Искусство и творчество':Palette,'Еда и напитки':UtensilsCrossed,'Природа и питомцы':PawPrint,'Технологии и игры':Gamepad2,'Саморазвитие':BookOpen,'Город и встречи':Footprints};
 const clamp=(n,min=0,max=1)=>Math.min(max,Math.max(min,n));
 function MemberInterest({label}){return <span className="vx-member-interest"><VeyraPackIcon name={interestGlyph(label)} size={19}/><span>{label}</span></span>}
 
 export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onCollection,onRanking,onCourtship,onAdmin}){
  const isOwn=!!ownMe;
- const tabs=isOwn?[['about','Обо мне'],['photos','Фото'],['gifts','Подарки'],['common','Ещё']]:TABS;
+ const tabs=isOwn?[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Ещё']]:TABS;
  const [data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[more,setMore]=useState(false);
  const [courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false);
  const [reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false);
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState('about');
+ const [logoTone,setLogoTone]=useState('light');
  const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryTouch=useRef(null);
  const swipeApiRef=useRef(null),tabRailRef=useRef(null);
  const moveTabIndicator=useCallback(position=>{
@@ -40,6 +42,34 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   Promise.all([get('/profiles/'+id),get('/courtships/profile/'+id).catch(()=>null)]).then(([profile,c])=>{if(active){setData(profile);setCourtship(c)}}).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}
  },[id,ownMe]);
  useEffect(()=>{if(isOwn)return;const root=document.documentElement,body=document.body;const prev=[root.style.overflow,body.style.overflow];root.style.overflow='hidden';body.style.overflow='hidden';return()=>{root.style.overflow=prev[0];body.style.overflow=prev[1]}},[isOwn]);
+
+ // Read a tiny canvas sample of the actual portrait, once per photo change.
+ // No canvas work is performed during scrolling or the animation loop.
+ useEffect(()=>{
+  if(!data)return;
+  const root=motionRef.current;
+  if(!root)return;
+  const sample=()=>{
+   const image=root.querySelector('.vx-profile-hero-photo .photo-box img');
+   if(!image?.complete||image.naturalWidth<4)return;
+   try{
+    const c=document.createElement('canvas');c.width=12;c.height=8;
+    const ctx=c.getContext('2d',{willReadFrequently:true});
+    if(!ctx)return;
+    // Approximate the upper-central header area in both photo states.
+    ctx.drawImage(image,image.naturalWidth*.22,0,image.naturalWidth*.56,image.naturalHeight*.33,0,0,12,8);
+    const bytes=ctx.getImageData(0,0,12,8).data;
+    let sum=0;
+    for(let i=0;i<bytes.length;i+=4)sum+=.2126*bytes[i]+.7152*bytes[i+1]+.0722*bytes[i+2];
+    setLogoTone(sum/(bytes.length/4)<139?'dark':'light');
+   }catch{setLogoTone('light')}
+  };
+  const observer=new MutationObserver(sample);
+  observer.observe(root,{childList:true,subtree:true});
+  root.addEventListener('load',sample,true);
+  sample();
+  return()=>{observer.disconnect();root.removeEventListener('load',sample,true)};
+ },[data,idx]);
 
  const openTab=next=>{
   const index=tabs.findIndex(([key])=>key===next);
@@ -65,7 +95,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const fullName=(data.name||'Профиль')+(data.age?', '+data.age:'');
  const photosNext=step=>setIdx(n=>(n+step+photos.length)%photos.length);
  return <div className={'member page member-feed-profile vx-telegram-member vx-master-profile'+(isOwn?' vx-own-member own-profile':'')}>
-  {createPortal(<header className="vx-member-floating-header vx-member-native-header" aria-label="Навигация профиля VEYRA">
+  {createPortal(<header className="vx-member-floating-header vx-member-native-header" data-logo-tone={logoTone} aria-label="Навигация профиля VEYRA">
    {(isOwn||!window.Telegram?.WebApp?.BackButton)&&<button type="button" className="vx-member-fallback-back" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
    <Logo width={115} className="vx-member-floating-logo"/>
   </header>,document.body)}
@@ -82,6 +112,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <Photo id={photos[idx]} alt={data.name} onClick={()=>setGallery(true)} priority resolution={960}/>
+      <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
       {photos.length>1&&<div className="vx-profile-photo-bars">{photos.map((p,i)=><button key={p} type="button" className={i===idx?'active':''} onClick={()=>setIdx(i)} aria-label={'Фото '+(i+1)}/>)}</div>}
       {photos.length>1&&<div className="vx-profile-photo-nav">
@@ -96,7 +127,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
 
      <section className="vx-profile-identity" aria-label="Информация об анкете">
       <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.test_profile&&!isOwn?<span className="vx-demo-member-label">ДЕМО</span>:data.verified?<Icon name="verified" tone="pink" size={18}/>:null}</div>
-      <div className="vx-profile-location"><CountryFlag country={data.country}/> {data.city}</div>
+      <div className="vx-profile-location"><CountryFlag country={data.country} round/> {data.city}</div>
       {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
      {isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
@@ -117,7 +148,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     <div className="vx-profile-open-spacer" ref={stageRef} aria-hidden="true"/>
 
    <div className="vx-profile-tab-rail" role="tablist" aria-label="Разделы анкеты" ref={tabRailRef}>
-    {tabs.map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} aria-controls={'vx-profile-panel-'+key} className={tab===key?'active':''} onClick={()=>openTab(key)}>{label}</button>)}
+    {tabs.map(([key,label])=>{const TabIcon=TAB_ICONS[key];return <button key={key} type="button" role="tab" aria-selected={tab===key} aria-controls={'vx-profile-panel-'+key} className={tab===key?'active':''} onClick={()=>openTab(key)}><TabIcon className="vx-tab-icon" size={15} strokeWidth={2}/><span>{label}</span></button>})}
     <span className="vx-tab-underline" aria-hidden="true"/>
    </div>
    <MemberSwipePages tabs={tabs} active={tab} onChange={setTab} onProgress={moveTabIndicator} carouselApiRef={swipeApiRef}>

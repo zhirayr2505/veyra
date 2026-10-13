@@ -1,0 +1,187 @@
+/* VEYRA Motion 5: exact visual finish with preserved compositor scroll motion.
+   Imported LAST. No changes to Telegram native controls or menu placement. */
+
+/* Wordmark: original brand geometry as SVG alpha mask + elegant dimensional
+   gradient. Contrast is sampled ONCE from the actual photo, never during scroll. */
+body>.vx-member-native-header::before,
+body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::before{
+ content:none!important;display:none!important;
+}
+@supports ((mask-image:url("/veyra-design/veyra-wordmark-purple.svg")) or (-webkit-mask-image:url("/veyra-design/veyra-wordmark-purple.svg"))){
+ body>.vx-member-native-header>.vx-member-floating-logo{
+  opacity:.001!important;
+ }
+ body>.vx-member-native-header::after{
+  content:"";position:absolute;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+  width:clamp(105px,31vw,131px);height:42px;
+  -webkit-mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
+  mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
+  pointer-events:none;z-index:3;
+  background:linear-gradient(160deg,#e8b4ff 0%,#bd79ff 23%,#8040dc 48%,#6833dd 70%,#a465fa 100%);
+  filter:drop-shadow(0 2px 1px #25132f65) drop-shadow(0 -1px 1px #ffffff50);
+ }
+ body>.vx-member-native-header[data-logo-tone="light"]::after{
+  background:linear-gradient(160deg,#b869f4 0%,#7c34e3 37%,#5726b5 71%,#9848e9 100%);
+  filter:drop-shadow(0 1px 0 #ffffffc9) drop-shadow(0 2px 2px #3f236b5c);
+ }
+ body>.vx-member-native-header[data-logo-tone="dark"]::after{
+  background:linear-gradient(155deg,#ffd2ff 0%,#d49aff 30%,#ae60f3 62%,#e4a9ff 100%);
+  filter:drop-shadow(0 2px 2px #160a2eb5) drop-shadow(0 -1px 0 #fff5);
+ }
+}
+
+/* The blur is not a generic lavender fill. This is the SAME profile photo,
+   occupying the background behind the shrinking foreground photograph. */
+.veyra-v2 .vx-master-profile .vx-profile-blurred-header{
+ height:calc(var(--vx-profile-hero-height) + 16px)!important;
+ inset:0 0 auto!important;
+ z-index:3;
+ background:#ded4e7;
+ pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box{
+ inset:-31px -27px!important;
+ height:calc(100% + 62px)!important;
+ width:calc(100% + 54px)!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box img{
+ object-fit:cover!important;object-position:50% 28%!important;
+ filter:blur(22px) saturate(1.13) brightness(.98)!important;
+ transform:translateZ(0);
+}
+.veyra-v2 .vx-master-profile .vx-profile-blurred-header::after{
+ background:linear-gradient(to bottom,#ffffff03 0%,#ffffff0d 25%,#ffffff0a 45%,#faf7ff60 74%,#faf7ffcc 100%)!important;
+}
+
+/* Above the opaque curved sheet, the name must ALWAYS be visible. */
+.veyra-v2 .vx-master-profile .vx-profile-identity{
+ z-index:14!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
+ z-index:5!important;border-radius:36px 36px 0 0!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
+ border-radius:36px 36px 0 0!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
+ z-index:9;
+ border-radius:0;
+ transition:border-radius .16s cubic-bezier(.16,.75,.2,1)!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photo-morph-rim{
+ position:absolute;inset:0;
+ z-index:5;pointer-events:none;
+ border:12px solid rgba(255,255,255,.97);
+ border-radius:inherit;
+ opacity:0;
+ box-sizing:border-box;
+ box-shadow:inset 0 0 10px #2813331b;
+}
+.veyra-v2 .vx-master-profile .vx-profile-avatar-ring{display:none!important}
+.veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot{z-index:16!important}
+
+/* Clean circular flag derived from the country code. No external tracking URL. */
+.veyra-v2 .vx-master-profile .vx-profile-location .veyra-country-flag-round{
+ display:inline-flex!important;align-items:center;justify-content:center;
+ width:22px;height:22px;min-width:22px;min-height:22px;
+ overflow:hidden;border-radius:50%;
+ background:#f3e8ff;
+ border:1px solid #ffffffec;box-sizing:border-box;
+ box-shadow:0 1px 5px #2f214321;
+ vertical-align:middle;
+}
+.veyra-v2 .vx-master-profile .vx-profile-location .veyra-country-flag-glyph{
+ display:block;font-size:23px;line-height:21px;
+ width:24px;text-align:center;
+ transform:scale(1.18);
+ flex:none;
+}
+
+/* Relationship badge beneath city: refined micro-border and restrained sheen. */
+.veyra-v2 .vx-master-profile .vx-profile-goal{
+ top:68px!important;left:0!important;max-width:min(63vw,230px)!important;
+ min-height:29px!important;padding:5px 12px!important;
+ border:1px solid #dfc8f6!important;
+ border-radius:12px!important;
+ color:#6936a7!important;
+ background:linear-gradient(137deg,#f5ecff 0%,#e9d9ff 56%,#f9f3ff 100%)!important;
+ box-shadow:0 2px 8px #7754a014,inset 0 1px 0 #ffffffd9!important;
+ font-size:clamp(11px,2.9vw,12px)!important;
+ font-weight:750;letter-spacing:.03px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-goal svg{color:#8949d8}
+
+/* Four compact, tappable labelled icons. The active underline keeps
+   tracking the Embla carousel continuously using its existing transform. */
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
+ display:flex!important;align-items:center;justify-content:center;
+ flex-direction:row!important;gap:5px!important;
+ padding:5px 1px!important;
+ white-space:nowrap;
+ font-size:clamp(10.5px,3.1vw,13px)!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button .vx-tab-icon{
+ display:inline-block;flex:none;opacity:.78;
+ width:15px;height:15px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active .vx-tab-icon{
+ opacity:1;color:#823eda;
+}
+/* No premature hiding behind a phantom padding band. The tab bar itself
+   owns the clipping edge exactly at its lower, purple-underlined border. */
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail{
+ border-bottom:1px solid #e7daf5!important;
+ box-shadow:none!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
+ overflow:hidden!important;
+ clip-path:none!important;
+ margin:0!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-page{
+ padding-top:0!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-section-body{
+ padding-top:0!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photos-grid button{
+ touch-action:pan-y pinch-zoom!important;
+ user-select:none;
+ -webkit-user-select:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photos-grid img{
+ pointer-events:none;
+ user-select:none;
+ -webkit-user-drag:none;
+}
+
+/* Centre CTA is the visual anchor, moving ~1.5 px over 6 seconds.
+   Side actions are quieter, consistent with the premium reference. */
+.veyra-v2 .vx-master-profile .vx-profile-action.primary{
+ animation:vx-cta-float 6s ease-in-out infinite;
+ box-shadow:0 6px 17px #822fd83d,0 2px 6px #6336af1f!important;
+}
+@keyframes vx-cta-float{
+ 0%,100%{transform:translate3d(0,0,0)}
+ 50%{transform:translate3d(0,-1.6px,0)}
+}
+.veyra-v2 .vx-master-profile .vx-profile-action:not(.primary){
+ border:1px solid #d6bfee!important;
+ color:#7241c6!important;
+ background:linear-gradient(155deg,#fff 0%,#f8f2ff 90%)!important;
+ box-shadow:0 3px 10px #7449a315,inset 0 1px 0 white!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-action:not(.primary):active{
+ background:#ede2ff!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-action.primary:active{
+ animation-play-state:paused;
+}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-master-profile .vx-profile-action.primary{animation:none!important}
+}
+@media(max-width:360px){
+ .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{gap:3px!important;font-size:10.5px!important}
+ .veyra-v2 .vx-master-profile .vx-profile-tab-rail button .vx-tab-icon{width:13px;height:13px}
+}

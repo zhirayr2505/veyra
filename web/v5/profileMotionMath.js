@@ -12,17 +12,26 @@ export function profileFrame(progress,width,height,compactHeight=292){
  const p=clamp(progress),w=Math.max(1,width),h=Math.max(1,height);
  const middleW=Math.min(190,Math.max(154,w*.49));
  const middleH=Math.min(194,Math.max(158,w*.50));
- const coverToMiddle=segment(p,.14,.39);
+ // During the initial sheet overlap the cover already scrolls upward,
+ // receding ~3.6% before it rapidly becomes a circular travelling avatar.
+ // All states remain deterministic functions of scroll position (ScrollTimeline).
+ const early=segment(p,0,.14),coverToMiddle=segment(p,.14,.39);
  const middleToAvatar=segment(p,.39,1);
  const middleX=(w-middleW)*.5;
+ const earlyX=w*.018,earlyY=-24,earlyWidth=w*.964,earlyHeight=h*.964;
+ const widthDuring=p<.14?mix(w,earlyWidth,early):p<=.39?mix(earlyWidth,middleW,coverToMiddle):mix(middleW,98,middleToAvatar);
+ const heightDuring=p<.14?mix(h,earlyHeight,early):p<=.39?mix(earlyHeight,middleH,coverToMiddle):mix(middleH,98,middleToAvatar);
+ // By the time the avatar becomes circular its visible frame is square,
+ // rather than clipping a tall moving image into an oval.
+ const squared=segment(p,.16,.27)*(1-segment(p,.32,.39));
  const frame={
   progress:p,
   stage:p<.14?'sheet':p<.39?'center':'avatar',
-  x:p<=.39?mix(0,middleX,coverToMiddle):mix(middleX,16,middleToAvatar),
-  y:p<=.39?mix(0,82,coverToMiddle):mix(82,102,middleToAvatar),
-  width:p<=.39?mix(w,middleW,coverToMiddle):mix(middleW,98,middleToAvatar),
-  height:p<=.39?mix(h,middleH,coverToMiddle):mix(middleH,98,middleToAvatar),
-  radius:p<=.39?mix(0,20,coverToMiddle):mix(20,50,middleToAvatar),
+  x:p<.14?mix(0,earlyX,early):p<=.39?mix(earlyX,middleX,coverToMiddle):mix(middleX,16,middleToAvatar),
+  y:p<.14?mix(0,earlyY,early):p<=.39?mix(earlyY,82,coverToMiddle):mix(82,102,middleToAvatar),
+  width:widthDuring,
+  height:mix(heightDuring,widthDuring,squared),
+  radius:p<=.39?mix(0,50,segment(p,.14,.29)):50,
  };
  // The sheet lifts faster than its contents, preventing an empty gap behind
  // the shrinking photo; identity/buttons retain a calm independent trajectory.
