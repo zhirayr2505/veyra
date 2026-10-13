@@ -36,6 +36,7 @@ export function App(){
  const [returnChat,setReturnChat]=useState(null);
  const [feedFilters,setFeedFilters]=useState({mode:'discover',only_online:false,common_interests:false});
  const [demoMode,setDemoMode]=useState(false),[demoStatus,setDemoStatus]=useState('hidden'),[demoRetry,setDemoRetry]=useState(0);
+ const [demoResetBusy,setDemoResetBusy]=useState(false),[demoResetNotice,setDemoResetNotice]=useState('');
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
@@ -73,6 +74,16 @@ export function App(){
  const openChat=async(id,person)=>{if(!id){setError('Чат пока недоступен');return;}setError('');setReturnChat(null);setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);if(!m?.profile)throw Error('Переписка больше недоступна');setConversation({id,partner:m.profile})}catch(e){setError(e.message)}};
  const gift=person=>{if(person?.id)setOverlay({type:'gift',target:person})};
  const matchFound=(matchId,profile)=>{setMatch({id:matchId,profile});setRefreshTick(x=>x+1)};
+ const resetDemo=async()=>{
+  if(demoResetBusy||!demoMode||me?.user?.admin_role!=='owner')return;
+  if(!window.confirm('Начать демо заново? Будут удалены только тестовые симпатии, мэтчи и переписки. Реальные знакомства и покупки не изменятся.'))return;
+  setDemoResetBusy(true);setDemoResetNotice('');
+  try{const r=await post('/owner/reset-demo-interactions',{});
+   setDemoResetNotice('Все '+r.profiles+' демо-анкет снова доступны');
+   setFeedTick(v=>v+1);setRefreshTick(v=>v+1);
+  }catch(e){setDemoResetNotice('Не удалось сбросить демо: '+e.message)}
+  finally{setDemoResetBusy(false)};
+ };
  const courtship=async()=>{if(!member)return;try{const r=await post('/courtships/request',{target:String(member.id)});setOverlay({type:'courtship-sent',status:r.status})}catch(e){setError(e.message)}};
  const status=me?.profile?.moderation;
  const ready=!!me?.profile&&status==='approved';
@@ -89,11 +100,11 @@ export function App(){
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell veyra-v2">
  <div className="view-frame" hidden={!!conversation||!!member}>
- {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
+ {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} demoResetBusy={demoResetBusy} demoResetNotice={demoResetNotice} onDemoReset={resetDemo} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
    <DiscoveryHub filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound}
-    refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0}
+    refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} demoResetBusy={demoResetBusy} demoResetNotice={demoResetNotice} onDemoReset={resetDemo} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0}
     onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
   </section>
  </div>
