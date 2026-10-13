@@ -4,15 +4,17 @@
 const MAX=240;
 const samples=new Float32Array(MAX);
 let active=false,head=0,count=0,total=0,slow=0,maxMs=0;
+let lastCalibration={heroWidth:0,heroHeight:0,collapseDistance:0,backend:'not-open'};
 let state={phase:'not-open',progress:0,scrollY:0,collapseDistance:0,frames:0,calibrations:0,heroWidth:0,heroHeight:0,lastFrameAt:0,backend:'unknown'};
 
 export function enableProfileProbe(enabled){
  active=Boolean(enabled);
  head=0;count=0;total=0;slow=0;maxMs=0;
- state={phase:'not-open',progress:0,scrollY:0,collapseDistance:0,frames:0,calibrations:0,heroWidth:0,heroHeight:0,lastFrameAt:0};
+ state={phase:'not-open',progress:0,scrollY:0,collapseDistance:0,frames:0,calibrations:0,heroWidth:0,heroHeight:0,lastFrameAt:0,...lastCalibration};
 }
 export const profileProbeEnabled=()=>active;
 export function recordProfileCalibration(width,height,distance,backend='JS fallback'){
+ lastCalibration={heroWidth:width,heroHeight:height,collapseDistance:distance,backend};
  if(!active)return;
  state.calibrations++;
  state.heroWidth=width;state.heroHeight=height;state.collapseDistance=distance;state.backend=backend;
