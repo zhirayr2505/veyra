@@ -539,7 +539,7 @@ test('VEYRA match celebration has two circular photos and preserves action butto
   if(route.request().method()!=='POST')return route.continue();
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({matched:true,match_id:'e1b4d369-73ac-4c8d-8145-78a31a4a7ea0',next:{profiles:[]}})});
  });
- await page.locator('.feed-photo .action-like').click();
+ await page.locator('.discover .feed-action.action-like').click();
  const dialog=page.getByRole('dialog',{name:/match/i});
  await expect(dialog).toBeVisible();
  await expect(dialog.locator('.vx-match-avatar')).toHaveCount(2);
