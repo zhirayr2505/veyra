@@ -410,3 +410,126 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
 
 /* When artwork occupies the visual middle slot, keep feature badges in column 3. */
 .veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-benefits{grid-column:3;min-width:0}
+
+/* Stage 02 visual fidelity: retina original PNG artwork, no blur on imagery. */
+.veyra-v2 .vx-dating-stage02 .vx-hero-art,
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-art{
+ image-rendering:auto;
+ filter:none!important;
+ opacity:1!important;
+ -webkit-transform:none!important;
+ transform:none!important;
+ backface-visibility:visible;
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head,
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero{
+ isolation:isolate;
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) minmax(0,43%);
+ gap:8px;
+ align-items:center;
+ padding:14px clamp(11px,2.6vw,17px);
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-personal-hello{
+ grid-column:1;
+ min-width:0;
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-benefits{
+ grid-column:2;
+ display:grid;
+ grid-template-rows:repeat(3,minmax(40px,auto));
+ gap:6px;
+ align-items:stretch;
+ width:100%;
+ min-width:0;
+ align-self:center;
+ position:relative;
+ z-index:3;
+}
+.veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip{
+ display:grid;
+ grid-template-columns:18px minmax(0,1fr);
+ align-items:center;
+ gap:5px;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ min-height:40px;
+ height:auto;
+ box-sizing:border-box;
+ margin:0;
+ padding:7px 6px;
+ border:1px solid #ffffffa8;
+ border-radius:13px;
+ background:rgba(255,255,255,.84);
+ color:#584176;
+ overflow:hidden;
+}
+.veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip .kit-icon{
+ flex:none;
+ display:block;
+ width:18px;
+ height:18px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip .vx-benefit-copy{
+ display:block;
+ min-width:0;
+ width:auto;
+ max-width:100%;
+ padding:0;
+ margin:0;
+ height:auto;
+ min-height:0;
+ overflow:visible;
+ white-space:normal;
+ overflow-wrap:break-word;
+ hyphens:auto;
+ line-height:1.13;
+ font-size:clamp(10px,2.5vw,11px);
+ font-weight:690;
+ color:#584176;
+ border:0;
+ border-radius:0;
+ background:none;
+ box-shadow:none;
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head:before,
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero:before{
+ background:linear-gradient(90deg,rgba(255,253,255,.76) 0%,rgba(255,253,255,.38) 29%,transparent 56%);
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-shade{
+ background:linear-gradient(180deg,transparent 0%,transparent 48%,rgba(17,6,35,.12) 58%,rgba(16,5,30,.82) 100%);
+}
+.veyra-v2 .vx-dating-stage02 .vx-crown .vx-premium-crown{
+ width:31px;
+ height:31px;
+ display:block;
+ object-fit:contain;
+ filter:none!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-crown{
+ box-shadow:0 5px 16px #7c35c41a,inset 0 1px 1px #ffffffdb!important;
+}
+@media(max-width:390px){
+ .veyra-v2 .vx-dating-stage02 .vx-personal-head{
+  grid-template-columns:minmax(0,1fr) minmax(0,43%);
+  gap:6px;
+  padding:12px 10px;
+ }
+ .veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip{
+  gap:4px;
+  padding:6px 5px;
+ }
+ .veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip .vx-benefit-copy{
+  font-size:10px;
+ }
+}
+@media(prefers-color-scheme:dark){
+ .veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip{
+  background:rgba(47,31,66,.92);
+  border-color:#78629c6b;
+ }
+ .veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip .vx-benefit-copy{color:#f2e8ff}
+}
