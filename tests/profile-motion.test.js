@@ -5,12 +5,13 @@ import {profileFrame} from '../web/v5/profileMotionMath.js';
 const W=390,H=447,compact=292;
 const frame=(p)=>profileFrame(p,W,H,compact);
 
-test('Telegram profile begins by lifting only the sheet, not shrinking photo',()=>{
+test('Telegram profile begins with a gentle photo recession synchronized to the sheet',()=>{
  const start=frame(0),early=frame(.12);
  assert.equal(start.width,W);
  assert.equal(start.height,H);
- assert.equal(early.width,W);
- assert.equal(early.height,H);
+ assert.ok(early.width<W-7&&early.width>W-24);
+ assert.ok(early.height<H-8&&early.height>H-25);
+ assert.ok(early.y<start.y);
  assert.ok(early.sheetY<start.sheetY);
  assert.equal(early.radius,0);
 });
@@ -20,7 +21,7 @@ test('cover first changes into a centered rounded middle image',()=>{
  assert.ok(middle.width>=160&&middle.width<=195);
  assert.ok(middle.height>=160&&middle.height<=199);
  assert.ok(Math.abs(middle.x-(W-middle.width)/2)<.1);
- assert.equal(middle.radius,20);
+ assert.equal(middle.radius,50);
  assert.ok(middle.y>70&&middle.y<90);
 });
 
