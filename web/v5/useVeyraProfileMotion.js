@@ -1,5 +1,5 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {clamp,profileFrame} from './profileMotionMath.js';
+import {clamp,profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
@@ -54,8 +54,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    s.lastProgress=p;
    // Haptic is edge-triggered once for a deliberate finger-driven circle.
    // Never pulse on reverse scroll or when opening an already compact profile.
-   if(p<.17)s.circleHapticFired=false;
-   if(s.touching&&previous>=0&&previous<.27&&p>=.27&&!s.circleHapticFired){
+   if(p<.22)s.circleHapticFired=false;
+   if(s.touching&&previous>=0&&previous<PROFILE_CIRCLE_AT&&p>=PROFILE_CIRCLE_AT&&!s.circleHapticFired){
     s.circleHapticFired=true;
     try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light')}catch{}
    }
@@ -63,16 +63,16 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
    if(s.nativeAnimation){
-    const shape=p<.065?'cover':p<.265?'rounded':'circle';
+    const shape=p<PROFILE_CIRCLE_AT?'cover':'circle';
     if(shape!==s.radiusPhase){
      s.radiusPhase=shape;
-     parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'24px':'50%';
+     parts.hero.style.borderRadius=shape==='cover'?'0px':'50%';
     }
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
-    const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
+    const motionStage=p<PROFILE_CIRCLE_AT?'sheet':p<PROFILE_CENTER_AT?'center':'avatar';
     if(motion.dataset.motionPhase!==motionStage)motion.dataset.motionPhase=motionStage;
-    const sheetOverlap=p<.33?'true':'false';
+    const sheetOverlap=p<PROFILE_CIRCLE_AT?'true':'false';
     if(motion.dataset.sheetOverlap!==sheetOverlap)motion.dataset.sheetOverlap=sheetOverlap;
     if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
     return;
@@ -84,17 +84,17 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    parts.hero.style.transform=translate(f.x,f.y)+scale;
    // Legacy fallback updates shape only at two boundaries, rather than
    // invalidating a large clipped image on each individual scroll frame.
-   const shape=p<.065?'cover':p<.265?'rounded':'circle';
+   const shape=p<PROFILE_CIRCLE_AT?'cover':'circle';
    if(shape!==s.radiusPhase){
     s.radiusPhase=shape;
-    parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'24px':'50%';
+    parts.hero.style.borderRadius=shape==='cover'?'0px':'50%';
    }
    // Compensate for portrait-to-square squash on the image itself.
    if(!parts.image?.isConnected){
     parts.image=parts.hero.querySelector('.photo-box img');
    }
    if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
-   if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
+   if(parts.panel){parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));parts.panel.style.clipPath='inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)';}
    if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
@@ -118,19 +118,19 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.onlineDot)parts.onlineDot.style.opacity=(f.progress<=.85?0:f.progress>=1?1:(()=>{
     const t=(f.progress-.85)/.15;return t*t*(3-2*t);
    })()).toFixed(3);
-   if(parts.rim)parts.rim.style.opacity=(p<=.23?0:p>=.35?1:(()=>{
-    const t=(p-.23)/.12;return t*t*(3-2*t);
-   })()).toFixed(3);
-   if(parts.grabber){
+   if(parts.rim)parts.rim.style.opacity=(p<=PROFILE_CIRCLE_AT-.004?0:p>=PROFILE_CIRCLE_AT+.026?1:(()=>{
+     const t=(p-(PROFILE_CIRCLE_AT-.004))/.03;return t*t*(3-2*t);
+    })()).toFixed(3);
+    if(parts.grabber){
     parts.grabber.style.transform=translate(0,f.sheetY-(s.height-30));
     parts.grabber.style.opacity=f.progress>=.24?'0':f.progress<=.03?'1':
      (1-((f.progress-.03)/.21)**2*(3-2*(f.progress-.03)/.21)).toFixed(3);
    }
    const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
    if(motion.dataset.state!==phase)motion.dataset.state=phase;
-   const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
+   const motionStage=p<PROFILE_CIRCLE_AT?'sheet':p<PROFILE_CENTER_AT?'center':'avatar';
    if(motion.dataset.motionPhase!==motionStage)motion.dataset.motionPhase=motionStage;
-    const sheetOverlap=p<.33?'true':'false';
+    const sheetOverlap=p<PROFILE_CIRCLE_AT?'true':'false';
     if(motion.dataset.sheetOverlap!==sheetOverlap)motion.dataset.sheetOverlap=sheetOverlap;
    if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
   });
@@ -222,7 +222,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;
   // Previous JS fallback transforms must not override WAAPI motion.
   if(s.refs)for(const part of Object.values(s.refs)){
-   if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity')}
+   if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
   }
   s.refs={
    hero,image:hero.querySelector('.photo-box img'),
