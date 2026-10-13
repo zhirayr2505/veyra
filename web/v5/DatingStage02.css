@@ -345,13 +345,14 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
 .veyra-v2 .vx-dating-stage02 .vx-nearby-hero{isolation:isolate}
 .veyra-v2 .vx-dating-stage02 .vx-hero-art{
  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
- pointer-events:none;user-select:none;z-index:-1;display:block;
+ pointer-events:none;user-select:none;z-index:0;display:block;
 }
 .veyra-v2 .vx-dating-stage02 .vx-personal-head{
  background:#f2e5fc;border-color:#f1e6fb
 }
 .veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-personal-hello,
-.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-benefits{position:relative;z-index:1}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-benefits,
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero .vx-nearby-copy{position:relative;z-index:2}
 .veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-for-you-art{
  object-position:center center
 }
@@ -362,12 +363,12 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
  object-position:center center
 }
 .veyra-v2 .vx-dating-stage02 .vx-nearby-radar{
- background:none!important;z-index:1;pointer-events:none
+ background:none!important;z-index:2;pointer-events:none
 }
 /* Preserve a light text-safe region even when artwork is very bright. */
 .veyra-v2 .vx-dating-stage02 .vx-personal-head:before,
 .veyra-v2 .vx-dating-stage02 .vx-nearby-hero:before{
- content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
  background:linear-gradient(90deg,#fff8 0%,#fff5 30%,transparent 57%)
 }
 .veyra-v2 .vx-dating-stage02 .vx-themed-collections{
