@@ -30,7 +30,8 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryTouch=useRef(null);
  const swipeApiRef=useRef(null),tabRailRef=useRef(null);
  const moveTabIndicator=useCallback(position=>{
-  tabRailRef.current?.style.setProperty('--vx-tab-position',String(position));
+  const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
+  if(underline)underline.style.transform='translate3d('+(position*100).toFixed(3)+'%,0,0)';
  },[]);
  const {onScroll:handleScroll,onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel,compactForTab}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
 
