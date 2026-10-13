@@ -1,0 +1,122 @@
+/* VEYRA: genuine shared-element morph. ONE full-resolution photo is painted
+   directly into a viewport portal; there is no second profile portrait node. */
+.vx-member-morph-frame{
+ position:fixed;z-index:64;box-sizing:border-box;
+ width:1px;height:1px;top:0;left:0;
+ background:#e8daf6;overflow:hidden;isolation:isolate;
+ border:0 solid #fff;border-radius:34px;
+ box-shadow:0 9px 31px #47296a32;
+ transform:translateZ(0);
+ backface-visibility:hidden;
+ contain:paint;
+ touch-action:pan-y;
+ will-change:width,height,left,top,border-radius;
+}
+.vx-member-morph-frame[data-phase="compact"]{
+ box-shadow:0 5px 15px #5b268e48,0 0 0 1px #a35ae2;
+}
+.vx-member-morph-frame>.vx-member-morph-image{
+ position:absolute;inset:0;display:block!important;
+ width:100%!important;height:100%!important;
+ border-radius:inherit!important;overflow:hidden!important;
+ background:linear-gradient(160deg,#ecdefa,#d0b3eb);
+}
+.vx-member-morph-frame>.vx-member-morph-image img{
+ width:100%!important;height:100%!important;display:block!important;
+ object-fit:cover!important;object-position:center 35%;
+ border-radius:inherit!important;overflow:hidden;
+}
+.vx-member-morph-frame>.vx-member-morph-image .photo-unavailable{
+ display:flex;align-items:center;justify-content:center;height:100%;
+}
+.vx-member-morph-controls{
+ position:absolute;inset:0;z-index:4;
+ opacity:var(--vx-morph-ui-opacity,1);
+ touch-action:pan-y;
+}
+.vx-member-morph-bars{
+ position:absolute;top:14px;left:16px;right:16px;z-index:7;
+ display:flex;gap:4px;
+}
+.vx-member-morph-bars button{
+ flex:1;min-width:0;height:3px;padding:0;overflow:hidden;
+ border:0;border-radius:99px;background:#ffffff8b;
+}
+.vx-member-morph-bars button.active{background:white}
+.vx-member-morph-previous,.vx-member-morph-next{
+ position:absolute;top:20%;left:0;z-index:5;
+ width:19%;height:59%;border:0;background:transparent;
+ color:transparent;font-size:0;padding:0;
+}
+.vx-member-morph-next{left:auto;right:0}
+.vx-member-morph-thumbnails{
+ position:absolute;bottom:13px;left:10px;right:10px;z-index:7;
+ display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.vx-member-morph-thumbnails button{
+ width:min(15vw,60px);height:54px;flex:none;
+ padding:0;overflow:hidden;border-radius:13px;
+ border:2px solid #ffffffa8;background:#f0e5fc;
+ box-shadow:0 2px 12px #1e10373d;
+}
+.vx-member-morph-thumbnails button.selected{
+ border-color:#fff;outline:2px solid #9f52e8;
+}
+.vx-member-morph-thumbnails .photo-box,
+.vx-member-morph-thumbnails .photo-box img{
+ display:block;width:100%;height:100%;object-fit:cover;
+}
+/* This is JUST text. No duplicate circular Photo, white popup or extra card. */
+.vx-member-morph-text{
+ position:fixed;top:110px;left:85px;z-index:69;
+ width:calc(100vw - 116px);max-width:490px;
+ display:flex;flex-direction:column;justify-content:center;gap:4px;
+ min-height:57px;padding:2px 0;
+ box-sizing:border-box;
+ pointer-events:none;visibility:hidden;opacity:0;
+ transform:translate3d(0,16px,0);
+ transform-origin:left top;will-change:transform,opacity;
+ filter:drop-shadow(0 1px 6px #fcfaffcb);
+ font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+.vx-member-morph-text strong{
+ display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:clamp(14px,3.8vw,17px);font-weight:850;line-height:1.15;color:#2d1941;
+}
+.vx-member-morph-text small{
+ display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:12px;font-weight:680;color:#665076;line-height:1.2;
+}
+.vx-member-morph-text em{
+ display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:10px;line-height:1.22;font-style:normal;font-weight:790;color:#7d37ce;
+}
+/* The original member-photos DIV reserves scroll height; only the shared Photo
+   portal supplies pixels. The empty placeholder must not leave a second image
+   or a lavender rectangle visible while the picture becomes round. */
+.veyra-v2 .member-feed-profile .member-photos.vx-member-morph-stage{
+ background:transparent!important;box-shadow:none!important;
+ isolation:auto;overflow:visible!important;
+}
+.veyra-v2 .member-feed-profile .member-photos.vx-member-morph-stage:after{
+ content:none!important;display:none!important;
+}
+.veyra-v2 .member-feed-profile .member-summary{
+ position:relative;z-index:5;
+ margin-top:8px!important; /* Allow the cover's rounded bottom corners to stay visible. */
+}
+.veyra-v2 .member-feed-profile .member-photos.vx-member-morph-stage{
+ pointer-events:none;
+}
+.veyra-v2 .member-feed-profile .member-summary,
+.veyra-v2 .member-feed-profile .member-actions{
+ will-change:auto;
+}
+/* Pinned brand controls remain, but the old duplicate mini-avatar/name
+   white card is intentionally removed from the rendered tree. */
+body>.vx-member-native-header{z-index:90!important}
+body>.vx-member-native-header .vx-member-floating-logo{z-index:92!important}
+body>.vx-member-native-header .vx-member-more{z-index:94!important}
+@media(prefers-reduced-motion:reduce){
+ .vx-member-morph-frame,.vx-member-morph-text{transition:none!important;animation:none!important}
+}

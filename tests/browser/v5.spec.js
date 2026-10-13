@@ -980,62 +980,90 @@ test('VEYRA Feed remains a single screen with solid centered actions and visible
  await expect(page.locator('html')).not.toHaveClass(/veyra-feed-viewport-locked/);
 });
 
-test('VEYRA member header morphs on scrolling, shows goal as chip and opens actions menu',async({page})=>{
+test('VEYRA member photo is a single shared image: full cover -> centered circle -> left avatar',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await telegram(page,10);await page.goto('/');
  await page.locator('.feed-photo .hero-name').click();
  const member=page.locator('.member-feed-profile');
+ const photo=page.locator('body > .vx-member-morph-frame');
+ const header=page.locator('body > .vx-member-native-header');
+ const text=page.locator('body > .vx-member-morph-text');
  await expect(member).toBeVisible();
+ await expect(photo).toHaveCount(1);
+ await expect(photo.locator('.vx-member-morph-image')).toHaveCount(1);
+ await expect(member.locator('.member-photos .photo-box')).toHaveCount(0);
+ await expect(page.locator('.vx-member-mini-avatar')).toHaveCount(0);
+ await expect(page.locator('.vx-member-compact-details')).toHaveCount(0);
  await expect(member.locator('.vx-member-goal')).toBeVisible();
- await expect(member.locator('.vx-member-icon-control')).toHaveCount(0);
  await expect(member.locator('.member-icon-actions .member-icon-control')).toHaveCount(3);
  await expect(member.locator('.vx-member-interests-grid svg').first()).toBeVisible();
  await expect(member.locator('.veyra-detail-card').filter({hasText:'Цель знакомства'})).toHaveCount(0);
- await page.locator('body > .vx-member-native-header .vx-member-more').click();
+ const logo=header.locator('.vx-member-floating-logo');
+ const logoBefore=await logo.boundingBox();
+ await header.locator('.vx-member-more').click();
  await expect(page.getByRole('menu',{name:'Действия с анкетой'})).toBeVisible();
  await expect(page.getByRole('menuitem',{name:'Пожаловаться'})).toBeVisible();
  await page.getByRole('button',{name:'Закрыть',exact:true}).click();
- // Regression from real Telegram recording: fixed descendants of .subscreen
- // used to scroll away. Portal must be a direct body child, not a child of Member.
- const fixedHeader=page.locator('body > .vx-member-native-header');
- await expect(fixedHeader).toHaveCount(1);
- expect(await fixedHeader.evaluate(el=>getComputedStyle(el).position)).toBe('fixed');
- const topBefore=await fixedHeader.evaluate(el=>el.getBoundingClientRect().top);
- await page.evaluate(()=>window.scrollTo(0,550));
- await expect.poll(()=>fixedHeader.evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeGreaterThan(.65);
- const topAfter=await fixedHeader.evaluate(el=>el.getBoundingClientRect().top);
- expect(Math.abs(topAfter-topBefore)).toBeLessThan(2);
- await expect(fixedHeader.locator('.vx-member-compact-details')).toBeVisible();
- await expect(fixedHeader.locator('.vx-member-mini-copy strong')).toHaveText(await member.locator('.member-summary-title h2').innerText());
- await expect(page.locator('body > .vx-member-native-header .vx-member-floating-logo')).toBeVisible();
- await expect(page.locator('body > .vx-member-native-header .vx-member-mini-avatar')).toBeVisible();
- await page.evaluate(()=>window.scrollTo(0,0));
- await expect.poll(()=>page.locator('body > .vx-member-native-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
+ // Opening action menus may make Playwright adjust the scroll position slightly.
+ // Reestablish the true resting expanded state before comparing the live
+ // photograph with its layout rectangle; intermediate motion is tested below.
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await expect.poll(()=>photo.evaluate(el=>Math.abs(el.getBoundingClientRect().y-document.querySelector('.member-photos').getBoundingClientRect().y))).toBeLessThan(3);
+ const initial=await photo.boundingBox();
+ const hero=await member.locator('.member-photos').boundingBox();
+ expect(Math.abs(initial.x-hero.x)).toBeLessThan(3);
+ expect(Math.abs(initial.y-hero.y)).toBeLessThan(3);
+ expect(initial.height).toBeGreaterThan(390);
+ await page.evaluate(()=>window.scrollTo({top:420,behavior:'instant'}));
+ await expect.poll(()=>photo.getAttribute('data-phase')).toBe('expanded');
+ const middle=await photo.boundingBox();
+ expect(middle.height).toBeLessThan(initial.height-180);
+ expect(middle.height).toBeGreaterThan(100);
+ expect(Math.abs(middle.x+middle.width/2-195)).toBeLessThan(8);
+ await page.evaluate(()=>window.scrollTo({top:690,behavior:'instant'}));
+ await expect.poll(()=>photo.getAttribute('data-phase')).toBe('compact');
+ const end=await photo.boundingBox();
+ expect(end.width).toBeGreaterThanOrEqual(54);
+ expect(end.width).toBeLessThanOrEqual(63);
+ expect(Math.abs(end.width-end.height)).toBeLessThan(2);
+ expect(end.x).toBeLessThan(35);
+ const radius=await photo.evaluate(el=>getComputedStyle(el).borderRadius);
+ expect(parseFloat(radius)).toBeGreaterThan(26);
+ await expect(text).toBeVisible();
+ await expect(text).toContainText(await member.locator('.member-summary-title h2').innerText());
+ const logoAfter=await logo.boundingBox();
+ expect(Math.abs(logoBefore.y-logoAfter.y)).toBeLessThan(2);
+ expect(Math.abs(logoBefore.x-logoAfter.x)).toBeLessThan(2);
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await expect.poll(()=>photo.getAttribute('data-phase')).toBe('expanded');
+ const expanded=await photo.boundingBox();
+ expect(Math.abs(expanded.width-initial.width)).toBeLessThan(3);
+ expect(Math.abs(expanded.height-initial.height)).toBeLessThan(3);
+ await expect(text).toBeHidden();
 });
 
-test('VEYRA Telegram fullscreen logo and circular profile header never scroll away',async({page})=>{
+test('VEYRA Telegram fullscreen morph keeps logo pinned and photo interactive',async({page})=>{
  await page.setViewportSize({width:390,height:844});
- await telegram(page,10,false,true);
- await page.goto('/');
+ await telegram(page,10,false,true);await page.goto('/');
  await expect(page.locator('.feed-photo')).toBeVisible();
  await page.locator('.feed-photo .hero-name').click();
- const header=page.locator('body > .vx-member-native-header');
- const member=page.locator('.member-feed-profile');
- await expect(member).toBeVisible();
- await expect(header).toHaveCount(1);
+ const logo=page.locator('body > .vx-member-native-header .vx-member-floating-logo');
+ const photo=page.locator('body > .vx-member-morph-frame');
+ const media=photo.locator('.vx-member-morph-image');
  await expect(page.locator('html')).toHaveClass(/veyra-telegram-fullscreen/);
- const logo=header.locator('.vx-member-floating-logo');
- await expect(logo).toBeVisible();
- const initial=await logo.boundingBox();
- await page.evaluate(()=>window.scrollTo({top:850,behavior:'instant'}));
- await expect.poll(()=>header.evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeGreaterThan(.9);
+ await expect(media).toBeVisible();
+ const before=await logo.boundingBox();
+ await page.evaluate(()=>window.scrollTo({top:760,behavior:'instant'}));
+ await expect.poll(()=>photo.getAttribute('data-phase')).toBe('compact');
  const after=await logo.boundingBox();
- expect(Math.abs(after.y-initial.y)).toBeLessThan(2);
- expect(Math.abs(after.x-initial.x)).toBeLessThan(2);
- await expect(header.locator('.vx-member-mini-avatar')).toBeVisible();
- const round=await header.locator('.vx-member-mini-avatar').evaluate(el=>getComputedStyle(el).borderRadius);
- expect(round).toContain('50%');
+ expect(Math.abs(before.y-after.y)).toBeLessThan(2);
+ expect(Math.abs(before.x-after.x)).toBeLessThan(2);
+ await expect(page.locator('body > .vx-member-morph-text')).toBeVisible();
+ await media.click();
+ await expect(page.locator('.member .gallery')).toBeVisible();
+ await page.locator('.gallery-close').click();
+ await expect(photo).toHaveCount(1);
  await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
- await expect.poll(()=>header.evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
+ await expect.poll(()=>photo.getAttribute('data-phase')).toBe('expanded');
  await expect(logo).toBeVisible();
 });

@@ -9,39 +9,14 @@ import {openInvoice,GiftCollection} from './Extras.jsx';
 import {Header,Icon,DetailIcon,InterestIcon,Photo,Button,Sheet,Empty,InlineAlert,Spinner} from './UI.jsx';
 import {ProfileHighlights,CatalogueIcon,INTEREST_GROUPS,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
+import {MemberPhotoMorph} from './MemberPhotoMorph.jsx';
 const ICONS_BY_GROUP={'Музыка':Music2,'Активность':Dumbbell,'Культура':Clapperboard,'Путешествия':Plane,'Вкус и стиль':Coffee,'Образ жизни':Heart,'Кино и развлечения':Clapperboard,'Спорт и движение':Dumbbell,'Искусство и творчество':Palette,'Еда и напитки':UtensilsCrossed,'Природа и питомцы':PawPrint,'Технологии и игры':Gamepad2,'Саморазвитие':BookOpen,'Город и встречи':Footprints};
 function MemberInterest({label}){const value=String(label||'').toLocaleLowerCase('ru');const direct=value.includes('путешеств')||value.includes('поездк')||value==='новые города'?Plane:value.includes('искусств')||value.includes('рисова')?Palette:value.includes('книг')?BookOpen:value.includes('фото')?Camera:null;const group=INTEREST_GROUPS.find(group=>group.items.some(name=>name.toLocaleLowerCase('ru')===value));const Glyph=direct||ICONS_BY_GROUP[group?.title]||Sparkles;return <span className="vx-member-interest"><Glyph size={18} strokeWidth={2.15} aria-hidden="true"/><span>{label}</span></span>;}
 export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer}){
  const[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[more,setMore]=useState(false),[courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false),[reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false),[reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
- const touch=useRef(null),memberTouch=useRef(null),memberSwiped=useRef(false),photosRef=useRef(null);
- const [headerProgress,setHeaderProgress]=useState(0);
- // Telegram may scroll a nested WebView host, not window. The photo's viewport
- // position reflects either scroller, so animate from its actual displacement.
- useEffect(()=>{
-  if(!data)return;
-  let raf=0,initialTop=null;
-  const update=()=>{
-   cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{
-    const photo=photosRef.current;if(!photo)return;
-    const top=photo.getBoundingClientRect().top;
-    if(initialTop===null)initialTop=top;
-    const scrollRoot=photo.closest('.subscreen');
-    const scrollOffset=Math.max(window.scrollY||0,scrollRoot?.scrollTop||0);
-    const moved=Math.max(0,(initialTop-top)-24,scrollOffset-24);
-    // An image can shift slightly as fonts / Telegram insets settle; consider
-    // the original viewport position fully expanded once all scrollers return.
-    const restingAtTop=scrollOffset<3&&Math.abs(initialTop-top)<64;
-    const progress=restingAtTop?0:Math.min(1,moved/175);
-    setHeaderProgress(p=>Math.abs(p-progress)<.015?p:progress);
-   });
-  };
-  update();
-  window.addEventListener('scroll',update,{passive:true,capture:true});
-  document.addEventListener('scroll',update,{passive:true,capture:true});
-  window.addEventListener('resize',update,{passive:true});
-  window.visualViewport?.addEventListener('resize',update,{passive:true});
-  return()=>{cancelAnimationFrame(raf);window.removeEventListener('scroll',update,true);document.removeEventListener('scroll',update,true);window.removeEventListener('resize',update);window.visualViewport?.removeEventListener('resize',update)};
- },[id,!!data]);
+ const touch=useRef(null),photosRef=useRef(null),headerRef=useRef(null);
+ // Photo morph is now a single DOM image rendered in a body portal; its frame
+ // follows continuous scroll without creating a second profile avatar.
  useEffect(()=>{let ok=true;Promise.all([get('/profiles/'+id),get('/courtships/profile/'+id).catch(()=>null)]).then(([r,c])=>{if(ok){setData(r);setCourtship(c)}}).catch(e=>{if(ok)setError(e.message)}).finally(()=>ok&&setLoading(false));return()=>{ok=false}},[id]);
  const requestCourtship=async()=>{if(courtBusy)return;setCourtBusy(true);setError('');try{const mine=courtship?.mine;const r=mine?.status==='accepted'?await post('/courtships/'+mine.id+'/pay',{}):await post('/courtships/request',{target:String(id)});if(r.invoice_url){openInvoice(r.invoice_url)}else if(r.status==='pending'){window.alert('Приглашение отправлено. Статус появится только после согласия.')}if(r.status==='active')await onPaid?.();const c=await get('/courtships/profile/'+id);setCourtship(c)}catch(e){setError(e.message==='INSUFFICIENT_VEYS'?'Недостаточно VEYS. Пополни кошелёк, чтобы стать ухажёром.':e.message)}finally{setCourtBusy(false)}};
  const like=async(kind='like')=>{try{const r=await post('/reactions',{target:String(id),kind});if(r.matched)onMatch(r.match_id,data);else onBack()}catch(e){if(kind==='super'&&/PREMIUM_REQUIRED|LIMIT_REACHED|INSUFFICIENT/i.test(e.message))onPremium?.();else setError(e.message)}};
@@ -51,23 +26,18 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  if(loading)return <div className="page"><Header back={onBack}/><div className="center-loading"><Spinner/></div></div>;
  if(!data)return <div className="page"><Header back={onBack}/><Empty title="Анкета недоступна" body={error}/></div>;
  const match=data.match_id||initialMatch;
- return <div className="member page member-feed-profile" style={{'--vx-member-collapse':headerProgress}} >
+ return <div className="member page member-feed-profile">
  {/* Outside the scrolling .app-shell/.subscreen: Telegram Android scrolls that layer,
      taking CSS position:fixed descendants with it. Keep the header in body. */}
- {createPortal(<header className={"vx-member-floating-header vx-member-native-header"+(headerProgress>.025?" is-scrolling":"")+(headerProgress>.95?" is-compact":"")} style={{'--vx-member-collapse':headerProgress}} aria-label="Шапка VEYRA">
+ {createPortal(<header ref={headerRef} className="vx-member-floating-header vx-member-native-header" aria-label="Шапка VEYRA">
   {!window.Telegram?.WebApp?.BackButton&&<button className="vx-member-fallback-back" type="button" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
   <Logo width={115} className="vx-member-floating-logo"/>
   <button type="button" className="vx-member-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={21}/></button>
-  <div className="vx-member-compact-details" aria-hidden={headerProgress<.05}>
-   <span className="vx-member-mini-avatar"><Photo id={data.photos?.[0]} alt=""/></span>
-   <span className="vx-member-mini-copy"><strong>{data.name}, {data.age}</strong><small><CountryFlag country={data.country}/> {data.city}</small><em>{goalTitle(data.goal)}</em></span>
-  </div>
  </header>,document.body)}
- <div className="member-photos" ref={photosRef}
-  onTouchStart={e=>{memberTouch.current=e.touches[0]?.clientX??null}}
-  onTouchEnd={e=>{if(memberTouch.current===null)return;const dx=e.changedTouches[0].clientX-memberTouch.current;memberTouch.current=null;if(Math.abs(dx)>45&&data.photos?.length>1){memberSwiped.current=true;setIdx(i=>(i+(dx<0?1:-1)+data.photos.length)%data.photos.length);setTimeout(()=>{memberSwiped.current=false},150)}}}>
-  <Photo className="member-hero" id={data.photos?.[idx]} onClick={()=>{if(!memberSwiped.current)setGallery(true)}} alt={data.name}/>{data.photos?.length>1&&<div className="member-bars">{data.photos?.map((p,i)=><button key={p} className={i===idx?'active':''} onClick={()=>setIdx(i)}/>)}</div>}{data.photos?.length>1&&<React.Fragment><button className="member-prev" onClick={()=>setIdx(i=>(i+data.photos.length-1)%data.photos.length)}>‹</button><button className="member-next" onClick={()=>setIdx(i=>(i+1)%data.photos.length)}>›</button></React.Fragment>}<div className="member-thumbnails">{(data.photos||[]).slice(0,7).map((photo,i)=><button key={photo} type="button" aria-label={'Фото '+(i+1)} className={i===idx?'selected':''} onClick={()=>setIdx(i)}><Photo id={photo} alt=""/></button>)}</div>
- </div>
+
+ <div className="member-photos vx-member-morph-stage" ref={photosRef} aria-hidden="true"/>
+ <MemberPhotoMorph stageRef={photosRef} headerRef={headerRef} person={data}
+  index={idx} onIndex={setIdx} onGallery={()=>setGallery(true)} visible={!gallery} syncKey={more}/>
  <div className="member-summary">
   <div className="member-summary-title"><h2>{data.name}, {data.age}</h2>{data.test_profile?<span className="vx-demo-member-label">ДЕМО</span>:<Icon name="verified" tone="pink" size={21}/>}</div>
   {data.test_profile&&<p className="vx-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотография иллюстративная.</p>}
