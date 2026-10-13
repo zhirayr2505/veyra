@@ -32,6 +32,7 @@ import './DatingStage02.css'; // Three approved dating screens; registration rem
 import './VeyraDesignPolish.css'; // Match, floating feed actions, responsive profile refinement
 import './VeyraPolishFinal.css'; // Static feed and responsive member morph — final overrides
 import './MemberStickyPortal.css'; // Telegram Android viewport header rendered outside scrolling app
+import './MemberPhotoMorph.css'; // Single cover photo becomes a centered circle, then a compact left avatar
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
