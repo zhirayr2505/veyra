@@ -1,4 +1,4 @@
-import {isTestProfile} from './test-profile-ids.js';
+import {isTestProfile,TEST_PROFILE_IDS} from './test-profile-ids.js';
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
 import {fail,premium} from './core.js';
@@ -56,21 +56,22 @@ export async function publicProfiles(q,ids){
   WHERE p.user_id=ANY($1::bigint[]) AND u.status='active'`,[ids.map(String)])).rows;
  return new Map(rows.map(p=>{p.test_profile=isTestProfile(p.id);if(p.test_profile){p.online=false;p.last_seen=null}p.photos=p.photos||[];return [String(p.id),p]}));
 }
-export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover',filters={}){const p=await approved(q,user.id);const use=await usage(q,user.id);if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
+export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover',filters={}){const p=await approved(q,user.id);const use=await usage(q,user.id);
+ const ownerDemo=filters.demo===true&&user.admin_role==='owner';if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
   u.boost_until>now() AS boosted, (p.goal=$15) AS same_goal, (p.languages && $16::text[]) AS shared_language, u.last_seen
  FROM profiles p JOIN users u ON u.id=p.user_id
  WHERE p.user_id<>$1 AND p.moderation='approved' AND u.status='active' AND NOT u.paused AND (NOT u.invisible OR u.premium_until IS NULL OR u.premium_until<=now())
- AND p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for)
- AND extract(year FROM age(p.birth_date)) BETWEEN $6 AND $7
- AND extract(year FROM age($8::date)) BETWEEN p.min_age AND p.max_age
+ AND (${ownerDemo?'TRUE':'p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for)'})
+ AND ${ownerDemo?'TRUE':'extract(year FROM age(p.birth_date)) BETWEEN $6 AND $7'}
+ AND ${ownerDemo?'TRUE':'extract(year FROM age($8::date)) BETWEEN p.min_age AND p.max_age'}
  AND NOT EXISTS(SELECT 1 FROM blocks WHERE (actor=$1 AND target=p.user_id) OR (target=$1 AND actor=p.user_id))
  AND NOT EXISTS(SELECT 1 FROM reports WHERE (reporter=$1 AND target=p.user_id) OR (target=$1 AND reporter=p.user_id))
  AND NOT EXISTS(SELECT 1 FROM profile_hides WHERE actor=$1 AND target=p.user_id)
- AND ($10='' OR lower(p.city)=lower($10))
-  AND (NOT $11::boolean OR (NOT u.invisible AND u.last_seen>now()-interval '5 minutes'))
+ AND ${ownerDemo?'TRUE':"($10='' OR lower(p.city)=lower($10))"}
+  AND ${ownerDemo?'TRUE':"(NOT $11::boolean OR (NOT u.invisible AND u.last_seen>now()-interval '5 minutes'))"}
   AND (NOT $12::boolean OR p.interests && $9::text[])
  AND NOT p.user_id=ANY($13::bigint[])
   AND ($14::text='' OR EXISTS(SELECT 1 FROM unnest(p.interests) i WHERE lower(i)=lower($14)))
@@ -78,9 +79,10 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   AND NOT EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=p.user_id)
  AND NOT EXISTS(SELECT 1 FROM matches WHERE ((a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id)) AND a_erased_at IS NULL AND b_erased_at IS NULL)
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
+ ${ownerDemo?'AND p.user_id=ANY($18::bigint[])':''}
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[],filters.goal||''])).rows;
- const candidates=rows.filter(x=>(process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[],filters.goal||'',TEST_PROFILE_IDS])).rows;
+ const candidates=rows.filter(x=>(ownerDemo||process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(ownerDemo||p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
  // N+1 loop multiplied network latency on Render/Supabase for every card.
@@ -121,12 +123,13 @@ async function finishMatch(q,actor,target) {
  if(!m.active)fail(409,'MATCH_ENDED');
  if(isTestProfile(target)&&!isTestProfile(actor)&&!await one(q,'SELECT 1 FROM messages WHERE match_id=$1',[m.id]))
   await q.query('INSERT INTO messages(id,match_id,sender,body,client_id) VALUES($1,$2,$3,$4,$2) ON CONFLICT(sender,client_id) DO NOTHING',[randomUUID(),m.id,target,'Тестовая анкета VEYRA · автоматическое приветствие. Привет! Мэтч создан — здесь можно проверить сообщения и фотографии.']);
- if(created){await notify(q,actor,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');await notify(q,target,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');}
+ if(created&&!isTestProfile(target)&&!isTestProfile(actor)){await notify(q,actor,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');await notify(q,target,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');}
  return {matched:true,match_id:m.id,test_profile:isTestProfile(target)};
 }
 export async function react(q,actor,target,kind,message){
  await pairLock(q,actor,target);await ensurePair(q,actor,target);
  const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);
+ if(isTestProfile(target)&&!isTestProfile(actor)&&u.admin_role!=='owner'&&process.env.NODE_ENV==='production')fail(404,'PROFILE_NOT_FOUND');
  const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);
  const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND a_erased_at IS NULL AND b_erased_at IS NULL',[actor,target]);
  if(existing&&(existing.a_erased_at||existing.b_erased_at))fail(409,'MATCH_ARCHIVED');
