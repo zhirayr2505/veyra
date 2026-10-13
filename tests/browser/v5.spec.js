@@ -1188,7 +1188,7 @@ test('VEYRA FPS debug panel stays off until five logo taps and runs only while v
  await expect(hud).toBeVisible();
  await expect.poll(async()=>Number(await hud.getByTestId('veyra-fps-value').textContent()),{timeout:6000}).toBeGreaterThan(0);
  await hud.getByRole('button',{name:'Подробности FPS'}).click();
- await expect(hud).toContainText('Время кадра p95');
+ await expect(hud).toContainText('Кадр p95 / p99');
  await expect(hud).toContainText('Пропуски, оценка');
  await hud.getByRole('button',{name:'Закрыть FPS'}).click();
  await expect(hud).toHaveCount(0);
