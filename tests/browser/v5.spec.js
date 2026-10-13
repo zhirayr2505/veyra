@@ -1111,7 +1111,11 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
  // dispatches sent only to the deprecated custom touch handlers.
  const viewport=await page.locator('.vx-profile-swipe-viewport').boundingBox();
  expect(viewport).toBeTruthy();
- const y=Math.min(viewport.y+210,viewport.y+viewport.height-40);
+ // The carousel starts behind the sticky hero; drag from the actually
+ // visible panel BELOW the 292px compact header and its 52px tabs.
+ const visibleTop=await scroller.evaluate(el=>el.getBoundingClientRect().top+
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))+72);
+ const y=Math.min(viewport.y+viewport.height-25,Math.max(viewport.y+210,visibleTop));
  await page.mouse.move(viewport.x+viewport.width-36,y);
  await page.mouse.down();
  await page.mouse.move(viewport.x+viewport.width*.53,y+2,{steps:8});
