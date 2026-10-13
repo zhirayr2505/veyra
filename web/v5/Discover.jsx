@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
 import {get,post,photoUrl,cachedPhoto} from './api.js';
+import {getDemoProfiles,getDemoProfile} from './DemoProfiles.js';
 import {InterestReveal} from './InterestReveal.jsx';
 import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
 import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
@@ -69,7 +70,7 @@ function FeedState({kind,onRetry,onFilters,onPremium}){
   {!isLoading&&<Button className="full" onClick={isError?onRetry:isLimited?onPremium:onFilters}>{isError?'Попробовать ещё раз':isLimited?'Открыть Premium':'Изменить фильтры'}</Button>}
  </div>;
 }
-export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false}){
+export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false,demoMode=false}){
  const mode=filters.mode||'discover';
  const onlyOnline=!!filters.only_online,commonInterests=!!filters.common_interests;
  const [card,setCard]=useState(null),[loading,setLoading]=useState(true),[limited,setLimited]=useState(false);
@@ -81,18 +82,20 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  useEffect(()=>()=>clearTimeout(entranceTimer.current),[]);
  const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests;
 
- useEffect(()=>{let alive=true;get('/reactions/last').then(r=>{
+ useEffect(()=>{if(demoMode){setLast({can_undo:false,free_undo_left:1,premium:true,target:null});return;}
+  let alive=true;get('/reactions/last').then(r=>{
   if(alive)setLast({...r,target:r.action?.target||null});
- }).catch(()=>{});return()=>{alive=false}},[refreshTick]);
+ }).catch(()=>{});return()=>{alive=false}},[refreshTick,demoMode]);
  useEffect(()=>{
   let alive=true;const seq=++requestToken.current;
   setLoading(true);setCard(null);setLimited(false);setError('');setIndex(0);setMotion('');
+  if(demoMode){setCard(getDemoProfiles('feed')[0]||null);setLoading(false);return()=>{alive=false;requestToken.current++};}
   get('/feed?'+filtersQuery).then(result=>{
    if(alive&&seq===requestToken.current){setCard(result.profiles?.[0]||null);setLimited(!!result.limited)}
   }).catch(e=>{if(alive&&seq===requestToken.current)setError(e.message)})
    .finally(()=>{if(alive&&seq===requestToken.current)setLoading(false)});
   return()=>{alive=false;requestToken.current++};
- },[filtersQuery,refreshTick,refresh]);
+ },[filtersQuery,refreshTick,refresh,demoMode]);
 
  const changePhoto=step=>{
   if(!card||photos.length<2||busy)return;
@@ -134,6 +137,14 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   if(!card||busy)return;
   const current=card;clearTimeout(entranceTimer.current);setBusy(true);setError('');setMotion('exit-'+kind);haptic(kind);
   try{
+   if(demoMode){
+    const list=getDemoProfiles('feed');const position=list.findIndex(p=>p.id===current.id);
+    await wait(240);const following=list[(position+1)%list.length]||null;
+    ++requestToken.current;setCard(following);setIndex(0);setLimited(false);
+    setLast({can_undo:true,free_undo_left:1,premium:true,target:current.id});
+    setMotion('enter');entranceTimer.current=setTimeout(()=>setMotion(''),440);
+    return;
+   }
    const [result]=await Promise.all([
     post('/reactions',{target:String(current.id),kind,next_mode:mode,only_online:onlyOnline,common_interests:commonInterests}),
     wait(310)
@@ -161,6 +172,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  };
  const undo=async()=>{
   if(busy||!last.can_undo||!last.target)return;
+  if(demoMode){const previous=getDemoProfile(last.target);if(previous){setCard(previous);setIndex(0);setMotion('enter');setLast(old=>({...old,can_undo:false,target:null}));}return;}
   if(!last.premium&&last.free_undo_left<=0){
    setError('Бесплатная отмена на сегодня уже использована. С Premium можно возвращать анкеты без ограничений.');
    onPremium();return;
@@ -199,6 +211,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <FeedPicture key={card.id} card={card} index={index}/>
       <div className="veyra-card-shade" aria-hidden="true"/>
       <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
+      {card.demo_profile&&<span className="veyra-demo-photo-tag">ДЕМО · для просмотра дизайна</span>}
        <CardGoalBadge goal={card.goal} compact top/>
       <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
