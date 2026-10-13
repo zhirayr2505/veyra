@@ -1298,8 +1298,8 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  const city=await page.locator('.vx-profile-location').boundingBox();
  const goal=await page.locator('.vx-profile-goal').boundingBox();
  if(goal&&city){
-  expect(Math.abs(goal.y-city.y)).toBeLessThan(5);
-  expect(goal.x).toBeGreaterThan(city.x+80);
+  expect(goal.y).toBeGreaterThan(city.y+19);
+  expect(Math.abs(goal.x-city.x)).toBeLessThan(8);
   expect(goal.x+goal.width).toBeLessThanOrEqual(396);
  }
  await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
