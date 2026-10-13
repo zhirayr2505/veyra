@@ -69,7 +69,7 @@ function FeedState({kind,onRetry,onFilters,onPremium}){
   {!isLoading&&<Button className="full" onClick={isError?onRetry:isLimited?onPremium:onFilters}>{isError?'Попробовать ещё раз':isLimited?'Открыть Premium':'Изменить фильтры'}</Button>}
  </div>;
 }
-export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false}){
+export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false,demoMode=false}){
  const mode=filters.mode||'discover';
  const onlyOnline=!!filters.only_online,commonInterests=!!filters.common_interests;
  const [card,setCard]=useState(null),[loading,setLoading]=useState(true),[limited,setLimited]=useState(false);
@@ -79,7 +79,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const requestToken=useRef(0),pointer=useRef(null),ignoreSwipeClick=useRef(false),entranceTimer=useRef(null);
  const photos=card?.photos||[];
  useEffect(()=>()=>clearTimeout(entranceTimer.current),[]);
- const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests;
+ const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests+'&demo='+demoMode;
 
  useEffect(()=>{let alive=true;get('/reactions/last').then(r=>{
   if(alive)setLast({...r,target:r.action?.target||null});
@@ -135,7 +135,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   const current=card;clearTimeout(entranceTimer.current);setBusy(true);setError('');setMotion('exit-'+kind);haptic(kind);
   try{
    const [result]=await Promise.all([
-    post('/reactions',{target:String(current.id),kind,next_mode:mode,only_online:onlyOnline,common_interests:commonInterests}),
+    post('/reactions',{target:String(current.id),kind,next_mode:mode,only_online:onlyOnline,common_interests:commonInterests,demo:demoMode}),
     wait(310)
    ]);
    let next=result.next;
@@ -199,6 +199,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <FeedPicture key={card.id} card={card} index={index}/>
       <div className="veyra-card-shade" aria-hidden="true"/>
       <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
+      {card.test_profile&&<span className="vx-demo-feed-badge">ДЕМО</span>}
        <CardGoalBadge goal={card.goal} compact top/>
       <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
