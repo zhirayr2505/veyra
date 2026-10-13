@@ -115,3 +115,10 @@
  .vx-demo-copy strong{font-size:10px}
  .vx-demo-strip button{padding:0 9px}
 }
+
+.vx-portrait-card{position:relative}
+.vx-portrait-demo-tag{position:absolute;top:38px;left:50%;z-index:7;
+ transform:translateX(-50%);border:1px solid #FFF9;
+ border-radius:999px;padding:2px 5px;font-size:8px;line-height:1.2;
+ font-weight:800;letter-spacing:.3px;text-transform:uppercase;
+ color:white;background:#7742C5D9;box-shadow:0 2px 5px #4C238E33}
