@@ -91,13 +91,13 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   state.current.lastScrollAt=performance.now();paint();
  },[paint]);
  const onTouchStart=useCallback(e=>{
-  const s=state.current;stop();
+  const s=state.current,wasSnapping=s.snapping;stop();
   s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
   // Stops any native finishing scroll when a fresh finger takes over.
   const el=scrollRef.current;
-  if(el&&s.snapping)el.scrollTo({top:el.scrollTop,behavior:'instant'});
+  if(el&&wasSnapping)el.scrollTo({top:el.scrollTop,behavior:'instant'});
  },[stop,scrollRef]);
  const onTouchMove=useCallback(e=>{
   const s=state.current;
