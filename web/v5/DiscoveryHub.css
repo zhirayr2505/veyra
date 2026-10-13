@@ -74,3 +74,51 @@
 @media(max-width:370px){.vx-hub{padding-left:11px;padding-right:11px}.vx-people{gap:9px}.vx-person{height:209px}.vx-tabs button{font-size:12px}.vx-collection{height:149px}.vx-collection-label b{font-size:12px}}
 @media(min-width:500px){.vx-person{height:270px}.vx-collection{height:207px}}
 @media(prefers-reduced-motion:reduce){.vx-browse{animation:none}}
+
+
+/* Private owner demo: polished but unmistakably separate from real people. */
+.vx-demo-strip{
+ display:flex;align-items:center;gap:10px;padding:11px 12px;margin:5px 0 12px;
+ background:linear-gradient(120deg,#F5EEFF,#FDF2FA 63%,#FFF);
+ border:1px solid #E8D8FF;border-radius:18px;box-shadow:0 6px 20px #804BBA13;
+ color:#3C2A58;
+}
+.vx-demo-strip.is-active{border-color:#CEB4FD;background:linear-gradient(110deg,#EFE3FF,#FCEAF6)}
+.vx-demo-symbol{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:11px;
+ background:linear-gradient(135deg,#E3CBFF,#BEA5FB);color:#7138BD;font-size:21px}
+.vx-demo-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
+.vx-demo-copy strong{font-size:11px;line-height:1.3;letter-spacing:.08px}
+.vx-demo-copy small{font-size:10px;color:#8A729F;line-height:1.4}
+.vx-demo-strip button{flex:none;border:1px solid #DAC5FF;border-radius:11px;background:#FFF;
+ min-height:33px;padding:0 12px;font-size:11px;font-weight:800;color:#7738C9;
+ box-shadow:0 3px 10px #AA86D61F;cursor:pointer}
+.vx-demo-strip button:active{transform:scale(.97)}
+.vx-person-open{position:relative}
+.vx-demo-card-badge{position:absolute;z-index:8;top:9px;left:9px;
+ display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:999px;
+ border:1px solid #FFFFFFBB;background:#6E39BCD9;color:#FFF;
+ font-weight:850;font-size:10px;letter-spacing:1px;box-shadow:0 3px 12px #130A3480}
+.vx-demo-feed-badge{position:absolute;z-index:10;top:32px;right:15px;
+ background:#763FC9E6;border:1px solid #FFFFFFCC;color:white;padding:6px 11px;
+ font-size:10px;letter-spacing:1px;font-weight:850;border-radius:999px;
+ box-shadow:0 5px 20px #1D0C4970;pointer-events:none}
+.vx-demo-caption-label,.vx-demo-member-label{display:inline-flex;align-items:center;
+ justify-content:center;padding:4px 8px;min-height:23px;border-radius:999px;
+ background:#8952D9EE;border:1px solid #FFFFFF9E;color:#fff;
+ font-size:10px;font-weight:850;letter-spacing:.65px;text-transform:uppercase}
+.vx-demo-member-label{background:#EFE5FF;border-color:#D8C0FA;color:#7547BA}
+.vx-demo-disclaimer{padding:9px 12px;border-radius:12px;
+ background:#F4EDFF;border:1px solid #E5D8FD;color:#6F5D85;
+ font-size:11px;line-height:1.5}
+@media(max-width:350px){
+ .vx-demo-strip{gap:7px;padding:9px}
+ .vx-demo-copy strong{font-size:10px}
+ .vx-demo-strip button{padding:0 9px}
+}
+
+.vx-portrait-card{position:relative}
+.vx-portrait-demo-tag{position:absolute;top:38px;left:50%;z-index:7;
+ transform:translateX(-50%);border:1px solid #FFF9;
+ border-radius:999px;padding:2px 5px;font-size:8px;line-height:1.2;
+ font-weight:800;letter-spacing:.3px;text-transform:uppercase;
+ color:white;background:#7742C5D9;box-shadow:0 2px 5px #4C238E33}

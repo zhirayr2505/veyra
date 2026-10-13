@@ -1,5 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {one} from './db.js';
+import {isTestProfile} from './test-profile-ids.js';
 import {fail,premium} from './core.js';
 import {z,parse,id,uuid,short} from './validation.js';
 import {approved,ensurePair,pairLock,publicProfile,audit,notify} from './domain.js';
@@ -47,7 +48,9 @@ export function experienceRoutes(app,{db,rate,env}){
   await db.query('UPDATE profiles SET min_age=$2,max_age=$3,radius_km=$4,looking_for=coalesce($5::text[],looking_for),filter_city=coalesce($6,filter_city) WHERE user_id=$1',[req.user.id,b.min_age,b.max_age,b.radius_km,b.looking_for||null,b.city??null]);res.json({ok:true});
  });
  app.get('/api/profiles/:id',async(req,res)=>{
-  const target=parse(id,req.params.id);await ensurePair(db,req.user.id,target);
+  const target=parse(id,req.params.id);
+  if(isTestProfile(target)&&req.user.admin_role!=='owner')fail(404,'PROFILE_NOT_FOUND');
+  await ensurePair(db,req.user.id,target);
   const allowed=await one(db,`SELECT 1 WHERE EXISTS(SELECT 1 FROM impressions WHERE viewer=$1 AND target=$2)
    OR EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=$2)
    OR EXISTS(SELECT 1 FROM matches WHERE active AND (a=$1 AND b=$2 OR a=$2 AND b=$1))

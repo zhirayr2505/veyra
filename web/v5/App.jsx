@@ -35,6 +35,7 @@ export function App(){
  const [tab,setTab]=useState('encounters'),[tabDirection,setTabDirection]=useState('left'),[visited,setVisited]=useState(new Set(['encounters'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [feedFilters,setFeedFilters]=useState({mode:'discover',only_online:false,common_interests:false});
+ const [demoMode,setDemoMode]=useState(false),[demoStatus,setDemoStatus]=useState('hidden'),[demoRetry,setDemoRetry]=useState(0);
  const [adminMode,setAdminMode]=useState(location.pathname.startsWith('/admin'));
  const admin=location.pathname.startsWith('/admin');
  const refresh=useCallback(async()=>{const m=await get('/me');setMe(m);return m},[]);
@@ -49,6 +50,17 @@ export function App(){
   const j=await auth.json();if(!auth.ok)throw Error(j.error||'Не удалось войти через Telegram');
   setBearer(j.token);const m=await get('/me');await brandReady;if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false;releaseFullscreen()}},[]);
+ useEffect(()=>{
+  if(me?.user?.admin_role!=='owner'||me?.profile?.moderation!=='approved')return;
+  let alive=true;
+  setDemoStatus('loading');
+  post('/owner/seed-test-profiles',{}).then(result=>{
+   if(!alive)return;
+   if(result.status!=='completed'){setDemoStatus('unavailable');return;}
+   setDemoStatus('ready');setDemoMode(true);setFeedTick(t=>t+1);
+  }).catch(()=>{if(alive){setDemoStatus('error');setDemoMode(false)}});
+  return()=>{alive=false};
+ },[me?.user?.admin_role,me?.profile?.moderation,demoRetry]);
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
   const active=!!(match||overlay||member||conversation);
   if(!active){back.hide?.();return;}
@@ -77,11 +89,11 @@ export function App(){
  if(!ready)return <main className="access"><Logo/><Empty title="Анкета недоступна" body="Проверить статус можно через официальный бот."/><Button onClick={refresh}>проверить ещё раз</Button></main>;
  return <div className="app-shell veyra-v2">
  <div className="view-frame" hidden={!!conversation||!!member}>
- {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
+ {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
    <DiscoveryHub filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound}
-    refreshTick={feedTick} onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0}
+    refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0}
     onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
   </section>
  </div>
