@@ -118,8 +118,8 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
        :<button type="button" className="vx-profile-action" onClick={()=>like('super')} aria-label="Суперлайк"><Icon name="star" tone="pink" size={23}/><span>Суперлайк</span></button>}
      </div>
     </div>
-    <div className="vx-profile-open-spacer" ref={stageRef} aria-hidden="true"/>
    </div>
+   <div className="vx-profile-open-spacer" ref={stageRef} aria-hidden="true"/>
 
    <div className="vx-profile-tab-rail" role="tablist" aria-label="Разделы анкеты">
     {TABS.map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} className={tab===key?'active':''} onClick={()=>openTab(key)}>{label}</button>)}
