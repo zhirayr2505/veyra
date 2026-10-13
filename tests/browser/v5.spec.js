@@ -145,7 +145,7 @@ test('V5 member uses full-screen navigation and returns to the same chat',async(
  await page.locator('.conversation-head .chat-user').click();
  await expect(page.locator('.member')).toBeVisible();
  await expect(page.locator('.bottom-nav')).toHaveCount(0);
- await page.locator('.member .vx-member-fallback-back').click();
+ await page.locator('.vx-member-native-header .vx-member-fallback-back').click();
  await expect(page.locator('.conversation')).toBeVisible();
 });
 
@@ -430,7 +430,7 @@ test('V5 approved premium feed uses cyclic photo strips and opens the complete p
  await expect(page.locator('.member')).toHaveCount(0);
  await page.locator('.feed-photo .hero-name').click();
  await expect(page.locator('.member')).toBeVisible();
- await page.locator('.member .vx-member-fallback-back').click();
+ await page.locator('.vx-member-native-header .vx-member-fallback-back').click();
  await expect(page.locator('.feed-photo')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
@@ -497,7 +497,7 @@ test('VEYRA V2 keeps search and encounter screens distinct and opens genuine mem
  await expect(page.getByRole('dialog',{name:/Предпросмотр анкеты/})).toBeVisible();
  await page.getByRole('button',{name:'посмотреть полный профиль'}).click();
  await expect(page.locator('.member')).toBeVisible();
- await page.locator('.member .vx-member-fallback-back').click();
+ await page.locator('.vx-member-native-header .vx-member-fallback-back').click();
  await expect(page.locator('.vx-for_you .vx-people')).toBeVisible();
  await tabs.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby .vx-people .vx-person').first()).toBeVisible();
@@ -526,9 +526,9 @@ test('VEYRA Nearby displays city only, removes grid hearts, previews photos befo
  expect(likes).toHaveLength(0);
  await preview.getByRole('button',{name:'посмотреть полный профиль'}).click();
  await expect(page.locator('.member-feed-profile')).toBeVisible();
- await expect(page.locator('.member-feed-profile .vx-member-floating-logo')).toBeVisible();
+ await expect(page.locator('body > .vx-member-native-header .vx-member-floating-logo')).toBeVisible();
  await expect(page.locator('.member-feed-profile .top-header')).toHaveCount(0);
- await page.locator('.member .vx-member-fallback-back').click();
+ await page.locator('.vx-member-native-header .vx-member-fallback-back').click();
  await expect(page.locator('.bottom-nav button')).toHaveCount(5);
 });
 
@@ -557,7 +557,7 @@ test('V5 Симпатии displays exactly two tabs, real matches, profiles, and
  await expect(page.locator('.likes-v2 .likes-gallery .likes-person').first()).toBeVisible();
  await page.locator('.likes-v2 .likes-person-photo').first().click();
  await expect(page.locator('.member')).toBeVisible();
- await page.locator('.member .vx-member-fallback-back').click();
+ await page.locator('.vx-member-native-header .vx-member-fallback-back').click();
  await page.getByRole('tab',{name:/Входящие/}).click();
  await expect(page.locator('.likes-v2 .likes-gallery .likes-person').first()).toBeVisible();
  await expect(page.locator('.likes-v2 .likes-private-card')).toHaveCount(0);
@@ -991,14 +991,24 @@ test('VEYRA member header morphs on scrolling, shows goal as chip and opens acti
  await expect(member.locator('.member-icon-actions .member-icon-control')).toHaveCount(3);
  await expect(member.locator('.vx-member-interests-grid svg').first()).toBeVisible();
  await expect(member.locator('.veyra-detail-card').filter({hasText:'Цель знакомства'})).toHaveCount(0);
- await member.locator('.vx-member-more').click();
+ await page.locator('body > .vx-member-native-header .vx-member-more').click();
  await expect(page.getByRole('menu',{name:'Действия с анкетой'})).toBeVisible();
  await expect(page.getByRole('menuitem',{name:'Пожаловаться'})).toBeVisible();
  await page.getByRole('button',{name:'Закрыть',exact:true}).click();
+ // Regression from real Telegram recording: fixed descendants of .subscreen
+ // used to scroll away. Portal must be a direct body child, not a child of Member.
+ const fixedHeader=page.locator('body > .vx-member-native-header');
+ await expect(fixedHeader).toHaveCount(1);
+ expect(await fixedHeader.evaluate(el=>getComputedStyle(el).position)).toBe('fixed');
+ const topBefore=await fixedHeader.evaluate(el=>el.getBoundingClientRect().top);
  await page.evaluate(()=>window.scrollTo(0,550));
- await expect.poll(()=>member.locator('.vx-member-floating-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeGreaterThan(.65);
- await expect(member.locator('.vx-member-floating-logo')).toBeVisible();
- await expect(member.locator('.vx-member-mini-avatar')).toBeVisible();
+ await expect.poll(()=>fixedHeader.evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeGreaterThan(.65);
+ const topAfter=await fixedHeader.evaluate(el=>el.getBoundingClientRect().top);
+ expect(Math.abs(topAfter-topBefore)).toBeLessThan(2);
+ await expect(fixedHeader.locator('.vx-member-compact-details')).toBeVisible();
+ await expect(fixedHeader.locator('.vx-member-mini-copy')).toContainText('Краснодар');
+ await expect(page.locator('body > .vx-member-native-header .vx-member-floating-logo')).toBeVisible();
+ await expect(page.locator('body > .vx-member-native-header .vx-member-mini-avatar')).toBeVisible();
  await page.evaluate(()=>window.scrollTo(0,0));
- await expect.poll(()=>member.locator('.vx-member-floating-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
+ await expect.poll(()=>page.locator('body > .vx-member-native-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
 });
