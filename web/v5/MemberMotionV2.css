@@ -56,6 +56,17 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  transform:translate3d(0,0,0);
  will-change:transform;
 }
+/* The sheet rises OVER the full photo before the photo starts to shrink. */
+.veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
+ position:absolute;z-index:13;pointer-events:none;
+ top:calc(var(--vx-profile-hero-height) - 30px);
+ left:0;right:0;height:76px;
+ border-radius:32px 32px 0 0;
+ background:linear-gradient(160deg,#fffdff,#f7f1ff);
+ border-top:1px solid #ffffffc7;
+ transform:translate3d(0,0,0);
+ opacity:1;will-change:transform,opacity;
+}
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  position:absolute;top:0!important;left:0!important;z-index:9;
  width:100%!important;height:var(--vx-profile-hero-height)!important;
