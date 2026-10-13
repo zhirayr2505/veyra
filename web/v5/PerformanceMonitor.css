@@ -1,7 +1,7 @@
 /* Diagnostics only: entirely absent from the DOM until explicitly enabled.
  * Avoid blur and animated CSS properties in the monitor itself.
  */
-body>.vx-member-native-header>.vx-member-floating-logo{
+body>header.vx-member-native-header>img.logo.vx-member-floating-logo{
  pointer-events:auto!important;
  touch-action:manipulation;
  -webkit-user-select:none;user-select:none;
