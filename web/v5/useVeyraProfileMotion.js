@@ -21,6 +21,10 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  const calibrate=useCallback(()=>{
   const el=scrollRef.current,stage=stageRef.current;if(!el||!stage)return;
   state.current.distance=Math.max(1,stage.offsetHeight-(parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||272));
+  const motion=motionRef.current,hero=motion?.querySelector('.vx-profile-hero-photo');
+  if(hero){const w=hero.offsetWidth,h=hero.offsetHeight;
+   motion.style.setProperty('--vx-end-scale-x',(96/Math.max(1,w)).toFixed(7));
+   motion.style.setProperty('--vx-end-scale-y',(96/Math.max(1,h)).toFixed(7));}
   state.current.lastProgress=-1;paint()
  },[scrollRef,stageRef,paint]);
  const snap=useCallback(()=>{
