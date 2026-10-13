@@ -283,3 +283,54 @@
  .vx-dating-stage02 .vx-location-hint{background:#352742;border-color:#56416a}
  .vx-dating-stage02 .vx-location-hint p{color:#e0d3f0}
 }
+
+
+/* Fullscreen Telegram on Android renders its status bar and native Close/More
+   chrome OVER the WebView. Some clients report zero contentSafeAreaInset.top;
+   viewport-fit:cover also makes env(safe-area-inset-top) zero there. Reserve the
+   native chrome explicitly rather than trusting either value in isolation.
+   Keep the approved wordmark between the two native Telegram controls, while
+   placing our own tappable Premium/VEYS/Filter controls on the next safe row. */
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02{
+ position:relative;
+ --veyra-dating-native-safe: max(76px,var(--veyra-telegram-top,0px),env(safe-area-inset-top,0px));
+ padding-top:calc(var(--veyra-dating-native-safe) + 8px);
+ padding-bottom:calc(112px + max(env(safe-area-inset-bottom,0px),var(--veyra-telegram-bottom,0px)));
+}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head{
+ position:static; /* logo now anchors to the safe, full-height scene */
+ min-height:54px;
+}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head .vx-logo{
+ position:absolute;
+ top:max(39px,calc(var(--veyra-telegram-status-top,0px) + 13px));
+ left:50%;
+ width:clamp(108px,32vw,135px);
+ height:31px;
+ transform:translateX(-50%);
+ z-index:3;
+ pointer-events:none;
+}
+/* The card and its empty state must shrink to fit the lower usable viewport,
+   not remain sized as if the Telegram title bar were invisible. */
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .discover .feed-photo{
+ height:clamp(395px,calc(100dvh - 223px - var(--veyra-dating-native-safe)),760px);
+ min-height:395px;
+}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .discover .feed-state{
+ min-height:clamp(340px,calc(100dvh - 317px - var(--veyra-dating-native-safe)),630px);
+}
+/* Keep the empty-state action above the persistent bottom navigation, and let
+   very small screens scroll normally instead of clipping its button. */
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-state{
+ min-height:260px;
+}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
+ padding-bottom:5px;
+}
+@media(max-height:700px){
+ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .discover .feed-photo{
+  height:max(395px,calc(100dvh - 220px - var(--veyra-dating-native-safe)))!important;
+  min-height:395px;
+ }
+}

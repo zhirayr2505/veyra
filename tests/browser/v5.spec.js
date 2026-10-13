@@ -1,9 +1,12 @@
 import {test,expect} from '@playwright/test';
 import {initData,env} from '../helpers.js';
 import sharp from 'sharp';
-async function telegram(page,id,admin=false){
+async function telegram(page,id,admin=false,fullscreen=false){
  await page.route('https://telegram.org/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:''}));
- await page.addInitScript(data=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){},openInvoice(){}}};},initData(id,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN));
+ await page.addInitScript(({data,fullscreen})=>{window.Telegram={WebApp:{initData:data,initDataUnsafe:{user:{language_code:'ru'}},isFullscreen:fullscreen,
+  safeAreaInset:{top:0,bottom:0},contentSafeAreaInset:{top:0,bottom:0},
+  ready(){},expand(){},setHeaderColor(){},setBackgroundColor(){},openInvoice(){}}};},
+  {data:initData(id,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN),fullscreen});
 }
 test('V5 signed Telegram startup, persistent tabs, and real discovery',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -694,4 +697,58 @@ test('VEYRA match celebration uses approved Work assets, not abandoned graphics'
  expect(resource.status()).toBe(200);
  const old=page.locator('img[src^="/veyra-v2/"]');
  await expect(old).toHaveCount(0);
+});
+
+
+test('Telegram Android fullscreen keeps dating wordmark between native controls and actions safely below',async({page})=>{
+ await page.setViewportSize({width:393,height:852});
+ await telegram(page,10,false,true);await page.goto('/');
+ await expect(page.locator('.vx-dating-stage02 .vx-tabs')).toBeVisible();
+ const positions=await page.evaluate(()=>{
+  const box=q=>{const r=document.querySelector(q)?.getBoundingClientRect();return r?{top:r.top,bottom:r.bottom,left:r.left,right:r.right}:null};
+  return {
+   fullscreen:document.documentElement.classList.contains('veyra-telegram-fullscreen'),
+   logo:box('.vx-dating-stage02 .vx-logo'),
+   crown:box('.vx-dating-stage02 .vx-crown'),
+   wallet:box('.vx-dating-stage02 .veys-header-button'),
+   filters:box('.vx-dating-stage02 .vx-head-actions button:last-child'),
+   tabs:box('.vx-dating-stage02 .vx-tabs'),
+   header:box('.vx-dating-stage02 .vx-head'),
+   width:window.innerWidth,scrollWidth:document.documentElement.scrollWidth
+  };
+ });
+ expect(positions.fullscreen).toBe(true);
+ expect(positions.logo.top).toBeGreaterThanOrEqual(35);
+ expect(positions.logo.bottom).toBeLessThanOrEqual(76);
+ for(const name of ['crown','wallet','filters']){
+  expect(positions[name].top,name+' must be below Telegram close button').toBeGreaterThanOrEqual(76);
+  expect(positions[name].bottom,name+' must fit before the tabs').toBeLessThan(positions.tabs.top);
+ }
+ expect(positions.tabs.top).toBeGreaterThanOrEqual(136);
+ expect(positions.scrollWidth).toBeLessThanOrEqual(positions.width);
+ for(const label of ['Для вас','Рядом','Лента']){
+  await page.getByRole('tab',{name:label}).click();
+  await expect(page.getByRole('tab',{name:label})).toHaveAttribute('aria-selected','true');
+  // Each tab restores its own window scroll; test document layout, not the
+  // transient viewport Y after switching a long and a short panel.
+  const top=await page.locator('.vx-dating-stage02 .vx-tabs').evaluate(e=>e.getBoundingClientRect().top+window.scrollY);
+  expect(top).toBeGreaterThanOrEqual(136);
+ }
+});
+
+test('small fullscreen dating keeps nearby filter button accessible above fixed bottom nav',async({page})=>{
+ await page.setViewportSize({width:360,height:640});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ const filters=page.locator('.vx-dating-stage02 .vx-filter-pills');
+ await expect(filters).toBeVisible();
+ await filters.getByRole('button',{name:'В сети'}).click();
+ await expect(filters.getByRole('button',{name:'В сети'})).toHaveAttribute('aria-pressed','true');
+ const bounds=await page.evaluate(()=>{
+  const nav=document.querySelector('.bottom-nav').getBoundingClientRect();
+  const scene=document.querySelector('.vx-dating-stage02').getBoundingClientRect();
+  return {bottom:scene.bottom,navTop:nav.top,scrollHeight:document.documentElement.scrollHeight};
+ });
+ expect(bounds.bottom).toBeGreaterThan(bounds.navTop);
+ expect(bounds.scrollHeight).toBeGreaterThan(640);
 });
