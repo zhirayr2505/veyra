@@ -8,7 +8,7 @@ import {react} from '../server/domain.js';
 test('synthetic test profile returns a like, creates a match and opens with a greeting',async()=>{
  const db=await testDB();
  try{
-  await user(db,1);await db.query("UPDATE profiles SET gender='man',looking_for=ARRAY['woman'] WHERE user_id=1");
+  await user(db,1);await db.query("UPDATE users SET admin_role='owner' WHERE id=1");await db.query("UPDATE profiles SET gender='man',looking_for=ARRAY['woman'] WHERE user_id=1");
   const storage={put:async()=>{},remove:async()=>{}};
   const loadPortrait=async()=>Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200"><rect width="900" height="1200" fill="#b9a3dc"/></svg>');
   await seedTestProfiles(db,storage,{APP_URL:'https://veyra-3806.onrender.com',RENDER_EXTERNAL_URL:'https://veyra-3806.onrender.com',OWNER_TELEGRAM_ID:'1'},{loadPortrait});
