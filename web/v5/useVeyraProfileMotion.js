@@ -1,6 +1,7 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
 import {clamp,profileFrame} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
+import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 
 // All moving elements are compositor-friendly layers with fixed geometry.
 // Layout is measured ONCE on mount/resize, never inside a scroll frame.
@@ -12,7 +13,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   touching:false,released:false,snapping:false,axis:null,
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
-  refs:null,resizeObserver:null,mutationObserver:null,
+  refs:null,resizeObserver:null,mutationObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,
  });
  const stop=useCallback(()=>{
   const s=state.current;
@@ -38,12 +39,34 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    s.lastY=scrollY;s.lastAt=now;
    if(Math.abs(p-s.lastProgress)<.00015)return;
    s.lastProgress=p;
+   // In Chromium, the scroll position drives visual transforms without JS.
+   // JS now only samples momentum/snap, reports opt-in timings, and changes
+   // the shape clip at two phase boundaries (never per frame).
+   if(s.nativeAnimation){
+    const shape=p<.18?'cover':p<.91?'rounded':'circle';
+    if(shape!==s.radiusPhase){
+     s.radiusPhase=shape;
+     parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'20px':'50%';
+    }
+    const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
+    if(motion.dataset.state!==phase)motion.dataset.state=phase;
+    const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
+    if(motion.dataset.motionPhase!==motionStage)motion.dataset.motionPhase=motionStage;
+    if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
+    return;
+   }
    const f=profileFrame(p,s.width,s.height,s.compactHeight);
    const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
    const scaleX=f.width/s.width,scaleY=f.height/s.height;
    const scale=' scale('+scaleX.toFixed(6)+','+scaleY.toFixed(6)+')';
    parts.hero.style.transform=translate(f.x,f.y)+scale;
-   parts.hero.style.borderRadius=f.radius.toFixed(2)+'%';
+   // Legacy fallback updates shape only at two boundaries, rather than
+   // invalidating a large clipped image on each individual scroll frame.
+   const shape=p<.18?'cover':p<.91?'rounded':'circle';
+   if(shape!==s.radiusPhase){
+    s.radiusPhase=shape;
+    parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'20px':'50%';
+   }
    // Compensate for portrait-to-square squash on the image itself.
    if(!parts.image?.isConnected){
     parts.image=parts.hero.querySelector('.photo-box img');
@@ -55,7 +78,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
     parts.identity.style.opacity=f.nameOpacity.toFixed(3);
    }
-   if(parts.actions&&!s.actionsNative)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
+   if(parts.actions)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
    if(parts.more)parts.more.style.transform=translate(0,f.moreY-(s.height+8));
    if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
@@ -132,8 +155,11 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.height=Math.max(1,hero.offsetHeight);
   s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
   s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
-  s.actionsNative=Boolean(window.CSS?.supports?.('animation-timeline: scroll()')&&window.CSS?.supports?.('animation-range: 0px 300px'));
-  recordProfileCalibration(s.width,s.height,s.distance,s.actionsNative?'CSS ScrollTimeline':'JS fallback');
+  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;
+  // Previous JS fallback transforms must not override WAAPI motion.
+  if(s.refs)for(const part of Object.values(s.refs)){
+   if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity')}
+  }
   s.refs={
    hero,image:hero.querySelector('.photo-box img'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
@@ -148,6 +174,11 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    online:motion.querySelector('.vx-profile-online'),
    shade:motion.querySelector('.vx-profile-photo-shade'),
   };
+  s.nativeAnimation=createProfileScrollAnimations(el,s.refs,{
+   width:s.width,height:s.height,distance:s.distance,compactHeight:s.compactHeight
+  });
+  s.engine=s.nativeAnimation?'WAAPI ScrollTimeline':'JS fallback';
+  recordProfileCalibration(s.width,s.height,s.distance,s.engine);
   s.lastProgress=-1;paint();
  },[scrollRef,motionRef,stageRef,paint]);
  useLayoutEffect(()=>{
@@ -160,7 +191,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(el)s.resizeObserver?.observe(el);
   const hero=s.refs?.hero;
   s.mutationObserver=hero&&typeof MutationObserver!=='undefined'?new MutationObserver(()=>{
-   if(s.refs){s.refs.image=hero.querySelector('.photo-box img');s.lastProgress=-1;paint()}
+   if(s.refs){calibrate()}
   }):null;
   s.mutationObserver?.observe(hero,{childList:true,subtree:true});
   const onScrollEnd=()=>{
@@ -174,6 +205,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   window.visualViewport?.addEventListener('resize',resize,{passive:true});
   return()=>{
    stop();cancelAnimationFrame(s.frame);s.frame=0;
+   s.nativeAnimation?.cancel();s.nativeAnimation=null;
    s.resizeObserver?.disconnect();s.mutationObserver?.disconnect();
    el?.removeEventListener('scroll',onScroll);
    el?.removeEventListener('touchmove',onTouchMove);
