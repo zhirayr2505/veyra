@@ -3,6 +3,7 @@ import {get,post,photoUrl} from './api.js';
 import {Button,Icon,InterestIcon,Logo,Photo,Spinner,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {Discover} from './Discover.jsx';
+import {getDemoProfiles} from './DemoProfiles.js';
 import './DiscoveryHub.css';
 
 const TABS=[['feed','Лента'],['for_you','Для вас'],['nearby','Рядом']];
@@ -38,6 +39,7 @@ function SectionTitle({children,action,onAction}){
 function Portrait({person,onProfile,interest}){
  return <button className="vx-portrait-card" type="button" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
   <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name}/></span>
+  {person.demo_profile&&<span className="vx-portrait-demo">демо</span>}
   {interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
    person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null}
   <span className="vx-portrait-name">{person.name}</span>
@@ -48,6 +50,7 @@ function BrowsePerson({person,onProfile,onLike,busy,variant='nearby'}){
   <button type="button" className="vx-person-open" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
    <Photo id={person.photos?.[0]} alt={person.name}/>
    <span className="vx-person-gradient" aria-hidden="true"/>
+   {person.demo_profile&&<span className="vx-person-demo">ДЕМО</span>}
    {person.online&&<span className="vx-card-online" title="В сети"/>}
    <span className="vx-person-caption">
     <strong>{person.name}, {person.age}</strong>
@@ -59,14 +62,14 @@ function BrowsePerson({person,onProfile,onLike,busy,variant='nearby'}){
    aria-label={'Нравится '+person.name}><Icon name="heart" tone="pink" size={21}/></button>
  </article>;
 }
-function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,onPremium,onFilters,onReaction}){
+function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,onPremium,onFilters,onReaction,demoMode=false}){
  const personal=kind==='for_you';
  const [people,setPeople]=useState([]),[loading,setLoading]=useState(false),[limited,setLimited]=useState(false);
  const [error,setError]=useState(''),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
  const [choice,setChoice]=useState('all'),[collection,setCollection]=useState(null),[pending,setPending]=useState([]);
  const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false);
  const loadedKey=useRef(null),requestNumber=useRef(0);
- const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,collection,refreshTick,retry].join(':');
+ const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,collection,refreshTick,retry,demoMode,profile?.city].join(':');
  const sharedPeople=useMemo(()=>[...people].sort((a,b)=>(b.shared_interests||0)-(a.shared_interests||0)),[people]);
  const nearbyLocation=profile?.city?(profile.city+(profile.country?', '+profile.country:'')):'Местоположение не определено';
  const hasCoordinates=Number.isFinite(Number(profile?.lat))&&Number.isFinite(Number(profile?.lon))&&profile?.lat!=null&&profile?.lon!=null;
@@ -77,6 +80,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
   loadedKey.current=requestKey;
   const n=++requestNumber.current;let alive=true,done=false;
   setLoading(true);setError('');setHasMore(false);
+  if(demoMode){setPeople(getDemoProfiles(kind,{collection,choice,city:profile?.city}));setLimited(false);setHasMore(false);setLoading(false);return;}
   get(queryFor(kind,filters,choice,[],collection)).then(data=>{
    if(!alive||n!==requestNumber.current)return;
    done=true;const list=data.profiles||[];
@@ -85,7 +89,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
    if(alive&&n===requestNumber.current){loadedKey.current=null;setError(e.message)}
   }).finally(()=>{if(alive&&n===requestNumber.current)setLoading(false)});
   return()=>{alive=false;if(!done&&loadedKey.current===requestKey)loadedKey.current=null};
- },[active,requestKey,kind,filters,choice,collection]);
+ },[active,requestKey,kind,filters,choice,collection,demoMode,profile?.city]);
  useEffect(()=>{
   if(!people.length)return;
   people.slice(0,Math.min(8,people.length)).forEach(p=>{
@@ -106,6 +110,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
  };
  const like=async person=>{
   const target=String(person.id);if(pending.includes(target))return;
+  if(demoMode){setPeople(current=>current.filter(row=>String(row.id)!==target));setError('Демо-симпатия: настоящие действия не выполняются.');return;}
   setPending(old=>[...old,target]);setError('');
   try{
    const data=await post('/reactions',{target,kind:'like'});
@@ -189,7 +194,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
   <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
  </div>;
 }
-export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0}){
+export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoAllowed=false,demoMode=false,onDemoChange}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
  const [reactionRefresh,setReactionRefresh]=useState(0);
  const scroll=useRef({feed:0,for_you:0,nearby:0}),scrollTimeout=useRef(null);
@@ -203,6 +208,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
   <header className="vx-head"><Logo width={138} className="vx-logo"/><div className="vx-head-actions">
    <button type="button" className="veys-header-button" onClick={onWallet} aria-label="Открыть VEYS кошелёк"><img src="/veyra-approved/09_veys/veys-diamond.svg" alt="" width="20" height="20"/>{new Intl.NumberFormat('ru-RU').format(veysBalance)}</button>
    <button type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={22}/></button></div></header>
+  {demoAllowed&&<div className={'vx-demo-control'+(demoMode?' enabled':'')}><span>{demoMode?'12 демо-анкет · девушки и парни':'Проверить дизайн на анкетах'}</span><button type="button" aria-pressed={demoMode} onClick={()=>onDemoChange?.(!demoMode)}>{demoMode?'Выключить':'Включить демо'}</button></div>}
   <h1 className="v2-directory-title">Поиск людей</h1><p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
   <div className="v2-directory-switch" role="tablist" aria-label="Подборки людей">
    {TABS.slice(1).reverse().map(([key,label])=><button key={key} type="button" role="tab" aria-selected={directoryTab===key}
@@ -210,7 +216,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
   </div>
   <BrowseScene kind={directoryTab} active profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch}
    onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
-   refreshTick={refreshTick+reactionRefresh}/>
+   refreshTick={refreshTick+reactionRefresh} demoMode={demoMode}/>
  </section>;
  return <section className="vx-hub vx-dating-stage02" aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
@@ -231,15 +237,16 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
     aria-selected={tab===key} aria-controls={'vx-panel-'+key} className={tab===key?'active':''}
     onClick={()=>switchTab(key)}>{label}</button>)}
   </div>
+  {demoAllowed&&<div className={'vx-demo-control'+(demoMode?' enabled':'')}><span>{demoMode?'12 тестовых анкет · фото девушек и мужчин':'Режим проверки дизайна'}</span><button type="button" aria-pressed={demoMode} onClick={()=>onDemoChange?.(!demoMode)}>{demoMode?'Выключить':'Показать демо'}</button></div>}
   <div id="vx-panel-feed" className="vx-panel" role="tabpanel" aria-labelledby="vx-tab-feed" hidden={tab!=='feed'}>
-   <Discover embedded filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium}
+   <Discover demoMode={demoMode} embedded filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium}
     onFilters={onFilters} refreshTick={refreshTick+(tab==='feed'?reactionRefresh:0)}/>
   </div>
   {['for_you','nearby'].map(kind=>visited.has(kind)&&<div key={kind} id={'vx-panel-'+kind}
    className="vx-panel" role="tabpanel" aria-labelledby={'vx-tab-'+kind} hidden={tab!==kind}>
    <BrowseScene kind={kind} active={tab===kind} profile={profile} filters={filters} onProfile={onProfile} onMatch={onMatch}
     onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
-    refreshTick={refreshTick+reactionRefresh}/>
+    refreshTick={refreshTick+reactionRefresh} demoMode={demoMode}/>
   </div>)}
  </section>;
 }
