@@ -1,0 +1,29 @@
+/* VEYRA 2026: mutual attraction celebration. */
+.veyra-v2 .vx-match-celebration{z-index:150;display:flex;align-items:center;justify-content:center;padding:20px 14px calc(20px + env(safe-area-inset-bottom));background:#21112cb9;backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+.veyra-v2 .vx-match-dialog{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;width:min(100%,455px);max-height:calc(100dvh - 32px);overflow-y:auto;overflow-x:hidden;border-radius:36px;padding:clamp(24px,4vh,38px) clamp(21px,6vw,35px) 28px;background:linear-gradient(162deg,#fff,#f9f2ff 63%,#fff9ff);box-shadow:0 28px 90px #11072382;border:1px solid #fff;text-align:center}
+.veyra-v2 .vx-match-glow{position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 50% 28%,#e0c6ff9c,transparent 53%);pointer-events:none}
+.veyra-v2 .vx-match-wordmark{width:105px;height:35px;max-height:35px;object-fit:contain;object-position:center;margin:0 auto 24px}
+.veyra-v2 .vx-match-portraits{position:relative;display:flex;align-items:center;justify-content:center;width:min(100%,345px);height:175px;margin-bottom:12px}
+.veyra-v2 .vx-match-avatar{position:absolute;width:143px;height:143px;border:5px solid #fff;border-radius:50%;overflow:hidden;background:linear-gradient(145deg,#e9d9fc,#ccb3ff);box-shadow:0 12px 30px #4d2a8c38,0 0 0 3px #decaff;animation:vxPortraitReveal .6s cubic-bezier(.18,1,.35,1) backwards}
+.veyra-v2 .vx-match-avatar-me{left:6%;transform:rotate(-9deg);animation-delay:.08s}
+.veyra-v2 .vx-match-avatar-them{right:6%;transform:rotate(9deg);animation-delay:.18s}
+.veyra-v2 .vx-match-avatar .photo-box,.veyra-v2 .vx-match-avatar .photo-box img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.veyra-v2 .vx-match-avatar .photo-box{display:block;overflow:hidden}
+.veyra-v2 .vx-match-heart{position:absolute;z-index:3;left:50%;top:55%;transform:translate(-50%,-50%) rotate(-12deg);display:grid;place-items:center;width:56px;height:56px;border:4px solid white;border-radius:50%;background:linear-gradient(145deg,#c885ff,#7624ec);box-shadow:0 8px 28px #8b3ae46c;animation:vxHeartPulse 2.8s ease-in-out infinite}
+.veyra-v2 .vx-match-twinkle{position:absolute;font-style:normal;font-size:23px;color:#a25af2;filter:drop-shadow(0 3px 7px #aa71d9a6);animation:vxTwinkle 2s ease-in-out infinite}
+.veyra-v2 .vx-match-twinkle.one{top:10px;left:22%}.veyra-v2 .vx-match-twinkle.two{top:5px;right:8%;font-size:30px;animation-delay:.55s}.veyra-v2 .vx-match-twinkle.three{bottom:8px;left:9%;font-size:17px;animation-delay:1.1s}
+.veyra-v2 .vx-match-kicker{display:inline-flex;border-radius:999px;padding:7px 13px;background:#eee2fe;color:#7839c9;font-size:10px;letter-spacing:1.35px;font-weight:850}
+.veyra-v2 .vx-match-dialog h2{margin:11px 0 8px;color:#2e174b;font-size:clamp(32px,8vw,42px);font-weight:900;letter-spacing:-1.9px;line-height:1.15}
+.veyra-v2 .vx-match-dialog h2 span{background:linear-gradient(125deg,#a45af5,#6817ff);background-clip:text;-webkit-background-clip:text;color:transparent}
+.veyra-v2 .vx-match-dialog>p{margin:4px 0 23px;max-width:315px;font-size:clamp(13px,3.3vw,15px);line-height:1.55;color:#756a83}
+.veyra-v2 .vx-match-actions{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.veyra-v2 .vx-match-actions .btn{width:100%;min-height:55px;border-radius:999px;font-size:15px;font-weight:830;justify-content:center;gap:10px}
+.veyra-v2 .vx-match-actions .vx-match-write{border:0;background:linear-gradient(115deg,#ac60fa,#711df0);box-shadow:0 10px 22px #9a50dd46;color:white}
+.veyra-v2 .vx-match-actions .vx-match-profile{border:1.5px solid #ddc9f6;color:#7a34d4;background:#fff;box-shadow:none}
+.veyra-v2 .vx-match-continue{border:0;background:none;color:#8e66bd;font-size:13px;font-weight:700;padding:10px 4px 0}
+@keyframes vxPortraitReveal{from{opacity:0;scale:.72}to{opacity:1;scale:1}}
+@keyframes vxHeartPulse{0%,100%{scale:1}50%{scale:1.08}}
+@keyframes vxTwinkle{0%,100%{opacity:.65;scale:.9}50%{opacity:1;scale:1.17}}
+@media(max-height:720px){.veyra-v2 .vx-match-dialog{padding-top:18px;padding-bottom:18px}.veyra-v2 .vx-match-wordmark{margin-bottom:12px}.veyra-v2 .vx-match-portraits{height:133px;margin-bottom:6px}.veyra-v2 .vx-match-avatar{width:113px;height:113px}.veyra-v2 .vx-match-dialog>p{margin-bottom:14px}.veyra-v2 .vx-match-actions .btn{min-height:48px}}
+@media(max-width:350px){.veyra-v2 .vx-match-avatar{width:115px;height:115px}.veyra-v2 .vx-match-portraits{height:135px}.veyra-v2 .vx-match-dialog{border-radius:27px}}
+@media(prefers-reduced-motion:reduce){.veyra-v2 .vx-match-dialog *{animation:none!important;transition:none!important}}
