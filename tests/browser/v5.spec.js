@@ -1085,7 +1085,7 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
- expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(250, 246, 255)');
+ expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(252, 249, 255)');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
