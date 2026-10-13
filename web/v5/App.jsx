@@ -32,7 +32,8 @@ import './DatingStage02.css'; // Three approved dating screens; registration rem
 import './VeyraDesignPolish.css'; // Match, floating feed actions, responsive profile refinement
 import './VeyraPolishFinal.css'; // Static feed and responsive member morph — final overrides
 import './MemberStickyPortal.css'; // Telegram Android viewport header rendered outside scrolling app
-import './MemberVeyraMaster.css'; // Approved Work pack geometry, gradients and opaque pinned tab surface; LAST stylesheet
+import './MemberVeyraMaster.css'; // Approved design geometry
+import './MemberSmoothSwipe.css'; // Final: photo stacking, carousel and own profile
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -115,7 +116,18 @@ export function App(){
  </div>
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onMatch={matchFound} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
- {visited.has('profile')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='profile'}><OwnProfile me={me} refresh={refresh} onPremium={()=>setOverlay({type:'premium'})} onCollection={()=>setOverlay({type:'collection'})} onSettings={()=>setOverlay({type:'settings'})} onRanking={()=>setOverlay({type:'ranking'})} onCourtship={()=>setOverlay({type:'courtship-inbox'})} onEdit={()=>setOverlay({type:'edit'})} onWallet={()=>setOverlay({type:'veys'})} onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}/></div>}
+ {tab==='profile'&&!member&&!conversation&&!overlay&&<div className="view-tab vx-own-profile-host">
+   <Member ownMe={me} viewer={me.profile} onBack={()=>navigate('encounters')}
+    onEdit={()=>setOverlay({type:'edit'})}
+    onSettings={()=>setOverlay({type:'settings'})}
+    onCollection={()=>setOverlay({type:'collection'})}
+    onPremium={()=>setOverlay({type:'premium'})}
+    onRanking={()=>setOverlay({type:'ranking'})}
+    onCourtship={()=>setOverlay({type:'courtship-inbox'})}
+    onWallet={()=>setOverlay({type:'veys'})}
+    onAdmin={()=>{const url='https://t.me/VeyraAdminBot';if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank','noopener,noreferrer')}}
+   />
+  </div>}
  </div>
  {member&&<div className="subscreen"><Member id={member.id} viewer={me.profile} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
