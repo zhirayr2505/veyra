@@ -24,7 +24,10 @@ export function profileFrame(progress,width,height,compactHeight=292){
   height:p<=.39?mix(h,middleH,coverToMiddle):mix(middleH,98,middleToAvatar),
   radius:p<=.39?mix(0,20,coverToMiddle):mix(20,50,middleToAvatar),
  };
- const sheet=smooth(p);
+ // The sheet lifts faster than its contents, preventing an empty gap behind
+ // the shrinking photo; identity/buttons retain a calm independent trajectory.
+ const sheet=smooth(clamp(p/.78));
+ const content=smooth(p);
  const expandedPanelY=h-30;
  const compactPanelY=109;
  const nameFrom=h+9,nameTo=116;
@@ -40,10 +43,10 @@ export function profileFrame(progress,width,height,compactHeight=292){
   sheetLipOpacity:1-segment(p,.13,.33),
   backdropOpacity:segment(p,.40,.94),
   nameX:xName,
-  nameY:mix(nameFrom,nameTo,sheet),
+  nameY:mix(nameFrom,nameTo,content),
   nameOpacity:clamp(identityOcclusion),
-  actionY:mix(actionsFrom,actionsTo,sheet),
-  moreY:mix(menuFrom,menuTo,sheet),
+  actionY:mix(actionsFrom,actionsTo,content),
+  moreY:mix(menuFrom,menuTo,content),
   photoExtrasOpacity:1-segment(p,.07,.19),
   compactOnlineOpacity:segment(p,.78,.97),
   shadeOpacity:1-segment(p,.12,.43),
