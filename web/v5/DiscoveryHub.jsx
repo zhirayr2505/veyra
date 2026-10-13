@@ -239,7 +239,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
   </div>
   {demoAllowed&&<div className={'vx-demo-control'+(demoMode?' enabled':'')}><span>{demoMode?'12 тестовых анкет · фото девушек и мужчин':'Режим проверки дизайна'}</span><button type="button" aria-pressed={demoMode} onClick={()=>onDemoChange?.(!demoMode)}>{demoMode?'Выключить':'Показать демо'}</button></div>}
   <div id="vx-panel-feed" className="vx-panel" role="tabpanel" aria-labelledby="vx-tab-feed" hidden={tab!=='feed'}>
-   <Discover demoMode={demoMode} embedded filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium}
+   <Discover embedded demoMode={demoMode} filters={filters} onProfile={onProfile} onMatch={onMatch} onPremium={onPremium}
     onFilters={onFilters} refreshTick={refreshTick+(tab==='feed'?reactionRefresh:0)}/>
   </div>
   {['for_you','nearby'].map(kind=>visited.has(kind)&&<div key={kind} id={'vx-panel-'+kind}
