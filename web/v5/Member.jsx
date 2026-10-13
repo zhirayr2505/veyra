@@ -77,7 +77,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
-      <Photo id={photos[idx]} alt={data.name} onClick={()=>setGallery(true)} priority/>
+      <Photo id={photos[idx]} alt={data.name} onClick={()=>setGallery(true)} priority resolution={960}/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
       {photos.length>1&&<div className="vx-profile-photo-bars">{photos.map((p,i)=><button key={p} type="button" className={i===idx?'active':''} onClick={()=>setIdx(i)} aria-label={'Фото '+(i+1)}/>)}</div>}
       {photos.length>1&&<div className="vx-profile-photo-nav">
@@ -127,7 +127,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      {match&&courtship?.mine?.status&&<div className="vx-profile-hint">{courtship.mine.status==='active'?'Ты ухаживаешь за этим человеком':courtship.mine.status==='pending'?'Предложение ожидает согласия':courtship.mine.status==='accepted'?'Предложение принято, можно оплатить':'Ухаживание: '+courtship.mine.status}</div>}
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
     </>}
-    {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>{setIdx(i);setGallery(true)}} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name}/></button>)}</div>:<Empty title="Фотографий пока нет"/>}</section></>}
+    {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>{setIdx(i);setGallery(true)}} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640}/></button>)}</div>:<Empty title="Фотографий пока нет"/>}</section></>}
     {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}</section></>}
     {key==='common'&&!isOwn&&<>
      <section className="vx-profile-surface"><h2>Что вас объединяет</h2>{common.length||sameGoal?<><p className="vx-profile-secondary">Уже есть повод начать разговор.</p>{common.length>0&&<div className="vx-member-interests-grid">{common.map(label=><MemberInterest label={label} key={label}/>)}</div>}{sameGoal&&<div className="vx-profile-goal-detail"><VeyraPackIcon name="heart" size={18}/>У вас совпадают цели знакомства</div>}</>:<p className="vx-profile-secondary">Пока общих интересов не нашлось. Узнайте друг друга в общении.</p>}</section>
