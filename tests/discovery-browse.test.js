@@ -76,3 +76,21 @@ test('approved themed collections filter genuine profiles by mutual interests, r
  const illegal=await auth(request(app).get('/api/feed?browse=true&mode=for_you&goal=invalid'));
  assert.equal(illegal.status,400);
 });
+
+test('themed collections use verified interest and goal filters on real approved profiles',async()=>{
+ await db.query("UPDATE profiles SET goal='relationship', interests=ARRAY['Кофе','Путешествия'] WHERE user_id=701");
+ await db.query("UPDATE profiles SET goal='dating', interests=ARRAY['Спорт'] WHERE user_id=702");
+ const relationship=await auth(request(app).get('/api/feed?browse=true&mode=for_you&limit=8&goal=relationship'));
+ assert.equal(relationship.status,200);
+ assert(relationship.body.profiles.some(p=>String(p.id)==='701'));
+ assert(relationship.body.profiles.every(p=>p.goal==='relationship'));
+ const travel=await auth(request(app).get('/api/feed?browse=true&mode=for_you&limit=8&interest='+encodeURIComponent('Путешествия')));
+ assert.equal(travel.status,200);
+ assert(travel.body.profiles.some(p=>String(p.id)==='701'));
+ assert(travel.body.profiles.every(p=>p.interests.some(i=>i.toLowerCase()==='путешествия')));
+ const common=await auth(request(app).get('/api/feed?browse=true&mode=for_you&limit=8&common_interests=true'));
+ assert.equal(common.status,200);
+ assert(common.body.profiles.every(p=>p.shared_interests>0));
+ const invalid=await auth(request(app).get('/api/feed?browse=true&mode=for_you&goal=not-real'));
+ assert.equal(invalid.status,400);
+});
