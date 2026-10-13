@@ -80,11 +80,11 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  border-radius:0!important;transform-origin:50% 42%;
  image-rendering:auto;backface-visibility:hidden;will-change:transform;
 }
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{
- content:"";position:absolute;left:0;right:0;top:0;height:105px;
- z-index:1;pointer-events:none;
- background:linear-gradient(#2c254447,transparent);
- opacity:1;
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{content:none!important;display:none!important}
+.veyra-v2 .vx-master-profile .vx-profile-photo-shade{
+ position:absolute;top:0;left:0;right:0;height:106px;
+ z-index:1;pointer-events:none;opacity:1;
+ background:linear-gradient(#2c254443,transparent);
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-bars{
  left:18px!important;right:18px!important;top:82px!important;
@@ -97,8 +97,8 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-photo-nav button{
  pointer-events:auto;
 }
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars,
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-nav{
+ .veyra-v2 .vx-master-profile .vx-profile-motion:not([data-state="expanded"]) .vx-profile-photo-bars,
+.veyra-v2 .vx-master-profile .vx-profile-motion:not([data-state="expanded"]) .vx-profile-photo-nav{
  visibility:hidden;pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-demo-badge{display:none!important}
