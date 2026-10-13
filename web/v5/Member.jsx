@@ -71,7 +71,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   </header>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
-   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet">
+   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
      <div className="vx-profile-blurred-header" aria-hidden="true">
