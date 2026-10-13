@@ -103,6 +103,7 @@
 }
 .veyra-v2 .member-feed-profile .member-summary{
  position:relative;z-index:5;
+ margin-top:8px!important; /* Allow the cover's rounded bottom corners to stay visible. */
 }
 .veyra-v2 .member-feed-profile .member-photos.vx-member-morph-stage{
  pointer-events:none;
