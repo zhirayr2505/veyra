@@ -1012,3 +1012,30 @@ test('VEYRA member header morphs on scrolling, shows goal as chip and opens acti
  await page.evaluate(()=>window.scrollTo(0,0));
  await expect.poll(()=>page.locator('body > .vx-member-native-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
 });
+
+test('VEYRA Telegram fullscreen logo and circular profile header never scroll away',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);
+ await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await page.locator('.feed-photo .hero-name').click();
+ const header=page.locator('body > .vx-member-native-header');
+ const member=page.locator('.member-feed-profile');
+ await expect(member).toBeVisible();
+ await expect(header).toHaveCount(1);
+ await expect(page.locator('html')).toHaveClass(/veyra-telegram-fullscreen/);
+ const logo=header.locator('.vx-member-floating-logo');
+ await expect(logo).toBeVisible();
+ const initial=await logo.boundingBox();
+ await page.evaluate(()=>window.scrollTo({top:850,behavior:'instant'}));
+ await expect.poll(()=>header.evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeGreaterThan(.9);
+ const after=await logo.boundingBox();
+ expect(Math.abs(after.y-initial.y)).toBeLessThan(2);
+ expect(Math.abs(after.x-initial.x)).toBeLessThan(2);
+ await expect(header.locator('.vx-member-mini-avatar')).toBeVisible();
+ const round=await header.locator('.vx-member-mini-avatar').evaluate(el=>getComputedStyle(el).borderRadius);
+ expect(round).toContain('50%');
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await expect.poll(()=>header.evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
+ await expect(logo).toBeVisible();
+});
