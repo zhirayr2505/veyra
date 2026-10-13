@@ -1017,11 +1017,11 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  expect(compact.height).toBeLessThan(90);
  expect(Math.abs(compact.width-compact.height)).toBeLessThan(4);
  const railBefore=await rail.boundingBox(),actionsBefore=await actions.boundingBox();
- expect(Math.abs(actionsBefore.top-(await root.boundingBox()).top)).toBeLessThan(220);
+ expect(Math.abs(actionsBefore.y-(await root.boundingBox()).y)).toBeLessThan(220);
  await root.evaluate((el,distance)=>{el.scrollTop=distance+220},distance);
  const railAfter=await rail.boundingBox(),actionsAfter=await actions.boundingBox();
- expect(Math.abs(railAfter.top-railBefore.top)).toBeLessThan(3);
- expect(Math.abs(actionsAfter.top-actionsBefore.top)).toBeLessThan(3);
+ expect(Math.abs(railAfter.y-railBefore.y)).toBeLessThan(3);
+ expect(Math.abs(actionsAfter.y-actionsBefore.y)).toBeLessThan(3);
  const logoAfter=await logo.boundingBox();
  expect(Math.abs(logoAfter.y-logoBefore.y)).toBeLessThan(2);
  await rail.getByRole('tab',{name:'Фото'}).click();
