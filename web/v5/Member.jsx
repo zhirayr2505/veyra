@@ -26,8 +26,12 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     const top=photo.getBoundingClientRect().top;
     if(initialTop===null)initialTop=top;
     const scrollRoot=photo.closest('.subscreen');
-    const moved=Math.max(0,(initialTop-top)-24,(window.scrollY||0)-24,(scrollRoot?.scrollTop||0)-24);
-    const progress=Math.min(1,moved/175);
+    const scrollOffset=Math.max(window.scrollY||0,scrollRoot?.scrollTop||0);
+    const moved=Math.max(0,(initialTop-top)-24,scrollOffset-24);
+    // An image can shift slightly as fonts / Telegram insets settle; consider
+    // the original viewport position fully expanded once all scrollers return.
+    const restingAtTop=scrollOffset<3&&Math.abs(initialTop-top)<64;
+    const progress=restingAtTop?0:Math.min(1,moved/175);
     setHeaderProgress(p=>Math.abs(p-progress)<.015?p:progress);
    });
   };
