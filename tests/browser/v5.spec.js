@@ -145,7 +145,7 @@ test('V5 member uses full-screen navigation and returns to the same chat',async(
  await page.locator('.conversation-head .chat-user').click();
  await expect(page.locator('.member')).toBeVisible();
  await expect(page.locator('.bottom-nav')).toHaveCount(0);
- await page.locator('.member .top-header button.back').click();
+ await page.locator('.member .vx-member-fallback-back').click();
  await expect(page.locator('.conversation')).toBeVisible();
 });
 
@@ -430,7 +430,7 @@ test('V5 approved premium feed uses cyclic photo strips and opens the complete p
  await expect(page.locator('.member')).toHaveCount(0);
  await page.locator('.feed-photo .hero-name').click();
  await expect(page.locator('.member')).toBeVisible();
- await page.locator('.member .top-header button.back').click();
+ await page.locator('.member .vx-member-fallback-back').click();
  await expect(page.locator('.feed-photo')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
@@ -494,8 +494,10 @@ test('VEYRA V2 keeps search and encounter screens distinct and opens genuine mem
  await collection.click();
  await expect(collection).toHaveClass(/chosen/);
  await page.locator('.vx-for_you .vx-person-open').first().click();
+ await expect(page.getByRole('dialog',{name:/Предпросмотр анкеты/})).toBeVisible();
+ await page.getByRole('button',{name:'посмотреть полный профиль'}).click();
  await expect(page.locator('.member')).toBeVisible();
- await page.locator('.member .top-header button.back').click();
+ await page.locator('.member .vx-member-fallback-back').click();
  await expect(page.locator('.vx-for_you .vx-people')).toBeVisible();
  await tabs.getByRole('tab',{name:'Рядом'}).click();
  await expect(page.locator('.vx-nearby .vx-people .vx-person').first()).toBeVisible();
@@ -507,26 +509,45 @@ test('VEYRA V2 keeps search and encounter screens distinct and opens genuine mem
  expect(errors).toEqual([]);
 });
 
-test('VEYRA nearby sends a genuine like with button only and keeps bottom navigation intact',async({page})=>{
+test('VEYRA Nearby displays city only, removes grid hearts, previews photos before full profile',async({page})=>{
  await telegram(page,10);await page.goto('/');
  const likes=[];
- let backgroundFeedRequests=0;
- page.on('request',request=>{
-  const url=new URL(request.url());
-  if(url.pathname==='/api/reactions'&&request.method()==='POST')likes.push(request.postDataJSON());
-  if(url.pathname==='/api/feed'&&url.searchParams.get('mode')==='discover')backgroundFeedRequests++;
- });
+ page.on('request',request=>{if(new URL(request.url()).pathname==='/api/reactions'&&request.method()==='POST')likes.push(request.postDataJSON())});
  await page.locator('.bottom-nav').getByRole('button',{name:'поиск'}).click();
  await page.getByRole('tab',{name:'Рядом'}).click();
- await expect(page.locator('.vx-nearby .vx-person-like').first()).toBeVisible();
- const before=backgroundFeedRequests;
- await page.locator('.vx-nearby .vx-person-like').first().click();
- await expect.poll(()=>likes.length).toBe(1);
- expect(backgroundFeedRequests).toBe(before);
- expect(likes[0].kind).toBe('like');
+ await expect(page.locator('.vx-nearby .vx-person-open').first()).toBeVisible();
+ await expect(page.locator('.vx-nearby .vx-person-like')).toHaveCount(0);
+ const gridText=await page.locator('.vx-nearby .vx-person-caption').first().innerText();
+ expect(gridText).not.toMatch(/, Россия|, Армения|, Германия/);
+ await page.locator('.vx-nearby .vx-person-open').first().click();
+ const preview=page.getByRole('dialog',{name:/Предпросмотр анкеты/});
+ await expect(preview).toBeVisible();
+ await expect(preview.getByRole('button',{name:'посмотреть полный профиль'})).toBeVisible();
+ expect(likes).toHaveLength(0);
+ await preview.getByRole('button',{name:'посмотреть полный профиль'}).click();
+ await expect(page.locator('.member-feed-profile')).toBeVisible();
+ await expect(page.locator('.member-feed-profile .vx-member-floating-logo')).toBeVisible();
+ await expect(page.locator('.member-feed-profile .top-header')).toHaveCount(0);
+ await page.locator('.member .vx-member-fallback-back').click();
  await expect(page.locator('.bottom-nav button')).toHaveCount(5);
 });
 
+test('VEYRA match celebration has two circular photos and preserves action buttons',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await page.route('**/api/reactions',route=>{
+  if(route.request().method()!=='POST')return route.continue();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({matched:true,match_id:'e1b4d369-73ac-4c8d-8145-78a31a4a7ea0',next:{profiles:[]}})});
+ });
+ await page.locator('.feed-photo .action-like').click();
+ const dialog=page.getByRole('dialog',{name:/match/i});
+ await expect(dialog).toBeVisible();
+ await expect(dialog.locator('.vx-match-avatar')).toHaveCount(2);
+ await expect(dialog.getByRole('button',{name:/написать/i})).toBeVisible();
+ await expect(dialog.getByRole('button',{name:/посмотреть профиль/i})).toBeVisible();
+ await dialog.getByRole('button',{name:'продолжить знакомства'}).click();
+ await expect(dialog).toHaveCount(0);
+});
 
 test('V5 Симпатии displays exactly two tabs, real matches, profiles, and incoming cards',async({page})=>{
  await telegram(page,10);await page.goto('/');
@@ -536,7 +557,7 @@ test('V5 Симпатии displays exactly two tabs, real matches, profiles, and
  await expect(page.locator('.likes-v2 .likes-gallery .likes-person').first()).toBeVisible();
  await page.locator('.likes-v2 .likes-person-photo').first().click();
  await expect(page.locator('.member')).toBeVisible();
- await page.locator('.member .top-header button.back').click();
+ await page.locator('.member .vx-member-fallback-back').click();
  await page.getByRole('tab',{name:/Входящие/}).click();
  await expect(page.locator('.likes-v2 .likes-gallery .likes-person').first()).toBeVisible();
  await expect(page.locator('.likes-v2 .likes-private-card')).toHaveCount(0);
