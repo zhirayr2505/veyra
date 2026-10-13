@@ -1,3 +1,4 @@
+import {demoPhotoUrl} from './DemoProfiles.js';
 let bearer='',cacheGeneration=0;
 const photos=new Map(),inflight=new Map();
 export function setBearer(token){if(bearer!==(token||'')){clearPhotoCache();bearer=token||'';}}
@@ -28,6 +29,7 @@ export const put=(path,body)=>request(path,{method:'PUT',body});
 export const patch=(path,body)=>request(path,{method:'PATCH',body});
 export async function photoUrl(id){
  if(!id)return '';
+ const demo=demoPhotoUrl(id);if(demo)return demo;
  if(photos.has(id)){const url=photos.get(id);photos.delete(id);photos.set(id,url);while(photos.size>64){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url;}
  if(inflight.has(id))return inflight.get(id);
  const generation=cacheGeneration;
@@ -37,7 +39,7 @@ export async function photoUrl(id){
   .finally(()=>inflight.delete(id));
  inflight.set(id,promise);return promise;
 }
-export function cachedPhoto(id){return photos.get(id)||'';}
+export function cachedPhoto(id){return demoPhotoUrl(id)||photos.get(id)||'';}
 export function clearPhotoCache(){cacheGeneration++;for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
 export function photoOrder(ids){return request('/photos/order',{method:'PUT',body:{ids}});}
 
