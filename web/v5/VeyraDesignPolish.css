@@ -1,0 +1,175 @@
+/* VEYRA / approved October 13 design refinement. Scoped to dating and member screens. */
+
+/* FEED: the action rail is now outside the clipped photograph, giving it a true floating edge. */
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage{
+ position:relative;width:100%;min-width:0;padding-bottom:clamp(44px,10vw,62px);isolation:isolate;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-photo{
+ width:100%;height:clamp(510px,calc(100dvh - 204px),830px)!important;min-height:510px!important;
+ max-height:none!important;border-radius:clamp(26px,6.5vw,35px);overflow:hidden;
+ border:1px solid #ece0f3;box-shadow:0 18px 38px #46266325;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-caption.hero-info{
+ left:clamp(17px,4.5vw,28px);right:clamp(17px,4.5vw,28px);
+ bottom:clamp(48px,11vw,63px)!important;gap:7px!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-name-row{
+ width:100%;display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .hero-name{
+ flex:0 1 auto;min-width:0;max-width:min(58%,260px)!important;
+ padding:0;font-size:clamp(27px,6.6vw,35px);text-align:left;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-name-row>.veyra-card-goal-badge{
+ position:static!important;display:inline-flex!important;flex:0 1 auto;max-width:58%;
+ margin-left:auto;min-height:29px;padding:3px 9px 3px 4px;border-radius:999px;
+ color:white;background:linear-gradient(115deg,#9c59e2ce,#5c2c82d1);
+ border:1px solid #ffffff98;box-shadow:0 3px 15px #1d103448;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-name-row>.vx-demo-caption-label,
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-name-row>.feed-checked{
+ order:3;flex:none;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-tags{
+ width:100%;height:auto!important;max-height:62px!important;overflow:hidden!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-tags>.veyra-interest-inline{
+ display:flex!important;align-items:center;flex-wrap:wrap!important;gap:5px!important;
+ height:auto!important;max-height:62px!important;overflow:hidden!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-tags .veyra-interest-inline-chip{
+ flex:0 1 auto;min-width:0;max-width:calc((100% - 12px)/3)!important;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:5px 8px!important;
+ background:#291c3dc7!important;border:1px solid #ffffff76!important;font-size:10px!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-tags .veyra-interest-inline-chip:nth-of-type(2){
+ flex:0 1 auto;max-width:calc((100% - 12px)/3)!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-tags .veyra-interest-more{
+ flex:0 0 auto;padding:5px 9px!important;border-radius:99px!important;
+ background:#9a53e7ed!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-actions{
+ position:absolute!important;z-index:20;left:clamp(10px,4vw,27px)!important;right:clamp(10px,4vw,27px)!important;
+ bottom:0!important;top:auto!important;transform:none!important;
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ align-items:center!important;justify-items:center!important;
+ min-height:101px!important;gap:clamp(3px,2vw,10px)!important;
+ padding:0!important;margin:0!important;max-width:none!important;overflow:visible;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action{
+ position:relative;width:100%;height:94px;display:grid;place-items:center;
+ border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action-circle{
+ width:clamp(52px,15vw,67px)!important;height:clamp(52px,15vw,67px)!important;
+ border-radius:50%!important;border:2px solid #fff!important;
+ background:linear-gradient(150deg,#fff,#f5ecff)!important;
+ box-shadow:0 9px 25px #44247646,0 2px 5px #27153f28!important;
+ display:grid;place-items:center;transition:transform .19s cubic-bezier(.2,.9,.3,1),box-shadow .19s ease;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo{transform:translateY(-3px)}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-pass{transform:translateY(5px)}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-super{transform:translateY(0)}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-like{transform:translateY(-9px)}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-like .feed-action-circle{
+ width:clamp(76px,21vw,91px)!important;height:clamp(76px,21vw,91px)!important;
+ background:linear-gradient(140deg,#a860fa,#6619f6)!important;
+ border:3px solid #fff!important;box-shadow:0 14px 35px #7a26e78c,0 0 0 2px #cfb1fd77!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo .feed-action-circle{
+ width:clamp(45px,12.5vw,56px)!important;height:clamp(45px,12.5vw,56px)!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-pass .feed-action-circle{background:linear-gradient(145deg,#fff,#f8f1ff)!important}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action:active .feed-action-circle{transform:scale(.88)!important}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action:disabled{opacity:.43}
+@media(max-width:355px){
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-photo{min-height:465px!important;height:clamp(465px,calc(100dvh - 198px),740px)!important}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-name-row{gap:5px}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .hero-name{font-size:25px;max-width:51%!important}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-name-row>.veyra-card-goal-badge{font-size:9px;max-width:51%}
+}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-photo{
+ height:clamp(475px,calc(100dvh - 204px - var(--veyra-dating-native-safe,76px)),830px)!important;
+ min-height:475px!important;
+}
+@media(max-height:700px){
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-photo{height:clamp(430px,calc(100dvh - 205px),720px)!important;min-height:430px!important}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-caption.hero-info{bottom:60px!important}
+}
+
+/* FULL PROFILE: lilac theme, rounded continuous frame and Telegram-native navigation. */
+.veyra-v2 .member-feed-profile{
+ --vx-member-purple:#7d29eb;
+ padding:calc(88px + env(safe-area-inset-top,0px)) clamp(10px,3vw,18px) 126px!important;
+ background:linear-gradient(180deg,#f9f2ff,#fcf9ff 51%,#f8f4ff)!important;
+ max-width:640px;margin:0 auto;min-height:100dvh;overflow:visible;
+}
+.veyra-v2 .member-feed-profile .vx-member-floating-header{
+ position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);
+ z-index:70;width:min(100%,640px);min-height:45px;display:flex;align-items:center;justify-content:center;
+ pointer-events:none;filter:drop-shadow(0 5px 15px #40236524);
+}
+.veyra-v2 .member-feed-profile .vx-member-floating-logo{
+ width:clamp(105px,31vw,131px);height:42px;max-height:42px;object-position:center;object-fit:contain;
+ transition:transform .24s ease;pointer-events:none;
+}
+.veyra-v2 .member-feed-profile .vx-member-fallback-back,
+.veyra-v2 .member-feed-profile .vx-member-more{
+ position:absolute;z-index:2;left:14px;top:1px;display:grid;place-items:center;
+ width:41px;height:41px;border-radius:50%;border:1px solid #f2e5ff;
+ color:#7835bd;background:#fffffff0;pointer-events:auto;box-shadow:0 5px 12px #653a8728;
+}
+.veyra-v2 .member-feed-profile .vx-member-more{left:auto;right:14px;top:54px}
+.veyra-v2 .member-feed-profile .vx-member-compact-details{
+ position:absolute;left:14px;right:14px;top:calc(100% + 6px);
+ display:flex;align-items:center;gap:11px;border-radius:22px;
+ padding:7px 12px;background:#fcf9fff4;border:1px solid #e6d5f9;
+ backdrop-filter:blur(16px);box-shadow:0 8px 25px #4c277b35;
+ opacity:0;transform:translateY(-10px) scale(.97);pointer-events:none;visibility:hidden;
+ transition:opacity .22s,transform .25s,visibility .2s;
+}
+.veyra-v2 .member-feed-profile .vx-member-floating-header.is-compact .vx-member-compact-details{
+ opacity:1;transform:translateY(0) scale(1);visibility:visible;
+}
+.veyra-v2 .member-feed-profile .vx-member-mini-avatar,
+.veyra-v2 .member-feed-profile .vx-member-mini-avatar>.photo-box{
+ flex:none;width:49px;height:49px;display:block;border-radius:50%;overflow:hidden;background:#e6d8fb;
+}
+.veyra-v2 .member-feed-profile .vx-member-mini-avatar{border:2.5px solid #a05ae9;box-shadow:0 0 0 3px white}
+.veyra-v2 .member-feed-profile .vx-member-mini-avatar .photo-box img{width:100%;height:100%;object-fit:cover}
+.veyra-v2 .member-feed-profile .vx-member-mini-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.veyra-v2 .member-feed-profile .vx-member-mini-copy strong{font-size:16px;font-weight:840;color:#301941;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.veyra-v2 .member-feed-profile .vx-member-mini-copy small{font-size:12px;color:#876f98;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.veyra-v2 .member-feed-profile .member-photos{height:clamp(420px,62dvh,660px)!important;min-height:400px!important;width:100%;border-radius:34px!important;overflow:hidden;box-shadow:0 13px 31px #4b216628}
+.veyra-v2 .member-feed-profile .member-hero,
+.veyra-v2 .member-feed-profile .member-hero .photo-box{border-radius:34px!important;overflow:hidden}
+.veyra-v2 .member-feed-profile .member-bars{left:17px;right:17px;top:15px}
+.veyra-v2 .member-feed-profile .member-thumbnails{bottom:14px}
+.veyra-v2 .member-feed-profile .member-thumbnails button{border-radius:14px}
+.veyra-v2 .member-feed-profile .member-thumbnails button.selected{outline-color:#a768f5}
+.veyra-v2 .member-feed-profile .member-summary{
+ border-radius:30px 30px 23px 23px!important;margin-top:-20px!important;padding:24px 20px 16px;
+ background:#fff!important;border:1px solid #f0e5fa;box-shadow:0 8px 24px #6f3e9620;
+}
+.veyra-v2 .member-feed-profile .member-summary-title h2{color:#2d1b3f}
+.veyra-v2 .member-feed-profile .member-summary-location{font-size:13px;color:#7a6889}
+.veyra-v2 .member-feed-profile .member-actions{margin-top:9px;border-radius:24px;background:transparent;padding:7px 5px 17px}
+.veyra-v2 .member-feed-profile .member-icon-actions>.member-icon-control{
+ border-radius:23px;border:1px solid #e7d9fa!important;background:linear-gradient(145deg,#fff,#f9f2ff)!important;
+ color:#7022d7!important;box-shadow:0 7px 21px #7143b327!important;min-height:72px;
+}
+.veyra-v2 .member-feed-profile .member-icon-actions>.member-icon-control.main{
+ background:linear-gradient(125deg,#a95df6,#701bf1)!important;border-color:transparent!important;
+ color:#fff!important;box-shadow:0 11px 24px #8127e455!important;
+}
+.veyra-v2 .member-feed-profile .member-icon-actions>.member-icon-control span{color:inherit}
+.veyra-v2 .member-feed-profile .info-block{background:#fff;border:1px solid #eee1fa;border-radius:23px;padding:17px;margin-top:10px}
+.veyra-v2 .member-feed-profile .info-block .tag{background:#f3eaff;border-color:#e5d5fa;color:#7749b3}
+.veyra-v2 .member-feed-profile .profile-badges span{background:#f2e9fc;border-color:#e3d5f4;color:#734bb0}
+html.veyra-telegram-fullscreen .veyra-v2 .member-feed-profile{padding-top:calc(max(97px,var(--veyra-telegram-top,0px)) + 22px)!important}
+html.veyra-telegram-fullscreen .veyra-v2 .member-feed-profile .vx-member-floating-header{top:max(42px,calc(var(--veyra-telegram-status-top,0px) + 13px))}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action-circle,
+ .veyra-v2 .member-feed-profile .vx-member-compact-details{transition:none!important}
+}

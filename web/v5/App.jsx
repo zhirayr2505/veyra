@@ -10,6 +10,7 @@ import {DeletionPending} from './AccountDeletion.jsx';
 import {DiscoveryHub} from './DiscoveryHub.jsx';
 import {FeedFilters} from './FeedFilters.jsx';
 import {Member} from './Member.jsx';
+import {MatchCelebration} from './MatchCelebration.jsx';
 import {Likes} from './Likes.jsx';
 import {Chats,Conversation} from './Chats.jsx';
 import {GiftPicker,GiftCollection,OwnProfile,Settings,Ranking,CourtshipInbox,openInvoice} from './Extras.jsx';
@@ -28,6 +29,7 @@ import './MobileQA.css';
 import './Registration2026.css'; // Approved registration baseline
 import './OnboardingV9.css'; // Final eight-step visual overrides
 import './DatingStage02.css'; // Three approved dating screens; registration remains unchanged
+import './VeyraDesignPolish.css'; // Match, floating feed actions, responsive profile refinement
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -115,7 +117,10 @@ export function App(){
  {member&&<div className="subscreen"><Member id={member.id} viewer={me.profile} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={courtship} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
- {match&&<div className="match-overlay"><div className="match-dialog"><span className="match-sparkle"><img src="/veyra-approved/01_icons/active/matches.svg" width="94" height="94" alt="" /></span><Logo width={148}/><h2>это взаимно!</h2><p>Вы понравились друг другу. Возможно, это начало истории.</p><Button className="full" onClick={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}><Icon name="chat" tone="white"/> написать</Button><Button kind="outline" className="full" onClick={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}>посмотреть профиль</Button><button className="text-link" onClick={()=>setMatch(null)}>продолжить знакомства</button></div></div>}
+ {match&&<MatchCelebration me={me} match={match}
+   onWrite={()=>{const m=match;setMatch(null);openChat(m.id,m.profile)}}
+   onViewProfile={()=>{const m=match;setMatch(null);openMember(m.profile.id,m.id)}}
+   onContinue={()=>setMatch(null)}/>}
  {overlay?.type==='veys'&&<VeysWallet onClose={closeWallet} onChanged={onWalletChanged} onPurchased={refresh}/>}
  {overlay?.type==='premium'&&<Premium me={me} onClose={exitOverlay} refresh={refresh}/>}
  {overlay?.type==='gift'&&<GiftPicker target={overlay.target} initialNote={overlay.note||''} initialPendingIds={overlay.pendingIds||[]} onClose={exitOverlay} onSent={()=>{refresh();exitOverlay()}} onWallet={(note,pendingIds)=>setOverlay({type:'veys',returnTo:{type:'gift',target:overlay.target,note,pendingIds}})}/>}

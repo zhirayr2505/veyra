@@ -3,6 +3,7 @@ import {get,post,photoUrl} from './api.js';
 import {Button,Icon,InterestIcon,Logo,Photo,Spinner,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {Discover} from './Discover.jsx';
+import {PersonQuickPreview} from './PersonQuickPreview.jsx';
 import './DiscoveryHub.css';
 
 const TABS=[['feed','Лента'],['for_you','Для вас'],['nearby','Рядом']];
@@ -60,7 +61,7 @@ function Portrait({person,onProfile,interest}){
   <span className="vx-portrait-name">{person.name}</span>
  </button>;
 }
-function BrowsePerson({person,onProfile,onLike,busy,variant='nearby'}){
+function BrowsePerson({person,onProfile,variant='nearby'}){
  return <article className={'vx-person vx-person-'+variant} data-person-id={person.id}>
   <button type="button" className="vx-person-open" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
    <Photo id={person.photos?.[0]} alt={person.name}/>
@@ -69,12 +70,10 @@ function BrowsePerson({person,onProfile,onLike,busy,variant='nearby'}){
    {person.online&&<span className="vx-card-online" title="В сети"/>}
    <span className="vx-person-caption">
     <strong>{person.name}, {person.age}</strong>
-    <small><CountryFlag country={person.country}/> {person.city}{person.country?', '+person.country:''}</small>
+    <small><CountryFlag country={person.country}/> {person.city}</small>
     {variant==='nearby'&&distanceFor(person)&&<small><Icon name="pin" tone="white" size={13}/>{distanceFor(person)}</small>}
    </span>
   </button>
-  <button type="button" className="vx-person-like" disabled={busy} onClick={()=>{haptic();onLike(person)}}
-   aria-label={'Нравится '+person.name}><Icon name="heart" tone="pink" size={21}/></button>
  </article>;
 }
 function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onProfile,onMatch,onPremium,onFilters,onReaction}){
@@ -83,10 +82,11 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
  const [error,setError]=useState(''),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
  const [choice,setChoice]=useState('all'),[collection,setCollection]=useState(null),[pending,setPending]=useState([]);
  const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false);
+ const [previewPerson,setPreviewPerson]=useState(null);
  const loadedKey=useRef(null),requestNumber=useRef(0);
  const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,collection,demoMode,refreshTick,retry].join(':');
  const sharedPeople=useMemo(()=>[...people].sort((a,b)=>(b.shared_interests||0)-(a.shared_interests||0)),[people]);
- const nearbyLocation=profile?.city?(profile.city+(profile.country?', '+profile.country:'')):'Местоположение не определено';
+ const nearbyLocation=profile?.city?profile.city:'Местоположение не определено';
  const hasCoordinates=Number.isFinite(Number(profile?.lat))&&Number.isFinite(Number(profile?.lon))&&profile?.lat!=null&&profile?.lon!=null;
  const radius=profile?.radius_km===20000?'по всему миру':'в радиусе '+(profile?.radius_km||50)+' км';
 
@@ -137,6 +137,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
  };
  const retryLoad=()=>{loadedKey.current=null;setRetry(x=>x+1)};
  const rows=personal?sharedPeople:people;
+ const previewProfile=personId=>{const person=people.find(p=>String(p.id)===String(personId));if(person){haptic();setPreviewPerson(person)}};
  return <div className={'vx-browse vx-'+kind} aria-label={personal?'Для вас':'Люди рядом'}>
   {personal?<>
    <section className="vx-personal-head"><img className="vx-hero-art vx-for-you-art" src={DATING_ART+"for_you_hero"+ORIGINAL_ART_VERSION} width="1536" height="686" fetchPriority="high" alt="" aria-hidden="true"/>
@@ -153,7 +154,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
    {people.length>0&&<div className={'vx-interest-portraits'+(showAllPortraits?' expanded':'')}>
     {(showAllPortraits?sharedPeople:sharedPeople.slice(0,6)).map(p=>{
      const common=(p.interests||[]).find(x=>(profile?.interests||[]).some(i=>interestKey(x)===interestKey(i)));
-     return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} onProfile={onProfile}/>;
+     return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} onProfile={previewProfile}/>;
     })}
    </div>}
    <SectionTitle action={collection?'Все анкеты':null} onAction={()=>setCollection(null)}>Подборки для тебя</SectionTitle>
@@ -186,14 +187,14 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
    </div>
    <div className="vx-nearby-avatars">
     <button type="button" className="vx-nearby-adjust" onClick={onFilters}><span><Icon name="plus" tone="pink" size={24}/></span><small>Настроить</small></button>
-    {people.slice(0,6).map(p=><Portrait person={p} key={p.id} onProfile={onProfile}/>)}
+    {people.slice(0,6).map(p=><Portrait person={p} key={p.id} onProfile={previewProfile}/>)}
    </div>
   </>}
   {loading?<div className="vx-state" role="status"><Spinner/><p>{demoMode?'Готовим демо-подборку…':'Подбираем настоящие анкеты…'}</p></div>:
    people.length>0?<>
     {rows.length>0?<div className={'vx-people'+(personal?' vx-recommendations':' vx-nearby-grid')}>
      {rows.map(p=><BrowsePerson person={p} key={p.id} variant={personal?'recommended':'nearby'}
-       onProfile={onProfile} onLike={like} busy={pending.includes(String(p.id))}/>)}
+       onProfile={previewProfile}/>)}
     </div>:<div className="vx-state"><p>Пока нет анкет в этой подборке.</p><Button kind="outline" onClick={()=>setCollection(null)}>Все анкеты</Button></div>}
     {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>
      {moreBusy?'Загружаем…':'Показать ещё'}<Icon name="chevron-right" tone="pink" size={18}/></button>}
@@ -205,6 +206,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
     <Button onClick={limited?onPremium:error?retryLoad:onFilters}>{limited?'Открыть Premium':error?'Повторить':'Настроить поиск'}</Button>
    </div>}
   <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
+  {previewPerson&&<PersonQuickPreview person={previewPerson} kind={kind} onClose={()=>setPreviewPerson(null)} onOpenProfile={id=>{setPreviewPerson(null);onProfile(id)}}/>}
  </div>;
 }
 export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
