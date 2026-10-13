@@ -25,7 +25,7 @@ export function CardCaption({profile={},age,location,preview=false,showInterests
  return <div className={(preview?'preview-card-caption':'hero-info')+' veyra-card-caption'}>
   {!preview&&profile.online&&<span className="feed-online"><span className="feed-online-dot"/>в сети</span>}
   <div className="veyra-card-name-row">
-   {preview?<h2>{title}{age?', '+age:''}</h2>:<><button type="button" className="hero-name" onClick={e=>{e.stopPropagation();onProfile?.()}}>{title}{age?', '+age:''}</button>{profile.test_profile?<span className="vx-demo-caption-label">демо</span>:<Icon name="verified" tone="white" size={20} className="feed-checked"/>}</>}
+   {preview?<h2>{title}{age?', '+age:''}</h2>:<><button type="button" className="hero-name" onClick={e=>{e.stopPropagation();onProfile?.()}}>{title}{age?', '+age:''}</button>{profile.test_profile?<span className="vx-demo-caption-label">демо</span>:<Icon name="verified" tone="white" size={20} className="feed-checked"/>}<CardGoalBadge goal={profile.goal} compact/></>}
   </div>
   {(city||country||location)&&<p className={preview?'preview-card-location':'feed-location'}>
    <Icon name="pin" tone="white" size={16}/>
@@ -33,7 +33,7 @@ export function CardCaption({profile={},age,location,preview=false,showInterests
   </p>}
   {profile.bio?.trim()&&<p className="hero-bio veyra-card-bio">{profile.bio.trim()}</p>}
   {showInterests&&interestList.length>0&&<div className={preview?'veyra-preview-tags veyra-card-tags':'hero-tags veyra-card-tags'}>
-   <InterestReveal items={interestList} preview={preview} maxVisible={2}/>
+   <InterestReveal items={interestList} preview={preview} maxVisible={3}/>
   </div>}
  </div>;
 }
