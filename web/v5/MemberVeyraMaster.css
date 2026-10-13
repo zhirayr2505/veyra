@@ -197,3 +197,23 @@ body>.vx-member-native-header{z-index:110!important}
  .veyra-v2 .vx-master-profile .vx-profile-action{transition:none}
  .veyra-v2 .vx-master-profile .vx-profile-section-body{animation:none}
 }
+
+
+/* Source design's identity and goal sub-components. */
+.veyra-v2 .vx-master-profile .vx-profile-goal-detail>div{display:flex;flex-direction:column;gap:3px}
+.veyra-v2 .vx-master-profile .vx-profile-goal-detail small{font-size:11px;color:#857390;font-weight:650}
+.veyra-v2 .vx-master-profile .vx-profile-goal-detail strong{font-size:15px;color:#302043;font-weight:850}
+.veyra-v2 .vx-master-profile .vx-profile-online{
+ display:block;position:absolute;z-index:8;right:0;bottom:0;
+ width:20px;height:20px;border:3px solid #fff;border-radius:50%;
+ background:#19cb90;box-shadow:0 2px 6px #4c40783d;
+ opacity:var(--vx-collapse);pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-demo-disclaimer{
+ margin-top:10px!important;background:#f3edfd;border:0;color:#7959a8!important;
+ border-radius:12px;padding:10px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-section-heading h2{margin-bottom:0}
+.veyra-v2 .vx-master-profile .vx-profile-photos-grid button .photo-box{pointer-events:none}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo .photo-box{cursor:pointer}
+.veyra-v2 .vx-master-profile .vx-profile-sticky::after{backface-visibility:hidden}
