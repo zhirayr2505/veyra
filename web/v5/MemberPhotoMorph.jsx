@@ -18,7 +18,7 @@ const lerp=(a,b,t)=>a+(b-a)*t;
  * The original cover rectangle only reserves document layout; it does NOT contain
  * a second image. On reversing the scroll we animate the same image back home.
  */
-export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGallery,visible=true}){
+export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGallery,visible=true,syncKey=false}){
  const frameRef=useRef(null),textRef=useRef(null),controlsRef=useRef(null);
  const startX=useRef(null),baseline=useRef(null),swiped=useRef(false),swipeTimer=useRef(null),viewportOffset=useRef(null);
  const photos=person.photos||[];
@@ -112,14 +112,16 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
   const resize=()=>{viewportOffset.current=null;baseline.current=null;paint()};
   window.addEventListener('resize',resize,{passive:true});
   window.visualViewport?.addEventListener('resize',resize,{passive:true});
+  window.visualViewport?.addEventListener('scroll',paint,{passive:true});
   return()=>{
    cancelAnimationFrame(raf);clearTimeout(swipeTimer.current);resizeObserver?.disconnect();
    window.removeEventListener('scroll',paint,true);
    document.removeEventListener('scroll',paint,true);
    window.removeEventListener('resize',resize);
    window.visualViewport?.removeEventListener('resize',resize);
+   window.visualViewport?.removeEventListener('scroll',paint);
   };
- },[person.id,visible,stageRef,headerRef]);
+ },[person.id,visible,stageRef,headerRef,syncKey]);
 
  if(!visible)return null;
  const select=i=>onIndex?.(i);
