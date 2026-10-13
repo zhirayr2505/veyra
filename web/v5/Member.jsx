@@ -74,8 +74,12 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet">
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
+     <div className="vx-profile-blurred-header" aria-hidden="true">
+      <Photo id={photos[idx]} resolution={640} alt=""/>
+     </div>
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
+     <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <Photo id={photos[idx]} alt={data.name} onClick={()=>setGallery(true)} priority resolution={960}/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
@@ -87,6 +91,8 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       {data.test_profile&&!isOwn&&<span className="vx-profile-demo-badge">ДЕМО</span>}
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
      </div>
+     <div className="vx-profile-avatar-ring" aria-hidden="true"/>
+     {data.online&&<div className="vx-profile-avatar-online-dot" aria-label="В сети"/>}
 
      <section className="vx-profile-identity" aria-label="Информация об анкете">
       <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.test_profile&&!isOwn?<span className="vx-demo-member-label">ДЕМО</span>:data.verified?<Icon name="verified" tone="pink" size={18}/>:null}</div>
