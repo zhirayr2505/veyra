@@ -55,7 +55,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
     parts.identity.style.opacity=f.nameOpacity.toFixed(3);
    }
-   if(parts.actions)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
+   if(parts.actions&&!s.actionsNative)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
    if(parts.more)parts.more.style.transform=translate(0,f.moreY-(s.height+8));
    if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
@@ -132,7 +132,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.height=Math.max(1,hero.offsetHeight);
   s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
   s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
-  recordProfileCalibration(s.width,s.height,s.distance);
+  s.actionsNative=Boolean(window.CSS?.supports?.('animation-timeline: scroll()')&&window.CSS?.supports?.('animation-range: 0px 300px'));
+  recordProfileCalibration(s.width,s.height,s.distance,s.actionsNative?'CSS ScrollTimeline':'JS fallback');
   s.refs={
    hero,image:hero.querySelector('.photo-box img'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
