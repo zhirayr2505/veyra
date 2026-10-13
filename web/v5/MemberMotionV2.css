@@ -40,10 +40,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{
  position:absolute;top:0;left:0;right:0;z-index:1;
- height:292px;opacity:0;pointer-events:none;
+ height:var(--vx-profile-compact-height);opacity:1;pointer-events:none;
  background:linear-gradient(155deg,#f0e7fe,#faf6ff 80%);
  box-shadow:0 7px 18px #6b4f8216;
- will-change:opacity;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  position:absolute;left:0;right:0;
@@ -56,6 +55,12 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  transform:translate3d(0,0,0);
  will-change:transform;
 }
+/* Opaque sheet: do not alpha-fade over the cover photo. During the
+   central/avatar phase it moves behind the image, without a translucent seam. */
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="center"] .vx-profile-sheet-lip,
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="avatar"] .vx-profile-sheet-lip{
+ z-index:8;
+}
 /* The sheet rises OVER the full photo before the photo starts to shrink. */
 .veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
  position:absolute;z-index:13;pointer-events:none;
@@ -65,7 +70,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  background:linear-gradient(160deg,#fffdff,#f7f1ff);
  border-top:1px solid #ffffffc7;
  transform:translate3d(0,0,0);
- opacity:1;will-change:transform,opacity;
+ opacity:1;will-change:transform;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  position:absolute;top:0!important;left:0!important;z-index:9;
@@ -214,7 +219,8 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  border:0;border-bottom:1px solid #e9def6;
  border-radius:0;box-shadow:0 -2px 12px #624a8910;
  background:#faf6ff!important;backdrop-filter:none!important;
- overflow:hidden;isolation:isolate;
+ overflow:hidden;isolation:isolate;transform:translateZ(0);
+ backface-visibility:hidden;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
  position:relative;z-index:2;
@@ -244,6 +250,11 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track{
  display:flex;flex-wrap:nowrap;width:100%;min-width:0;
  transition:none!important;will-change:transform;
+}
+/* Avoid any translucent paint / flashes above the tab content. */
+.veyra-v2 .vx-master-profile .vx-profile-swipe-viewport,
+.veyra-v2 .vx-master-profile .vx-profile-swipe-track{
+ background:#faf6ff!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
  width:100%;flex:0 0 100%;min-width:0;box-sizing:border-box;
@@ -339,6 +350,27 @@ body>.vx-member-native-header .vx-member-more{display:none!important}
  .veyra-v2 .vx-master-profile .vx-profile-name-row h1{font-size:22px!important}
  .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
 }
+/* Native Chromium ScrollTimeline ties action buttons to the SAME scroll
+   offset as the sticky tab rail. Unlike JS rAF, this cannot be one frame
+   behind compositor scrolling. For older WebViews the hook retains its
+   transform-based fallback. */
+@supports (animation-timeline: scroll()) and (animation-range: 0px 300px){
+ .veyra-v2 .vx-master-profile .vx-profile-scroller{
+  --vx-collapse-distance:calc(var(--vx-profile-hero-height) + 218px - var(--vx-profile-compact-height));
+  scroll-timeline:--vx-profile-scroll block;
+ }
+ .veyra-v2 .vx-master-profile .vx-profile-primary-actions{
+  animation:vx-profile-actions-native 1ms linear both!important;
+  animation-timeline:--vx-profile-scroll!important;
+  animation-range:0px var(--vx-collapse-distance)!important;
+ }
+}
+@keyframes vx-profile-actions-native{
+ 0%{transform:translate3d(0,0,0);animation-timing-function:cubic-bezier(.45,0,.55,1)}
+ 85%{transform:translate3d(0,calc(93px - var(--vx-profile-hero-height)),0)}
+ 100%{transform:translate3d(0,calc(93px - var(--vx-profile-hero-height)),0)}
+}
+
 @media(prefers-reduced-motion:reduce){
  .veyra-v2 .vx-master-profile .vx-profile-swipe-track{scroll-behavior:auto}
 }

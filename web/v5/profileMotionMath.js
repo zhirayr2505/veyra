@@ -28,6 +28,9 @@ export function profileFrame(progress,width,height,compactHeight=292){
  // the shrinking photo; identity/buttons retain a calm independent trajectory.
  const sheet=smooth(clamp(p/.78));
  const content=smooth(p);
+ // The actions move slightly ahead of the tab rail to maintain clearance
+ // at every fractional scroll position, including slow finger dragging.
+ const actionsProgress=smooth(clamp(p/.85));
  const expandedPanelY=h-30;
  const compactPanelY=109;
  const nameFrom=h+9,nameTo=116;
@@ -40,12 +43,10 @@ export function profileFrame(progress,width,height,compactHeight=292){
  return {
   ...frame,
   sheetY:mix(expandedPanelY,compactPanelY,sheet),
-  sheetLipOpacity:1-segment(p,.13,.33),
-  backdropOpacity:segment(p,.40,.94),
   nameX:xName,
   nameY:mix(nameFrom,nameTo,content),
   nameOpacity:clamp(identityOcclusion),
-  actionY:mix(actionsFrom,actionsTo,content),
+  actionY:mix(actionsFrom,actionsTo,actionsProgress),
   moreY:mix(menuFrom,menuTo,content),
   photoExtrasOpacity:1-segment(p,.07,.19),
   compactOnlineOpacity:segment(p,.78,.97),

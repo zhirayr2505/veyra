@@ -1,5 +1,6 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
 import {clamp,profileFrame} from './profileMotionMath.js';
+import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 
 // All moving elements are compositor-friendly layers with fixed geometry.
 // Layout is measured ONCE on mount/resize, never inside a scroll frame.
@@ -25,6 +26,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    s.frame=0;
    const scroller=scrollRef.current,motion=motionRef.current,parts=s.refs;
    if(!scroller||!motion||!parts?.hero)return;
+   const sampled=profileProbeEnabled();
+   const frameStart=sampled?performance.now():0;
    const now=performance.now();
    const scrollY=scroller.scrollTop;
    const p=clamp(scrollY/s.distance);
@@ -47,16 +50,12 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    }
    if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
    if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
-   if(parts.lip){
-    parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
-    parts.lip.style.opacity=f.sheetLipOpacity.toFixed(3);
-   }
-   if(parts.backdrop)parts.backdrop.style.opacity=f.backdropOpacity.toFixed(3);
+   if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
     parts.identity.style.opacity=f.nameOpacity.toFixed(3);
    }
-   if(parts.actions)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
+   if(parts.actions&&!s.actionsNative)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
    if(parts.more)parts.more.style.transform=translate(0,f.moreY-(s.height+8));
    if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
@@ -65,6 +64,9 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.shade)parts.shade.style.opacity=f.shadeOpacity.toFixed(3);
    const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
    if(motion.dataset.state!==phase)motion.dataset.state=phase;
+   const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
+   if(motion.dataset.motionPhase!==motionStage)motion.dataset.motionPhase=motionStage;
+   if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
   });
  },[scrollRef,motionRef]);
  const snap=useCallback(()=>{
@@ -130,6 +132,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.height=Math.max(1,hero.offsetHeight);
   s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
   s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
+  s.actionsNative=Boolean(window.CSS?.supports?.('animation-timeline: scroll()')&&window.CSS?.supports?.('animation-range: 0px 300px'));
+  recordProfileCalibration(s.width,s.height,s.distance,s.actionsNative?'CSS ScrollTimeline':'JS fallback');
   s.refs={
    hero,image:hero.querySelector('.photo-box img'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
@@ -163,16 +167,20 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(s.snapping){s.snapping=false;s.released=false;clearTimeout(s.settleTimer)}
    else if(s.released&&!s.touching){clearTimeout(s.timer);snap()}
   };
+  el?.addEventListener('scroll',onScroll,{passive:true});
+  el?.addEventListener('touchmove',onTouchMove,{passive:true});
   el?.addEventListener('scrollend',onScrollEnd,{passive:true});
   window.addEventListener('resize',resize,{passive:true});
   window.visualViewport?.addEventListener('resize',resize,{passive:true});
   return()=>{
    stop();cancelAnimationFrame(s.frame);s.frame=0;
    s.resizeObserver?.disconnect();s.mutationObserver?.disconnect();
+   el?.removeEventListener('scroll',onScroll);
+   el?.removeEventListener('touchmove',onTouchMove);
    el?.removeEventListener('scrollend',onScrollEnd);
    window.removeEventListener('resize',resize);
    window.visualViewport?.removeEventListener('resize',resize);
   };
- },[ready,calibrate,paint,scrollRef,stageRef,snap,stop]);
- return {onScroll,onTouchStart,onTouchMove,onTouchEnd,onWheel,calibrate};
+ },[ready,calibrate,paint,scrollRef,stageRef,snap,stop,onScroll,onTouchMove]);
+ return {onTouchStart,onTouchEnd,onWheel,calibrate};
 }

@@ -1188,8 +1188,41 @@ test('VEYRA FPS debug panel stays off until five logo taps and runs only while v
  await expect(hud).toBeVisible();
  await expect.poll(async()=>Number(await hud.getByTestId('veyra-fps-value').textContent()),{timeout:6000}).toBeGreaterThan(0);
  await hud.getByRole('button',{name:'Подробности FPS'}).click();
- await expect(hud).toContainText('Время кадра p95');
+ await expect(hud).toContainText('Кадр p95 / p99');
  await expect(hud).toContainText('Пропуски, оценка');
+ await hud.getByRole('button',{name:'Закрыть FPS'}).click();
+ await expect(hud).toHaveCount(0);
+});
+
+
+test('VEYRA Motion 3 panel remains opaque and debug HUD captures live profile traces',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const logo=page.locator('body > .vx-member-native-header .vx-member-floating-logo');
+ for(let n=0;n<5;n++)await logo.click();
+ const hud=page.getByRole('group',{name:'Монитор FPS VEYRA'});
+ await expect(hud).toBeVisible();
+ await hud.getByRole('button',{name:'Подробности FPS'}).click();
+ await expect(hud).toContainText('JS анимации p95');
+ await expect(hud).toContainText('Forced layout внутри LoAF');
+ const root=page.locator('.vx-profile-scroller');
+ const lip=page.locator('.vx-profile-sheet-lip');
+ const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ for(const p of [.16,.24,.39,.65,.91,1]){
+  await root.evaluate((el,y)=>{el.scrollTop=y},distance*p);
+  await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).not.toBe('expanded');
+  const [actions,rail]=await Promise.all([
+   page.locator('.vx-profile-primary-actions').boundingBox(),
+   page.locator('.vx-profile-tab-rail').boundingBox(),
+  ]);
+  expect(actions.y+actions.height).toBeLessThanOrEqual(rail.y-7);
+  await expect(lip).toHaveCSS('opacity','1');
+  await expect(page.locator('.vx-profile-compact-backdrop')).toHaveCSS('opacity','1');
+ }
+ await expect.poll(()=>hud.textContent()).toContain('Профиль');
+ await expect(hud).toContainText('Перекалибровки');
  await hud.getByRole('button',{name:'Закрыть FPS'}).click();
  await expect(hud).toHaveCount(0);
 });

@@ -33,7 +33,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
   if(underline)underline.style.transform='translate3d('+(position*100).toFixed(3)+'%,0,0)';
  },[]);
- const {onScroll:handleScroll,onTouchStart:motionTouchStart,onTouchMove:motionTouchMove,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
+ const {onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
 
  useEffect(()=>{let active=true;setLoading(true);setData(null);setTab('about');setIdx(0);
   if(ownMe){const p=ownMe.profile||{};const year=p.birth_year||p.year_of_birth;setData({...p,id:p.id||ownMe.user?.id,photos:(ownMe.photos||[]).map(x=>x.id),age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});setLoading(false);return()=>{active=false}}
@@ -70,8 +70,8 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    <Logo width={115} className="vx-member-floating-logo"/>
   </header>,document.body)}
 
-  <div className="vx-profile-scroller" ref={scrollRef} onScroll={handleScroll} onTouchStart={motionTouchStart} onTouchMove={motionTouchMove} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
-   <div className="vx-profile-motion" ref={motionRef} data-state="expanded">
+  <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
+   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet">
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
@@ -128,7 +128,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
     </>}
     {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>{setIdx(i);setGallery(true)}} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name}/></button>)}</div>:<Empty title="Фотографий пока нет"/>}</section></>}
-    {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div><GiftCollection ownerId={isOwn?'me':id}/></section></>}
+    {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}</section></>}
     {key==='common'&&!isOwn&&<>
      <section className="vx-profile-surface"><h2>Что вас объединяет</h2>{common.length||sameGoal?<><p className="vx-profile-secondary">Уже есть повод начать разговор.</p>{common.length>0&&<div className="vx-member-interests-grid">{common.map(label=><MemberInterest label={label} key={label}/>)}</div>}{sameGoal&&<div className="vx-profile-goal-detail"><VeyraPackIcon name="heart" size={18}/>У вас совпадают цели знакомства</div>}</>:<p className="vx-profile-secondary">Пока общих интересов не нашлось. Узнайте друг друга в общении.</p>}</section>
      {(courtship?.suitors||[]).length>0&&<section className="vx-profile-surface"><h2>Ухажёры</h2><p>{courtship.suitors.map(x=>x.sender_name).join(' · ')}</p></section>}

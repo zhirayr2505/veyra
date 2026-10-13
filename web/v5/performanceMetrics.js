@@ -27,7 +27,7 @@ export function analyzeFrameIntervals(values){
   samples:valid.length,
  };
 }
-export function formatPerformanceSummary(metrics,{elapsedSec=0,longTaskCount=0,loafCount=0}={}){
+export function formatPerformanceSummary(metrics,{elapsedSec=0,longTaskCount=0,loafCount=0,details=null,profile=null,samples=[]}={}){
  return [
   'VEYRA performance (rAF estimate; not physical screen FPS)',
   'FPS: '+metrics.fps,
@@ -39,5 +39,29 @@ export function formatPerformanceSummary(metrics,{elapsedSec=0,longTaskCount=0,l
   'Long animation frames: '+loafCount,
   'Session: '+Math.round(elapsedSec)+' s',
   'User agent: '+(typeof navigator==='undefined'?'unknown':navigator.userAgent),
+  ...(details?[
+   'Long tasks: total '+details.taskTotalMs.toFixed(1)+' ms; worst '+details.taskMaxMs.toFixed(1)+' ms',
+   'Long frames: total '+details.loafTotalMs.toFixed(1)+' ms; worst '+details.loafMaxMs.toFixed(1)+' ms',
+   'LoAF blocking total: '+details.blockingMs.toFixed(1)+' ms',
+   'LoAF script work: '+details.scriptMs.toFixed(1)+' ms',
+   'LoAF forced style/layout: '+details.forcedMs.toFixed(1)+' ms (when available)',
+   'Long Animation Frames API: '+(details.loafSupported?'supported':'unavailable'),
+   'Long Tasks API: '+(details.tasksSupported?'supported':'unavailable'),
+   'Screen / viewport: '+details.viewport+'; DPR '+details.dpr,
+   'CSS ScrollTimeline support: '+details.scrollTimelineSupported,
+   'Reported device memory: '+details.memory,
+   'Telegram WebApp version: '+details.telegramVersion,
+  ]:[]),
+  ...(profile?.enabled?[
+   'Profile phase: '+profile.phase+', collapse '+Math.round(profile.progress*100)+'%',
+   'Profile JS render p95: '+profile.paintMsP95.toFixed(2)+' ms',
+   'Profile JS render max: '+profile.paintMsMax.toFixed(2)+' ms',
+   'Profile motion frames: '+profile.measuredFrames,
+   'Motion JS frames >8.33ms: '+profile.framesOverBudget,
+   'Profile geometry: '+profile.heroWidth+'×'+profile.heroHeight+'; collapse '+Math.round(profile.collapseDistance)+'px',
+   'Profile recalibrations: '+profile.calibrations,
+   'Actions animation backend: '+profile.backend,
+  ]:['Profile not open']),
+  ...(samples.length?['FPS samples (newest last, 1 second cadence): '+samples.map(n=>n.toFixed(0)).join(', ')]:[]),
  ].join('\n');
 }
