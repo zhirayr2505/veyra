@@ -1013,8 +1013,8 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  await root.evaluate((el,distance)=>{el.scrollTop=distance+10},distance);
  await expect.poll(()=>motion.getAttribute('data-state')).toBe('compact');
  const compact=await photo.boundingBox();
- expect(compact.height).toBeGreaterThan(75);
- expect(compact.height).toBeLessThan(90);
+ expect(compact.height).toBeGreaterThan(92);
+ expect(compact.height).toBeLessThan(101);
  expect(Math.abs(compact.width-compact.height)).toBeLessThan(4);
  const railBefore=await rail.boundingBox(),actionsBefore=await actions.boundingBox();
  expect(Math.abs(actionsBefore.y-(await root.boundingBox()).y)).toBeLessThan(220);
