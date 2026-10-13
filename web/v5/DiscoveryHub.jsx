@@ -7,7 +7,7 @@ import './DiscoveryHub.css';
 
 const TABS=[['feed','Лента'],['for_you','Для вас'],['nearby','Рядом']];
 const PAGE_SIZE=8;
-const DATING_ART='/assets/veyra/dating_stage02/';
+const DATING_ART='/veyra-approved/dating_stage02/';
 const THEMED_COLLECTIONS=[
  {id:'common',name:'Схожие интересы',description:'Увлечения объединяют',image:'collection_common_interests.webp',icon:'everyone'},
  {id:'serious',name:'Серьёзные отношения',description:'Для тех, кто ищет близость',image:'collection_serious_relationships.webp',icon:'heart'},
