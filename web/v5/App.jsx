@@ -30,6 +30,7 @@ import './Registration2026.css'; // Approved registration baseline
 import './OnboardingV9.css'; // Final eight-step visual overrides
 import './DatingStage02.css'; // Three approved dating screens; registration remains unchanged
 import './VeyraDesignPolish.css'; // Match, floating feed actions, responsive profile refinement
+import './VeyraPolishFinal.css'; // Static feed and responsive member morph — final overrides
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
