@@ -337,3 +337,71 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
   min-height:395px;
  }
 }
+
+/* Approved VEYRA five-asset set: illustrations are decorative; all text,
+   badges, navigation, profile data and accessible controls remain live DOM. */
+.veyra-v2 .vx-dating-stage02 .vx-personal-head,
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero{isolation:isolate}
+.veyra-v2 .vx-dating-stage02 .vx-hero-art{
+ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+ pointer-events:none;user-select:none;z-index:-1;display:block;
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head{
+ background:#f2e5fc;border-color:#f1e6fb
+}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-personal-hello,
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-benefits{position:relative;z-index:1}
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-for-you-art{
+ object-position:center center
+}
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero{
+ background:#f6edff;border-color:#f3eafb
+}
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero .vx-nearby-art{
+ object-position:center center
+}
+.veyra-v2 .vx-dating-stage02 .vx-nearby-radar{
+ background:none!important;z-index:1;pointer-events:none
+}
+/* Preserve a light text-safe region even when artwork is very bright. */
+.veyra-v2 .vx-dating-stage02 .vx-personal-head:before,
+.veyra-v2 .vx-dating-stage02 .vx-nearby-hero:before{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:linear-gradient(90deg,#fff8 0%,#fff5 30%,transparent 57%)
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collections{
+ display:flex;gap:8px;overflow-x:auto;padding:3px 2px 10px;scrollbar-width:none
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection{
+ flex:0 0 calc((100% - 16px)/3);height:clamp(142px,40vw,218px);
+ position:relative;isolation:isolate;min-width:0;border-radius:16px
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-art{
+ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 32%;
+ pointer-events:none;user-select:none;display:block
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-shade{
+ background:linear-gradient(180deg,#29164812 0%,transparent 25%,#21152b36 45%,#130b26df 100%)
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-icon{
+ width:30px;height:30px;left:7px;top:7px;background:#fffefd;
+ box-shadow:0 3px 10px #24143d28
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-label{
+ left:8px;bottom:11px;right:5px;gap:3px
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-label b{
+ font-size:clamp(10px,2.7vw,14px);line-height:1.15;
+ color:#fff;text-transform:none;overflow-wrap:anywhere;text-shadow:0 2px 7px #10061acc
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection .vx-collection-label small{
+ color:#f7edff;font-size:clamp(8px,2.2vw,10px);line-height:1.2;
+ text-shadow:0 1px 5px #10061acc
+}
+.veyra-v2 .vx-dating-stage02 .vx-themed-collection.chosen{
+ outline:2px solid #a64bf7;outline-offset:1px
+}
+@media(max-width:370px){
+ .veyra-v2 .vx-dating-stage02 .vx-themed-collections{gap:6px}
+ .veyra-v2 .vx-dating-stage02 .vx-themed-collection{flex-basis:calc((100% - 12px)/3)}
+}
