@@ -1107,20 +1107,17 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
  await scroller.evaluate(el=>{el.scrollTop=650});
  await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).toBe('compact');
  const before=await track.evaluate(el=>getComputedStyle(el).transform);
- await page.evaluate(()=>{
-  const el=document.querySelector('.vx-profile-swipe-viewport');
-  const touch=(x,y)=>new Touch({identifier:1,target:el,clientX:x,clientY:y});
-  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[touch(304,580)],changedTouches:[touch(304,580)]}));
-  el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:[touch(220,584)],changedTouches:[touch(220,584)]}));
- });
- await expect(track).toHaveClass(/is-dragging/);
- const during=await track.evaluate(el=>getComputedStyle(el).transform);
- expect(during).not.toBe(before);
- await page.evaluate(()=>{
-  const el=document.querySelector('.vx-profile-swipe-viewport');
-  const t=new Touch({identifier:1,target:el,clientX:200,clientY:585});
-  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[t]}));
- });
+ // Embla responds to real pointer gestures, not synthetic TouchEvent
+ // dispatches sent only to the deprecated custom touch handlers.
+ const viewport=await page.locator('.vx-profile-swipe-viewport').boundingBox();
+ expect(viewport).toBeTruthy();
+ const y=Math.min(viewport.y+210,viewport.y+viewport.height-40);
+ await page.mouse.move(viewport.x+viewport.width-36,y);
+ await page.mouse.down();
+ await page.mouse.move(viewport.x+viewport.width*.53,y+2,{steps:8});
+ await expect.poll(()=>track.evaluate(el=>getComputedStyle(el).transform)).not.toBe(before);
+ await page.mouse.move(viewport.x+48,y+2,{steps:9});
+ await page.mouse.up();
  await expect(rail.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
  await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
