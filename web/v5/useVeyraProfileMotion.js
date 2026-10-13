@@ -50,12 +50,20 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    }
    s.lastY=scrollY;s.lastAt=now;
    if(Math.abs(p-s.lastProgress)<.00015)return;
+   const previous=s.lastProgress;
    s.lastProgress=p;
+   // Haptic is edge-triggered once for a deliberate finger-driven circle.
+   // Never pulse on reverse scroll or when opening an already compact profile.
+   if(p<.17)s.circleHapticFired=false;
+   if(s.touching&&previous>=0&&previous<.27&&p>=.27&&!s.circleHapticFired){
+    s.circleHapticFired=true;
+    try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light')}catch{}
+   }
    // In Chromium, the scroll position drives visual transforms without JS.
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
    if(s.nativeAnimation){
-    const shape=p<.13?'cover':p<.29?'rounded':'circle';
+    const shape=p<.065?'cover':p<.265?'rounded':'circle';
     if(shape!==s.radiusPhase){
      s.radiusPhase=shape;
      parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'24px':'50%';
@@ -76,7 +84,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    parts.hero.style.transform=translate(f.x,f.y)+scale;
    // Legacy fallback updates shape only at two boundaries, rather than
    // invalidating a large clipped image on each individual scroll frame.
-   const shape=p<.13?'cover':p<.29?'rounded':'circle';
+   const shape=p<.065?'cover':p<.265?'rounded':'circle';
    if(shape!==s.radiusPhase){
     s.radiusPhase=shape;
     parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'24px':'50%';
@@ -109,6 +117,9 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    })()).toFixed(3);
    if(parts.onlineDot)parts.onlineDot.style.opacity=(f.progress<=.85?0:f.progress>=1?1:(()=>{
     const t=(f.progress-.85)/.15;return t*t*(3-2*t);
+   })()).toFixed(3);
+   if(parts.rim)parts.rim.style.opacity=(p<=.23?0:p>=.35?1:(()=>{
+    const t=(p-.23)/.12;return t*t*(3-2*t);
    })()).toFixed(3);
    if(parts.grabber){
     parts.grabber.style.transform=translate(0,f.sheetY-(s.height-30));
@@ -228,6 +239,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    shade:motion.querySelector('.vx-profile-photo-shade'),
    blur:motion.querySelector('.vx-profile-blurred-header'),
    ring:motion.querySelector('.vx-profile-avatar-ring'),
+   rim:motion.querySelector('.vx-profile-photo-morph-rim'),
    onlineDot:motion.querySelector('.vx-profile-avatar-online-dot'),
    grabber:motion.querySelector('.vx-profile-sheet-grabber'),
   };
