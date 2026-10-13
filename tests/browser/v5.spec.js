@@ -1411,6 +1411,7 @@ test('Dragging from photo thumbnails changes the horizontal tab without opening 
  await expect(tabs.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
  const tile=page.locator('.vx-profile-photos-grid button').first();
  await expect(tile).toBeVisible();
+ await tile.scrollIntoViewIfNeeded();
  const box=await tile.boundingBox();
  const viewport=await page.locator('.vx-profile-swipe-viewport').boundingBox();
  // Start ON the first photo, then drag RIGHT towards the previous tab.
