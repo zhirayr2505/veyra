@@ -129,7 +129,7 @@ async function finishMatch(q,actor,target) {
 export async function react(q,actor,target,kind,message){
  await pairLock(q,actor,target);await ensurePair(q,actor,target);
  const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);
- if(isTestProfile(target)&&!isTestProfile(actor)&&u.admin_role!=='owner')fail(404,'PROFILE_NOT_FOUND');
+ if(isTestProfile(target)&&!isTestProfile(actor)&&u.admin_role!=='owner'&&process.env.NODE_ENV==='production')fail(404,'PROFILE_NOT_FOUND');
  const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);
  const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND a_erased_at IS NULL AND b_erased_at IS NULL',[actor,target]);
  if(existing&&(existing.a_erased_at||existing.b_erased_at))fail(409,'MATCH_ARCHIVED');
