@@ -33,7 +33,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
   if(underline)underline.style.transform='translate3d('+(position*100).toFixed(3)+'%,0,0)';
  },[]);
- const {onScroll:handleScroll,onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
+ const {onScroll:handleScroll,onTouchStart:motionTouchStart,onTouchMove:motionTouchMove,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
 
  useEffect(()=>{let active=true;setLoading(true);setData(null);setTab('about');setIdx(0);
   if(ownMe){const p=ownMe.profile||{};const year=p.birth_year||p.year_of_birth;setData({...p,id:p.id||ownMe.user?.id,photos:(ownMe.photos||[]).map(x=>x.id),age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});setLoading(false);return()=>{active=false}}
@@ -70,11 +70,14 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    <Logo width={115} className="vx-member-floating-logo"/>
   </header>,document.body)}
 
-  <div className="vx-profile-scroller" ref={scrollRef} onScroll={handleScroll} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
+  <div className="vx-profile-scroller" ref={scrollRef} onScroll={handleScroll} onTouchStart={motionTouchStart} onTouchMove={motionTouchMove} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded">
     <div className="vx-profile-sticky" aria-hidden="false">
+     <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
+     <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <Photo id={photos[idx]} alt={data.name} onClick={()=>setGallery(true)}/>
+      <div className="vx-profile-photo-shade" aria-hidden="true"/>
       {photos.length>1&&<div className="vx-profile-photo-bars">{photos.map((p,i)=><button key={p} type="button" className={i===idx?'active':''} onClick={()=>setIdx(i)} aria-label={'Фото '+(i+1)}/>)}</div>}
       {photos.length>1&&<div className="vx-profile-photo-nav">
        <button type="button" onClick={()=>photosNext(-1)} aria-label="Предыдущее фото"><ChevronLeft size={26}/></button>
