@@ -1065,3 +1065,31 @@ test('VEYRA fullscreen member keeps brand pinned, gallery and all four tabs func
  await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).toBe('expanded');
 });
 
+
+test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gesture-end snap',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-master-profile .vx-profile-scroller');
+ const photo=page.locator('.vx-master-profile .vx-profile-hero-photo');
+ const actions=page.locator('.vx-master-profile .vx-profile-primary-actions');
+ const rail=page.locator('.vx-master-profile .vx-profile-tab-rail');
+ await expect(root).toBeVisible();
+ const sizes=await Promise.all([root.boundingBox(),photo.boundingBox()]);
+ expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
+ expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
+ await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
+ expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(250, 246, 255)');
+ expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
+ const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
+ await expect.poll(()=>root.evaluate(el=>el.scrollTop),{timeout:4500}).toBeGreaterThan(d-2);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
+ await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.2;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
+ await expect.poll(()=>root.evaluate(el=>el.scrollTop),{timeout:4500}).toBeLessThan(2);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','expanded');
+ await rail.getByRole('tab',{name:'Фото'}).click();
+ await expect(page.locator('.vx-profile-photos-grid')).toBeVisible();
+ await rail.getByRole('tab',{name:'Подарки'}).click();
+ await expect(page.getByRole('tabpanel',{name:'Подарки'})).toBeVisible();
+});
