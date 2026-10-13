@@ -8,10 +8,12 @@ import './DiscoveryHub.css';
 const TABS=[['feed','Лента'],['for_you','Для вас'],['nearby','Рядом']];
 const PAGE_SIZE=8;
 const DATING_ART='/veyra-approved/dating_stage02/';
+// Versioned lossless masters intentionally bypass older cached low-quality WebPs.
+const ORIGINAL_ART_VERSION='_master_20261013.png';
 const THEMED_COLLECTIONS=[
- {id:'common',name:'Схожие интересы',description:'Увлечения объединяют',image:'collection_common_interests.webp',icon:'everyone'},
- {id:'serious',name:'Серьёзные отношения',description:'Для тех, кто ищет близость',image:'collection_serious_relationships.webp',icon:'heart'},
- {id:'travel',name:'Любят путешествовать',description:'Откройте мир вдвоём',image:'collection_travel.webp',icon:'location'}
+ {id:'common',name:'Схожие интересы',description:'Увлечения объединяют',image:'collection_common_interests_master_20261013.png',icon:'everyone'},
+ {id:'serious',name:'Серьёзные отношения',description:'Для тех, кто ищет близость',image:'collection_serious_relationships_master_20261013.png',icon:'heart'},
+ {id:'travel',name:'Любят путешествовать',description:'Откройте мир вдвоём',image:'collection_travel_master_20261013.png',icon:'location'}
 ];
 const haptic=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* optional */}};
 const distanceFor=p=>Number.isFinite(Number(p.distance_km))&&p.distance_km!=null
@@ -119,11 +121,15 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
  const rows=personal?sharedPeople:people;
  return <div className={'vx-browse vx-'+kind} aria-label={personal?'Для вас':'Люди рядом'}>
   {personal?<>
-   <section className="vx-personal-head"><img className="vx-hero-art vx-for-you-art" src={DATING_ART+"for_you_hero.webp"} width="768" height="384" fetchPriority="high" alt="" aria-hidden="true"/>
+   <section className="vx-personal-head"><img className="vx-hero-art vx-for-you-art" src={DATING_ART+"for_you_hero"+ORIGINAL_ART_VERSION} width="1536" height="686" fetchPriority="high" alt="" aria-hidden="true"/>
     <div className="vx-personal-hello"><h1>{profile?.name?profile.name+', это':'Это'} для тебя <span aria-hidden="true" className="vx-purple-heart"><Icon name="heart" tone="pink" size={24}/></span></h1>
      <p>Мы подобрали людей, которые разделяют твои интересы и ценности</p></div>
 
-    <div className="vx-benefits"><span><Icon name="sparkle" tone="pink" size={18}/>Общие интересы</span><span><Icon name="heart" tone="pink" size={18}/>Близкие цели</span><span><Icon name="rating" tone="pink" size={18}/>Больше совпадений</span></div>
+    <div className="vx-benefits" aria-label="Преимущества персональных рекомендаций">
+     <div className="vx-benefit-chip"><Icon name="sparkle" tone="pink" size={18}/><span className="vx-benefit-copy">Общие интересы</span></div>
+     <div className="vx-benefit-chip"><Icon name="heart" tone="pink" size={18}/><span className="vx-benefit-copy">Близкие цели</span></div>
+     <div className="vx-benefit-chip"><Icon name="rating" tone="pink" size={18}/><span className="vx-benefit-copy">Больше совпадений</span></div>
+    </div>
    </section>
    <SectionTitle action={showAllPortraits?'Свернуть':'Смотреть все'} onAction={()=>setShowAllPortraits(x=>!x)}>Люди, похожие на тебя</SectionTitle>
    {people.length>0&&<div className={'vx-interest-portraits'+(showAllPortraits?' expanded':'')}>
@@ -138,7 +144,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
       className={'vx-collection vx-themed-collection'+(collection===group.id?' chosen':'')}
       aria-pressed={collection===group.id} aria-label={'Подборка: '+group.name}
       onClick={()=>{haptic();setCollection(collection===group.id?null:group.id)}}>
-     <img className="vx-collection-art" src={DATING_ART+group.image} width="360" height="480" alt="" loading="lazy" decoding="async"/>
+     <img className="vx-collection-art" src={DATING_ART+group.image} width="1152" height="1536" alt="" loading="lazy" decoding="async"/>
      <span className="vx-collection-shade" aria-hidden="true"/>
      <span className="vx-collection-icon"><Icon name={group.icon} tone="pink" size={20}/></span>
      <span className="vx-collection-label"><b>{group.name}</b><small>{group.description}</small></span>
@@ -147,7 +153,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,onProfile,onMatch,
    <SectionTitle action={collection?'Сбросить':hasMore?'Смотреть все':null}
      onAction={collection?()=>setCollection(null):loadMore}>{collection?THEMED_COLLECTIONS.find(g=>g.id===collection)?.name:'Рекомендуем тебе'}</SectionTitle>
   </>:<>
-   <section className="vx-nearby-hero"><img className="vx-hero-art vx-nearby-art" src={DATING_ART+"nearby_hero.webp"} width="768" height="384" alt="" aria-hidden="true" fetchPriority="high"/>
+   <section className="vx-nearby-hero"><img className="vx-hero-art vx-nearby-art" src={DATING_ART+"nearby_hero"+ORIGINAL_ART_VERSION} width="1536" height="768" alt="" aria-hidden="true" fetchPriority="high"/>
     <div className="vx-nearby-copy"><h1>Люди рядом</h1><p className="vx-nearby-place"><Icon name="pin" tone="pink" size={18}/>{nearbyLocation}</p>
      <p className="vx-nearby-description">Новые знакомства рядом с вами<br/>{radius}</p></div>
     <div className="vx-nearby-radar" aria-hidden="true">
@@ -208,7 +214,9 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
  </section>;
  return <section className="vx-hub vx-dating-stage02" aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
-   <button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium"><Icon name="premium" tone="pink" size={25}/></button>
+   <button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
+    <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
+   </button>
    <Logo width={145} className="vx-logo"/>
    <div className="vx-head-actions">
     <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>

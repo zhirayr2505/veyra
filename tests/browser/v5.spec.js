@@ -898,3 +898,36 @@ test('approved VEYRA art loads as files and category cards request filtered real
  await page.getByRole('tab',{name:'Рядом'}).click();
  await expect.poll(()=>page.locator('.vx-nearby .vx-hero-art').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
 });
+
+test('original PNG images and new premium crown render without overflowing benefit chips',async({page})=>{
+ await page.setViewportSize({width:360,height:800});
+ await telegram(page,10,false,true);
+ await page.goto('/');
+ await page.getByRole('tab',{name:'Для вас'}).click();
+ const art=page.locator('.vx-for_you .vx-hero-art, .vx-for_you .vx-collection-art');
+ await expect(art).toHaveCount(4);
+ for(let i=0;i<4;i++){
+  await expect.poll(()=>art.nth(i).evaluate(el=>el.complete&&el.naturalWidth>=1152&&el.currentSrc.includes('_master_20261013.png'))).toBe(true);
+ }
+ const crown=page.locator('.vx-crown .vx-premium-crown');
+ await expect(crown).toBeVisible();
+ await expect.poll(()=>crown.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);
+ await expect(page.locator('.vx-benefits .vx-benefit-chip')).toHaveCount(3);
+ for(const width of [360,320]){
+  await page.setViewportSize({width,height:800});
+  const geometry=await page.locator('.vx-benefits .vx-benefit-chip').evaluateAll(chips=>chips.map(chip=>{
+   const span=chip.querySelector('.vx-benefit-copy');
+   const text=span.getBoundingClientRect(),outer=chip.getBoundingClientRect();
+   return {outerRight:outer.right,textRight:text.right,scrollWidth:span.scrollWidth,clientWidth:span.clientWidth,
+     chipScrollWidth:chip.scrollWidth,chipClientWidth:chip.clientWidth,whiteSpace:getComputedStyle(span).whiteSpace};
+  }));
+  for(const item of geometry){
+   expect(item.whiteSpace).toBe('normal');
+   expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth+1);
+   expect(item.chipScrollWidth).toBeLessThanOrEqual(item.chipClientWidth+1);
+   expect(item.textRight).toBeLessThanOrEqual(item.outerRight+1);
+  }
+ }
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ await expect.poll(()=>page.locator('.vx-nearby-art').evaluate(el=>el.complete&&el.naturalWidth===1536&&el.currentSrc.includes('_master_20261013.png'))).toBe(true);
+});

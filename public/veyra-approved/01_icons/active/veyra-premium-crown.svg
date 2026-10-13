@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+ <defs>
+  <linearGradient id="crown" x1="11" y1="10" x2="56" y2="53" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#C58AFF"/><stop offset=".43" stop-color="#9C4AF2"/><stop offset="1" stop-color="#6423C7"/>
+  </linearGradient>
+  <linearGradient id="shine" x1="14" y1="20" x2="51" y2="45" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#FFF6FF" stop-opacity=".96"/><stop offset="1" stop-color="#EEE0FF" stop-opacity=".28"/>
+  </linearGradient>
+ </defs>
+ <path d="M8.2 19.8 20.2 30.6 32 10.8 43.8 30.6 55.8 19.8 51.8 47.2c-.3 1.8-1.9 3.2-3.7 3.2H15.9c-1.8 0-3.4-1.4-3.7-3.2L8.2 19.8Z" fill="url(#crown)" stroke="#6B2AC5" stroke-width="2.2" stroke-linejoin="round"/>
+ <path d="m14.5 26.2 7.8 8.5L32 19.2l9.7 15.5 7.8-8.5-3.1 17.3H17.6L14.5 26.2Z" fill="url(#shine)" opacity=".45"/>
+ <path d="M17.3 43.9h29.4" stroke="#F9E8FF" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+ <path d="M17.8 53.9h28.4" stroke="#792DCD" stroke-width="4.2" stroke-linecap="round"/>
+ <circle cx="8.2" cy="19.1" r="4.1" fill="#A655F0" stroke="#E9CFFF" stroke-width="1.5"/>
+ <circle cx="32" cy="10.9" r="4.1" fill="#A655F0" stroke="#E9CFFF" stroke-width="1.5"/>
+ <circle cx="55.8" cy="19.1" r="4.1" fill="#A655F0" stroke="#E9CFFF" stroke-width="1.5"/>
+ <path d="m32 30.1 3.6 5.5-3.6 5.4-3.6-5.4 3.6-5.5Z" fill="#FFF4FF" opacity=".94"/>
+</svg>
