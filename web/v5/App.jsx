@@ -106,7 +106,7 @@ export function App(){
  {visited.has('search')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='search'}><DiscoveryHub directory onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound} refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} demoResetBusy={demoResetBusy} demoResetNotice={demoResetNotice} onDemoReset={resetDemo} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/></div>}
  <div className="view-tab" data-enter={tabDirection} hidden={tab!=='encounters'}>
   <section className="v2-encounters-view" aria-label="Знакомства VEYRA">
-   <DiscoveryHub freezeFeed={tab==='encounters'&&!member&&!overlay&&!conversation} filters={feedFilters} profile={me.profile} onProfile={openMember} onMatch={matchFound}
+   <DiscoveryHub filters={feedFilters} freezeFeed={tab==='encounters'&&!member&&!overlay&&!conversation} profile={me.profile} onProfile={openMember} onMatch={matchFound}
     refreshTick={feedTick} demoMode={demoMode} demoStatus={demoStatus} demoResetBusy={demoResetBusy} demoResetNotice={demoResetNotice} onDemoReset={resetDemo} onDemoModeChange={()=>setDemoMode(v=>!v)} onDemoRetry={()=>setDemoRetry(v=>v+1)} onWallet={()=>setOverlay({type:'veys'})} veysBalance={me.veys_balance||0}
     onPremium={()=>setOverlay({type:'premium'})} onFilters={()=>setOverlay({type:'filters'})}/>
   </section>
