@@ -745,10 +745,131 @@ test('small fullscreen dating keeps nearby filter button accessible above fixed 
  await filters.getByRole('button',{name:'В сети'}).click();
  await expect(filters.getByRole('button',{name:'В сети'})).toHaveAttribute('aria-pressed','true');
  const bounds=await page.evaluate(()=>{
+  const filter=document.querySelector('.vx-filter-pills button[aria-pressed="true"]').getBoundingClientRect();
   const nav=document.querySelector('.bottom-nav').getBoundingClientRect();
-  const scene=document.querySelector('.vx-dating-stage02').getBoundingClientRect();
-  return {bottom:scene.bottom,navTop:nav.top,scrollHeight:document.documentElement.scrollHeight};
+  return {filterTop:filter.top,filterBottom:filter.bottom,navTop:nav.top,scrollHeight:document.documentElement.scrollHeight};
  });
- expect(bounds.bottom).toBeGreaterThan(bounds.navTop);
+ expect(bounds.filterTop).toBeGreaterThanOrEqual(0);
+ expect(bounds.filterBottom).toBeLessThan(bounds.navTop);
  expect(bounds.scrollHeight).toBeGreaterThan(640);
+});
+
+
+/* Visual review, isolated to the PGlite Telegram fixture; never accesses real users. */
+test('VISUAL_AUDIT registration through approved dating tabs captures reference screenshots',async({page},testInfo)=>{
+ const {mkdir,writeFile}=await import('node:fs/promises');
+ const path=await import('node:path');
+ const dir=path.resolve('test-results/veyra-visual-audit');
+ await mkdir(dir,{recursive:true});
+ const screenshots=[],shotsRegister=[],shotsDating=[];
+ async function capture(label,group){
+  await page.evaluate(()=>document.fonts.ready);
+  const buffer=await page.screenshot({type:'jpeg',quality:82,fullPage:false,animations:'disabled'});
+  const filename=label+'.jpg';await writeFile(path.join(dir,filename),buffer);
+  (group==='registration'?shotsRegister:shotsDating).push({label,buffer});screenshots.push(filename);
+ }
+ const outputContact=async(name,arr,columns=3)=>{
+  const tileW=260,tileH=570,pad=12,title=29,rows=Math.ceil(arr.length/columns),contactW=columns*(tileW+pad)+pad,contactH=rows*(tileH+title+pad)+pad;
+  const overlays=[];
+  for(let i=0;i<arr.length;i++){
+   const col=i%columns,row=Math.floor(i/columns),x=pad+col*(tileW+pad),y=pad+row*(tileH+title+pad);
+   const data=await sharp(arr[i].buffer).resize(tileW,tileH,{fit:'fill'}).jpeg({quality:54}).toBuffer();
+   const labelSVG=Buffer.from('<svg width="'+tileW+'" height="'+title+'"><rect width="'+tileW+'" height="'+title+'" fill="#EEE5FB"/><text x="9" y="20" font-family="Arial" font-size="14" font-weight="bold" fill="#352050">'+arr[i].label+'</text></svg>');
+   overlays.push({input:labelSVG,left:x,top:y},{input:data,left:x,top:y+title});
+  }
+  const composite=await sharp({create:{width:contactW,height:contactH,channels:3,background:'#FFFFFF'}}).composite(overlays).jpeg({quality:47,mozjpeg:true}).toBuffer();
+  await writeFile(path.join(dir,name+'.jpg'),composite);
+  const encoded=composite.toString('base64'),width=3000;
+  for(let i=0;i<encoded.length;i+=width)console.log('VEYRA_SCREENSHOT_DATA|'+name+'|'+Math.floor(i/width)+'|'+encoded.slice(i,i+width));
+  console.log('VEYRA_SCREENSHOT_END|'+name+'|'+composite.length+'|'+arr.length);
+ };
+ // Real eight-step registration, using local test account #24 only.
+ await telegram(page,22001,false,true);await page.goto('/');
+ await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
+ await capture('01_name_consent','registration');
+ await page.locator('.registration-consent input').check();
+ await page.getByRole('button',{name:'Указать возраст'}).click();
+ await expect(page.getByRole('heading',{name:'Когда ваш день рождения?'})).toBeVisible();
+ await capture('02_age_gender','registration');
+ await page.getByLabel('День рождения').fill('12');
+ await page.getByLabel('Месяц рождения').fill('05');
+ await page.getByLabel('Год рождения').fill('1998');
+ await page.getByRole('button',{name:'мужчина'}).click();
+ await page.getByRole('button',{name:'Выбрать город'}).click();
+ await expect(page.getByRole('heading',{name:'Разрешите доступ к геолокации'})).toBeVisible();
+ await capture('03_location','registration');
+ await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
+ await page.locator('.city-results button').first().click();
+ await page.getByRole('button',{name:'Настроить поиск'}).click();
+ await expect(page.getByRole('heading',{name:'Кого вы ищете?'})).toBeVisible();
+ await capture('04_preferences','registration');
+ await page.getByRole('button',{name:'Выбрать цель знакомства'}).click();
+ await expect(page.locator('.veyra-goal-choice').first()).toBeVisible();
+ await capture('05_goal','registration');
+ await page.locator('.veyra-goal-choice').nth(1).click();
+ await page.getByRole('button',{name:'Выбрать интересы'}).click();
+ await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
+ await capture('06_interests','registration');
+ await page.locator('.veyra-interest-options button').first().click();
+ await page.getByRole('button',{name:'Рассказать о себе'}).click();
+ await expect(page.getByRole('heading',{name:'Немного о себе'})).toBeVisible();
+ await capture('07_bio','registration');
+ await page.getByRole('textbox',{name:'О себе'}).fill('Люблю кофе, путешествия и интересные знакомства.');
+ await page.getByRole('button',{name:'Добавить фото'}).click();
+ await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
+ await capture('08_add_photos','registration');
+ const makePhoto=async(index)=>sharp({create:{width:380,height:520,channels:3,background:{r:185+index*15,g:150+index*9,b:220-index*10}}}).png().toBuffer();
+ const photoFiles=[];
+ for(let i=0;i<3;i++)photoFiles.push({name:'test-portrait-'+i+'.png',mimeType:'image/png',buffer:await makePhoto(i)});
+ await page.locator('input[type=file]').setInputFiles(photoFiles);
+ await expect(page.locator('.registration-photo-count')).toContainText('3 из 7',{timeout:45000});
+ await page.getByRole('button',{name:'Посмотреть анкету'}).click();
+ await expect(page.locator('.preview-gallery')).toBeVisible();
+ await capture('09_profile_preview','registration');
+ await page.getByRole('tab',{name:'Полный профиль'}).click();
+ await capture('10_full_preview','registration');
+ await outputContact('REGISTRATION_01_09',shotsRegister.slice(0,9),3);
+ await outputContact('REGISTRATION_10',shotsRegister.slice(9),1);
+
+ // Review queue (the profile is pending), and existing approved test accounts.
+ await telegram(page,12,false,true);await page.goto('/');
+ await expect(page.locator('.vc-screen--pending')).toBeVisible();
+ await capture('11_moderation','dating');
+ // Replace Telegram test session before a new navigation, never touch live accounts.
+ await page.addInitScript(data=>{window.Telegram.WebApp.initData=data;window.Telegram.WebApp.isFullscreen=true;},initData(10,env.USER_BOT_TOKEN));
+ await page.reload();
+ await expect(page.locator('.vx-dating-stage02 .vx-tabs')).toBeVisible();
+ await capture('12_feed','dating');
+ await page.getByRole('tab',{name:'Для вас'}).click();
+ await expect(page.locator('.vx-personal-head')).toBeVisible();
+ await capture('13_for_you','dating');
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ await expect(page.locator('.vx-nearby-hero')).toBeVisible();
+ await capture('14_nearby','dating');
+ await outputContact('DATING_11_14',shotsDating,2);
+ console.log('VEYRA_AUDIT_FILES|'+screenshots.join(','));
+});
+
+test('VEYRA logo visual pigment centered across full-width fullscreen Android WebView',async({page})=>{
+ await page.setViewportSize({width:393,height:852});
+ await telegram(page,10,false,true);
+ await page.goto('/');
+ await expect(page.locator('.vx-dating-stage02 .vx-logo')).toBeVisible();
+ const bounds=await page.locator('.vx-dating-stage02 .vx-logo').evaluate(e=>{
+  const r=e.getBoundingClientRect();const style=getComputedStyle(e);
+  return {left:r.left,right:r.right,center:r.left+r.width/2,width:r.width,objectPosition:style.objectPosition}
+ });
+ expect(bounds.objectPosition).toBe('50% 50%');
+ expect(Math.abs(bounds.center-393/2)).toBeLessThan(2);
+ const img=await page.screenshot({type:'png',animations:'disabled'});
+ const {data,info}=await sharp(img).extract({left:0,top:39,width:393,height:37}).raw().toBuffer({resolveWithObject:true});
+ let minX=999,maxX=-1,count=0;
+ for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++){
+  const i=(y*info.width+x)*info.channels,r=data[i],g=data[i+1],b=data[i+2];
+  if(b>175&&b>r+35&&b>g+45&&r>75&&r<207&&g<175){minX=Math.min(minX,x);maxX=Math.max(maxX,x);count++;}
+ }
+ expect(count,'logo painted pixels in Telegram title row').toBeGreaterThan(100);
+ const paintedCenter=(minX+maxX)/2;
+ console.log('VEYRA_LOGO_CENTER|'+JSON.stringify({paintedCenter,screenCenter:196.5,count,minX,maxX,bounds}));
+ expect(Math.abs(paintedCenter-393/2),'visible purple logo lettering, not only image bounds, centered').toBeLessThanOrEqual(8);
 });
