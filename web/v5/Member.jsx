@@ -37,7 +37,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
 
  <div className="member-photos vx-member-morph-stage" ref={photosRef} aria-hidden="true"/>
  <MemberPhotoMorph stageRef={photosRef} headerRef={headerRef} person={data}
-  index={idx} onIndex={setIdx} onGallery={()=>setGallery(true)} visible={!gallery}/>
+  index={idx} onIndex={setIdx} onGallery={()=>setGallery(true)} visible={!gallery} syncKey={more}/>
  <div className="member-summary">
   <div className="member-summary-title"><h2>{data.name}, {data.age}</h2>{data.test_profile?<span className="vx-demo-member-label">ДЕМО</span>:<Icon name="verified" tone="pink" size={21}/>}</div>
   {data.test_profile&&<p className="vx-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотография иллюстративная.</p>}
