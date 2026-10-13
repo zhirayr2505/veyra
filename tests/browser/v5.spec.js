@@ -952,3 +952,53 @@ test('original PNG images and new premium crown render without overflowing benef
  await page.getByRole('tab',{name:'Рядом'}).click();
  await expect.poll(()=>page.locator('.vx-nearby-art').evaluate(el=>el.complete&&el.naturalWidth===1536&&el.currentSrc.includes('_master_20261013.png'))).toBe(true);
 });
+
+test('VEYRA Feed remains a single screen with solid centered actions and visible top utilities',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10);await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ await expect(page.locator('html')).toHaveClass(/veyra-feed-viewport-locked/);
+ await expect(page.locator('.vx-head .veys-header-button')).toBeVisible();
+ await expect(page.getByRole('tab',{name:'Лента'})).toBeVisible();
+ const sizes=await page.evaluate(()=>{
+  const card=document.querySelector('.vx-feed-card-stage>.feed-photo').getBoundingClientRect();
+  const nav=document.querySelector('.bottom-nav').getBoundingClientRect();
+  const action=document.querySelector('.vx-feed-card-stage .feed-action.action-like .feed-action-circle').getBoundingClientRect();
+  const undo=document.querySelector('.vx-feed-card-stage .feed-action.action-undo .feed-action-circle');
+  return {cardRight:card.right,heartRight:action.right,photoHeight:card.height,navTop:nav.top,
+   stageBottom:document.querySelector('.vx-feed-card-stage').getBoundingClientRect().bottom,
+   undoOpacity:getComputedStyle(undo).opacity,undoParentOpacity:getComputedStyle(undo.closest('.action-undo')).opacity};
+ });
+ expect(sizes.heartRight).toBeLessThanOrEqual(sizes.cardRight+3);
+ expect(sizes.photoHeight).toBeGreaterThan(250);
+ expect(sizes.stageBottom).toBeLessThanOrEqual(sizes.navTop+4);
+ expect(Number(sizes.undoOpacity)).toBe(1);
+ expect(Number(sizes.undoParentOpacity)).toBe(1);
+ await page.evaluate(()=>window.scrollTo(0,400));
+ await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ await expect(page.locator('html')).not.toHaveClass(/veyra-feed-viewport-locked/);
+});
+
+test('VEYRA member header morphs on scrolling, shows goal as chip and opens actions menu',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const member=page.locator('.member-feed-profile');
+ await expect(member).toBeVisible();
+ await expect(member.locator('.vx-member-goal')).toBeVisible();
+ await expect(member.locator('.vx-member-icon-control')).toHaveCount(0);
+ await expect(member.locator('.member-icon-actions .member-icon-control')).toHaveCount(3);
+ await expect(member.locator('.vx-member-interests-grid svg').first()).toBeVisible();
+ await expect(member.locator('.veyra-detail-card').filter({hasText:'Цель знакомства'})).toHaveCount(0);
+ await member.locator('.vx-member-more').click();
+ await expect(page.getByRole('menu',{name:'Действия с анкетой'})).toBeVisible();
+ await expect(page.getByRole('menuitem',{name:'Пожаловаться'})).toBeVisible();
+ await page.getByRole('button',{name:'Закрыть',exact:true}).click();
+ await page.evaluate(()=>window.scrollTo(0,550));
+ await expect.poll(()=>member.locator('.vx-member-floating-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeGreaterThan(.65);
+ await expect(member.locator('.vx-member-floating-logo')).toBeVisible();
+ await expect(member.locator('.vx-member-mini-avatar')).toBeVisible();
+ await page.evaluate(()=>window.scrollTo(0,0));
+ await expect.poll(()=>member.locator('.vx-member-floating-header').evaluate(el=>Number(getComputedStyle(el).getPropertyValue('--vx-member-collapse')))).toBeLessThan(.05);
+});
