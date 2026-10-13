@@ -37,7 +37,7 @@ export function MemberSwipePages({tabs,active,onChange,children}){
  };
  return <div ref={viewport} className="vx-profile-swipe-viewport"
    onTouchStart={start} onTouchMove={move} onTouchEnd={end} onTouchCancel={end}>
-   <div ref={track} className="vx-profile-swipe-track" style={{'--vx-page-index':index,'--vx-swipe-delta':'0px'}}>
+   <div ref={track} className="vx-profile-swipe-track" style={{'--vx-page-shift':(-index*100)+'%','--vx-swipe-delta':'0px'}}>
     {tabs.map(([key,label])=><section key={key} className="vx-profile-swipe-page" role="tabpanel"
       id={'vx-profile-panel-'+key} aria-label={label} aria-hidden={active!==key} inert={active!==key?true:undefined}>
       {children(key)}
