@@ -1,0 +1,50 @@
+/* Diagnostics only: entirely absent from the DOM until explicitly enabled.
+ * Avoid blur and animated CSS properties in the monitor itself.
+ */
+body>header.vx-member-native-header>img.logo.vx-member-floating-logo{
+ pointer-events:auto!important;
+ touch-action:manipulation;
+ -webkit-user-select:none;user-select:none;
+}
+.veyra-fps-monitor{
+ position:fixed;z-index:2147483500;
+ right:12px;bottom:calc(90px + env(safe-area-inset-bottom,0px));
+ box-sizing:border-box;width:auto;max-width:calc(100vw - 24px);
+ font:500 12px/1.35 ui-sans-serif,system-ui,-apple-system,sans-serif;
+ color:#f8f5ff;background:#151323f2;
+ border:1px solid #ffffff20;border-radius:14px;
+ box-shadow:0 5px 15px #100b2433;
+ isolation:isolate;touch-action:manipulation;
+ contain:layout style paint;
+}
+.veyra-fps-monitor *{box-sizing:border-box}
+.veyra-fps-monitor.expanded{width:min(300px,calc(100vw - 24px))}
+.veyra-fps-head{display:flex;align-items:center;gap:3px;padding:5px 6px 5px 10px}
+.veyra-fps-readout{display:flex;align-items:center;gap:5px;min-width:91px;font-variant-numeric:tabular-nums}
+.veyra-fps-readout strong{min-width:25px;font-weight:800;font-size:19px}
+.veyra-fps-readout>span:last-child{font-weight:750;font-size:10px;color:#dfd6ff;letter-spacing:.4px}
+.veyra-fps-light{height:7px;width:7px;flex:none;background:#e0a655;border-radius:50%}
+.veyra-fps-readout[data-health="fast"] .veyra-fps-light{background:#7ee3a6}
+.veyra-fps-readout[data-health="ok"] .veyra-fps-light{background:#c8b2ff}
+.veyra-fps-readout[data-health="slow"] .veyra-fps-light{background:#ff9a9a}
+.veyra-fps-monitor button{
+ border:0;cursor:pointer;color:inherit;background:#ffffff12;
+ border-radius:9px;font:inherit;min-height:27px;min-width:27px;
+ display:inline-grid;place-items:center;
+}
+.veyra-fps-monitor .veyra-fps-close{font-size:18px;line-height:1}
+.veyra-fps-monitor .veyra-fps-details{font-size:16px}
+.veyra-fps-monitor button:focus-visible{outline:2px solid #b6a2ff;outline-offset:2px}
+.veyra-fps-body{padding:6px 11px 11px;border-top:1px solid #ffffff24}
+.veyra-fps-title{font-size:11px;font-weight:800;margin-bottom:9px}
+.veyra-fps-title span{float:right;font-weight:550;font-size:10px;color:#cbbbef}
+.veyra-fps-stats{margin:0;display:grid;grid-template-columns:1fr;gap:5px}
+.veyra-fps-stats>div{display:flex;justify-content:space-between;gap:9px;align-items:center}
+.veyra-fps-stats dt{color:#d0c8e2;font-size:11px}
+.veyra-fps-stats dd{margin:0;font-size:12px;font-weight:780;text-align:right;font-variant-numeric:tabular-nums}
+.veyra-fps-foot{display:flex;align-items:center;justify-content:space-between;margin:10px 0 5px;gap:9px}
+.veyra-fps-foot button{padding:5px 10px;font-size:11px;color:#e2d4ff;background:#503683;border-radius:10px}
+.veyra-fps-foot span{font-size:10px;color:#bcb4cb}
+.veyra-fps-body p{font-size:10px;line-height:1.4;color:#b7afc9;margin:7px 0 0}
+.veyra-fps-copy-fallback{display:block;width:100%;height:55px;border:1px solid #9d81d9;background:#241d3d;color:#fff;font-size:10px;border-radius:7px}
+@media(max-width:359px){.veyra-fps-monitor{right:7px;bottom:calc(80px + env(safe-area-inset-bottom,0px))}}

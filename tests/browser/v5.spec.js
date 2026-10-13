@@ -1172,3 +1172,24 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
  const returned=await photo.boundingBox();
  expect(Math.abs(returned.height-opened.height)).toBeLessThan(3);
 });
+
+
+test('VEYRA FPS debug panel stays off until five logo taps and runs only while visible',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const hud=page.getByRole('group',{name:'Монитор FPS VEYRA'});
+ await expect(hud).toHaveCount(0);
+ const logo=page.locator('body > .vx-member-native-header .vx-member-floating-logo');
+ await expect(logo).toBeVisible();
+ for(let i=0;i<4;i++)await logo.click();
+ await expect(hud).toHaveCount(0);
+ await logo.click();
+ await expect(hud).toBeVisible();
+ await expect.poll(async()=>Number(await hud.getByTestId('veyra-fps-value').textContent()),{timeout:6000}).toBeGreaterThan(0);
+ await hud.getByRole('button',{name:'Подробности FPS'}).click();
+ await expect(hud).toContainText('Время кадра p95');
+ await expect(hud).toContainText('Пропуски, оценка');
+ await hud.getByRole('button',{name:'Закрыть FPS'}).click();
+ await expect(hud).toHaveCount(0);
+});

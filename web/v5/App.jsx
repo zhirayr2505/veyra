@@ -19,6 +19,7 @@ import {Admin} from './Admin.jsx';
 import {ProfileEditor} from './ProfileEditor.jsx';
 import {preloadBrandAssets} from './preload.js';
 import {enableTelegramFullscreen} from './telegramViewport.js';
+import {PerformanceMonitor} from './PerformanceMonitor.jsx';
 import {VeysWallet,Diamond} from './Veys.jsx';
 import '../../veyra-assets/tokens/tokens.css';
 import '../../veyra-assets/styles/components.css';
@@ -146,5 +147,6 @@ export function App(){
  {overlay?.type==='courtship-inbox'&&<CourtshipInbox onClose={exitOverlay}/>}
  {overlay?.type==='courtship-sent'&&<Sheet title="ухаживание" onClose={exitOverlay}><p className="tip">Предложение отправлено. Публичный статус и оплата появятся только после согласия получателя.</p><Button className="full" onClick={exitOverlay}>понятно</Button></Sheet>}
  <InlineAlert>{error}</InlineAlert>
+ <PerformanceMonitor/>
  </div>;
 }
