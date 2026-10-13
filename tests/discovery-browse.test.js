@@ -57,3 +57,40 @@ test('classic feed remains one card and browse does not expose unmoderated profi
  assert.equal(browse.status,200);
  assert(!browse.body.profiles.some(p=>String(p.id)==='707'));
 });
+
+test('approved themed collections filter genuine profiles by mutual interests, relationship goal, and travel',async()=>{
+ await db.query("UPDATE profiles SET goal='dating' WHERE user_id=703");
+ await db.query("UPDATE profiles SET interests=ARRAY['Кофе','Путешествия'] WHERE user_id=701");
+ const common=await auth(request(app).get('/api/feed?browse=true&mode=for_you&common_interests=true&limit=8'));
+ assert.equal(common.status,200);
+ assert(common.body.profiles.length>0);
+ assert(common.body.profiles.every(p=>p.shared_interests>0));
+ const serious=await auth(request(app).get('/api/feed?browse=true&mode=for_you&goal=relationship&limit=8'));
+ assert.equal(serious.status,200);
+ assert(serious.body.profiles.length>0);
+ assert(serious.body.profiles.every(p=>p.goal==='relationship'));
+ const travel=await auth(request(app).get('/api/feed?browse=true&mode=for_you&interest=%D0%9F%D1%83%D1%82%D0%B5%D1%88%D0%B5%D1%81%D1%82%D0%B2%D0%B8%D1%8F&limit=8'));
+ assert.equal(travel.status,200);
+ assert(travel.body.profiles.length>0);
+ assert(travel.body.profiles.every(p=>(p.interests||[]).some(i=>i.toLowerCase()==='путешествия')));
+ const illegal=await auth(request(app).get('/api/feed?browse=true&mode=for_you&goal=invalid'));
+ assert.equal(illegal.status,400);
+});
+
+test('themed collections use verified interest and goal filters on real approved profiles',async()=>{
+ await db.query("UPDATE profiles SET goal='relationship', interests=ARRAY['Кофе','Путешествия'] WHERE user_id=701");
+ await db.query("UPDATE profiles SET goal='dating', interests=ARRAY['Спорт'] WHERE user_id=702");
+ const relationship=await auth(request(app).get('/api/feed?browse=true&mode=for_you&limit=8&goal=relationship'));
+ assert.equal(relationship.status,200);
+ assert(relationship.body.profiles.some(p=>String(p.id)==='701'));
+ assert(relationship.body.profiles.every(p=>p.goal==='relationship'));
+ const travel=await auth(request(app).get('/api/feed?browse=true&mode=for_you&limit=8&interest='+encodeURIComponent('Путешествия')));
+ assert.equal(travel.status,200);
+ assert(travel.body.profiles.some(p=>String(p.id)==='701'));
+ assert(travel.body.profiles.every(p=>p.interests.some(i=>i.toLowerCase()==='путешествия')));
+ const common=await auth(request(app).get('/api/feed?browse=true&mode=for_you&limit=8&common_interests=true'));
+ assert.equal(common.status,200);
+ assert(common.body.profiles.every(p=>p.shared_interests>0));
+ const invalid=await auth(request(app).get('/api/feed?browse=true&mode=for_you&goal=not-real'));
+ assert.equal(invalid.status,400);
+});
