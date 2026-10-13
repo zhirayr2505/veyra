@@ -97,7 +97,8 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       <button type="button" className="vx-profile-action" onClick={()=>onGift(data)} aria-label="Подарить подарок"><VeyraPackIcon name="gift" size={21}/><span>Подарок</span></button>
       <button type="button" className="vx-profile-action primary" onClick={()=>match?onChat(match):like()} aria-label={match?'Написать сообщение':'Поставить лайк'}><VeyraPackIcon name={match?'chat':'heart'} size={21} filled={!match}/><span>{match?'Написать':'Нравится'}</span></button>
       {match?<button type="button" className="vx-profile-action" onClick={requestCourtship} disabled={courtBusy||['active','payment_pending','pending'].includes(courtship?.mine?.status)} aria-label="Ухаживать"><VeyraPackIcon name="courtship" size={21}/><span>{courtship?.mine?.status==='accepted'?'Оплатить':'Ухаживать'}</span></button>
-       :<button type="button" className="vx-profile-action" onClick={()=>like('super')} aria-label="Суперлайк"><VeyraPackIcon name="star" size={21} filled/><span>Суперлайк</span></button>}\n      </div>}
+       :<button type="button" className="vx-profile-action" onClick={()=>like('super')} aria-label="Суперлайк"><VeyraPackIcon name="star" size={21} filled/><span>Суперлайк</span></button>}
+      </div>}
       {isOwn
        ? <button type="button" className="vx-profile-card-more" aria-label="Настройки" onClick={onSettings}><Settings2 size={21}/></button>
        : <button type="button" className="vx-profile-card-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={20}/></button>}
