@@ -931,3 +931,36 @@ test('original PNG images and new premium crown render without overflowing benef
  await page.getByRole('tab',{name:'Рядом'}).click();
  await expect.poll(()=>page.locator('.vx-nearby-art').evaluate(el=>el.complete&&el.naturalWidth===1536&&el.currentSrc.includes('_master_20261013.png'))).toBe(true);
 });
+
+test('owner can preview photographic women and men in all dating tabs without DB actions',async({page})=>{
+ await page.setViewportSize({width:360,height:800});
+ await telegram(page,10);
+ await page.route('**/api/me',async route=>{
+  const original=await route.fetch();const data=await original.json();
+  data.user.admin_role='owner';
+  await route.fulfill({response:original,json:data});
+ });
+ const pixel=await sharp({create:{width:72,height:100,channels:3,background:{r:212,g:182,b:226}}}).jpeg().toBuffer();
+ await page.route('https://images.unsplash.com/**',route=>route.fulfill({contentType:'image/jpeg',body:pixel}));
+ await page.goto('/');
+ const showroom=page.locator('.vx-dating-stage02');
+ await expect(showroom.getByRole('button',{name:'Показать демо'})).toBeVisible();
+ await showroom.getByRole('button',{name:'Показать демо'}).click();
+ await expect(showroom.locator('.veyra-demo-photo-tag')).toContainText('ДЕМО');
+ await expect(showroom.locator('.feed-photo')).toBeVisible();
+ const first=await showroom.locator('.feed-photo .hero-name').innerText();
+ await showroom.getByRole('button',{name:'Пропустить'}).click();
+ await expect(showroom.locator('.feed-photo .hero-name')).not.toHaveText(first);
+ await showroom.getByRole('tab',{name:'Для вас'}).click();
+ await expect(showroom.locator('.vx-person.vx-person-recommended')).toHaveCount(12);
+ await showroom.getByRole('tab',{name:'Рядом'}).click();
+ await expect(showroom.locator('.vx-person.vx-person-nearby')).toHaveCount(12);
+ await expect(showroom.locator('.vx-person-demo')).toHaveCount(12);
+ await showroom.locator('.vx-person-open').first().click();
+ await expect(page.locator('.member-feed-profile .veyra-demo-member-badge')).toHaveText('ДЕМО');
+ await expect(page.locator('.member-thumbnails button')).toHaveCount(3);
+ await page.getByRole('button',{name:'Назад',exact:true}).last().click();
+ await showroom.getByRole('button',{name:'Выключить'}).click();
+ await expect(showroom.locator('.vx-demo-control.enabled')).toHaveCount(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+});
