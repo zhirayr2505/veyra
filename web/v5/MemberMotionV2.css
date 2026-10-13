@@ -350,6 +350,27 @@ body>.vx-member-native-header .vx-member-more{display:none!important}
  .veyra-v2 .vx-master-profile .vx-profile-name-row h1{font-size:22px!important}
  .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
 }
+/* Native Chromium ScrollTimeline ties action buttons to the SAME scroll
+   offset as the sticky tab rail. Unlike JS rAF, this cannot be one frame
+   behind compositor scrolling. For older WebViews the hook retains its
+   transform-based fallback. */
+@supports (animation-timeline: scroll()) and (animation-range: 0px 300px){
+ .veyra-v2 .vx-master-profile .vx-profile-scroller{
+  --vx-collapse-distance:calc(var(--vx-profile-hero-height) + 218px - var(--vx-profile-compact-height));
+  scroll-timeline:--vx-profile-scroll block;
+ }
+ .veyra-v2 .vx-master-profile .vx-profile-primary-actions{
+  animation:vx-profile-actions-native 1ms linear both!important;
+  animation-timeline:--vx-profile-scroll!important;
+  animation-range:0px var(--vx-collapse-distance)!important;
+ }
+}
+@keyframes vx-profile-actions-native{
+ 0%{transform:translate3d(0,0,0);animation-timing-function:cubic-bezier(.45,0,.55,1)}
+ 85%{transform:translate3d(0,calc(93px - var(--vx-profile-hero-height)),0)}
+ 100%{transform:translate3d(0,calc(93px - var(--vx-profile-hero-height)),0)}
+}
+
 @media(prefers-reduced-motion:reduce){
  .veyra-v2 .vx-master-profile .vx-profile-swipe-track{scroll-behavior:auto}
 }
