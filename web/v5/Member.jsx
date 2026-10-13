@@ -1,5 +1,7 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {MapPin,ShieldCheck} from 'lucide-react';
+import {Logo} from './UI.jsx';
+import {CountryFlag} from './CountryFlag.jsx';
 import './MemberFeed.css';
 import {get,post} from './api.js';
 import {openInvoice,GiftCollection} from './Extras.jsx';
@@ -9,6 +11,8 @@ import {InterestReveal} from './InterestReveal.jsx';
 export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer}){
  const[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[more,setMore]=useState(false),[courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false),[reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false),[reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const touch=useRef(null),memberTouch=useRef(null),memberSwiped=useRef(false);
+ const [compactHeader,setCompactHeader]=useState(false);
+ useEffect(()=>{const handleScroll=()=>setCompactHeader(window.scrollY>155);handleScroll();window.addEventListener('scroll',handleScroll,{passive:true});return()=>window.removeEventListener('scroll',handleScroll)},[id]);
  useEffect(()=>{let ok=true;Promise.all([get('/profiles/'+id),get('/courtships/profile/'+id).catch(()=>null)]).then(([r,c])=>{if(ok){setData(r);setCourtship(c)}}).catch(e=>{if(ok)setError(e.message)}).finally(()=>ok&&setLoading(false));return()=>{ok=false}},[id]);
  const requestCourtship=async()=>{if(courtBusy)return;setCourtBusy(true);setError('');try{const mine=courtship?.mine;const r=mine?.status==='accepted'?await post('/courtships/'+mine.id+'/pay',{}):await post('/courtships/request',{target:String(id)});if(r.invoice_url){openInvoice(r.invoice_url)}else if(r.status==='pending'){window.alert('Приглашение отправлено. Статус появится только после согласия.')}if(r.status==='active')await onPaid?.();const c=await get('/courtships/profile/'+id);setCourtship(c)}catch(e){setError(e.message==='INSUFFICIENT_VEYS'?'Недостаточно VEYS. Пополни кошелёк, чтобы стать ухажёром.':e.message)}finally{setCourtBusy(false)}};
  const like=async()=>{try{const r=await post('/reactions',{target:String(id),kind:'like'});if(r.matched)onMatch(r.match_id,data);else onBack()}catch(e){setError(e.message)}};
@@ -18,7 +22,16 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  if(loading)return <div className="page"><Header back={onBack}/><div className="center-loading"><Spinner/></div></div>;
  if(!data)return <div className="page"><Header back={onBack}/><Empty title="Анкета недоступна" body={error}/></div>;
  const match=data.match_id||initialMatch;
- return <div className="member page member-feed-profile"><Header back={onBack} side={<button className="quiet" onClick={()=>setMore(true)}><Icon name="more"/></button>}/>
+ return <div className="member page member-feed-profile">
+ <header className={"vx-member-floating-header"+(compactHeader?" is-compact":"")} aria-label="Шапка VEYRA">
+  {!window.Telegram?.WebApp?.BackButton&&<button className="vx-member-fallback-back" type="button" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
+  <Logo width={115} className="vx-member-floating-logo"/>
+  <button type="button" className="vx-member-more" aria-label="Действия с анкетой" onClick={()=>setMore(true)}><Icon name="more" tone="pink" size={21}/></button>
+  <div className="vx-member-compact-details" aria-hidden={!compactHeader}>
+   <span className="vx-member-mini-avatar"><Photo id={data.photos?.[0]} alt=""/></span>
+   <span className="vx-member-mini-copy"><strong>{data.name}, {data.age}</strong><small><CountryFlag country={data.country}/> {data.city}</small></span>
+  </div>
+ </header>
  <div className="member-photos"
   onTouchStart={e=>{memberTouch.current=e.touches[0]?.clientX??null}}
   onTouchEnd={e=>{if(memberTouch.current===null)return;const dx=e.changedTouches[0].clientX-memberTouch.current;memberTouch.current=null;if(Math.abs(dx)>45&&data.photos?.length>1){memberSwiped.current=true;setIdx(i=>(i+(dx<0?1:-1)+data.photos.length)%data.photos.length);setTimeout(()=>{memberSwiped.current=false},150)}}}>
@@ -27,7 +40,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  <div className="member-summary">
   <div className="member-summary-title"><h2>{data.name}, {data.age}</h2>{data.test_profile?<span className="vx-demo-member-label">ДЕМО</span>:<Icon name="verified" tone="pink" size={21}/>}</div>
   {data.test_profile&&<p className="vx-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотография иллюстративная.</p>}
-  <p className="member-summary-location"><Icon name="pin" tone="pink" size={15}/>{[data.city,data.country].filter(Boolean).join(', ')}</p>
+  <p className="member-summary-location"><Icon name="pin" tone="pink" size={15}/><CountryFlag country={data.country}/> {data.city}</p>
   {data.online&&<span className="member-summary-online"><DetailIcon name="online" size={12}/> в сети</span>}
   {data.bio&&<p className="member-summary-bio">{data.bio}</p>}
  </div>
