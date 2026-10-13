@@ -11,7 +11,7 @@ const DATING_ART='/veyra-approved/dating_stage02/';
 const THEMED_COLLECTIONS=[
  {id:'common',name:'Схожие интересы',description:'Увлечения объединяют',image:'collection_common_interests.webp',icon:'everyone'},
  {id:'serious',name:'Серьёзные отношения',description:'Для тех, кто ищет близость',image:'collection_serious_relationships.webp',icon:'heart'},
- {id:'travel',name:'Любят путешествовать',description:'Откройте мир вдвоём',image:'collection_travel.webp',icon:'plane'}
+ {id:'travel',name:'Любят путешествовать',description:'Откройте мир вдвоём',image:'collection_travel.webp',icon:'location'}
 ];
 const haptic=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* optional */}};
 const distanceFor=p=>Number.isFinite(Number(p.distance_km))&&p.distance_km!=null
