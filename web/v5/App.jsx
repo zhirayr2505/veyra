@@ -34,6 +34,7 @@ import './VeyraDesignPolish.css'; // Match, floating feed actions, responsive pr
 import './VeyraPolishFinal.css'; // Static feed and responsive member morph — final overrides
 import './MemberStickyPortal.css'; // Telegram Android viewport header rendered outside scrolling app
 import './MemberMotionV2.css'; // Single authoritative profile layout and composited motion
+import './MemberReferencePolish.css'; // Approved exact-look profile surfaces and portrait-derived header
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
