@@ -97,8 +97,8 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-photo-nav button{
  pointer-events:auto;
 }
- .veyra-v2 .vx-master-profile .vx-profile-motion:not([data-state="expanded"]) .vx-profile-photo-bars,
-.veyra-v2 .vx-master-profile .vx-profile-motion:not([data-state="expanded"]) .vx-profile-photo-nav{
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars,
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-nav{
  visibility:hidden;pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-demo-badge{display:none!important}
