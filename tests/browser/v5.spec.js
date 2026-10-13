@@ -745,11 +745,12 @@ test('small fullscreen dating keeps nearby filter button accessible above fixed 
  await filters.getByRole('button',{name:'В сети'}).click();
  await expect(filters.getByRole('button',{name:'В сети'})).toHaveAttribute('aria-pressed','true');
  const bounds=await page.evaluate(()=>{
+  const filter=document.querySelector('.vx-filter-pills button[aria-pressed="true"]').getBoundingClientRect();
   const nav=document.querySelector('.bottom-nav').getBoundingClientRect();
-  const scene=document.querySelector('.vx-dating-stage02').getBoundingClientRect();
-  return {bottom:scene.bottom,navTop:nav.top,scrollHeight:document.documentElement.scrollHeight};
+  return {filterTop:filter.top,filterBottom:filter.bottom,navTop:nav.top,scrollHeight:document.documentElement.scrollHeight};
  });
- expect(bounds.bottom).toBeGreaterThan(bounds.navTop);
+ expect(bounds.filterTop).toBeGreaterThanOrEqual(0);
+ expect(bounds.filterBottom).toBeLessThan(bounds.navTop);
  expect(bounds.scrollHeight).toBeGreaterThan(640);
 });
 
@@ -783,7 +784,7 @@ test('VISUAL_AUDIT registration through approved dating tabs captures reference 
   console.log('VEYRA_SCREENSHOT_END|'+name+'|'+composite.length+'|'+arr.length);
  };
  // Real eight-step registration, using local test account #24 only.
- await telegram(page,24,false,true);await page.goto('/');
+ await telegram(page,22001,false,true);await page.goto('/');
  await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
  await capture('01_name_consent','registration');
  await page.locator('.registration-consent input').check();
