@@ -29,6 +29,7 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
   const frame=frameRef.current,copy=textRef.current,controls=controlsRef.current;
   if(!frame||!copy||!stageRef.current)return;
   let raf=0;
+  baseline.current=null;
   const paint=()=>{
    cancelAnimationFrame(raf);
    raf=requestAnimationFrame(()=>{
@@ -40,7 +41,11 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
     // Initial photo geometry may settle during image/font loading. While at the
     // top of the profile, recapture the expanded rectangle instead of starting
     // an animation from a stale viewport position.
-    if(!baseline.current||scrollOffset<2&&Math.abs(stageMoved)<80){
+    if(!baseline.current){
+     // Gallery close can remount us while already scrolled deeply. Recover the
+     // expanded cover's original viewport position from the current scroll.
+     baseline.current={top:rect.top+scrollOffset,left:rect.left,width:rect.width,height:rect.height};
+    }else if(scrollOffset<2&&Math.abs(stageMoved)<80){
      baseline.current={top:rect.top,left:rect.left,width:rect.width,height:rect.height};
     }
     const origin=baseline.current;
