@@ -5,7 +5,9 @@ const base=new URL('../web/v5/',import.meta.url);
 const content=f=>readFileSync(new URL(f,base),'utf8');
 test('VEYRA interface never loads deprecated V2 graphics after approval',()=>{
  const app=content('App.jsx');
- assert.ok(app.includes('/veyra-approved/01_icons/active/matches.svg'));
+ assert.ok(app.includes('<MatchCelebration'),'App must mount the approved two-photo match ceremony');
+ const match=content('MatchCelebration.jsx');
+ assert.ok(match.includes('vx-match-avatar-me')&&match.includes('vx-match-avatar-them'),'mutual match must show both private profile photos');
  assert.ok(existsSync(new URL('../public/veyra-approved/01_icons/active/matches.svg',import.meta.url)));
  for(const file of readdirSync(base).filter(n=>n.endsWith('.jsx'))){
   assert.doesNotMatch(content(file),/\/veyra-v2\/|\/assets\/veyra\//,file+' uses retired graphics');
