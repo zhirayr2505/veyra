@@ -873,3 +873,28 @@ test('VEYRA logo visual pigment centered across full-width fullscreen Android We
  console.log('VEYRA_LOGO_CENTER|'+JSON.stringify({paintedCenter,screenCenter:196.5,count,minX,maxX,bounds}));
  expect(Math.abs(paintedCenter-393/2),'visible purple logo lettering, not only image bounds, centered').toBeLessThanOrEqual(8);
 });
+
+test('approved VEYRA art loads as files and category cards request filtered real profiles',async({page})=>{
+ await telegram(page,10,false,true);
+ await page.goto('/');
+ await page.getByRole('tab',{name:'Для вас'}).click();
+ const artworks=page.locator('.vx-for_you .vx-hero-art, .vx-for_you .vx-collection-art');
+ await expect(artworks).toHaveCount(4);
+ await expect(page.locator('.vx-themed-collection')).toHaveCount(3);
+ for(let i=0;i<4;i++)await expect.poll(()=>artworks.nth(i).evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ const chosen=page.locator('.vx-themed-collection');
+ const collectionCases=[
+  ['Схожие интересы','common_interests=true'],
+  ['Серьёзные отношения','goal=relationship'],
+  ['Любят путешествовать','interest=%D0%9F%D1%83%D1%82%D0%B5%D1%88%D0%B5%D1%81%D1%82%D0%B2%D0%B8%D1%8F']
+ ];
+ for(const [label,param] of collectionCases){
+  const target=page.getByRole('button',{name:'Подборка: '+label});
+  const response=page.waitForResponse(r=>r.url().includes('/api/feed?')&&r.url().includes(param));
+  await target.click();
+  expect((await response).status()).toBe(200);
+  await expect(target).toHaveAttribute('aria-pressed','true');
+ }
+ await page.getByRole('tab',{name:'Рядом'}).click();
+ await expect.poll(()=>page.locator('.vx-nearby .vx-hero-art').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+});
