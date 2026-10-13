@@ -32,16 +32,17 @@ const queryFor=(kind,filters,choice,skip=[],collection=null,demoMode=false)=>{
  if(skip.length)p.set('skip',skip.map(x=>String(x.id)).join(','));
  return '/feed?'+p.toString();
 };
-function DemoStrip({status,enabled,onToggle,onRetry}){
+function DemoStrip({status,enabled,onToggle,onRetry,onReset,resetBusy=false,resetNotice=''}){
  if(status==='hidden')return null;
  const loading=status==='loading',error=status==='error',ready=status==='ready';
  return <div className={'vx-demo-strip'+(enabled?' is-active':'')} role="status">
   <span className="vx-demo-symbol" aria-hidden="true">✦</span>
   <span className="vx-demo-copy"><strong>Тестовые анкеты VEYRA</strong>
-   <small>{ready?(enabled?'12 демо-профилей · 6 девушек и 6 мужчин':'Показаны настоящие анкеты')
+   <small>{resetNotice || (ready?(enabled?'12 демо-профилей · 6 девушек и 6 мужчин':'Показаны настоящие анкеты')
     :loading?'Подготавливаем портреты для просмотра…'
-    :error?'Не удалось загрузить фото · попробуй ещё раз':'Деморежим доступен в рабочем приложении'}</small>
+    :error?'Не удалось загрузить фото · попробуй ещё раз':'Деморежим доступен в рабочем приложении')}</small>
   </span>
+  {ready&&enabled&&<button type="button" className="vx-demo-reset" disabled={resetBusy} onClick={onReset} aria-label="Начать просмотр демо заново" title="Вернуть все тестовые анкеты"><Icon name="undo" tone="pink" size={17}/></button>}
   {ready?<button type="button" onClick={onToggle}>{enabled?'Реальные':'Демо'}</button>
    :error?<button type="button" onClick={onRetry}>Повторить</button>:null}
  </div>;
@@ -206,7 +207,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
   <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
  </div>;
 }
-export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry}){
+export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
  const [reactionRefresh,setReactionRefresh]=useState(0);
  const scroll=useRef({feed:0,for_you:0,nearby:0}),scrollTimeout=useRef(null);
@@ -220,7 +221,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
   <header className="vx-head"><Logo width={138} className="vx-logo"/><div className="vx-head-actions">
    <button type="button" className="veys-header-button" onClick={onWallet} aria-label="Открыть VEYS кошелёк"><img src="/veyra-approved/09_veys/veys-diamond.svg" alt="" width="20" height="20"/>{new Intl.NumberFormat('ru-RU').format(veysBalance)}</button>
    <button type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={22}/></button></div></header>
-  <DemoStrip status={demoStatus} enabled={demoMode} onToggle={onDemoModeChange} onRetry={onDemoRetry}/>
+  <DemoStrip status={demoStatus} enabled={demoMode} onToggle={onDemoModeChange} onRetry={onDemoRetry} onReset={onDemoReset} resetBusy={demoResetBusy} resetNotice={demoResetNotice}/>
   <h1 className="v2-directory-title">Поиск людей</h1><p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
   <div className="v2-directory-switch" role="tablist" aria-label="Подборки людей">
    {TABS.slice(1).reverse().map(([key,label])=><button key={key} type="button" role="tab" aria-selected={directoryTab===key}
@@ -244,7 +245,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
     <button type="button" aria-label="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={23}/></button>
    </div>
   </header>
-  <DemoStrip status={demoStatus} enabled={demoMode} onToggle={onDemoModeChange} onRetry={onDemoRetry}/>
+  <DemoStrip status={demoStatus} enabled={demoMode} onToggle={onDemoModeChange} onRetry={onDemoRetry} onReset={onDemoReset} resetBusy={demoResetBusy} resetNotice={demoResetNotice}/>
   <div className="vx-tabs" role="tablist" aria-label="Способы знакомств">
    {TABS.map(([key,label])=><button key={key} id={'vx-tab-'+key} type="button" role="tab"
     aria-selected={tab===key} aria-controls={'vx-panel-'+key} className={tab===key?'active':''}
