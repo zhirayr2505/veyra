@@ -28,6 +28,10 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState('about');
  const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryTouch=useRef(null);
+ const swipeApiRef=useRef(null),tabRailRef=useRef(null);
+ const moveTabIndicator=useCallback(position=>{
+  tabRailRef.current?.style.setProperty('--vx-tab-position',String(position));
+ },[]);
  const {onScroll:handleScroll,onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel,compactForTab}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
 
  useEffect(()=>{let active=true;setLoading(true);setData(null);setTab('about');setIdx(0);
@@ -37,8 +41,13 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  useEffect(()=>{if(isOwn)return;const root=document.documentElement,body=document.body;const prev=[root.style.overflow,body.style.overflow];root.style.overflow='hidden';body.style.overflow='hidden';return()=>{root.style.overflow=prev[0];body.style.overflow=prev[1]}},[isOwn]);
 
  const openTab=next=>{
-  if(next===tab)return;
-  setTab(next);compactForTab();
+  const index=tabs.findIndex(([key])=>key===next);
+  if(index<0)return;
+  // A tab tap is allowed to reveal the compact profile. Horizontal
+  // finger-swipes never start a competing vertical animation.
+  compactForTab();
+  if(swipeApiRef.current)swipeApiRef.current.scrollTo(index);
+  else setTab(next);
  };
  const requestCourtship=async()=>{
   if(courtBusy)return;setCourtBusy(true);setError('');
@@ -59,7 +68,6 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   {createPortal(<header className="vx-member-floating-header vx-member-native-header" aria-label="Навигация профиля VEYRA">
    {(isOwn||!window.Telegram?.WebApp?.BackButton)&&<button type="button" className="vx-member-fallback-back" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
    <Logo width={115} className="vx-member-floating-logo"/>
-   {isOwn?<button type="button" className="vx-member-more" aria-label="Настройки" onClick={onSettings}><Settings2 size={22}/></button>:<button type="button" className="vx-member-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={21}/></button>}
   </header>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onScroll={handleScroll} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
@@ -89,16 +97,19 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       <button type="button" className="vx-profile-action" onClick={()=>onGift(data)} aria-label="Подарить подарок"><VeyraPackIcon name="gift" size={21}/><span>Подарок</span></button>
       <button type="button" className="vx-profile-action primary" onClick={()=>match?onChat(match):like()} aria-label={match?'Написать сообщение':'Поставить лайк'}><VeyraPackIcon name={match?'chat':'heart'} size={21} filled={!match}/><span>{match?'Написать':'Нравится'}</span></button>
       {match?<button type="button" className="vx-profile-action" onClick={requestCourtship} disabled={courtBusy||['active','payment_pending','pending'].includes(courtship?.mine?.status)} aria-label="Ухаживать"><VeyraPackIcon name="courtship" size={21}/><span>{courtship?.mine?.status==='accepted'?'Оплатить':'Ухаживать'}</span></button>
-       :<button type="button" className="vx-profile-action" onClick={()=>like('super')} aria-label="Суперлайк"><VeyraPackIcon name="star" size={21} filled/><span>Суперлайк</span></button>}
-     </div>}
+       :<button type="button" className="vx-profile-action" onClick={()=>like('super')} aria-label="Суперлайк"><VeyraPackIcon name="star" size={21} filled/><span>Суперлайк</span></button>}\n      </div>}
+      {isOwn
+       ? <button type="button" className="vx-profile-card-more" aria-label="Настройки" onClick={onSettings}><Settings2 size={21}/></button>
+       : <button type="button" className="vx-profile-card-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={20}/></button>}
+     </div>
     </div>
-   </div>
-   <div className="vx-profile-open-spacer" ref={stageRef} aria-hidden="true"/>
+    <div className="vx-profile-open-spacer" ref={stageRef} aria-hidden="true"/>
 
-   <div className="vx-profile-tab-rail" role="tablist" aria-label="Разделы анкеты">
+   <div className="vx-profile-tab-rail" role="tablist" aria-label="Разделы анкеты" ref={tabRailRef}>
     {tabs.map(([key,label])=><button key={key} type="button" role="tab" aria-selected={tab===key} aria-controls={'vx-profile-panel-'+key} className={tab===key?'active':''} onClick={()=>openTab(key)}>{label}</button>)}
+    <span className="vx-tab-underline" aria-hidden="true"/>
    </div>
-   <MemberSwipePages tabs={tabs} active={tab} onChange={openTab}>
+   <MemberSwipePages tabs={tabs} active={tab} onChange={setTab} onProgress={moveTabIndicator} carouselApiRef={swipeApiRef}>
     {key=><div className="vx-profile-section-body">
     {key==='about'&&<>
      <section className="vx-profile-surface vx-profile-about">
