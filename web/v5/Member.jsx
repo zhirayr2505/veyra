@@ -97,7 +97,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <section className="vx-profile-identity" aria-label="Информация об анкете">
       <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.test_profile&&!isOwn?<span className="vx-demo-member-label">ДЕМО</span>:data.verified?<Icon name="verified" tone="pink" size={18}/>:null}</div>
       <div className="vx-profile-location"><CountryFlag country={data.country}/> {data.city}</div>
-      {data.goal&&<span className="vx-profile-goal"><Heart size={13}/>{goalTitle(data.goal)}</span>}
+      {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
      {isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
       <button type="button" className="vx-profile-action" onClick={()=>openTab('photos')}><ImagePlus size={20}/><span>Мои фото</span></button>
