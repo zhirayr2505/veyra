@@ -1001,7 +1001,7 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  await expect(page.locator('body > .vx-member-morph-frame')).toHaveCount(0);
  await expect(page.locator('body > .vx-member-morph-text')).toHaveCount(0);
  await expect(rail.getByRole('tab')).toHaveCount(4);
- await expect(rail.getByRole('tab',{name:'Обо мне'})).toHaveAttribute('aria-selected','true');
+ await expect(rail.getByRole('tab',{name:'О себе'})).toHaveAttribute('aria-selected','true');
  await expect(actions.locator('button')).toHaveCount(3);
  await expect(member.locator('.vx-profile-swipe-page[aria-hidden="false"]')).toContainText('Интересы');
  await expect(member.locator('.vx-profile-swipe-page[aria-hidden="false"] .vx-profile-goal-detail')).toBeVisible();
@@ -1158,8 +1158,9 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
   return photo.boundingBox();
  };
  const early=await setProgress(.12);
- expect(Math.abs(early.width-opened.width)).toBeLessThan(2);
- expect(Math.abs(early.height-opened.height)).toBeLessThan(2);
+ expect(early.width).toBeLessThan(opened.width-5);
+ expect(early.width).toBeGreaterThan(opened.width-28);
+ expect(early.y).toBeLessThan(opened.y);
  const middle=await setProgress(.39);
  expect(Math.abs(middle.width-190)).toBeLessThan(4);
  expect(Math.abs(middle.height-194)).toBeLessThan(4);
@@ -1262,7 +1263,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  const motion=page.locator('.vx-profile-motion');
  const hero=page.locator('.vx-profile-hero-photo');
  const blur=page.locator('.vx-profile-blurred-header');
- const ring=page.locator('.vx-profile-avatar-ring');
+ const ring=page.locator('.vx-profile-photo-morph-rim');
  const grip=page.locator('.vx-profile-sheet-grabber');
  const lip=page.locator('.vx-profile-sheet-lip');
  const actions=page.locator('.vx-profile-primary-actions');
@@ -1281,7 +1282,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
   identity:getComputedStyle(document.querySelector('.vx-profile-identity')).zIndex
  }));
  expect(Number(z.sheet)).toBeGreaterThan(Number(z.photo)); // expanded sheet intentionally covers photo bottom
- expect(Number(z.identity)).toBeLessThan(Number(z.photo));
+ expect(Number(z.identity)).toBeGreaterThan(Number(z.photo));
  const distance=await root.evaluate(el=>
   el.querySelector('.vx-profile-open-spacer').offsetHeight-
    parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
@@ -1344,8 +1345,8 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await page.locator('.feed-photo .hero-name').click();
  const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
  await expect(page.locator('body > .vx-member-native-header')).toBeVisible();
- const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?parseFloat(getComputedStyle(header,'::before').opacity):-1});
- await expect.poll(halo).toBeLessThan(.02);
+ const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?getComputedStyle(header,'::before').content:'unknown'});
+ await expect.poll(halo).toBe('none');
  const lip=page.locator('.vx-profile-sheet-lip');
  const layers=await page.evaluate(()=>({
   lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
@@ -1360,7 +1361,7 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius),{timeout:3000}).toBe('50%');
  await root.evaluate((el,y)=>{el.scrollTop=y},distance);
  await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
- await expect.poll(halo,{timeout:3000}).toBeGreaterThan(.95);
+ await expect.poll(halo,{timeout:3000}).toBe('none');
  const city=await page.locator('.vx-profile-location').boundingBox();
  const goal=await page.locator('.vx-profile-goal').boundingBox();
  expect(goal.y).toBeGreaterThan(city.y+19);
@@ -1369,4 +1370,53 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  const value=await detail.locator('strong').boundingBox();
  expect(value.y).toBeGreaterThan(caption.y+10);
  await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
+});
+
+test('VEYRA Motion 5 keeps photo rim with the moving hero and exposes four icon tabs',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
+ const rim=hero.locator('.vx-profile-photo-morph-rim');
+ await expect(rim).toHaveCount(1);
+ const tabs=page.getByRole('tablist',{name:'Разделы анкеты'});
+ await expect(tabs.getByRole('tab',{name:'О себе'})).toHaveAttribute('aria-selected','true');
+ await expect(tabs.locator('.vx-tab-icon')).toHaveCount(4);
+ await expect(page.locator('.vx-profile-location .veyra-country-flag-round')).toHaveCount(1);
+ const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,scroll)=>el.scrollTop=scroll,distance*.31);
+ await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius)).toBe('50%');
+ await expect.poll(()=>rim.evaluate(el=>parseFloat(getComputedStyle(el).opacity))).toBeGreaterThan(.25);
+ const imageBounds=await hero.boundingBox(),rimBounds=await rim.boundingBox();
+ expect(Math.abs(imageBounds.x-rimBounds.x)).toBeLessThan(2);
+ expect(Math.abs(imageBounds.width-rimBounds.width)).toBeLessThan(3);
+ await root.evaluate((el,scroll)=>el.scrollTop=scroll,distance);
+ await expect.poll(()=>rim.evaluate(el=>parseFloat(getComputedStyle(el).opacity))).toBeGreaterThan(.97);
+ const rounded=await page.locator('.vx-profile-location .veyra-country-flag-round').evaluate(el=>getComputedStyle(el).borderRadius);
+ expect(rounded).toContain('50%');
+ await expect(page.locator('.vx-member-native-header')).toHaveCount(1);
+});
+
+test('Dragging from photo thumbnails changes the horizontal tab without opening the gallery',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller');
+ const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,y)=>el.scrollTop=y,distance);
+ const tabs=page.getByRole('tablist',{name:'Разделы анкеты'});
+ await tabs.getByRole('tab',{name:'Фото'}).click();
+ await expect(tabs.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ const tile=page.locator('.vx-profile-photos-grid button').first();
+ await expect(tile).toBeVisible();
+ const box=await tile.boundingBox();
+ await page.mouse.move(box.x+box.width*.7,box.y+box.height*.5);
+ await page.mouse.down();
+ await page.mouse.move(box.x-180,box.y+box.height*.5,{steps:12});
+ await page.mouse.up();
+ await expect.poll(()=>tabs.getByRole('tab',{name:'Подарки'}).getAttribute('aria-selected'),
+  {timeout:4000}).toBe('true');
+ await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
 });
