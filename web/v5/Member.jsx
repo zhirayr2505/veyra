@@ -75,6 +75,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
+     <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <Photo id={photos[idx]} alt={data.name} onClick={()=>setGallery(true)}/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
