@@ -1232,3 +1232,24 @@ test('VEYRA Motion 3 panel remains opaque and debug HUD captures live profile tr
  await hud.getByRole('button',{name:'Закрыть FPS'}).click();
  await expect(hud).toHaveCount(0);
 });
+
+
+test('VEYRA drives profile transform with Chromium ScrollTimeline when available',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const hero=page.locator('.vx-profile-hero-photo');
+ const root=page.locator('.vx-profile-scroller');
+ await expect(hero).toBeVisible();
+ const supported=await page.evaluate(()=>typeof window.ScrollTimeline==='function');
+ if(supported){
+  await expect.poll(()=>hero.evaluate(el=>el.getAnimations().some(a=>a.timeline instanceof window.ScrollTimeline)),{timeout:4500}).toBe(true);
+  const start=await hero.boundingBox();
+  const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+  await root.evaluate((el,y)=>el.scrollTop=y,distance*.39);
+  await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-190),{timeout:4500}).toBeLessThan(5);
+  await root.evaluate(el=>el.scrollTop=0);
+  await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-start.width),{timeout:4500}).toBeLessThan(5);
+ }
+});

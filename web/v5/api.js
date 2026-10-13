@@ -26,18 +26,20 @@ export const get=path=>request(path);
 export const post=(path,body)=>request(path,{method:'POST',body});
 export const put=(path,body)=>request(path,{method:'PUT',body});
 export const patch=(path,body)=>request(path,{method:'PATCH',body});
-export async function photoUrl(id){
+export async function photoUrl(id,{width=0}={}){
  if(!id)return '';
- if(photos.has(id)){const url=photos.get(id);photos.delete(id);photos.set(id,url);while(photos.size>64){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url;}
- if(inflight.has(id))return inflight.get(id);
+ const w=[256,640,960].includes(width)?width:0;
+ const key=String(id)+(w?'@'+w:'');
+ if(photos.has(key)){const url=photos.get(key);photos.delete(key);photos.set(key,url);while(photos.size>64){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url;}
+ if(inflight.has(key))return inflight.get(key);
  const generation=cacheGeneration;
- const promise=fetch('/api/photos/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+bearer}})
+ const promise=fetch('/api/photos/'+encodeURIComponent(id)+(w?'?w='+w:''),{headers:{Authorization:'Bearer '+bearer}})
   .then(r=>{if(!r.ok)throw Error('PHOTO_UNAVAILABLE');return r.blob()})
-  .then(blob=>{const url=URL.createObjectURL(blob);if(generation!==cacheGeneration){URL.revokeObjectURL(url);throw Error('SESSION_CHANGED')}photos.set(id,url);while(photos.size>96){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url})
-  .finally(()=>inflight.delete(id));
- inflight.set(id,promise);return promise;
+  .then(blob=>{const url=URL.createObjectURL(blob);if(generation!==cacheGeneration){URL.revokeObjectURL(url);throw Error('SESSION_CHANGED')}photos.set(key,url);while(photos.size>96){const oldest=photos.keys().next().value;URL.revokeObjectURL(photos.get(oldest));photos.delete(oldest)}return url})
+  .finally(()=>inflight.delete(key));
+ inflight.set(key,promise);return promise;
 }
-export function cachedPhoto(id){return photos.get(id)||'';}
+export function cachedPhoto(id,{width=0}={}){const key=String(id)+([256,640,960].includes(width)?'@'+width:'');return photos.get(key)||'';}
 export function clearPhotoCache(){cacheGeneration++;for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
 export function photoOrder(ids){return request('/photos/order',{method:'PUT',body:{ids}});}
 
