@@ -1145,7 +1145,7 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
  const opened=await photo.boundingBox();
  const imageBefore=await photo.locator('img').count();
  const setProgress=async p=>{
-  await root.evaluate(([el,scroll])=>{el.scrollTop=scroll},[await root.elementHandle(),d*p]);
+  await root.evaluate((el,scroll)=>{el.scrollTop=scroll},d*p);
   await expect.poll(()=>root.evaluate(el=>el.scrollTop)).toBeGreaterThanOrEqual(d*p-2);
   await page.waitForTimeout(40);
   return photo.boundingBox();
@@ -1163,8 +1163,6 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
  expect(Math.abs(compact.x-opened.x-16)).toBeLessThan(3);
  expect(await photo.locator('img').count()).toBe(imageBefore);
  await expect(motion).toHaveAttribute('data-state','compact');
- const classes=await page.locator('link[rel=stylesheet]').count();
- expect(classes).toBeGreaterThanOrEqual(0);
  await setProgress(0);
  await expect(motion).toHaveAttribute('data-state','expanded');
  const returned=await photo.boundingBox();
