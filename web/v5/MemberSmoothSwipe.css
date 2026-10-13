@@ -1,0 +1,137 @@
+/* VEYRA 2026-10-13 — GPU-first polish, photo ALWAYS above frosted card,
+   early proportional corner morph; live Telegram carousel without screen swap. */
+.veyra-v2 .vx-master-profile .vx-profile-scroller{
+ overscroll-behavior:contain;overflow-anchor:none;
+ -webkit-overflow-scrolling:touch;
+}
+.veyra-v2 .vx-master-profile .vx-profile-motion{
+ contain:layout style;isolation:isolate;transform:translateZ(0);
+}
+.veyra-v2 .vx-master-profile .vx-profile-sticky::before{
+ z-index:2!important;will-change:opacity;
+}
+.veyra-v2 .vx-master-profile .vx-profile-sticky::after{
+ z-index:3!important;will-change:transform,opacity;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
+ z-index:12!important;
+ border-radius:calc(50% * var(--vx-collapse))!important;
+ /* The corners START morphing immediately, not after the square shifts left. */
+ transform:translateZ(0);backface-visibility:hidden;
+ isolation:isolate;contain:layout paint style;
+ box-shadow:0 4px 18px #43305b26;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box{
+ opacity:1!important;visibility:visible!important;
+ background:#eee5f9;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box img{
+ opacity:1!important;visibility:visible!important;
+ image-rendering:auto;
+ backface-visibility:hidden;transform:translateZ(0);
+}
+.veyra-v2 .vx-master-profile .vx-profile-identity{z-index:14!important}
+.veyra-v2 .vx-master-profile .vx-profile-primary-actions{z-index:15!important}
+.veyra-v2 .vx-master-profile .vx-profile-online{z-index:16!important}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{pointer-events:none}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail{
+ z-index:80!important;isolation:isolate;
+ background:#faf6ff!important;backdrop-filter:none!important;
+ contain:paint;box-shadow:0 -2px 9px #f4edff;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
+ position:relative;z-index:2;overflow:hidden;
+ width:100%;min-width:0;margin:0;padding:0;
+ background:#faf6ff;isolation:isolate;touch-action:pan-y;
+ overscroll-behavior-x:contain;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-track{
+ display:flex;flex-wrap:nowrap;width:100%;min-width:0;
+ transform:translate3d(calc(var(--vx-page-shift,0%) + var(--vx-swipe-delta,0px)),0,0);
+ transition:transform .33s cubic-bezier(.20,.75,.26,1);
+ will-change:transform;backface-visibility:hidden;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-track.is-dragging{
+ transition:none!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-page{
+ width:100%;flex:0 0 100%;min-width:0;
+ box-sizing:border-box;overflow:visible;
+ padding:13px 16px 64px;
+ background:#faf6ff;
+ min-height:calc(100dvh - var(--vx-profile-compact-height) - 52px + 250px);
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-page[aria-hidden="true"]{
+ user-select:none;pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-page .vx-profile-section-body{
+ animation:none!important;
+}
+.veyra-v2 .vx-master-profile.vx-own-member{
+ bottom:calc(75px + env(safe-area-inset-bottom,0px))!important;
+ z-index:20!important;
+}
+.veyra-v2 .vx-own-member .vx-profile-scroller{
+ --vx-profile-hero-height:clamp(360px,53.1dvh,630px);
+}
+.veyra-v2 .vx-own-member .vx-profile-name-row h1{
+ font-size:calc(27px - 3px*var(--vx-collapse));
+}
+.veyra-v2 .vx-own-member .vx-own-section-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ margin:0 0 12px;
+}
+.veyra-v2 .vx-own-member .vx-own-section-heading h2{margin:0}
+.veyra-v2 .vx-own-member .vx-own-section-heading button,
+.veyra-v2 .vx-own-member .vx-own-pencil{
+ border:0;background:#f0e6fe;color:#7f37cd;display:grid;
+ place-items:center;flex:none;width:32px;height:32px;border-radius:11px;
+}
+.veyra-v2 .vx-own-member .vx-own-tools{padding:18px!important}
+.veyra-v2 .vx-own-member .vx-own-tools>.own-shortcuts{
+ display:grid;grid-template-columns:repeat(4,1fr);
+ gap:7px;margin:8px 0 15px;
+}
+.veyra-v2 .vx-own-member .vx-own-tools>.own-shortcuts button{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:7px;min-height:76px;
+ border:1px solid #e9dbff!important;
+ background:#faf6ff!important;color:#7d3cd1!important;
+ border-radius:17px!important;padding:9px 1px!important;box-shadow:none!important;
+}
+.veyra-v2 .vx-own-member .vx-own-tools>.own-shortcuts b{
+ font-size:10px;font-weight:740;color:#6e4998;
+}
+.veyra-v2 .vx-own-member .vx-own-tool-row{
+ width:100%;border:0;border-top:1px solid #f0e8fa;
+ display:flex;align-items:center;gap:13px;text-align:left;
+ min-height:55px;background:transparent;color:#50316e;
+ font-family:inherit;font-size:13px;font-weight:750;
+}
+.veyra-v2 .vx-own-member .vx-own-tool-row svg{color:#874de0}
+.veyra-v2 .vx-own-member .vx-own-tool-row span{margin-left:auto;color:#a78bc8;font-size:23px}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-master-profile .vx-profile-swipe-track{transition:none!important}
+}
+
+/* The photograph never changes layout dimensions during scroll. It is one
+   composited layer, FLIP-translated/scaled from full-bleed to 96px avatar.
+   Relative border-radius grows simultaneously, eliminating square-first jank. */
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
+ top:0!important;left:0!important;
+ width:100%!important;height:var(--vx-profile-hero-height)!important;
+ min-width:0!important;min-height:0!important;
+ border:0!important;
+ transform-origin:0 0!important;
+ transform:translate3d(calc(16px * var(--vx-collapse)),calc(94px * var(--vx-collapse)),0)
+  scale(
+   calc(1 - (1 - var(--vx-end-scale-x,.246)) * var(--vx-collapse)),
+   calc(1 - (1 - var(--vx-end-scale-y,.213)) * var(--vx-collapse))
+  )!important;
+ will-change:transform,border-radius;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box img{
+ /* Compensate unequal X/Y shrink and enlarge face slightly at avatar size. */
+ transform:scaleY(calc(1 + .155 * var(--vx-collapse))) scale(calc(1 + .19 * var(--vx-collapse))) translateZ(0)!important;
+ transform-origin:50% 38%;
+}
