@@ -122,3 +122,10 @@
  border-radius:999px;padding:2px 5px;font-size:8px;line-height:1.2;
  font-weight:800;letter-spacing:.3px;text-transform:uppercase;
  color:white;background:#7742C5D9;box-shadow:0 2px 5px #4C238E33}
+
+/* Owner-only showroom reset: compact on 320px phones, brand-consistent. */
+.vx-demo-strip .vx-demo-reset{
+ width:33px;min-width:33px;padding:0;display:inline-flex;align-items:center;
+ justify-content:center;background:#F5EDFF;color:#7A45BE;border-color:#DBC6F8;
+}
+.vx-demo-strip .vx-demo-reset:disabled{opacity:.5;cursor:progress}
