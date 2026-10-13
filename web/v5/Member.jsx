@@ -136,7 +136,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <section className="vx-profile-surface"><h2>Цель знакомства</h2><div className="vx-profile-goal-detail"><Heart size={18}/>{goalTitle(data.goal)}</div></section>
      {data.online&&<div className="vx-profile-hint"><DetailIcon name="online" size={13}/> Сейчас в сети</div>}
      {match&&courtship?.mine?.status&&<div className="vx-profile-hint">{courtship.mine.status==='active'?'Ты ухаживаешь за этим человеком':courtship.mine.status==='pending'?'Предложение ожидает согласия':courtship.mine.status==='accepted'?'Предложение принято, можно оплатить':'Ухаживание: '+courtship.mine.status}</div>}
-     <ProfileHighlights profile={data} viewer={viewer} showGoal={false}/>
+     <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
     </div>}
     {tab==='photos'&&<div className="vx-profile-section-body"><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2><span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>{setIdx(i);setGallery(true)}} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name}/></button>)}</div>:<Empty title="Фотографий пока нет"/>}</section></div>}
     {tab==='gifts'&&<div className="vx-profile-section-body"><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div><GiftCollection ownerId={id}/></section></div>}
