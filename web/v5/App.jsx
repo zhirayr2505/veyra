@@ -34,6 +34,7 @@ import './VeyraPolishFinal.css'; // Static feed and responsive member morph — 
 import './MemberStickyPortal.css'; // Telegram Android viewport header rendered outside scrolling app
 import './MemberVeyraMaster.css'; // Approved design geometry
 import './MemberSmoothSwipe.css'; // Final: photo stacking, carousel and own profile
+import './MemberPremiumMotion.css'; // Motion 1.0: approved expanded/compact profile and safe toolbar
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
