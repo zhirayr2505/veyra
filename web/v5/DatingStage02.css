@@ -533,3 +533,13 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
  }
  .veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip .vx-benefit-copy{color:#f2e8ff}
 }
+
+
+/* Native Telegram title controls use viewport coordinates. A translated
+   .view-tab acts as the containing block for the fixed logo during entrance,
+   shifting it a few pixels even when left:50vw. Keep the native title row
+   pixel-perfect by disabling only the parent scene's entrance transform. */
+html.veyra-telegram-fullscreen .veyra-v2 .view-tab:not([hidden]):has(.vx-dating-stage02){
+ animation:none!important;
+ transform:none!important;
+}
