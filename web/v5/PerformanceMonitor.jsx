@@ -177,6 +177,7 @@ export function PerformanceMonitor(){
      <div><dt>Макс. JS анимации</dt><dd>{profile.enabled?number(profile.paintMsMax)+' ms':'—'}</dd></div>
      <div><dt>Тяжёлые JS-кадры &gt;8,33 мс</dt><dd>{profile.enabled?profile.framesOverBudget:'—'}</dd></div>
      <div><dt>Перекалибровки</dt><dd>{profile.enabled?profile.calibrations:'—'}</dd></div>
+     <div><dt>Движок кнопок</dt><dd>{profile.enabled?profile.backend:'—'}</dd></div>
     </dl>
     <div className="veyra-fps-section">Устройство · {stats.viewport} · DPR {stats.dpr}</div>
     <div className="veyra-fps-device">ScrollTimeline: {stats.scrollTimelineSupported?'есть':'недоступен'} · Telegram {stats.telegramVersion}<br/>
