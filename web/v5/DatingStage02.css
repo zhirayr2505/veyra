@@ -533,3 +533,41 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
  }
  .veyra-v2 .vx-dating-stage02 .vx-benefits .vx-benefit-chip .vx-benefit-copy{color:#f2e8ff}
 }
+
+/* Owner's removable showroom mode. Never used for real members. */
+.veyra-v2 .vx-demo-control{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:9px 12px;margin:4px 0 12px;border:1px solid #e7d9f8;
+ border-radius:15px;background:linear-gradient(110deg,#f9f2ff,#fff8fe);
+ box-shadow:0 3px 16px #874be50d;color:#6b5091;font-size:11px;font-weight:650;
+}
+.veyra-v2 .vx-demo-control.enabled{
+ background:linear-gradient(108deg,#f2e8ff,#fff4fc);border-color:#d9b9fd;
+}
+.veyra-v2 .vx-demo-control span{min-width:0;line-height:1.35}
+.veyra-v2 .vx-demo-control button{
+ flex:none;border:0;border-radius:999px;min-height:32px;padding:7px 12px;
+ background:linear-gradient(120deg,#a65bee,#7940df);color:#fff;font-size:11px;
+ font-weight:800;box-shadow:0 3px 9px #874be52c;
+}
+.veyra-v2 .vx-demo-control.enabled button{background:#fff;color:#7940df;border:1px solid #dbc6f9;box-shadow:none}
+.veyra-v2 .vx-person-demo,.veyra-v2 .vx-portrait-demo{
+ position:absolute;z-index:8;border-radius:100px;background:#efe4ffed;
+ border:1px solid #ffffffd6;color:#6937ab;font-size:10px;font-weight:900;
+ letter-spacing:.06em;padding:4px 9px;box-shadow:0 4px 13px #2e14433b;
+}
+.veyra-v2 .vx-person-demo{top:12px;left:12px}
+.veyra-v2 .vx-portrait-card{position:relative}
+.veyra-v2 .vx-portrait-demo{top:4px;right:0;font-size:9px;padding:3px 6px}
+.veyra-v2 .discover .veyra-demo-photo-tag{
+ position:absolute;left:15px;top:41px;z-index:11;pointer-events:none;
+ display:inline-flex;align-items:center;max-width:calc(100% - 30px);
+ padding:5px 10px;border-radius:999px;
+ background:rgba(67,38,94,.74);border:1px solid #ffffff70;
+ color:#fff;font-size:10px;line-height:1.2;font-weight:800;letter-spacing:.025em;
+ backdrop-filter:blur(8px);
+}
+@media(max-width:345px){
+ .veyra-v2 .vx-demo-control{padding:8px;gap:6px;font-size:10px}
+ .veyra-v2 .vx-demo-control button{padding:6px 9px;font-size:10px}
+}
