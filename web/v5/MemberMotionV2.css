@@ -263,6 +263,8 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page[aria-hidden="true"]{
  pointer-events:none;user-select:none;
+ content-visibility:auto;
+ contain-intrinsic-size:auto 720px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-section-body{
  display:flex;flex-direction:column;gap:12px;
