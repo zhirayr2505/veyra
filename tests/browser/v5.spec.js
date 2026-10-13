@@ -1006,7 +1006,7 @@ test('VEYRA member header morphs on scrolling, shows goal as chip and opens acti
  const topAfter=await fixedHeader.evaluate(el=>el.getBoundingClientRect().top);
  expect(Math.abs(topAfter-topBefore)).toBeLessThan(2);
  await expect(fixedHeader.locator('.vx-member-compact-details')).toBeVisible();
- await expect(fixedHeader.locator('.vx-member-mini-copy')).toContainText('Краснодар');
+ await expect(fixedHeader.locator('.vx-member-mini-copy strong')).toHaveText(await member.locator('.member-summary-title h2').innerText());
  await expect(page.locator('body > .vx-member-native-header .vx-member-floating-logo')).toBeVisible();
  await expect(page.locator('body > .vx-member-native-header .vx-member-mini-avatar')).toBeVisible();
  await page.evaluate(()=>window.scrollTo(0,0));
