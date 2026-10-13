@@ -407,3 +407,6 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-browse{
  .veyra-v2 .vx-dating-stage02 .vx-themed-collections{gap:6px}
  .veyra-v2 .vx-dating-stage02 .vx-themed-collection{flex-basis:calc((100% - 12px)/3)}
 }
+
+/* When artwork occupies the visual middle slot, keep feature badges in column 3. */
+.veyra-v2 .vx-dating-stage02 .vx-personal-head .vx-benefits{grid-column:3;min-width:0}
