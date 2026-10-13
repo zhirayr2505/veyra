@@ -20,7 +20,7 @@ const lerp=(a,b,t)=>a+(b-a)*t;
  */
 export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGallery,visible=true}){
  const frameRef=useRef(null),textRef=useRef(null),controlsRef=useRef(null);
- const startX=useRef(null),baseline=useRef(null),swiped=useRef(false),swipeTimer=useRef(null);
+ const startX=useRef(null),baseline=useRef(null),swiped=useRef(false),swipeTimer=useRef(null),viewportOffset=useRef(null);
  const photos=person.photos||[];
  const hasGallery=photos.length>1;
 
@@ -29,7 +29,7 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
   const frame=frameRef.current,copy=textRef.current,controls=controlsRef.current;
   if(!frame||!copy||!stageRef.current)return;
   let raf=0;
-  baseline.current=null;
+  baseline.current=null;viewportOffset.current=null;
   const paint=()=>{
    cancelAnimationFrame(raf);
    raf=requestAnimationFrame(()=>{
@@ -67,10 +67,26 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
     const w=lerp(lerp(origin.width,centerSize,phase1),finalSize,phase2);
     const h=lerp(lerp(origin.height,centerSize,phase1),finalSize,phase2);
     const radius=lerp(lerp(34,centerSize/2,phase1),finalSize/2,phase2);
-    frame.style.left=x.toFixed(2)+'px';
-    frame.style.top=y.toFixed(2)+'px';
+
+    // Some Telegram WebViews position a fixed body portal in a coordinate
+    // space offset from getBoundingClientRect() (status/safe-area host). Measure
+    // the real painted position once and remove that offset from subsequent
+    // frame coordinates. Unlike two overlapping Photos, this keeps ONE visual
+    // surface anchored precisely to the original rounded cover.
+    const offset=viewportOffset.current;
+    frame.style.left=(x-(offset?.x||0)).toFixed(2)+'px';
+    frame.style.top=(y-(offset?.y||0)).toFixed(2)+'px';
     frame.style.width=w.toFixed(2)+'px';
     frame.style.height=h.toFixed(2)+'px';
+    if(!offset){
+     const measured=frame.getBoundingClientRect();
+     const corrected={x:measured.left-x,y:measured.top-y};
+     viewportOffset.current=corrected;
+     if(Math.abs(corrected.x)>.25||Math.abs(corrected.y)>.25){
+      frame.style.left=(x-corrected.x).toFixed(2)+'px';
+      frame.style.top=(y-corrected.y).toFixed(2)+'px';
+     }
+    }
     frame.style.borderRadius=radius.toFixed(2)+'px';
     frame.style.borderWidth=(3*phase2).toFixed(2)+'px';
     frame.style.setProperty('--vx-morph-ui-opacity',String(1-clamp(moved/95)));
@@ -89,18 +105,19 @@ export function MemberPhotoMorph({stageRef,headerRef,person,index,onIndex,onGall
    });
   };
   paint();
-  const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>{baseline.current=null;paint()}):null;
+  const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>{baseline.current=null;viewportOffset.current=null;paint()}):null;
   resizeObserver?.observe(stageRef.current);
   window.addEventListener('scroll',paint,{passive:true,capture:true});
   document.addEventListener('scroll',paint,{passive:true,capture:true});
-  window.addEventListener('resize',paint,{passive:true});
-  window.visualViewport?.addEventListener('resize',paint,{passive:true});
+  const resize=()=>{viewportOffset.current=null;baseline.current=null;paint()};
+  window.addEventListener('resize',resize,{passive:true});
+  window.visualViewport?.addEventListener('resize',resize,{passive:true});
   return()=>{
    cancelAnimationFrame(raf);clearTimeout(swipeTimer.current);resizeObserver?.disconnect();
    window.removeEventListener('scroll',paint,true);
    document.removeEventListener('scroll',paint,true);
-   window.removeEventListener('resize',paint);
-   window.visualViewport?.removeEventListener('resize',paint);
+   window.removeEventListener('resize',resize);
+   window.visualViewport?.removeEventListener('resize',resize);
   };
  },[person.id,visible,stageRef,headerRef]);
 
