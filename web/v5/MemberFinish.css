@@ -83,8 +83,8 @@ body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::bef
  animation:vx-like-shimmer 8.5s ease-in-out infinite;
 }
 @keyframes vx-like-shimmer{
- 0%,14%,100%{transform:translate3d(0,0,0) skewX(-21deg)}
- 8%{transform:translate3d(490%,0,0) skewX(-21deg)}
+ 0%,4%{transform:translate3d(0,0,0) skewX(-21deg)}
+ 12%,100%{transform:translate3d(490%,0,0) skewX(-21deg)}
 }
 /* Explicitly separate title and secondary value — no jammed label/value. */
 .veyra-v2 .vx-master-profile .vx-profile-goal-surface{
