@@ -15,7 +15,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
  const tracks={hero:[],image:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],
-  bars:[],nav:[],online:[],shade:[],blur:[],ring:[],onlineDot:[],grabber:[]};
+  bars:[],nav:[],online:[],shade:[],blur:[],ring:[],rim:[],onlineDot:[],grabber:[]};
  const append=(offset,frame)=>{
   const f=frame,scaleX=f.width/width,scaleY=f.height/height;
   const transform=profileTranslate(f.x,f.y)+' scale('+scaleX.toFixed(7)+','+scaleY.toFixed(7)+')';
@@ -32,8 +32,9 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.online.push({offset,opacity:f.compactOnlineOpacity});
   tracks.shade.push({offset,opacity:f.shadeOpacity});
   // Decorative layers only: the approved hero trajectory stays unchanged.
-  tracks.blur.push({offset,opacity:fade(f.progress,.24,.86)});
-  tracks.ring.push({offset,opacity:fade(f.progress,.82,.99)});
+  tracks.blur.push({offset,opacity:fade(f.progress,.025,.23)});
+  tracks.ring.push({offset,opacity:0}); // legacy fixed ring replaced by hero-attached rim
+  tracks.rim.push({offset,opacity:fade(f.progress,.23,.35)});
   tracks.onlineDot.push({offset,opacity:fade(f.progress,.85,1)});
   tracks.grabber.push({
    offset,
