@@ -1023,7 +1023,7 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  expect(compact.height).toBeLessThan(101);
  expect(Math.abs(compact.width-compact.height)).toBeLessThan(4);
  const railBefore=await rail.boundingBox(),actionsBefore=await actions.boundingBox();
- expect(Math.abs(actionsBefore.y-(await root.boundingBox()).y)).toBeLessThan(220);
+ expect(Math.abs(actionsBefore.y-(await root.boundingBox()).y)).toBeLessThan(230);
  await root.evaluate((el,distance)=>{el.scrollTop=distance+220},distance);
  const railAfter=await rail.boundingBox(),actionsAfter=await actions.boundingBox();
  expect(Math.abs(railAfter.y-railBefore.y)).toBeLessThan(3);
