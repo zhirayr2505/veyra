@@ -52,7 +52,9 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  if(!data)return <div className="page"><Header back={onBack}/><Empty title="Анкета недоступна" body={error}/></div>;
  const match=data.match_id||initialMatch;
  return <div className="member page member-feed-profile" style={{'--vx-member-collapse':headerProgress}} >
- <header className={"vx-member-floating-header"+(headerProgress>.025?" is-scrolling":"")+(headerProgress>.95?" is-compact":"")} aria-label="Шапка VEYRA">
+ {/* Outside the scrolling .app-shell/.subscreen: Telegram Android scrolls that layer,
+     taking CSS position:fixed descendants with it. Keep the header in body. */}
+ {createPortal(<header className={"vx-member-floating-header vx-member-native-header"+(headerProgress>.025?" is-scrolling":"")+(headerProgress>.95?" is-compact":"")} style={{'--vx-member-collapse':headerProgress}} aria-label="Шапка VEYRA">
   {!window.Telegram?.WebApp?.BackButton&&<button className="vx-member-fallback-back" type="button" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
   <Logo width={115} className="vx-member-floating-logo"/>
   <button type="button" className="vx-member-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={21}/></button>
@@ -60,7 +62,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    <span className="vx-member-mini-avatar"><Photo id={data.photos?.[0]} alt=""/></span>
    <span className="vx-member-mini-copy"><strong>{data.name}, {data.age}</strong><small><CountryFlag country={data.country}/> {data.city}</small><em>{goalTitle(data.goal)}</em></span>
   </div>
- </header>
+ </header>,document.body)}
  <div className="member-photos" ref={photosRef}
   onTouchStart={e=>{memberTouch.current=e.touches[0]?.clientX??null}}
   onTouchEnd={e=>{if(memberTouch.current===null)return;const dx=e.changedTouches[0].clientX-memberTouch.current;memberTouch.current=null;if(Math.abs(dx)>45&&data.photos?.length>1){memberSwiped.current=true;setIdx(i=>(i+(dx<0?1:-1)+data.photos.length)%data.photos.length);setTimeout(()=>{memberSwiped.current=false},150)}}}>
