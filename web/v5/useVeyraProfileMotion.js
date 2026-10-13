@@ -26,8 +26,9 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    motion.style.setProperty('--vx-collapse',p.toFixed(5));
    const phase=p<.002?'expanded':p>.998?'compact':'transition';
    if(motion.dataset.state!==phase)motion.dataset.state=phase;
-   const sx=1-(1-104/s.width)*p;
-   const sy=1-(1-104/s.height)*p;
+   if(!s.image || !s.image.isConnected)s.image=s.hero?.querySelector('.photo-box img')||null;
+   const sx=1-(1-98/s.width)*p;
+   const sy=1-(1-98/s.height)*p;
    if(s.hero){
     s.hero.style.setProperty('transform',
      'translate3d('+(16*p).toFixed(2)+'px,'+(104*p).toFixed(2)+'px,0) scale('+
