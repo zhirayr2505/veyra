@@ -6,7 +6,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 export function MemberSwipePages({tabs,active,onChange,onProgress,carouselApiRef,children}){
  const [viewportRef,embla]=useEmblaCarousel({
   axis:'x',loop:false,align:'start',containScroll:false,
-  dragFree:false,duration:24,
+  dragFree:false,duration:22,dragThreshold:4,
   watchDrag:(_api,event)=>{
    // The photo grid is interactive but horizontal drags must reach Embla.
    if(event.target?.closest?.('.vx-profile-photos-grid'))return true;
