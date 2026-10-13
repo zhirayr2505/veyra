@@ -35,3 +35,9 @@
 .member-feed-profile .info-block .tag{background:#fff1f4;border:1px solid #ffe4eb;border-radius:99px;padding:8px 10px}
 @media(max-height:690px){.member-feed-profile .member-photos{height:54dvh;min-height:290px}}
 @media(prefers-reduced-motion:reduce){.member-feed-profile *{scroll-behavior:auto}}
+
+.member-feed-profile .veyra-demo-member-badge{
+ display:inline-flex;align-items:center;border-radius:50px;background:#efe3ff;
+ border:1px solid #d8bbfa;color:#7137b4;font-size:11px;line-height:1;
+ font-weight:900;letter-spacing:.08em;padding:7px 10px;
+}
