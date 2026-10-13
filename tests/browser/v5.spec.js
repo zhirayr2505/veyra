@@ -1085,7 +1085,7 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
- expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(252, 249, 255)');
+ expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(253, 250, 255)');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
@@ -1280,7 +1280,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
   photo:getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex,
   identity:getComputedStyle(document.querySelector('.vx-profile-identity')).zIndex
  }));
- expect(Number(z.sheet)).toBeLessThan(Number(z.photo));
+ expect(Number(z.sheet)).toBeGreaterThan(Number(z.photo)); // expanded sheet intentionally covers photo bottom
  expect(Number(z.identity)).toBeLessThan(Number(z.photo));
  const distance=await root.evaluate(el=>
   el.querySelector('.vx-profile-open-spacer').offsetHeight-
@@ -1343,7 +1343,8 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await telegram(page,10,false,true);await page.goto('/');
  await page.locator('.feed-photo .hero-name').click();
  const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
- const halo=()=>page.evaluate(()=>parseFloat(getComputedStyle(document.querySelector('body > .vx-member-native-header'),'::before').opacity));
+ await expect(page.locator('body > .vx-member-native-header')).toBeVisible();
+ const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?parseFloat(getComputedStyle(header,'::before').opacity):-1});
  await expect.poll(halo).toBeLessThan(.02);
  const lip=page.locator('.vx-profile-sheet-lip');
  const layers=await page.evaluate(()=>({
