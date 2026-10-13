@@ -1137,7 +1137,7 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
 });
 
 
-test('VEYRA Telegram staged morph first holds the cover, then centers photo, then docks left',async({page})=>{
+test('VEYRA Telegram staged morph holds full-width cover, creates circle and docks left',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await telegram(page,10,false,true);await page.goto('/');
  await page.locator('.feed-photo .hero-name').click();
@@ -1158,12 +1158,12 @@ test('VEYRA Telegram staged morph first holds the cover, then centers photo, the
   return photo.boundingBox();
  };
  const early=await setProgress(.12);
- expect(early.width).toBeLessThan(opened.width-5);
- expect(early.width).toBeGreaterThan(opened.width-28);
+ expect(Math.abs(early.width-opened.width)).toBeLessThan(2);
+ expect(Math.abs(early.x-opened.x)).toBeLessThan(2);
  expect(early.y).toBeLessThan(opened.y);
- const middle=await setProgress(.39);
+ const middle=await setProgress(.46);
  expect(Math.abs(middle.width-190)).toBeLessThan(4);
- expect(Math.abs(middle.height-194)).toBeLessThan(4);
+ expect(Math.abs(middle.height-190)).toBeLessThan(4);
  expect(Math.abs(middle.x-(opened.width-middle.width)/2-opened.x)).toBeLessThan(5);
  const compact=await setProgress(1);
  expect(Math.abs(compact.width-98)).toBeLessThan(3);
@@ -1248,7 +1248,7 @@ test('VEYRA drives profile transform with Chromium ScrollTimeline when available
   const start=await hero.boundingBox();
   const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
    parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
-  await root.evaluate((el,y)=>el.scrollTop=y,distance*.39);
+  await root.evaluate((el,y)=>el.scrollTop=y,distance*.46);
   await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-190),{timeout:4500}).toBeLessThan(5);
   await root.evaluate(el=>el.scrollTop=0);
   await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-start.width),{timeout:4500}).toBeLessThan(5);
@@ -1346,7 +1346,7 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
  await expect(page.locator('body > .vx-member-native-header')).toBeVisible();
  const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?getComputedStyle(header,'::before').content:'unknown'});
- await expect.poll(halo).toBe('none');
+ await expect.poll(halo).toBe('""');
  const lip=page.locator('.vx-profile-sheet-lip');
  const layers=await page.evaluate(()=>({
   lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
@@ -1361,7 +1361,7 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius),{timeout:3000}).toBe('50%');
  await root.evaluate((el,y)=>{el.scrollTop=y},distance);
  await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
- await expect.poll(halo,{timeout:3000}).toBe('none');
+ await expect.poll(halo,{timeout:3000}).toBe('""');
  const city=await page.locator('.vx-profile-location').boundingBox();
  const goal=await page.locator('.vx-profile-goal').boundingBox();
  expect(goal.y).toBeGreaterThan(city.y+19);
@@ -1372,7 +1372,7 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
 });
 
-test('VEYRA Motion 5 keeps photo rim with the moving hero and exposes four icon tabs',async({page})=>{
+test('VEYRA Motion 6 keeps circular rim with the moving hero and exposes four icon tabs',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await telegram(page,10,false,true);await page.goto('/');
  await page.locator('.feed-photo .hero-name').click();
@@ -1385,7 +1385,7 @@ test('VEYRA Motion 5 keeps photo rim with the moving hero and exposes four icon 
  await expect(page.locator('.vx-profile-location .veyra-country-flag-round')).toHaveCount(1);
  const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
- await root.evaluate((el,scroll)=>el.scrollTop=scroll,distance*.31);
+ await root.evaluate((el,scroll)=>el.scrollTop=scroll,distance*.39);
  await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius)).toBe('50%');
  await expect.poll(()=>rim.evaluate(el=>parseFloat(getComputedStyle(el).opacity))).toBeGreaterThan(.25);
  const imageBounds=await hero.boundingBox(),rimBounds=await rim.boundingBox();
