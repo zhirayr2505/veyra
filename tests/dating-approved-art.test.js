@@ -5,11 +5,11 @@ import sharp from 'sharp';
 
 const root=new URL('../public/veyra-approved/dating_stage02/',import.meta.url);
 const entries=[
- ['for_you_hero.webp',600,300],
- ['nearby_hero.webp',600,300],
- ['collection_common_interests.webp',320,426],
- ['collection_serious_relationships.webp',320,426],
- ['collection_travel.webp',320,426]
+ ['for_you_hero.webp',1536,680],
+ ['nearby_hero.webp',1536,768],
+ ['collection_common_interests.webp',1152,1536],
+ ['collection_serious_relationships.webp',1152,1536],
+ ['collection_travel.webp',1152,1343]
 ];
 test('all five user-approved Dating Stage 02 image files are served from approved asset directory',async()=>{
  for(const [name,w,h] of entries){
@@ -20,7 +20,7 @@ test('all five user-approved Dating Stage 02 image files are served from approve
   const meta=await sharp(buf).metadata();
   assert.equal(meta.format,'webp');
   assert.ok(meta.width>=w&&meta.height>=h,name+' has mobile-ready dimensions');
-  assert.ok(buf.length>1400&&buf.length<450000,name+' is nonempty and cache-friendly');
+  assert.ok(buf.length>80000&&buf.length<450000,name+' preserves original premium detail instead of tiny low-quality placeholders');
   // A black export strip must never make it into a production illustration.
   const {data,info}=await sharp(buf).extract({left:0,top:meta.height-6,width:meta.width,height:6})
     .raw().toBuffer({resolveWithObject:true});
