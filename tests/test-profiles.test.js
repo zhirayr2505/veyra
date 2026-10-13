@@ -12,5 +12,11 @@ test('12 private fictional profiles: six women and six men, repeat-safe and no n
  try{await user(db,1);await db.query("UPDATE profiles SET looking_for=ARRAY['woman'],gender='man' WHERE user_id=1");assert.equal((await seedTestProfiles(db,storage,{...env,APP_URL:'https://other.example'},{loadPortrait})).status,'not_applicable');assert.equal((await seedTestProfiles(db,storage,env,{loadPortrait})).count,12);await seedTestProfiles(db,storage,env);assert.equal(images.size,12);assert.equal((await one(db,'SELECT count(*)::int n FROM profiles WHERE user_id=ANY($1::bigint[])',[TEST_PROFILE_IDS])).n,12);const sexes=(await db.query("SELECT gender,count(*)::int AS n FROM profiles WHERE user_id=ANY($1::bigint[]) GROUP BY gender",[TEST_PROFILE_IDS])).rows;
    assert.equal(sexes.find(row=>row.gender==='woman')?.n,6);
    assert.equal(sexes.find(row=>row.gender==='man')?.n,6);
-   const owner=await one(db,'SELECT * FROM users WHERE id=1');const feed=await db.tx(q=>recommendations(q,owner,false,2));assert.equal(feed.profiles.length,2);for(const p of feed.profiles){assert.equal(p.gender,'woman');assert.equal(p.test_profile,true);assert.equal(p.photos.length,1);await notify(db,p.id,'test');}assert.equal((await one(db,'SELECT count(*)::int n FROM outbox')).n,0);assert.equal((await one(db,'SELECT count(*)::int n FROM users')).n,13);}finally{await db.close();}
+   const owner=await one(db,'SELECT * FROM users WHERE id=1');const feed=await db.tx(q=>recommendations(q,owner,false,2));assert.equal(feed.profiles.length,2);for(const p of feed.profiles){assert.equal(p.gender,'woman');assert.equal(p.test_profile,true);assert.equal(p.photos.length,1);await notify(db,p.id,'test');}assert.equal((await one(db,'SELECT count(*)::int n FROM outbox')).n,0);const demoOwner={...owner,admin_role:'owner'};
+   const showcase=await db.tx(q=>recommendations(q,demoOwner,false,12,'for_you',{demo:true}));
+   assert.equal(showcase.profiles.length,12);
+   assert.ok(showcase.profiles.some(p=>p.gender==='man'));
+   assert.ok(showcase.profiles.some(p=>p.gender==='woman'));
+   assert.ok(showcase.profiles.every(p=>p.test_profile));
+   assert.equal((await one(db,'SELECT count(*)::int n FROM users')).n,13);}finally{await db.close();}
 });
