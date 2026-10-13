@@ -42,7 +42,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  position:absolute;top:0;left:0;right:0;z-index:1;
  height:var(--vx-profile-compact-height);opacity:1;pointer-events:none;
  background:linear-gradient(155deg,#f0e7fe,#faf6ff 80%);
- box-shadow:0 7px 18px #6b4f8216;
+ box-shadow:0 3px 8px #6b4f8210;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  position:absolute;left:0;right:0;
@@ -50,7 +50,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  height:284px;z-index:5;pointer-events:none;
  border-radius:32px 32px 0 0;
  background:linear-gradient(160deg,#fffdff,#f7f1ff);
- box-shadow:0 -6px 18px #5b399019;
+ box-shadow:0 -2px 7px #5b399011;
  border-top:1px solid #ffffffbf;
  transform:translate3d(0,0,0);
  will-change:transform;
@@ -79,9 +79,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  border:0!important;border-radius:0;box-sizing:border-box;
  margin:0!important;padding:0!important;
  transform-origin:0 0;transform:translate3d(0,0,0);
- overflow:hidden;isolation:isolate;contain:paint;
- background:#e7def2;box-shadow:0 4px 13px #55407725;
- will-change:transform,border-radius;backface-visibility:hidden;
+ overflow:hidden;contain:paint;
+ background:#e7def2;box-shadow:0 2px 6px #55407712;
+ will-change:transform;
  pointer-events:auto;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box{
@@ -94,7 +94,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  display:block!important;width:100%!important;height:100%!important;
  object-fit:cover!important;object-position:50% 36%!important;
  border-radius:0!important;transform-origin:50% 42%;
- image-rendering:auto;backface-visibility:hidden;will-change:transform;
+ image-rendering:auto;will-change:transform;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{content:none!important;display:none!important}
 .veyra-v2 .vx-master-profile .vx-profile-photo-shade{
@@ -183,13 +183,13 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  padding:0 5px!important;
  color:#753dc6!important;background:#fbf8ff!important;
  font-size:clamp(10px,3vw,13px)!important;font-weight:830;
- box-shadow:0 3px 9px #482d6511!important;
+ box-shadow:0 2px 5px #482d6509!important;
  transition:filter .12s linear!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action.primary{
  color:white!important;border-color:transparent!important;
  background:linear-gradient(115deg,#ae60fc,#7628e5)!important;
- box-shadow:0 4px 12px #7835dd32!important;
+ box-shadow:0 3px 8px #7835dd23!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action:active{filter:brightness(.96)}
 .veyra-v2 .vx-master-profile .vx-profile-action span{
@@ -219,8 +219,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  border:0;border-bottom:1px solid #e9def6;
  border-radius:0;box-shadow:0 -2px 12px #624a8910;
  background:#faf6ff!important;backdrop-filter:none!important;
- overflow:hidden;isolation:isolate;transform:translateZ(0);
- backface-visibility:hidden;
+ overflow:hidden;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
  position:relative;z-index:2;
@@ -272,7 +271,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-surface{
  background:white!important;border:0!important;
  padding:15px 14px!important;border-radius:20px!important;
- box-shadow:0 4px 16px #563d7510!important;
+ box-shadow:0 2px 8px #563d7509!important;
  overflow:visible;
 }
 .veyra-v2 .vx-master-profile .vx-profile-surface h2{
@@ -350,27 +349,6 @@ body>.vx-member-native-header .vx-member-more{display:none!important}
  .veyra-v2 .vx-master-profile .vx-profile-name-row h1{font-size:22px!important}
  .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
 }
-/* Native Chromium ScrollTimeline ties action buttons to the SAME scroll
-   offset as the sticky tab rail. Unlike JS rAF, this cannot be one frame
-   behind compositor scrolling. For older WebViews the hook retains its
-   transform-based fallback. */
-@supports (animation-timeline: scroll()) and (animation-range: 0px 300px){
- .veyra-v2 .vx-master-profile .vx-profile-scroller{
-  --vx-collapse-distance:calc(var(--vx-profile-hero-height) + 218px - var(--vx-profile-compact-height));
-  scroll-timeline:--vx-profile-scroll block;
- }
- .veyra-v2 .vx-master-profile .vx-profile-primary-actions{
-  animation:vx-profile-actions-native 1ms linear both!important;
-  animation-timeline:--vx-profile-scroll!important;
-  animation-range:0px var(--vx-collapse-distance)!important;
- }
-}
-@keyframes vx-profile-actions-native{
- 0%{transform:translate3d(0,0,0);animation-timing-function:cubic-bezier(.45,0,.55,1)}
- 85%{transform:translate3d(0,calc(93px - var(--vx-profile-hero-height)),0)}
- 100%{transform:translate3d(0,calc(93px - var(--vx-profile-hero-height)),0)}
-}
-
 @media(prefers-reduced-motion:reduce){
  .veyra-v2 .vx-master-profile .vx-profile-swipe-track{scroll-behavior:auto}
 }
