@@ -79,10 +79,10 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   AND NOT EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=p.user_id)
  AND NOT EXISTS(SELECT 1 FROM matches WHERE ((a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id)) AND a_erased_at IS NULL AND b_erased_at IS NULL)
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
- AND (NOT $19::boolean OR p.user_id=ANY($18::bigint[]))
+ AND (($19::boolean AND p.user_id=ANY($18::bigint[])) OR (NOT $19::boolean AND NOT p.user_id=ANY($18::bigint[])))
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
  ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[],filters.goal||'',TEST_PROFILE_IDS,ownerDemo])).rows;
- const candidates=rows.filter(x=>(ownerDemo||process.env.NODE_ENV!=='production'||user.admin_role==='owner'||!isTestProfile(x.user_id))&&(ownerDemo||p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
+ const candidates=rows.filter(x=>(ownerDemo||!isTestProfile(x.user_id))&&(ownerDemo||p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
  // N+1 loop multiplied network latency on Render/Supabase for every card.
@@ -129,7 +129,7 @@ async function finishMatch(q,actor,target) {
 export async function react(q,actor,target,kind,message){
  await pairLock(q,actor,target);await ensurePair(q,actor,target);
  const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);
- if(isTestProfile(target)&&!isTestProfile(actor)&&u.admin_role!=='owner'&&process.env.NODE_ENV==='production')fail(404,'PROFILE_NOT_FOUND');
+ if(isTestProfile(target)&&!isTestProfile(actor)&&u.admin_role!=='owner')fail(404,'PROFILE_NOT_FOUND');
  const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);
  const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND a_erased_at IS NULL AND b_erased_at IS NULL',[actor,target]);
  if(existing&&(existing.a_erased_at||existing.b_erased_at))fail(409,'MATCH_ARCHIVED');
