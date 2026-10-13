@@ -1308,3 +1308,64 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  await expect(motion).toHaveAttribute('data-state','expanded');
  await expect.poll(()=>blur.evaluate(el=>+getComputedStyle(el).opacity)).toBeLessThan(.05);
 });
+
+test('VEYRA expanded elastic drag stretches softly and restores without changing scroll timeline',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller'),photo=page.locator('.vx-profile-hero-photo');
+ await root.evaluate(el=>{el.scrollTop=0});
+ const sendTouch=async(type,y)=>{
+  await root.evaluate((el,[kind,clientY])=>{
+   const touch=new Touch({identifier:1,target:el,clientX:192,clientY});
+   el.dispatchEvent(new TouchEvent(kind,{bubbles:true,cancelable:true,
+    touches:kind==='touchend'?[]:[touch],changedTouches:[touch],
+    targetTouches:kind==='touchend'?[]:[touch]}));
+  },[type,y]);
+ };
+ await sendTouch('touchstart',250);
+ await sendTouch('touchmove',350);
+ await expect.poll(()=>photo.evaluate(el=>parseFloat(getComputedStyle(el).scale)),{timeout:2000}).toBeGreaterThan(1.005);
+ const pull=await root.evaluate(el=>({
+  css:getComputedStyle(el).getPropertyValue('--vx-elastic-pull'),
+  scroll:el.scrollTop
+ }));
+ expect(parseFloat(pull.css)).toBeGreaterThan(7);
+ expect(pull.scroll).toBeLessThan(2);
+ await sendTouch('touchend',350);
+ await expect.poll(()=>photo.evaluate(el=>parseFloat(getComputedStyle(el).scale)),{timeout:3000}).toBeLessThan(1.001);
+ await expect.poll(()=>root.evaluate(el=>parseFloat(getComputedStyle(el).getPropertyValue('--vx-elastic-pull'))),{timeout:3000}).toBe(0);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','expanded');
+});
+
+test('VEYRA final visual: halo only when compact, early circle, goal below city, spaced detail',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
+ const halo=()=>page.evaluate(()=>parseFloat(getComputedStyle(document.querySelector('body > .vx-member-native-header'),'::before').opacity));
+ await expect.poll(halo).toBeLessThan(.02);
+ const lip=page.locator('.vx-profile-sheet-lip');
+ const layers=await page.evaluate(()=>({
+  lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
+  hero:Number(getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex),
+  radius:getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).borderTopLeftRadius
+ }));
+ expect(layers.lip).toBeGreaterThan(layers.hero);
+ expect(parseFloat(layers.radius)).toBeGreaterThanOrEqual(30);
+ const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,y)=>{el.scrollTop=y},distance*.42);
+ await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius),{timeout:3000}).toBe('50%');
+ await root.evaluate((el,y)=>{el.scrollTop=y},distance);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
+ await expect.poll(halo,{timeout:3000}).toBeGreaterThan(.95);
+ const city=await page.locator('.vx-profile-location').boundingBox();
+ const goal=await page.locator('.vx-profile-goal').boundingBox();
+ expect(goal.y).toBeGreaterThan(city.y+19);
+ const detail=page.locator('.vx-profile-goal-copy');
+ const caption=await detail.locator('small').boundingBox();
+ const value=await detail.locator('strong').boundingBox();
+ expect(value.y).toBeGreaterThan(caption.y+10);
+ await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
+});
