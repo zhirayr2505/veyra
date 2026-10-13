@@ -1295,6 +1295,13 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  ]);
  expect(name.x).toBeGreaterThan(avatar.x+avatar.width-2);
  expect(Math.abs(avatar.width-98)).toBeLessThan(3);
+ const city=await page.locator('.vx-profile-location').boundingBox();
+ const goal=await page.locator('.vx-profile-goal').boundingBox();
+ if(goal&&city){
+  expect(Math.abs(goal.y-city.y)).toBeLessThan(5);
+  expect(goal.x).toBeGreaterThan(city.x+80);
+  expect(goal.x+goal.width).toBeLessThanOrEqual(396);
+ }
  await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
  await expect(page.locator('.vx-profile-tab-rail [role=tab]')).toHaveCount(4);
  await root.evaluate(el=>el.scrollTop=0);
