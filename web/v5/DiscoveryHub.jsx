@@ -225,6 +225,9 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
   root.classList.add('veyra-feed-viewport-locked');
   root.style.overflow='hidden';document.body.style.overflow='hidden';
   window.scrollTo(0,0);
+  const keepAtTop=()=>{if(window.scrollY>0){window.scrollTo({top:0,behavior:'instant'});if(document.scrollingElement)document.scrollingElement.scrollTop=0;}};
+  window.addEventListener('scroll',keepAtTop,{passive:true});
+  keepAtTop();
   let frame=0;
   const fit=()=>{
    cancelAnimationFrame(frame);
@@ -244,7 +247,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
   const strip=hub.querySelector('.vx-demo-strip');if(strip)observer?.observe(strip);
   const tabs=hub.querySelector('.vx-tabs');if(tabs)observer?.observe(tabs);
   window.addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
-  return()=>{cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener('resize',fit);window.visualViewport?.removeEventListener('resize',fit);root.classList.remove('veyra-feed-viewport-locked');root.style.overflow=previousOverflow;document.body.style.overflow=previousBodyOverflow;hub.style.removeProperty('--vx-feed-photo-height');window.scrollTo(0,Math.max(0,previousScroll))};
+  return()=>{cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener('resize',fit);window.visualViewport?.removeEventListener('resize',fit);root.classList.remove('veyra-feed-viewport-locked');root.style.overflow=previousOverflow;document.body.style.overflow=previousBodyOverflow;window.removeEventListener('scroll',keepAtTop);hub.style.removeProperty('--vx-feed-photo-height');window.scrollTo(0,Math.max(0,previousScroll))};
  },[directory,freezeFeed,tab,demoStatus,demoMode]);
 
  useEffect(()=>()=>{if(scrollTimeout.current)cancelAnimationFrame(scrollTimeout.current)},[]);
