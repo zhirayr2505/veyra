@@ -139,8 +139,20 @@ body>.vx-member-native-header::before{
  color:#6e3ab6;
  background:#eee1ff;
  font-weight:760;
- font-size:11.5px;
+ font-size:clamp(9.8px,2.7vw,11px);
+ gap:4px;
+ padding:5px 7px;
+ max-width:min(36vw,145px);
  box-shadow:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-goal svg{
+ flex:0 0 13px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-goal-text{
+ min-width:0;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
 }
 /* Circle chrome never modifies the transformed hero or clip radius.
    It simply appears when the hero reaches its 98px destination. */
