@@ -1085,7 +1085,7 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
- expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(252, 249, 255)');
+ expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(253, 250, 255)');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
@@ -1280,7 +1280,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
   photo:getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex,
   identity:getComputedStyle(document.querySelector('.vx-profile-identity')).zIndex
  }));
- expect(Number(z.sheet)).toBeLessThan(Number(z.photo));
+ expect(Number(z.sheet)).toBeGreaterThan(Number(z.photo)); // expanded sheet intentionally covers photo bottom
  expect(Number(z.identity)).toBeLessThan(Number(z.photo));
  const distance=await root.evaluate(el=>
   el.querySelector('.vx-profile-open-spacer').offsetHeight-
@@ -1298,8 +1298,8 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  const city=await page.locator('.vx-profile-location').boundingBox();
  const goal=await page.locator('.vx-profile-goal').boundingBox();
  if(goal&&city){
-  expect(Math.abs(goal.y-city.y)).toBeLessThan(5);
-  expect(goal.x).toBeGreaterThan(city.x+80);
+  expect(goal.y).toBeGreaterThan(city.y+19);
+  expect(Math.abs(goal.x-city.x)).toBeLessThan(8);
   expect(goal.x+goal.width).toBeLessThanOrEqual(396);
  }
  await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
@@ -1307,4 +1307,66 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  await root.evaluate(el=>el.scrollTop=0);
  await expect(motion).toHaveAttribute('data-state','expanded');
  await expect.poll(()=>blur.evaluate(el=>+getComputedStyle(el).opacity)).toBeLessThan(.05);
+});
+
+test('VEYRA expanded elastic drag stretches softly and restores without changing scroll timeline',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller'),photo=page.locator('.vx-profile-hero-photo');
+ await root.evaluate(el=>{el.scrollTop=0});
+ const sendTouch=async(type,y)=>{
+  await root.evaluate((el,[kind,clientY])=>{
+   const touch=new Touch({identifier:1,target:el,clientX:192,clientY});
+   el.dispatchEvent(new TouchEvent(kind,{bubbles:true,cancelable:true,
+    touches:kind==='touchend'?[]:[touch],changedTouches:[touch],
+    targetTouches:kind==='touchend'?[]:[touch]}));
+  },[type,y]);
+ };
+ await sendTouch('touchstart',250);
+ await sendTouch('touchmove',350);
+ await expect.poll(()=>photo.evaluate(el=>parseFloat(getComputedStyle(el).scale)),{timeout:2000}).toBeGreaterThan(1.005);
+ const pull=await root.evaluate(el=>({
+  css:getComputedStyle(el).getPropertyValue('--vx-elastic-pull'),
+  scroll:el.scrollTop
+ }));
+ expect(parseFloat(pull.css)).toBeGreaterThan(7);
+ expect(pull.scroll).toBeLessThan(2);
+ await sendTouch('touchend',350);
+ await expect.poll(()=>photo.evaluate(el=>parseFloat(getComputedStyle(el).scale)),{timeout:3000}).toBeLessThan(1.001);
+ await expect.poll(()=>root.evaluate(el=>parseFloat(getComputedStyle(el).getPropertyValue('--vx-elastic-pull'))),{timeout:3000}).toBe(0);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','expanded');
+});
+
+test('VEYRA final visual: halo only when compact, early circle, goal below city, spaced detail',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
+ await expect(page.locator('body > .vx-member-native-header')).toBeVisible();
+ const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?parseFloat(getComputedStyle(header,'::before').opacity):-1});
+ await expect.poll(halo).toBeLessThan(.02);
+ const lip=page.locator('.vx-profile-sheet-lip');
+ const layers=await page.evaluate(()=>({
+  lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
+  hero:Number(getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex),
+  radius:getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).borderTopLeftRadius
+ }));
+ expect(layers.lip).toBeGreaterThan(layers.hero);
+ expect(parseFloat(layers.radius)).toBeGreaterThanOrEqual(30);
+ const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,y)=>{el.scrollTop=y},distance*.42);
+ await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius),{timeout:3000}).toBe('50%');
+ await root.evaluate((el,y)=>{el.scrollTop=y},distance);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
+ await expect.poll(halo,{timeout:3000}).toBeGreaterThan(.95);
+ const city=await page.locator('.vx-profile-location').boundingBox();
+ const goal=await page.locator('.vx-profile-goal').boundingBox();
+ expect(goal.y).toBeGreaterThan(city.y+19);
+ const detail=page.locator('.vx-profile-goal-copy');
+ const caption=await detail.locator('small').boundingBox();
+ const value=await detail.locator('strong').boundingBox();
+ expect(value.y).toBeGreaterThan(caption.y+10);
+ await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
 });

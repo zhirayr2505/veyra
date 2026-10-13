@@ -71,7 +71,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   </header>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
-   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet">
+   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
      <div className="vx-profile-blurred-header" aria-hidden="true">
@@ -128,7 +128,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       {data.test_profile&&!isOwn&&<p className="vx-profile-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотография иллюстративная.</p>}
      </section>
      <section className="vx-profile-surface"><div className="vx-own-section-heading"><h2>Интересы</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить интересы"><Pencil size={17}/></button>}</div>{(data.interests||[]).length?<div className="vx-member-interests-grid">{data.interests.map(label=><MemberInterest key={label} label={label}/>)}</div>:<p className="vx-profile-secondary">Пока не указаны.</p>}</section>
-     <section className="vx-profile-surface"><div className="vx-own-section-heading"><h2>Цель знакомства</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить цель знакомства"><Pencil size={17}/></button>}</div><div className="vx-profile-goal-detail"><VeyraPackIcon name="goal" size={20}/><div><small>Моя цель на VEYRA</small><strong>{goalTitle(data.goal)}</strong></div></div></section>
+     <section className="vx-profile-surface vx-profile-goal-surface"><div className="vx-own-section-heading"><h2>Цель знакомства</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить цель знакомства"><Pencil size={17}/></button>}</div><div className="vx-profile-goal-detail"><span className="vx-profile-goal-emblem"><VeyraPackIcon name="goal" size={27}/></span><div className="vx-profile-goal-copy"><small>Моя цель на VEYRA</small><strong>{goalTitle(data.goal)}</strong></div></div></section>
      {data.online&&<div className="vx-profile-hint"><DetailIcon name="online" size={13}/> Сейчас в сети</div>}
      {match&&courtship?.mine?.status&&<div className="vx-profile-hint">{courtship.mine.status==='active'?'Ты ухаживаешь за этим человеком':courtship.mine.status==='pending'?'Предложение ожидает согласия':courtship.mine.status==='accepted'?'Предложение принято, можно оплатить':'Ухаживание: '+courtship.mine.status}</div>}
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
