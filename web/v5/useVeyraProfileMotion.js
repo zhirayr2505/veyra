@@ -2,6 +2,18 @@ import {useCallback,useLayoutEffect,useRef} from 'react';
 import {clamp,profileFrame} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 import {createProfileScrollAnimations} from './profileScrollTimeline.js';
+import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
+
+// Additive CSS translate/scale properties never replace WAAPI transform tracks.
+// The elastic interaction exists ONLY for a new downward drag at scrollTop=0.
+function writeElastic(el,pull,width,settling=false){
+ if(!el)return;
+ el.classList.toggle('vx-elastic-release',settling);
+ const scale=elasticPhotoScale(pull);
+ el.style.setProperty('--vx-elastic-pull',pull.toFixed(2)+'px');
+ el.style.setProperty('--vx-elastic-scale',scale.toFixed(5));
+ el.style.setProperty('--vx-elastic-x',(-width*(scale-1)/2).toFixed(2)+'px');
+}
 
 // All moving elements are compositor-friendly layers with fixed geometry.
 // Layout is measured ONCE on mount/resize, never inside a scroll frame.
@@ -13,7 +25,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   touching:false,released:false,snapping:false,axis:null,
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
-  refs:null,resizeObserver:null,mutationObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,
+  refs:null,resizeObserver:null,mutationObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,elastic:0,startScrollY:0,
  });
  const stop=useCallback(()=>{
   const s=state.current;
@@ -43,10 +55,10 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
    if(s.nativeAnimation){
-    const shape=p<.18?'cover':p<.91?'rounded':'circle';
+    const shape=p<.13?'cover':p<.29?'rounded':'circle';
     if(shape!==s.radiusPhase){
      s.radiusPhase=shape;
-     parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'20px':'50%';
+     parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'24px':'50%';
     }
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
@@ -62,10 +74,10 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    parts.hero.style.transform=translate(f.x,f.y)+scale;
    // Legacy fallback updates shape only at two boundaries, rather than
    // invalidating a large clipped image on each individual scroll frame.
-   const shape=p<.18?'cover':p<.91?'rounded':'circle';
+   const shape=p<.13?'cover':p<.29?'rounded':'circle';
    if(shape!==s.radiusPhase){
     s.radiusPhase=shape;
-    parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'20px':'50%';
+    parts.hero.style.borderRadius=shape==='cover'?'0px':shape==='rounded'?'24px':'50%';
    }
    // Compensate for portrait-to-square squash on the image itself.
    if(!parts.image?.isConnected){
@@ -133,11 +145,17 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(s.released&&!s.touching&&!s.snapping)s.timer=setTimeout(snap,110);
  },[snap]);
  const onScroll=useCallback(()=>{
-  state.current.lastScrollAt=performance.now();paint();
- },[paint]);
+  const s=state.current,el=scrollRef.current;
+  if(s.elastic>0&&el?.scrollTop>1){
+   s.elastic=0;writeElastic(el,0,s.width,true);
+  }
+  s.lastScrollAt=performance.now();paint();
+ },[paint,scrollRef]);
  const onTouchStart=useCallback(e=>{
   const s=state.current,wasSnapping=s.snapping;stop();
   s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
+  s.elastic=0;s.startScrollY=scrollRef.current?.scrollTop??0;
+  writeElastic(scrollRef.current,0,s.width,false);
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
   // Stops any native finishing scroll when a fresh finger takes over.
@@ -145,19 +163,33 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(el&&wasSnapping)el.scrollTo({top:el.scrollTop,behavior:'instant'});
  },[stop,scrollRef]);
  const onTouchMove=useCallback(e=>{
-  const s=state.current;
-  if(s.axis||!e.touches?.length)return;
+  const s=state.current,el=scrollRef.current;
+  if(!e.touches?.length)return;
   const dx=e.touches[0].clientX-s.startX;
   const dy=e.touches[0].clientY-s.startY;
-  if(Math.max(Math.abs(dx),Math.abs(dy))>9)s.axis=Math.abs(dx)>Math.abs(dy)*1.13?'x':'y';
- },[]);
+  if(!s.axis&&Math.max(Math.abs(dx),Math.abs(dy))>9)
+   s.axis=Math.abs(dx)>Math.abs(dy)*1.13?'x':'y';
+  if(!el)return;
+  const canPull=s.axis==='y'&&s.startScrollY<=1&&el.scrollTop<=1&&dy>0;
+  const pull=canPull?elasticPullDistance(dy):0;
+  if(Math.abs(pull-s.elastic)>.08){
+   s.elastic=pull;
+   writeElastic(el,pull,s.width,false);
+  }
+ },[scrollRef]);
  const onTouchEnd=useCallback(()=>{
   const s=state.current;
   s.touching=false;
+  if(s.elastic>0){
+   s.elastic=0;
+   writeElastic(scrollRef.current,0,s.width,true);
+   s.released=false;
+   return;
+  }
   if(s.axis==='x'){s.released=false;return}
   s.released=true;s.releaseVelocity=s.velocity;s.releaseAt=performance.now();
   queueSnap();
- },[queueSnap]);
+ },[queueSnap,scrollRef]);
  const onWheel=useCallback(()=>{
   const s=state.current;s.released=true;
   s.releaseVelocity=s.velocity;s.releaseAt=performance.now();queueSnap();
@@ -171,6 +203,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.height=Math.max(1,hero.offsetHeight);
   s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
   s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
+  if(s.elastic>0)writeElastic(el,s.elastic,s.width,false);
   s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;
   // Previous JS fallback transforms must not override WAAPI motion.
   if(s.refs)for(const part of Object.values(s.refs)){
@@ -220,19 +253,22 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   };
   el?.addEventListener('scroll',onScroll,{passive:true});
   el?.addEventListener('touchmove',onTouchMove,{passive:true});
+  el?.addEventListener('touchcancel',onTouchEnd,{passive:true});
   el?.addEventListener('scrollend',onScrollEnd,{passive:true});
   window.addEventListener('resize',resize,{passive:true});
   window.visualViewport?.addEventListener('resize',resize,{passive:true});
   return()=>{
    stop();cancelAnimationFrame(s.frame);s.frame=0;
+   s.elastic=0;writeElastic(el,0,s.width,false);
    s.nativeAnimation?.cancel();s.nativeAnimation=null;
    s.resizeObserver?.disconnect();s.mutationObserver?.disconnect();
    el?.removeEventListener('scroll',onScroll);
    el?.removeEventListener('touchmove',onTouchMove);
+   el?.removeEventListener('touchcancel',onTouchEnd);
    el?.removeEventListener('scrollend',onScrollEnd);
    window.removeEventListener('resize',resize);
    window.visualViewport?.removeEventListener('resize',resize);
   };
- },[ready,calibrate,paint,scrollRef,stageRef,snap,stop,onScroll,onTouchMove]);
+ },[ready,calibrate,paint,scrollRef,stageRef,snap,stop,onScroll,onTouchMove,onTouchEnd]);
  return {onTouchStart,onTouchEnd,onWheel,calibrate};
 }
