@@ -1,69 +1,44 @@
-// Pure, allocation-light interpolation math for the Telegram-style profile.
-// Phase A: white sheet rises while cover stays full bleed.
-// Phase B: cover rapidly becomes a small rounded card at screen center.
-// Phase C: that same painted image settles into the left circular avatar.
-// Every output is a function of scroll position (no time-based animation).
+// VEYRA Motion 6 — deterministic compositor-safe scroll geometry.
+// Sheet first covers ~30% of the full-size cover photo. Only then does the
+// picture become a perfect circle; horizontal travel begins AFTER the circle.
 export const clamp=(v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 export const mix=(a,b,t)=>a+(b-a)*t;
 export const smooth=(t)=>{const x=clamp(t);return x*x*(3-2*x)};
 export const segment=(p,a,b)=>smooth((p-a)/(b-a));
-
+export const PROFILE_CIRCLE_AT=.34;
+export const PROFILE_CENTER_AT=.46;
 export function profileFrame(progress,width,height,compactHeight=292){
  const p=clamp(progress),w=Math.max(1,width),h=Math.max(1,height);
- const middleW=Math.min(190,Math.max(154,w*.49));
- const middleH=Math.min(194,Math.max(158,w*.50));
- // During the initial sheet overlap the cover already scrolls upward,
- // receding ~3.6% before it rapidly becomes a circular travelling avatar.
- // All states remain deterministic functions of scroll position (ScrollTimeline).
- const early=segment(p,0,.14),coverToMiddle=segment(p,.14,.39);
- const middleToAvatar=segment(p,.39,1);
- const middleX=(w-middleW)*.5;
- const earlyX=w*.018,earlyY=-24,earlyWidth=w*.964,earlyHeight=h*.964;
- const widthDuring=p<.14?mix(w,earlyWidth,early):p<=.39?mix(earlyWidth,middleW,coverToMiddle):mix(middleW,98,middleToAvatar);
- const heightDuring=p<.14?mix(h,earlyHeight,early):p<=.39?mix(earlyHeight,middleH,coverToMiddle):mix(middleH,98,middleToAvatar);
- // By the time the avatar becomes circular its visible frame is square,
- // rather than clipping a tall moving image into an oval.
- const squared=segment(p,.16,.27)*(1-segment(p,.32,.39));
- const frame={
-  progress:p,
-  stage:p<.14?'sheet':p<.39?'center':'avatar',
-  x:p<.14?mix(0,earlyX,early):p<=.39?mix(earlyX,middleX,coverToMiddle):mix(middleX,16,middleToAvatar),
-  y:p<.14?mix(0,earlyY,early):p<=.39?mix(earlyY,82,coverToMiddle):mix(82,102,middleToAvatar),
-  width:widthDuring,
-  height:mix(heightDuring,widthDuring,squared),
-  radius:p<=.39?mix(0,50,segment(p,.14,.29)):50,
- };
- // The sheet lifts faster than its contents, preventing an empty gap behind
- // the shrinking photo; identity/buttons retain a calm independent trajectory.
- const sheet=smooth(clamp(p/.78));
- const content=smooth(p);
- // The actions move slightly ahead of the tab rail to maintain clearance
- // at every fractional scroll position, including slow finger dragging.
- const actionsProgress=smooth(clamp(p/.85));
- const expandedPanelY=h-30;
- const compactPanelY=109;
- const nameFrom=h+9,nameTo=116;
- const actionsFrom=h+123,actionsTo=216;
- const menuFrom=h+8,menuTo=113;
- const contentTop=compactHeight;
- // The photo now sits above identity in a permanent stacking order.
- // Keep the text fully opaque: the moving photo clips any transient overlap.
- const xName=110*segment(p,.50,.91);
+ const midW=Math.min(190,Math.max(154,w*.49));
+ const midX=(w-midW)/2;
+ const cover=p<PROFILE_CIRCLE_AT;
+ const centering=segment(p,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT);
+ const docking=segment(p,PROFILE_CENTER_AT,1);
+ const bumpPhase=clamp((p-PROFILE_CIRCLE_AT)/.115);
+ // Linked elastic lift during formation, rather than an extra delayed timer.
+ const bump=!cover&&p<PROFILE_CIRCLE_AT+.115?Math.sin(Math.PI*bumpPhase):0;
+ const photoW=cover?w:p<PROFILE_CENTER_AT?mix(w,midW,centering):mix(midW,98,docking);
+ const photoX=cover?0:p<PROFILE_CENTER_AT?mix(0,midX,centering):mix(midX,16,docking);
+ const photoY=cover?mix(0,-16,segment(p,0,PROFILE_CIRCLE_AT)):
+  p<PROFILE_CENTER_AT?mix(-16,82,centering)-7*bump:mix(82,102,docking);
+ const sheetY=mix(h-30,109,smooth(clamp(p/.78)));
+ // Paint the opaque white sheet only up to the sticky tab rail. Any overflow
+ // was previously hiding the first ~100px of the gallery below the tabs.
+ const railY=mix(h+218,compactHeight,p);
+ const panelClipBottom=Math.max(0,284-Math.max(0,railY-sheetY));
  return {
-  ...frame,
-  sheetY:mix(expandedPanelY,compactPanelY,sheet),
-  nameX:xName,
-  nameY:mix(nameFrom,nameTo,content),
-  nameOpacity:1,
-  actionY:mix(actionsFrom,actionsTo,actionsProgress),
-  moreY:mix(menuFrom,menuTo,content),
-  photoExtrasOpacity:1-segment(p,.07,.19),
-  compactOnlineOpacity:segment(p,.78,.97),
-  shadeOpacity:1-segment(p,.12,.43),
-  // Keep location and goal on the SAME line at both approved endpoints.
-  // Both follow the existing identity transform; no separate flight path.
-  goalX:0,
-  goalY:0,
-  compactHeight:contentTop,
+  progress:p,stage:cover?'sheet':p<PROFILE_CENTER_AT?'center':'avatar',
+  x:photoX,y:photoY,width:photoW,height:cover?h:photoW,radius:cover?0:50,
+  sheetY,panelClipBottom,
+  nameX:110*segment(p,.30,.89),
+  nameY:mix(h+9,116,smooth(p)),
+  // The same accessible name slides invisibly and crossfades at endpoints.
+  nameOpacity:1-segment(p,.17,.29)+segment(p,.94,1),
+  actionY:mix(h+123,222,smooth(clamp(p/.88))),
+  moreY:mix(h+8,113,smooth(p)),
+  photoExtrasOpacity:1-segment(p,.20,.33),
+  compactOnlineOpacity:segment(p,.82,.99),
+  shadeOpacity:1-segment(p,.12,.34),
+  goalX:0,goalY:0,compactHeight
  };
 }
