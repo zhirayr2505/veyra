@@ -53,3 +53,21 @@ test('reverse finger direction returns identical geometry without hysteresis',()
   assert.deepEqual(frame(p),frame(p));
  }
 });
+
+test('buttons never enter the pinned tabs during a slow partial drag',()=>{
+ const distance=H+218-compact;
+ for(let index=0;index<=100;index++){
+  const p=index/100;
+  const f=frame(p);
+  const railTop=Math.max(compact,H+218-p*distance);
+  assert.ok(f.actionY+50<=railTop-12,'collision at '+p.toFixed(2));
+ }
+});
+
+test('background remains opaque and legacy fading is not part of motion geometry',()=>{
+ for(const p of [0,.13,.2,.39,.6,1]){
+  const f=frame(p);
+  assert.equal(Object.hasOwn(f,'sheetLipOpacity'),false);
+  assert.equal(Object.hasOwn(f,'backdropOpacity'),false);
+ }
+});
