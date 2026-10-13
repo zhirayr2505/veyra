@@ -1,0 +1,344 @@
+/* VEYRA Motion 2.0
+   One animation authority: useVeyraProfileMotion.js writes transforms on direct
+   elements only. The retired master/smooth/premium morph CSS must NOT load.
+   Keep this file last, after all global design styles.
+ */
+.veyra-v2 .vx-master-profile{
+ --vx-profile-compact-height:292px;
+ --vx-deep:#6420d9;--vx-ink:#302043;
+ background:#faf6ff!important;color:var(--vx-ink);
+ font-family:Nunito,'Arial Rounded MT Bold',Inter,system-ui,sans-serif;
+}
+.veyra-v2 .vx-master-profile .vx-profile-scroller{
+ --vx-profile-hero-height:clamp(355px,53dvh,600px);
+ --vx-profile-compact-height:292px;
+ position:absolute!important;inset:0!important;top:0!important;
+ bottom:0!important;left:0!important;right:0!important;
+ max-width:640px;width:100%;margin:0 auto;padding:0;
+ overflow-y:auto;overflow-x:hidden;scroll-behavior:auto!important;
+ overscroll-behavior-y:contain;overflow-anchor:none;
+ -webkit-overflow-scrolling:touch;touch-action:pan-y;
+ scrollbar-width:none;background:#faf6ff;
+}
+.veyra-v2 .vx-master-profile .vx-profile-scroller::-webkit-scrollbar{display:none}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller{
+ top:0!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-motion{
+ position:sticky;top:0;width:100%;height:0;z-index:45;
+ margin:0 auto;pointer-events:none;
+ isolation:isolate;contain:layout style;
+}
+.veyra-v2 .vx-master-profile .vx-profile-sticky{
+ position:absolute;top:0;left:0;width:100%;height:0;
+ overflow:visible;pointer-events:none;isolation:isolate;
+}
+/* Disable pseudo-element animations inherited from the old screen. */
+.veyra-v2 .vx-master-profile .vx-profile-sticky::before,
+.veyra-v2 .vx-master-profile .vx-profile-sticky::after{
+ content:none!important;display:none!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{
+ position:absolute;top:0;left:0;right:0;z-index:1;
+ height:292px;opacity:0;pointer-events:none;
+ background:linear-gradient(155deg,#f0e7fe,#faf6ff 80%);
+ box-shadow:0 7px 18px #6b4f8216;
+ will-change:opacity;
+}
+.veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
+ position:absolute;left:0;right:0;
+ top:calc(var(--vx-profile-hero-height) - 30px);
+ height:284px;z-index:5;pointer-events:none;
+ border-radius:32px 32px 0 0;
+ background:linear-gradient(160deg,#fffdff,#f7f1ff);
+ box-shadow:0 -6px 18px #5b399019;
+ border-top:1px solid #ffffffbf;
+ transform:translate3d(0,0,0);
+ will-change:transform;
+}
+/* The sheet rises OVER the full photo before the photo starts to shrink. */
+.veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
+ position:absolute;z-index:13;pointer-events:none;
+ top:calc(var(--vx-profile-hero-height) - 30px);
+ left:0;right:0;height:76px;
+ border-radius:32px 32px 0 0;
+ background:linear-gradient(160deg,#fffdff,#f7f1ff);
+ border-top:1px solid #ffffffc7;
+ transform:translate3d(0,0,0);
+ opacity:1;will-change:transform,opacity;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
+ position:absolute;top:0!important;left:0!important;z-index:9;
+ width:100%!important;height:var(--vx-profile-hero-height)!important;
+ min-height:0;min-width:0;max-width:none;
+ border:0!important;border-radius:0;box-sizing:border-box;
+ margin:0!important;padding:0!important;
+ transform-origin:0 0;transform:translate3d(0,0,0);
+ overflow:hidden;isolation:isolate;contain:paint;
+ background:#e7def2;box-shadow:0 4px 13px #55407725;
+ will-change:transform,border-radius;backface-visibility:hidden;
+ pointer-events:auto;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box{
+ position:absolute;inset:0!important;width:100%!important;
+ height:100%!important;border-radius:inherit!important;
+ overflow:hidden!important;display:block!important;
+ background:#e7def2;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box img{
+ display:block!important;width:100%!important;height:100%!important;
+ object-fit:cover!important;object-position:50% 36%!important;
+ border-radius:0!important;transform-origin:50% 42%;
+ image-rendering:auto;backface-visibility:hidden;will-change:transform;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{content:none!important;display:none!important}
+.veyra-v2 .vx-master-profile .vx-profile-photo-shade{
+ position:absolute;top:0;left:0;right:0;height:106px;
+ z-index:1;pointer-events:none;opacity:1;
+ background:linear-gradient(#2c254443,transparent);
+}
+.veyra-v2 .vx-master-profile .vx-profile-photo-bars{
+ left:18px!important;right:18px!important;top:82px!important;
+ z-index:3;opacity:1;pointer-events:auto;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photo-nav{
+ inset:20% 0 14%!important;z-index:3;opacity:1;
+ pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photo-nav button{
+ pointer-events:auto;
+}
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars,
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-nav{
+ visibility:hidden;pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-demo-badge{display:none!important}
+.veyra-v2 .vx-master-profile .vx-profile-online{
+ right:0;bottom:0;z-index:16;opacity:0;
+ width:17px;height:17px;border-radius:50%;
+ border:3px solid white;background:#12c98c;
+}
+.veyra-v2 .vx-master-profile .vx-profile-identity{
+ position:absolute;left:19px!important;right:54px!important;
+ top:calc(var(--vx-profile-hero-height) + 9px)!important;
+ z-index:14;display:block;overflow:visible;
+ width:auto!important;height:93px!important;min-height:0;
+ margin:0;padding:0;text-align:left;
+ pointer-events:none;
+ transform:translate3d(0,0,0);
+ will-change:transform,opacity;
+}
+.veyra-v2 .vx-master-profile .vx-profile-name-row{
+ position:absolute;top:0;left:0;
+ display:flex;align-items:center;justify-content:flex-start;
+ gap:7px;max-width:100%;
+}
+.veyra-v2 .vx-master-profile .vx-profile-name-row h1{
+ font-size:clamp(21px,5.9vw,27px)!important;
+ font-weight:900;line-height:1.2;letter-spacing:-.45px;
+ max-width:clamp(142px,49vw,248px)!important;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ margin:0;color:#2b1c3b;
+}
+.veyra-v2 .vx-master-profile .vx-profile-name-row .vx-demo-member-label{
+ border:0;border-radius:99px;background:#e9d9ff;
+ color:#7951be;padding:4px 8px;font-size:10px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-location{
+ position:absolute!important;top:38px!important;left:0!important;
+ display:flex;gap:6px;align-items:center;justify-content:flex-start;
+ line-height:1.25;font-size:12px!important;color:#82718f;
+ white-space:nowrap;
+}
+.veyra-v2 .vx-master-profile .vx-profile-goal{
+ position:absolute!important;top:38px!important;left:120px!important;
+ display:flex;gap:5px;align-items:center;width:max-content;
+ max-width:min(56vw,220px);min-height:24px;
+ color:#7a45c0;background:#ebddfe;border:0;
+ padding:4px 9px;font-weight:740;font-size:11px;
+ line-height:1.1;border-radius:999px;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;
+ transform:translate3d(0,0,0);
+}
+.veyra-v2 .vx-master-profile .vx-profile-primary-actions{
+ position:absolute;z-index:15;
+ top:calc(var(--vx-profile-hero-height) + 123px)!important;
+ left:12px!important;right:12px!important;
+ display:grid!important;grid-template-columns:104fr 138fr 104fr!important;
+ gap:7px!important;width:auto;max-width:none;margin:0;
+ transform:translate3d(0,0,0);will-change:transform;
+ pointer-events:auto;
+}
+.veyra-v2 .vx-master-profile .vx-profile-action{
+ position:relative;display:flex;flex-direction:row;
+ align-items:center;justify-content:center;gap:5px;
+ height:50px!important;min-height:50px!important;
+ width:100%;min-width:0;overflow:hidden;
+ border-radius:99px!important;border:1px solid #decaf5!important;
+ padding:0 5px!important;
+ color:#753dc6!important;background:#fbf8ff!important;
+ font-size:clamp(10px,3vw,13px)!important;font-weight:830;
+ box-shadow:0 3px 9px #482d6511!important;
+ transition:filter .12s linear!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-action.primary{
+ color:white!important;border-color:transparent!important;
+ background:linear-gradient(115deg,#ae60fc,#7628e5)!important;
+ box-shadow:0 4px 12px #7835dd32!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-action:active{filter:brightness(.96)}
+.veyra-v2 .vx-master-profile .vx-profile-action span{
+ white-space:nowrap;text-overflow:ellipsis;overflow:hidden;color:inherit;
+}
+.veyra-v2 .vx-master-profile .vx-profile-action .vx-pack-icon{
+ width:20px!important;height:20px!important;flex:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-card-more{
+ position:absolute;right:14px;z-index:19;
+ top:calc(var(--vx-profile-hero-height) + 8px);
+ height:38px;width:38px;display:grid;place-items:center;
+ border:1px solid #e4d6f6;border-radius:50%;
+ color:#6e32bd;background:#f1e9ff;box-shadow:0 3px 8px #4d347514;
+ transform:translate3d(0,0,0);will-change:transform;
+ pointer-events:auto;
+}
+.veyra-v2 .vx-master-profile .vx-profile-open-spacer{
+ height:calc(var(--vx-profile-hero-height) + 218px)!important;
+ width:100%;pointer-events:none;min-height:0;
+}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail{
+ position:sticky!important;top:var(--vx-profile-compact-height)!important;
+ z-index:80;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ width:100%;height:52px;min-height:52px;
+ margin:0;padding:0 16px;gap:0;box-sizing:border-box;
+ border:0;border-bottom:1px solid #e9def6;
+ border-radius:0;box-shadow:0 -2px 12px #624a8910;
+ background:#faf6ff!important;backdrop-filter:none!important;
+ overflow:hidden;isolation:isolate;
+}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
+ position:relative;z-index:2;
+ height:52px;min-height:52px;padding:5px 0;
+ border:0;border-radius:0;background:transparent;
+ color:#867598;font-size:clamp(11px,3.5vw,14px);
+ font-family:inherit;font-weight:690;
+}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active{
+ color:#502482;font-weight:850;
+}
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button::after{
+ display:none!important;content:none!important;
+}
+.veyra-v2 .vx-master-profile .vx-tab-underline{
+ position:absolute;left:16px;bottom:0;z-index:3;
+ width:calc((100% - 32px)/4);height:3px;
+ background:linear-gradient(90deg,#ae64fc,#7127e3);
+ border-radius:3px;pointer-events:none;
+ transform:translate3d(0,0,0);will-change:transform;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
+ position:relative;z-index:2;overflow:hidden;width:100%;
+ background:#faf6ff;touch-action:pan-y pinch-zoom;
+ overscroll-behavior-x:contain;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-track{
+ display:flex;flex-wrap:nowrap;width:100%;min-width:0;
+ transition:none!important;will-change:transform;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-page{
+ width:100%;flex:0 0 100%;min-width:0;box-sizing:border-box;
+ overflow:visible;padding:13px 12px calc(112px + env(safe-area-inset-bottom));
+ min-height:calc(100dvh - var(--vx-profile-compact-height) - 52px + 260px);
+ background:#faf6ff;
+}
+.veyra-v2 .vx-master-profile .vx-profile-swipe-page[aria-hidden="true"]{
+ pointer-events:none;user-select:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-section-body{
+ display:flex;flex-direction:column;gap:12px;
+ animation:none!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-surface{
+ background:white!important;border:0!important;
+ padding:15px 14px!important;border-radius:20px!important;
+ box-shadow:0 4px 16px #563d7510!important;
+ overflow:visible;
+}
+.veyra-v2 .vx-master-profile .vx-profile-surface h2{
+ font-size:18px;color:#302043;font-weight:900;line-height:1.3;
+ margin:0 0 10px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-surface p{
+ color:#554764;font-size:14px;line-height:1.5;margin:0;
+}
+.veyra-v2 .vx-master-profile .vx-member-interests-grid{
+ display:flex;gap:7px;flex-wrap:wrap;
+}
+.veyra-v2 .vx-master-profile .vx-member-interest{
+ display:inline-flex;align-items:center;gap:6px;
+ color:#7447b5!important;background:#eee4fc!important;border:0!important;
+ padding:7px 11px;border-radius:99px;font-size:12px;font-weight:730;
+}
+.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n+2){
+ background:#e7eeff!important;color:#4b66b0!important;
+}
+.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n){
+ background:#fcebe8!important;color:#bd6c52!important;
+}
+.veyra-v2 .vx-master-profile .vx-profile-goal-detail{
+ border-radius:15px;padding:12px;background:#eee5fd;color:#553877;
+ display:flex;gap:10px;align-items:center;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photos-grid{
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photos-grid button{
+ border-radius:18px;aspect-ratio:174/224;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photos-grid img{object-fit:cover}
+/* Own profile keeps persistent Android bottom navigation and editing tools. */
+.veyra-v2 .vx-master-profile.vx-own-member{
+ bottom:calc(75px + env(safe-area-inset-bottom,0px))!important;
+ z-index:20!important;
+}
+.veyra-v2 .vx-own-member .vx-own-section-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0 0 12px;
+}
+.veyra-v2 .vx-own-member .vx-own-section-heading h2{margin:0}
+.veyra-v2 .vx-own-member .vx-own-section-heading button,
+.veyra-v2 .vx-own-member .vx-own-pencil{
+ border:0;background:#f0e6fe;color:#7f37cd;
+ display:grid;place-items:center;width:32px;height:32px;border-radius:11px;
+}
+.veyra-v2 .vx-own-member .vx-own-tools>.own-shortcuts{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;
+ margin:9px 0 15px;
+}
+.veyra-v2 .vx-own-member .vx-own-tools>.own-shortcuts button{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ min-height:76px;gap:6px;border:1px solid #e9dbff!important;
+ background:#faf6ff!important;color:#7d3cd1!important;
+ border-radius:17px!important;padding:9px 1px!important;
+}
+.veyra-v2 .vx-own-member .vx-own-tools>.own-shortcuts b{font-size:10px}
+.veyra-v2 .vx-own-member .vx-own-tool-row{
+ display:flex;align-items:center;gap:12px;min-height:55px;width:100%;
+ border:0;border-top:1px solid #f0e8fa;background:transparent;
+ color:#50316e;font-size:13px;font-weight:750;text-align:left;
+}
+.veyra-v2 .vx-own-member .vx-own-tool-row span{margin-left:auto}
+body>.vx-member-native-header{z-index:110!important}
+body>.vx-member-native-header .vx-member-more{display:none!important}
+.vx-profile-gallery{z-index:350!important}
+@media(max-width:359px){
+ .veyra-v2 .vx-master-profile .vx-profile-scroller{
+  --vx-profile-hero-height:clamp(322px,51dvh,510px);
+  --vx-profile-compact-height:278px;
+ }
+ .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{height:278px}
+ .veyra-v2 .vx-master-profile .vx-profile-name-row h1{font-size:22px!important}
+ .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
+}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-master-profile .vx-profile-swipe-track{scroll-behavior:auto}
+}

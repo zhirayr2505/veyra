@@ -1111,7 +1111,11 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
  // dispatches sent only to the deprecated custom touch handlers.
  const viewport=await page.locator('.vx-profile-swipe-viewport').boundingBox();
  expect(viewport).toBeTruthy();
- const y=Math.min(viewport.y+210,viewport.y+viewport.height-40);
+ // The carousel starts behind the sticky hero; drag from the actually
+ // visible panel BELOW the 292px compact header and its 52px tabs.
+ const visibleTop=await scroller.evaluate(el=>el.getBoundingClientRect().top+
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))+72);
+ const y=Math.min(viewport.y+viewport.height-25,Math.max(viewport.y+210,visibleTop));
  await page.mouse.move(viewport.x+viewport.width-36,y);
  await page.mouse.down();
  await page.mouse.move(viewport.x+viewport.width*.53,y+2,{steps:8});
@@ -1127,4 +1131,44 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
  await expect(page.getByRole('tab',{name:'Ещё'})).toBeVisible();
  await page.getByRole('button',{name:'Изменить описание'}).click();
  await expect(page.locator('.vx-own-member')).toHaveCount(0);
+});
+
+
+test('VEYRA Telegram staged morph first holds the cover, then centers photo, then docks left',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller');
+ const photo=page.locator('.vx-profile-hero-photo');
+ const motion=page.locator('.vx-profile-motion');
+ const stage=await root.evaluate(el=>({
+  distance:el.querySelector('.vx-profile-open-spacer').offsetHeight-
+   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')),
+ }));
+ const d=stage.distance;
+ const opened=await photo.boundingBox();
+ const imageBefore=await photo.locator('img').count();
+ const setProgress=async p=>{
+  await root.evaluate((el,scroll)=>{el.scrollTop=scroll},d*p);
+  await expect.poll(()=>root.evaluate(el=>el.scrollTop)).toBeGreaterThanOrEqual(d*p-2);
+  await page.waitForTimeout(40);
+  return photo.boundingBox();
+ };
+ const early=await setProgress(.12);
+ expect(Math.abs(early.width-opened.width)).toBeLessThan(2);
+ expect(Math.abs(early.height-opened.height)).toBeLessThan(2);
+ const middle=await setProgress(.39);
+ expect(Math.abs(middle.width-190)).toBeLessThan(4);
+ expect(Math.abs(middle.height-194)).toBeLessThan(4);
+ expect(Math.abs(middle.x-(opened.width-middle.width)/2-opened.x)).toBeLessThan(5);
+ const compact=await setProgress(1);
+ expect(Math.abs(compact.width-98)).toBeLessThan(3);
+ expect(Math.abs(compact.height-98)).toBeLessThan(3);
+ expect(Math.abs(compact.x-opened.x-16)).toBeLessThan(3);
+ expect(await photo.locator('img').count()).toBe(imageBefore);
+ await expect(motion).toHaveAttribute('data-state','compact');
+ await setProgress(0);
+ await expect(motion).toHaveAttribute('data-state','expanded');
+ const returned=await photo.boundingBox();
+ expect(Math.abs(returned.height-opened.height)).toBeLessThan(3);
 });

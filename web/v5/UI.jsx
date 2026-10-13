@@ -30,16 +30,16 @@ export function InterestIcon({name,size=16,selected=false}){
  return slug?<img className="veyra-interest-icon" src={approvedBase+'02_interest_icons/svg/'+(selected?'selected':'normal')+'/'+slug+'.svg'} width={size} height={size} alt="" aria-hidden="true" draggable="false"/>:null;
 }
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
-export function Photo({id,className='',onClick,alt=''}){const element=useRef(null),[state,set]=useState(()=>({id,url:cachedPhoto(id),error:false}));
+export function Photo({id,className='',onClick,alt='',priority=false}){const element=useRef(null),[state,set]=useState(()=>({id,url:cachedPhoto(id),error:false}));
  useEffect(()=>{let live=true;const cached=cachedPhoto(id);set({id,url:cached,error:false});if(!id||cached)return;
   let observer;const load=()=>photoUrl(id).then(url=>{if(live)set({id,url,error:false})}).catch(()=>{if(live)set({id,url:'',error:true})});
-  if(element.current&&typeof IntersectionObserver!=='undefined'){
+  if(!priority&&element.current&&typeof IntersectionObserver!=='undefined'){
    observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}},{rootMargin:'180px 0px'});observer.observe(element.current);
   }else load();
   return()=>{live=false;observer?.disconnect()};
- },[id]);
+ },[id,priority]);
  const url=state.id===id?state.url:'',failed=!id||state.id===id&&state.error;
- return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading="lazy" decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><Icon name="camera" tone="dark" size={34}/></span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
+ return <div ref={element} className={'photo-box '+className} onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>{url?<img alt={alt} src={url} loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'auto'} decoding="async" draggable="false"/>:failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><Icon name="camera" tone="dark" size={34}/></span>:<span className="photo-skeleton" aria-hidden="true"/>}</div>;
 }
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
 const emptyIllustrations={match:'no_matches_yet',incoming:'no_incoming_likes',chat:'no_messages_yet',profile:'nothing_here_yet',discover:'no_results',nearby:'no_nearby_people',gift:'empty_gifts',default:'nothing_here_yet'};

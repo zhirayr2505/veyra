@@ -1,125 +1,178 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {animate} from 'motion';
+import {clamp,profileFrame} from './profileMotionMath.js';
 
-const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
-
-// Exactly one profile photo. Native scrolling controls progress while the
-// finger is down. Only transform, border radius and small visual details
-// change per frame; never animate layout width/height/left/top.
+// All moving elements are compositor-friendly layers with fixed geometry.
+// Layout is measured ONCE on mount/resize, never inside a scroll frame.
+// Native WebView owns touch momentum; we read scrollTop once per frame.
 export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
- const state=useRef({distance:1,frame:0,timer:0,touching:false,released:false,
-  snapping:false,animation:null,lastY:0,lastAt:0,velocity:0,hero:null,image:null,
-  width:1,height:1,lastProgress:-1});
- const paint=useCallback(()=>{
-  const s=state.current;if(s.frame)return;
-  s.frame=requestAnimationFrame(()=>{
-   s.frame=0;
-   const el=scrollRef.current,motion=motionRef.current;
-   if(!el||!motion)return;
-   const y=el.scrollTop,p=clamp(y/s.distance),now=performance.now();
-   if(s.lastAt&&now-s.lastAt>4&&now-s.lastAt<120&&!s.snapping){
-    s.velocity=.65*s.velocity+.35*(y-s.lastY)/(now-s.lastAt);
-   }
-   s.lastY=y;s.lastAt=now;
-   if(Math.abs(p-s.lastProgress)<.0002)return;
-   s.lastProgress=p;
-   motion.style.setProperty('--vx-collapse',p.toFixed(5));
-   const phase=p<.002?'expanded':p>.998?'compact':'transition';
-   if(motion.dataset.state!==phase)motion.dataset.state=phase;
-   if(!s.image || !s.image.isConnected)s.image=s.hero?.querySelector('.photo-box img')||null;
-   const sx=1-(1-98/s.width)*p;
-   const sy=1-(1-98/s.height)*p;
-   if(s.hero){
-    s.hero.style.setProperty('transform',
-     'translate3d('+(16*p).toFixed(2)+'px,'+(104*p).toFixed(2)+'px,0) scale('+
-       sx.toFixed(6)+','+sy.toFixed(6)+')','important');
-    s.hero.style.setProperty('border-radius',(p*50).toFixed(2)+'%','important');
-   }
-   if(s.image){
-    // The image remains proportionally scaled, never visibly stretched
-    // when the parent frame changes from portrait to a square avatar.
-    s.image.style.setProperty('transform','scaleY('+(sx/sy).toFixed(6)+')','important');
-   }
-  });
- },[scrollRef,motionRef]);
+ const state=useRef({
+  frame:0,timer:0,settleTimer:0,observed:null,
+  distance:1,width:1,height:1,lastProgress:-1,
+  touching:false,released:false,snapping:false,axis:null,
+  startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
+  releaseAt:0,velocity:0,releaseVelocity:0,
+  refs:null,resizeObserver:null,mutationObserver:null,
+ });
  const stop=useCallback(()=>{
   const s=state.current;
-  clearTimeout(s.timer);s.animation?.stop?.();s.animation=null;s.snapping=false;
+  clearTimeout(s.timer);clearTimeout(s.settleTimer);
+  s.snapping=false;s.released=false;
  },[]);
- const goTo=useCallback((to)=>{
-  const s=state.current,el=scrollRef.current;
-  if(!el)return;
-  stop();s.released=false;
-  const from=el.scrollTop;
-  if(Math.abs(to-from)<1){el.scrollTop=to;paint();return}
-  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
-   el.scrollTop=to;paint();return;
-  }
-  s.snapping=true;
-  const distance=Math.abs(to-from)/Math.max(1,s.distance);
-  s.animation=animate(from,to,{
-   type:'tween',duration:Math.max(.16,Math.min(.3,.16+distance*.12)),
-   ease:[.22,1,.36,1],
-   onUpdate:value=>{if(!s.touching){el.scrollTop=value;paint()}},
-   onComplete:()=>{s.snapping=false;s.animation=null;s.released=false;el.scrollTop=to;paint();}
+ const paint=useCallback(()=>{
+  const s=state.current;
+  if(s.frame)return;
+  s.frame=requestAnimationFrame(()=>{
+   s.frame=0;
+   const scroller=scrollRef.current,motion=motionRef.current,parts=s.refs;
+   if(!scroller||!motion||!parts?.hero)return;
+   const now=performance.now();
+   const scrollY=scroller.scrollTop;
+   const p=clamp(scrollY/s.distance);
+   if(s.lastAt>0&&!s.snapping&&now-s.lastAt>4&&now-s.lastAt<120){
+    const instant=(scrollY-s.lastY)/(now-s.lastAt);
+    s.velocity=s.velocity*.55+instant*.45;
+   }
+   s.lastY=scrollY;s.lastAt=now;
+   if(Math.abs(p-s.lastProgress)<.00015)return;
+   s.lastProgress=p;
+   const f=profileFrame(p,s.width,s.height,s.compactHeight);
+   const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
+   const scaleX=f.width/s.width,scaleY=f.height/s.height;
+   const scale=' scale('+scaleX.toFixed(6)+','+scaleY.toFixed(6)+')';
+   parts.hero.style.transform=translate(f.x,f.y)+scale;
+   parts.hero.style.borderRadius=f.radius.toFixed(2)+'%';
+   // Compensate for portrait-to-square squash on the image itself.
+   if(!parts.image?.isConnected){
+    parts.image=parts.hero.querySelector('.photo-box img');
+   }
+   if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
+   if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
+   if(parts.lip){
+    parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
+    parts.lip.style.opacity=f.sheetLipOpacity.toFixed(3);
+   }
+   if(parts.backdrop)parts.backdrop.style.opacity=f.backdropOpacity.toFixed(3);
+   if(parts.identity){
+    parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
+    parts.identity.style.opacity=f.nameOpacity.toFixed(3);
+   }
+   if(parts.actions)parts.actions.style.transform=translate(0,f.actionY-(s.height+123));
+   if(parts.more)parts.more.style.transform=translate(0,f.moreY-(s.height+8));
+   if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
+   if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
+   if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
+   if(parts.online)parts.online.style.opacity=f.compactOnlineOpacity.toFixed(3);
+   if(parts.shade)parts.shade.style.opacity=f.shadeOpacity.toFixed(3);
+   const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
+   if(motion.dataset.state!==phase)motion.dataset.state=phase;
   });
- },[scrollRef,stop,paint]);
+ },[scrollRef,motionRef]);
  const snap=useCallback(()=>{
   const s=state.current,el=scrollRef.current;
-  if(!el||s.touching||s.snapping||!s.released)return;
+  if(!el||s.touching||!s.released||s.snapping)return;
   const y=el.scrollTop,d=s.distance;
+  if(y<1||y>=d-1){s.released=false;return}
+  // Do not fight native momentum: scrollend, or >=110ms without movement.
+  if(performance.now()-s.lastScrollAt<105&&performance.now()-s.releaseAt<680){
+   s.timer=setTimeout(snap,68);return;
+  }
   s.released=false;
-  if(y<1||y>=d-1)return;
-  const prediction=y+clamp(s.velocity,-1.3,1.3)*85;
-  goTo(prediction>=d*.5?d:0);
- },[scrollRef,goTo]);
+  const projected=y+Math.max(-1.4,Math.min(1.4,s.releaseVelocity))*83;
+  const target=projected>d*.5?d:0;
+  s.snapping=true;
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+   el.scrollTop=target;s.snapping=false;paint();return;
+  }
+  // WebView-native smooth scroll, not a JS loop writing scrollTop.
+  el.scrollTo({top:target,behavior:'smooth'});
+  s.settleTimer=setTimeout(()=>{s.snapping=false;paint()},470);
+ },[scrollRef,paint]);
  const queueSnap=useCallback(()=>{
-  const s=state.current;
-  clearTimeout(s.timer);
-  if(!s.released||s.touching||s.snapping)return;
-  s.timer=setTimeout(snap,130);
+  const s=state.current;clearTimeout(s.timer);
+  if(s.released&&!s.touching&&!s.snapping)s.timer=setTimeout(snap,110);
  },[snap]);
- const onScroll=useCallback(()=>{paint();queueSnap()},[paint,queueSnap]);
- const onTouchStart=useCallback(()=>{
-  const s=state.current;stop();s.touching=true;s.released=false;
-  s.lastAt=0;s.velocity=0;
- },[stop]);
+ const onScroll=useCallback(()=>{
+  state.current.lastScrollAt=performance.now();paint();
+ },[paint]);
+ const onTouchStart=useCallback(e=>{
+  const s=state.current,wasSnapping=s.snapping;stop();
+  s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
+  s.startX=e.touches?.[0]?.clientX??0;
+  s.startY=e.touches?.[0]?.clientY??0;
+  // Stops any native finishing scroll when a fresh finger takes over.
+  const el=scrollRef.current;
+  if(el&&wasSnapping)el.scrollTo({top:el.scrollTop,behavior:'instant'});
+ },[stop,scrollRef]);
+ const onTouchMove=useCallback(e=>{
+  const s=state.current;
+  if(s.axis||!e.touches?.length)return;
+  const dx=e.touches[0].clientX-s.startX;
+  const dy=e.touches[0].clientY-s.startY;
+  if(Math.max(Math.abs(dx),Math.abs(dy))>9)s.axis=Math.abs(dx)>Math.abs(dy)*1.13?'x':'y';
+ },[]);
  const onTouchEnd=useCallback(()=>{
-  const s=state.current;s.touching=false;s.released=true;queueSnap();
+  const s=state.current;
+  s.touching=false;
+  if(s.axis==='x'){s.released=false;return}
+  s.released=true;s.releaseVelocity=s.velocity;s.releaseAt=performance.now();
+  queueSnap();
  },[queueSnap]);
- const onWheel=useCallback(()=>{state.current.released=true;queueSnap()},[queueSnap]);
- const compactForTab=useCallback(()=>goTo(state.current.distance),[goTo]);
+ const onWheel=useCallback(()=>{
+  const s=state.current;s.released=true;
+  s.releaseVelocity=s.velocity;s.releaseAt=performance.now();queueSnap();
+ },[queueSnap]);
  const calibrate=useCallback(()=>{
-  const s=state.current,el=scrollRef.current,stage=stageRef.current,motion=motionRef.current;
-  if(!el||!stage||!motion)return;
-  s.hero=motion.querySelector('.vx-profile-hero-photo');
-  s.image=s.hero?.querySelector('.photo-box img')||null;
-  s.width=Math.max(1,s.hero?.offsetWidth||el.clientWidth);
-  s.height=Math.max(1,s.hero?.offsetHeight||420);
-  const compact=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||294;
-  s.distance=Math.max(1,stage.offsetHeight-compact);
-  s.lastProgress=-1;
-  paint();
- },[scrollRef,stageRef,motionRef,paint]);
+  const s=state.current,el=scrollRef.current,motion=motionRef.current,stage=stageRef.current;
+  if(!el||!motion||!stage)return;
+  const hero=motion.querySelector('.vx-profile-hero-photo');
+  if(!hero)return;
+  s.width=Math.max(1,hero.offsetWidth);
+  s.height=Math.max(1,hero.offsetHeight);
+  s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
+  s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
+  s.refs={
+   hero,image:hero.querySelector('.photo-box img'),
+   panel:motion.querySelector('.vx-profile-card-backdrop'),
+   lip:motion.querySelector('.vx-profile-sheet-lip'),
+   backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
+   identity:motion.querySelector('.vx-profile-identity'),
+   actions:motion.querySelector('.vx-profile-primary-actions'),
+   more:motion.querySelector('.vx-profile-card-more'),
+   goal:motion.querySelector('.vx-profile-goal'),
+   bars:motion.querySelector('.vx-profile-photo-bars'),
+   nav:motion.querySelector('.vx-profile-photo-nav'),
+   online:motion.querySelector('.vx-profile-online'),
+   shade:motion.querySelector('.vx-profile-photo-shade'),
+  };
+  s.lastProgress=-1;paint();
+ },[scrollRef,motionRef,stageRef,paint]);
  useLayoutEffect(()=>{
   if(!ready)return;
-  const el=scrollRef.current;
+  const s=state.current,el=scrollRef.current;
   calibrate();
-  const obs=typeof ResizeObserver==='function'?new ResizeObserver(calibrate):null;
-  if(stageRef.current)obs?.observe(stageRef.current);
-  // Photo can arrive asynchronously, after the initial profile layout.
-  const onResize=()=>calibrate();
-  const onScrollEnd=()=>queueSnap();
-  el?.addEventListener('scrollend',onScrollEnd,{passive:true});
-  window.addEventListener('resize',onResize,{passive:true});
-  window.visualViewport?.addEventListener('resize',onResize,{passive:true});
-  return()=>{
-   const s=state.current;stop();cancelAnimationFrame(s.frame);s.frame=0;
-   obs?.disconnect();
-   el?.removeEventListener('scrollend',onScrollEnd);
-   window.removeEventListener('resize',onResize);
-   window.visualViewport?.removeEventListener('resize',onResize);
+  const resize=()=>calibrate();
+  s.resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(resize):null;
+  if(stageRef.current)s.resizeObserver?.observe(stageRef.current);
+  if(el)s.resizeObserver?.observe(el);
+  const hero=s.refs?.hero;
+  s.mutationObserver=hero&&typeof MutationObserver!=='undefined'?new MutationObserver(()=>{
+   if(s.refs){s.refs.image=hero.querySelector('.photo-box img');s.lastProgress=-1;paint()}
+  }):null;
+  s.mutationObserver?.observe(hero,{childList:true,subtree:true});
+  const onScrollEnd=()=>{
+   if(s.snapping){s.snapping=false;s.released=false;clearTimeout(s.settleTimer)}
+   else if(s.released&&!s.touching){clearTimeout(s.timer);snap()}
   };
- },[ready,calibrate,queueSnap,stop,scrollRef,stageRef]);
- return {onScroll,onTouchStart,onTouchEnd,onWheel,compactForTab,calibrate};
+  el?.addEventListener('scrollend',onScrollEnd,{passive:true});
+  window.addEventListener('resize',resize,{passive:true});
+  window.visualViewport?.addEventListener('resize',resize,{passive:true});
+  return()=>{
+   stop();cancelAnimationFrame(s.frame);s.frame=0;
+   s.resizeObserver?.disconnect();s.mutationObserver?.disconnect();
+   el?.removeEventListener('scrollend',onScrollEnd);
+   window.removeEventListener('resize',resize);
+   window.visualViewport?.removeEventListener('resize',resize);
+  };
+ },[ready,calibrate,paint,scrollRef,stageRef,snap,stop]);
+ return {onScroll,onTouchStart,onTouchMove,onTouchEnd,onWheel,calibrate};
 }
