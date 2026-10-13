@@ -15,6 +15,9 @@
 .veyra-v2 .vx-dating-stage02 .vx-logo{
  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
  display:block;width:clamp(113px,34vw,146px);height:44px;object-fit:contain;
+ /* DiscoveryHub.css left-aligns the paint inside a wider image box. That made
+    the approved wordmark LOOK off-centre even while its IMG box was centred. */
+ object-position:center center!important;
  pointer-events:none;z-index:1;
 }
 .veyra-v2 .vx-dating-stage02 .vx-crown,
