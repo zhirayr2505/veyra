@@ -16,13 +16,12 @@ body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::bef
 }
 /* The opaque white lip covers the last 30px of the opened photograph;
    no z-index flips while the photograph is compacting into the avatar. */
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="sheet"] .vx-profile-sheet-lip{
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="true"] .vx-profile-sheet-lip{
  z-index:11!important;
  border-radius:35px 35px 0 0;
  background:#fffcff;
 }
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="center"] .vx-profile-sheet-lip,
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="avatar"] .vx-profile-sheet-lip{
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="false"] .vx-profile-sheet-lip{
  z-index:6!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
