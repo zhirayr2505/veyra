@@ -1412,11 +1412,16 @@ test('Dragging from photo thumbnails changes the horizontal tab without opening 
  const tile=page.locator('.vx-profile-photos-grid button').first();
  await expect(tile).toBeVisible();
  const box=await tile.boundingBox();
- await page.mouse.move(box.x+box.width*.7,box.y+box.height*.5);
+ const viewport=await page.locator('.vx-profile-swipe-viewport').boundingBox();
+ // Start ON the first photo, then drag RIGHT towards the previous tab.
+ // Keep the pointer inside the WebView for the entire gesture. Dragging
+ // outside the 390px viewport cancels the native Embla pointer gesture.
+ const startX=box.x+box.width*.7, y=box.y+box.height*.5;
+ await page.mouse.move(startX,y);
  await page.mouse.down();
- await page.mouse.move(box.x-180,box.y+box.height*.5,{steps:12});
+ await page.mouse.move(viewport.x+viewport.width-27,y,{steps:16});
  await page.mouse.up();
- await expect.poll(()=>tabs.getByRole('tab',{name:'Подарки'}).getAttribute('aria-selected'),
+ await expect.poll(()=>tabs.getByRole('tab',{name:'О себе'}).getAttribute('aria-selected'),
   {timeout:4000}).toBe('true');
  await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
 });
