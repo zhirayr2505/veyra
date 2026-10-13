@@ -729,7 +729,9 @@ test('Telegram Android fullscreen keeps dating wordmark between native controls 
  for(const label of ['Для вас','Рядом','Лента']){
   await page.getByRole('tab',{name:label}).click();
   await expect(page.getByRole('tab',{name:label})).toHaveAttribute('aria-selected','true');
-  const top=await page.locator('.vx-dating-stage02 .vx-tabs').evaluate(e=>e.getBoundingClientRect().top);
+  // Each tab restores its own window scroll; test document layout, not the
+  // transient viewport Y after switching a long and a short panel.
+  const top=await page.locator('.vx-dating-stage02 .vx-tabs').evaluate(e=>e.getBoundingClientRect().top+window.scrollY);
   expect(top).toBeGreaterThanOrEqual(136);
  }
 });
