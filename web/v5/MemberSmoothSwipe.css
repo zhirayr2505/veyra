@@ -113,3 +113,25 @@
 @media(prefers-reduced-motion:reduce){
  .veyra-v2 .vx-master-profile .vx-profile-swipe-track{transition:none!important}
 }
+
+/* The photograph never changes layout dimensions during scroll. It is one
+   composited layer, FLIP-translated/scaled from full-bleed to 96px avatar.
+   Relative border-radius grows simultaneously, eliminating square-first jank. */
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
+ top:0!important;left:0!important;
+ width:100%!important;height:var(--vx-profile-hero-height)!important;
+ min-width:0!important;min-height:0!important;
+ border:0!important;
+ transform-origin:0 0!important;
+ transform:translate3d(calc(16px * var(--vx-collapse)),calc(94px * var(--vx-collapse)),0)
+  scale(
+   calc(1 - (1 - var(--vx-end-scale-x,.246)) * var(--vx-collapse)),
+   calc(1 - (1 - var(--vx-end-scale-y,.213)) * var(--vx-collapse))
+  )!important;
+ will-change:transform,border-radius;
+}
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box img{
+ /* Compensate unequal X/Y shrink and enlarge face slightly at avatar size. */
+ transform:scaleY(calc(1 + .155 * var(--vx-collapse))) scale(calc(1 + .19 * var(--vx-collapse))) translateZ(0)!important;
+ transform-origin:50% 38%;
+}
