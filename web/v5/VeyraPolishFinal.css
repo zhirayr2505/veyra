@@ -1,0 +1,166 @@
+/* VEYRA final mobile polish: viewport-locked feed and interactive profile morph.
+   Loaded after all approved assets / existing overrides. */
+html.veyra-feed-viewport-locked,html.veyra-feed-viewport-locked body{
+ overflow:hidden!important;overscroll-behavior:none!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked{
+ width:100%;overscroll-behavior:none!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked #vx-panel-feed,
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover,
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .feed-content{
+ max-height:none;overflow:visible;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage{
+ width:100%!important;max-width:100%;padding-bottom:48px!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage>.feed-photo,
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage>.feed-photo{
+ height:var(--vx-feed-photo-height,calc(100dvh - 295px))!important;
+ min-height:0!important;max-height:none!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage>.feed-actions{
+ left:50%!important;right:auto!important;width:calc(100% - 24px)!important;
+ max-width:440px!important;transform:translateX(-50%)!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-items:center!important;
+ margin:0!important;gap:clamp(3px,1vw,8px)!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .feed-action{
+ display:grid!important;place-items:center!important;min-width:0!important;
+ width:100%!important;margin:0!important;padding:0!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .feed-action-circle{
+ width:clamp(49px,14vw,66px)!important;height:clamp(49px,14vw,66px)!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .action-undo .feed-action-circle{
+ width:clamp(47px,13vw,59px)!important;height:clamp(47px,13vw,59px)!important;
+ background:linear-gradient(145deg,#fff,#f2e9ff)!important;border:2px solid #fff!important;
+ box-shadow:0 8px 22px #46247647,0 0 0 1px #b899e9ab!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .action-like .feed-action-circle{
+ width:clamp(68px,19vw,87px)!important;height:clamp(68px,19vw,87px)!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .action-undo:disabled{
+ opacity:1!important;filter:none!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .action-undo:disabled .kit-icon{
+ opacity:.55;filter:grayscale(.1)!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .action-undo:disabled .feed-action-circle{
+ opacity:1!important;box-shadow:0 8px 19px #46247635!important;
+}
+.veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .veyra-card-caption.hero-info{
+ bottom:clamp(49px,9vh,66px)!important;
+}
+/* The goal and three interests remain legible on short phones as well. */
+@media(max-height:680px){
+ .veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .veyra-card-caption.hero-info{bottom:50px!important;gap:3px!important}
+ .veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .veyra-card-bio{display:-webkit-box;-webkit-line-clamp:1}
+ .veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage .feed-actions{height:81px!important;min-height:81px!important}
+ .veyra-v2 .vx-dating-stage02.vx-feed-locked .discover .vx-feed-card-stage{padding-bottom:44px!important}
+}
+
+/* Profile photo collapses visually into a persistent branded avatar/name rail.
+   The "--vx-member-collapse" variable is driven by actual photo displacement
+   even if Telegram scrolls a nested element rather than window. */
+.veyra-v2 .member-feed-profile .vx-member-floating-header{
+ isolation:isolate;filter:none!important;pointer-events:none;
+}
+.veyra-v2 .member-feed-profile .vx-member-floating-header .vx-member-floating-logo{
+ position:relative;z-index:5;filter:drop-shadow(0 2px 8px #a978c738);
+}
+.veyra-v2 .member-feed-profile .vx-member-compact-details{
+ visibility:visible!important;opacity:var(--vx-member-collapse,0)!important;
+ transform:translateY(calc((1 - var(--vx-member-collapse,0)) * -18px)) scale(calc(.94 + .06 * var(--vx-member-collapse,0)))!important;
+ transition:none!important;pointer-events:none;
+ top:calc(100% + 7px);padding:9px 13px;
+ box-shadow:0 9px 26px #4c277b2e;
+}
+.veyra-v2 .member-feed-profile .vx-member-floating-header:not(.is-scrolling) .vx-member-compact-details{
+ visibility:hidden!important;
+}
+.veyra-v2 .member-feed-profile .vx-member-mini-copy em{
+ font-size:10px;line-height:1.2;font-style:normal;font-weight:780;color:#813bce;
+ overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.veyra-v2 .member-feed-profile .vx-member-mini-avatar{
+ width:clamp(48px,14vw,57px);height:clamp(48px,14vw,57px);
+ border-radius:50%;transform:scale(calc(.82 + .18 * var(--vx-member-collapse,0)));
+ transform-origin:left center;
+}
+.veyra-v2 .member-feed-profile .vx-member-more{
+ top:55px!important;right:17px!important;z-index:6;
+ background:#fff!important;border:1px solid #e6d5f8!important;
+ box-shadow:0 5px 19px #5f379446!important;
+}
+.veyra-v2 .member-feed-profile .vx-member-place-goal{
+ display:flex;align-items:center;flex-wrap:wrap;gap:9px 12px;margin-top:12px;
+}
+.veyra-v2 .member-feed-profile .vx-member-place-goal .member-summary-location{margin:0}
+.veyra-v2 .member-feed-profile .vx-member-goal{
+ display:inline-flex;align-items:center;gap:6px;max-width:100%;
+ padding:7px 10px;border:1px solid #d9beff;border-radius:999px;
+ font-size:11px;font-weight:780;color:#7737c8;background:linear-gradient(125deg,#f4eafe,#ece0ff);
+ box-shadow:inset 0 1px 2px #ffffffbd;
+}
+.veyra-v2 .member-feed-profile .member-icon-actions{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));
+ justify-items:stretch;align-items:stretch;gap:clamp(7px,2.5vw,13px);
+}
+.veyra-v2 .member-feed-profile .member-icon-actions>.member-icon-control{
+ display:flex!important;flex-direction:column;align-items:center;justify-content:center;
+ width:100%!important;min-width:0!important;min-height:91px!important;
+ gap:9px;padding:12px 7px!important;
+ border-radius:22px!important;
+}
+.veyra-v2 .member-feed-profile .member-icon-actions>.member-icon-control .kit-icon{
+ width:28px!important;height:28px!important;
+}
+.veyra-v2 .member-feed-profile .member-icon-actions>.member-icon-control span{
+ font-size:clamp(10px,2.6vw,12px);font-weight:780;white-space:nowrap;
+}
+.veyra-v2 .member-feed-profile .member-icon-actions>.vx-member-super{
+ background:linear-gradient(160deg,#f9f4ff,#efe4ff)!important;
+ border-color:#d7bbfb!important;color:#7430be!important;
+}
+.veyra-v2 .member-feed-profile .vx-member-interests-card h3{margin-bottom:12px}
+.veyra-v2 .member-feed-profile .vx-member-interests-grid{
+ display:flex!important;flex-wrap:wrap;align-items:flex-start;gap:9px;
+}
+.veyra-v2 .member-feed-profile .vx-member-interest{
+ display:inline-flex;align-items:center;gap:7px;min-height:39px;
+ background:linear-gradient(140deg,#f7f0ff,#eee2ff);border:1px solid #e6d6fb;
+ padding:9px 12px;border-radius:15px;font-size:12px;font-weight:740;color:#6933ab;
+ box-shadow:inset 0 1px #fff;white-space:nowrap;
+}
+.veyra-v2 .member-feed-profile .vx-member-interest svg{
+ width:20px;height:20px;flex:none;stroke:#722eda;fill:none;
+}
+/* A real anchored popover is mounted in document.body so Telegram fullscreen
+   layering / clipped photo containers cannot swallow taps or hide its options. */
+.vx-member-menu-backdrop{
+ position:fixed;inset:0;z-index:1000;background:transparent;
+}
+.vx-member-popup-menu{
+ position:fixed;top:clamp(113px,15vh,155px);right:clamp(12px,4vw,27px);
+ z-index:1001;width:min(275px,calc(100vw - 26px));padding:15px 11px 11px;
+ border-radius:23px;border:1px solid #eee0ff;background:#fffbff;
+ box-shadow:0 15px 50px #3017494f;
+ animation:vxMemberMenuIn .2s ease-out both;
+}
+.vx-member-popup-menu>strong{display:block;padding:5px 12px 12px;font-size:14px;color:#301845}
+.vx-member-popup-menu .menu-item{
+ display:flex;width:100%;min-height:46px;align-items:center;gap:11px;
+ color:#553579;font-size:14px;font-weight:700;border:0;
+ border-radius:12px;background:transparent;padding:10px 12px;text-align:left;
+}
+.vx-member-popup-menu .menu-item:active{background:#f0e6ff}
+.vx-member-popup-menu .menu-item.danger{color:#bd4675}
+.vx-member-popup-menu .vx-member-menu-close{
+ width:100%;margin-top:6px;padding:11px;border:1px solid #e0d0f6;
+ border-radius:14px;background:#f7f0ff;color:#7b42bd;font-weight:750;
+}
+@keyframes vxMemberMenuIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){
+ .vx-member-popup-menu{animation:none!important}
+}

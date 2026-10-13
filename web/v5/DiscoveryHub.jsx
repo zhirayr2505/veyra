@@ -209,10 +209,47 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
   {previewPerson&&<PersonQuickPreview person={previewPerson} kind={kind} onClose={()=>setPreviewPerson(null)} onOpenProfile={id=>{setPreviewPerson(null);onProfile(id)}}/>}
  </div>;
 }
-export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
+export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
  const [reactionRefresh,setReactionRefresh]=useState(0);
  const scroll=useRef({feed:0,for_you:0,nearby:0}),scrollTimeout=useRef(null);
+ const hubRef=useRef(null);
+ // Main Feed is a fixed-height scene. Nearby / For You retain natural scrolling.
+ // Measure the actual Telegram WebView plus the bottom nav; do not guess from vh.
+ useEffect(()=>{
+  if(directory||!freezeFeed||tab!=='feed')return;
+  const root=document.documentElement,hub=hubRef.current;
+  if(!hub)return;
+  const previousOverflow=root.style.overflow,previousBodyOverflow=document.body.style.overflow;
+  const previousScroll=window.scrollY;
+  root.classList.add('veyra-feed-viewport-locked');
+  root.style.overflow='hidden';document.body.style.overflow='hidden';
+  window.scrollTo(0,0);
+  const keepAtTop=()=>{if(window.scrollY>0){window.scrollTo({top:0,behavior:'instant'});if(document.scrollingElement)document.scrollingElement.scrollTop=0;}};
+  window.addEventListener('scroll',keepAtTop,{passive:true});
+  keepAtTop();
+  let frame=0;
+  const fit=()=>{
+   cancelAnimationFrame(frame);
+   frame=requestAnimationFrame(()=>{
+    const panel=hub.querySelector('#vx-panel-feed');
+    const nav=document.querySelector('.bottom-nav');
+    if(!panel)return;
+    const top=panel.getBoundingClientRect().top;
+    const bottom=nav?.getBoundingClientRect().top??(window.visualViewport?.height||window.innerHeight)-72;
+    const height=Math.max(225,Math.floor(bottom-top-12-48));
+    hub.style.setProperty('--vx-feed-photo-height',height+'px');
+   });
+  };
+  fit();
+  const observer=typeof ResizeObserver==='function'?new ResizeObserver(fit):null;
+  observer?.observe(hub.querySelector('.vx-head')||hub);
+  const strip=hub.querySelector('.vx-demo-strip');if(strip)observer?.observe(strip);
+  const tabs=hub.querySelector('.vx-tabs');if(tabs)observer?.observe(tabs);
+  window.addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
+  return()=>{cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener('resize',fit);window.visualViewport?.removeEventListener('resize',fit);root.classList.remove('veyra-feed-viewport-locked');root.style.overflow=previousOverflow;document.body.style.overflow=previousBodyOverflow;window.removeEventListener('scroll',keepAtTop);hub.style.removeProperty('--vx-feed-photo-height');window.scrollTo(0,Math.max(0,previousScroll))};
+ },[directory,freezeFeed,tab,demoStatus,demoMode]);
+
  useEffect(()=>()=>{if(scrollTimeout.current)cancelAnimationFrame(scrollTimeout.current)},[]);
  const switchTab=next=>{
   if(next===tab)return;
@@ -233,7 +270,7 @@ export function DiscoveryHub({directory=false,filters,profile,onProfile,onMatch,
    onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
    refreshTick={refreshTick+reactionRefresh}/>
  </section>;
- return <section className="vx-hub vx-dating-stage02" aria-label="Раздел знакомств VEYRA">
+ return <section ref={hubRef} className={"vx-hub vx-dating-stage02"+(freezeFeed&&tab==="feed"?" vx-feed-locked":"")} aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
    <button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
