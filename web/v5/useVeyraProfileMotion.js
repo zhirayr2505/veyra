@@ -85,6 +85,22 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.online)parts.online.style.opacity=f.compactOnlineOpacity.toFixed(3);
    if(parts.shade)parts.shade.style.opacity=f.shadeOpacity.toFixed(3);
+   // Only the JS fallback needs these extra visual layers; ScrollTimeline
+   // animates them natively in Chromium without extra hot-path writes.
+   if(parts.blur)parts.blur.style.opacity=(f.progress<=.24?0:f.progress>=.86?1:(()=>{
+    const t=(f.progress-.24)/.62;return t*t*(3-2*t);
+   })()).toFixed(3);
+   if(parts.ring)parts.ring.style.opacity=(f.progress<=.82?0:f.progress>=.99?1:(()=>{
+    const t=(f.progress-.82)/.17;return t*t*(3-2*t);
+   })()).toFixed(3);
+   if(parts.onlineDot)parts.onlineDot.style.opacity=(f.progress<=.85?0:f.progress>=1?1:(()=>{
+    const t=(f.progress-.85)/.15;return t*t*(3-2*t);
+   })()).toFixed(3);
+   if(parts.grabber){
+    parts.grabber.style.transform=translate(0,f.sheetY-(s.height-30));
+    parts.grabber.style.opacity=f.progress>=.24?'0':f.progress<=.03?'1':
+     (1-((f.progress-.03)/.21)**2*(3-2*(f.progress-.03)/.21)).toFixed(3);
+   }
    const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
    if(motion.dataset.state!==phase)motion.dataset.state=phase;
    const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
@@ -173,6 +189,10 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    nav:motion.querySelector('.vx-profile-photo-nav'),
    online:motion.querySelector('.vx-profile-online'),
    shade:motion.querySelector('.vx-profile-photo-shade'),
+   blur:motion.querySelector('.vx-profile-blurred-header'),
+   ring:motion.querySelector('.vx-profile-avatar-ring'),
+   onlineDot:motion.querySelector('.vx-profile-avatar-online-dot'),
+   grabber:motion.querySelector('.vx-profile-sheet-grabber'),
   };
   s.nativeAnimation=createProfileScrollAnimations(el,s.refs,{
    width:s.width,height:s.height,distance:s.distance,compactHeight:s.compactHeight

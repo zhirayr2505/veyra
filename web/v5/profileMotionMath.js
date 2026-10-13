@@ -37,22 +37,24 @@ export function profileFrame(progress,width,height,compactHeight=292){
  const actionsFrom=h+123,actionsTo=216;
  const menuFrom=h+8,menuTo=113;
  const contentTop=compactHeight;
- // Avoid the face and name crossing in the transitional 0.6-0.8 zone.
- const identityOcclusion=1-segment(p,.49,.6)+segment(p,.76,.90);
+ // The photo now sits above identity in a permanent stacking order.
+ // Keep the text fully opaque: the moving photo clips any transient overlap.
  const xName=110*segment(p,.50,.91);
  return {
   ...frame,
   sheetY:mix(expandedPanelY,compactPanelY,sheet),
   nameX:xName,
   nameY:mix(nameFrom,nameTo,content),
-  nameOpacity:clamp(identityOcclusion),
+  nameOpacity:1,
   actionY:mix(actionsFrom,actionsTo,actionsProgress),
   moreY:mix(menuFrom,menuTo,content),
   photoExtrasOpacity:1-segment(p,.07,.19),
   compactOnlineOpacity:segment(p,.78,.97),
   shadeOpacity:1-segment(p,.12,.43),
-  goalX:-120*segment(p,.48,.90),
-  goalY:26*segment(p,.48,.90),
+  // Keep location and goal on the SAME line at both approved endpoints.
+  // Both follow the existing identity transform; no separate flight path.
+  goalX:0,
+  goalY:0,
   compactHeight:contentTop,
  };
 }

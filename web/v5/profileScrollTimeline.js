@@ -4,6 +4,10 @@ import {profileFrame} from './profileMotionMath.js';
 // progress to its actual distance, then hold the compact frame through
 // the remaining content scroll. These keyframes are built ONLY on mount/resize.
 const rounded=n=>Math.round(n*1e5)/1e5;
+const fade=(p,a,b)=>{
+ const t=Math.max(0,Math.min(1,(p-a)/(b-a)));
+ return t*t*(3-2*t);
+};
 export const profileTranslate=(x,y)=>'translate3d('+x.toFixed(3)+'px,'+y.toFixed(3)+'px,0)';
 export function buildProfileScrollKeyframes(width,height,distance,maxScroll,compactHeight=292){
  const full=Math.max(1,maxScroll),limit=Math.min(1,Math.max(1,distance)/full);
@@ -11,7 +15,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
  const tracks={hero:[],image:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],
-  bars:[],nav:[],online:[],shade:[]};
+  bars:[],nav:[],online:[],shade:[],blur:[],ring:[],onlineDot:[],grabber:[]};
  const append=(offset,frame)=>{
   const f=frame,scaleX=f.width/width,scaleY=f.height/height;
   const transform=profileTranslate(f.x,f.y)+' scale('+scaleX.toFixed(7)+','+scaleY.toFixed(7)+')';
@@ -27,6 +31,15 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.nav.push({offset,opacity:f.photoExtrasOpacity});
   tracks.online.push({offset,opacity:f.compactOnlineOpacity});
   tracks.shade.push({offset,opacity:f.shadeOpacity});
+  // Decorative layers only: the approved hero trajectory stays unchanged.
+  tracks.blur.push({offset,opacity:fade(f.progress,.24,.86)});
+  tracks.ring.push({offset,opacity:fade(f.progress,.82,.99)});
+  tracks.onlineDot.push({offset,opacity:fade(f.progress,.85,1)});
+  tracks.grabber.push({
+   offset,
+   opacity:1-fade(f.progress,.03,.24),
+   transform:profileTranslate(0,f.sheetY-(height-30)),
+  });
  };
  for(const p of unique)append(rounded(p*limit),profileFrame(p,width,height,compactHeight));
  if(limit<1)append(1,profileFrame(1,width,height,compactHeight));

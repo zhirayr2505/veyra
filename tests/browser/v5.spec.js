@@ -1085,7 +1085,7 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
- expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(250, 246, 255)');
+ expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(252, 249, 255)');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
@@ -1252,4 +1252,59 @@ test('VEYRA drives profile transform with Chromium ScrollTimeline when available
   await root.evaluate(el=>el.scrollTop=0);
   await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-start.width),{timeout:4500}).toBeLessThan(5);
  }
+});
+
+test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and premium actions',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const root=page.locator('.vx-profile-scroller');
+ const motion=page.locator('.vx-profile-motion');
+ const hero=page.locator('.vx-profile-hero-photo');
+ const blur=page.locator('.vx-profile-blurred-header');
+ const ring=page.locator('.vx-profile-avatar-ring');
+ const grip=page.locator('.vx-profile-sheet-grabber');
+ const lip=page.locator('.vx-profile-sheet-lip');
+ const actions=page.locator('.vx-profile-primary-actions');
+ const primary=actions.locator('.vx-profile-action.primary');
+ await expect(blur.locator('.photo-box')).toHaveCount(1);
+ await expect(grip).toHaveCSS('opacity','1');
+ await expect(primary).toContainText('Нравится');
+ const visual=await primary.evaluate(el=>({bg:getComputedStyle(el).backgroundImage,
+  radius:getComputedStyle(el).borderRadius,height:el.getBoundingClientRect().height}));
+ expect(visual.bg).toContain('linear-gradient');
+ expect(visual.height).toBeGreaterThan(49);
+ expect(parseFloat(visual.radius)).toBeGreaterThan(20);
+ const z=await page.evaluate(()=>({
+  sheet:getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex,
+  photo:getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex,
+  identity:getComputedStyle(document.querySelector('.vx-profile-identity')).zIndex
+ }));
+ expect(Number(z.sheet)).toBeLessThan(Number(z.photo));
+ expect(Number(z.identity)).toBeLessThan(Number(z.photo));
+ const distance=await root.evaluate(el=>
+  el.querySelector('.vx-profile-open-spacer').offsetHeight-
+   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,y)=>el.scrollTop=y,distance);
+ await expect(motion).toHaveAttribute('data-state','compact');
+ await expect.poll(()=>blur.evaluate(el=>+getComputedStyle(el).opacity)).toBeGreaterThan(.94);
+ await expect.poll(()=>ring.evaluate(el=>+getComputedStyle(el).opacity)).toBeGreaterThan(.94);
+ await expect.poll(()=>grip.evaluate(el=>+getComputedStyle(el).opacity)).toBeLessThan(.05);
+ const [avatar,name]=await Promise.all([
+  hero.boundingBox(),page.locator('.vx-profile-name-row h1').boundingBox()
+ ]);
+ expect(name.x).toBeGreaterThan(avatar.x+avatar.width-2);
+ expect(Math.abs(avatar.width-98)).toBeLessThan(3);
+ const city=await page.locator('.vx-profile-location').boundingBox();
+ const goal=await page.locator('.vx-profile-goal').boundingBox();
+ if(goal&&city){
+  expect(Math.abs(goal.y-city.y)).toBeLessThan(5);
+  expect(goal.x).toBeGreaterThan(city.x+80);
+  expect(goal.x+goal.width).toBeLessThanOrEqual(396);
+ }
+ await expect(page.locator('.vx-profile-card-more')).toHaveCount(1);
+ await expect(page.locator('.vx-profile-tab-rail [role=tab]')).toHaveCount(4);
+ await root.evaluate(el=>el.scrollTop=0);
+ await expect(motion).toHaveAttribute('data-state','expanded');
+ await expect.poll(()=>blur.evaluate(el=>+getComputedStyle(el).opacity)).toBeLessThan(.05);
 });
