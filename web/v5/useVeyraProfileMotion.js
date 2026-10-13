@@ -64,6 +64,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
     const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
     if(motion.dataset.motionPhase!==motionStage)motion.dataset.motionPhase=motionStage;
+    const sheetOverlap=p<.33?'true':'false';
+    if(motion.dataset.sheetOverlap!==sheetOverlap)motion.dataset.sheetOverlap=sheetOverlap;
     if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
     return;
    }
@@ -117,6 +119,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(motion.dataset.state!==phase)motion.dataset.state=phase;
    const motionStage=p<.14?'sheet':p<.39?'center':'avatar';
    if(motion.dataset.motionPhase!==motionStage)motion.dataset.motionPhase=motionStage;
+    const sheetOverlap=p<.33?'true':'false';
+    if(motion.dataset.sheetOverlap!==sheetOverlap)motion.dataset.sheetOverlap=sheetOverlap;
    if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
   });
  },[scrollRef,motionRef]);
