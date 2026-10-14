@@ -2,6 +2,7 @@ import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
 import {compressPortrait} from './compressPortrait.js';
+import {haptic} from './haptics.js';
 import {Button,Choice,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
@@ -15,7 +16,7 @@ import {OnboardingHeader} from './OnboardingHeader.jsx';
 
 const MAX_PHOTOS=7,MIN_PHOTOS=3,MAX_BIO=250;
 const NEXT_STEP_LABELS=['Указать возраст','Выбрать город','Настроить поиск','Выбрать цель знакомства','Выбрать интересы','Рассказать о себе'];
-function hapticNext(){try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{}}
+
 const truncateBio=value=>Array.from(String(value||'')).slice(0,MAX_BIO).join('');
 const NAME_PATTERN=/^[\p{L}\p{M}]+(?:[-'’ ][\p{L}\p{M}]+)*$/u;
 const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s'’\-]/gu,'').replace(/\s+/g,' ').slice(0,50);
@@ -106,7 +107,7 @@ export function Registration({me,refresh}){
   const message=e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message==='BIO_TOO_LONG'?'Максимум 250 символов в описании. Сократи текст.':e.message;
   if(e.field){setFieldError({step,field:e.field,message});setError('')}
   else setError(message);
-  try{window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.('error')}catch{}
+  haptic('error');
  };
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{
@@ -117,7 +118,7 @@ export function Registration({me,refresh}){
  };
 
  const go=(n,dir)=>{setFieldError(null);setKeyboardActive(false);setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
- const next=()=>work(async()=>{valid();hapticNext();const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
+ const next=()=>work(async()=>{valid();haptic('light');const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
   go(step+1,'forward');
  });
@@ -227,7 +228,7 @@ export function Registration({me,refresh}){
  const selectPhoto=i=>{if(slideBusy.current)return;setPhotoIndex(i)};
  const swipeEnd=e=>{if(swipeX.current==null)return;const delta=e.changedTouches[0].clientX-swipeX.current;swipeX.current=null;if(Math.abs(delta)>45)advancePhoto(delta<0?1:-1)};
  const remove=i=>work(async()=>{await request('/photos/'+photos[i].id,{method:'DELETE'});setPhotos(old=>old.filter((_,j)=>j!==i));await refresh()});
- const send=()=>work(async()=>{if(photos.length<MIN_PHOTOS)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});localStorage.removeItem(draftKey);await refresh()});
+ const send=()=>work(async()=>{if(photos.length<MIN_PHOTOS)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});haptic('success');localStorage.removeItem(draftKey);await refresh()});
  const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
@@ -237,7 +238,7 @@ export function Registration({me,refresh}){
   setCtaPressed(true);clearTimeout(ctaTimer.current);
   ctaTimer.current=setTimeout(()=>setCtaPressed(false),480);
   if(step===8){
-   hapticNext();
+   haptic('light');
    if(photos.length<MIN_PHOTOS){photoInput.current?.click();return}
    setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true);return;
   }
