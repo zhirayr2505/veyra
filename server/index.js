@@ -8,6 +8,7 @@ import {finalizeDueDeletions} from './privacy.js';
 import {setupBots} from '../scripts/setup-bots.js';
 import {scheduleBotSetup} from './boot-bots.js';
 import {RESET_ID} from './launch-reset.js';
+import {drainStage0Jobs} from './stage0-jobs.js';
 /** @type {Record<string,string>} */
 const env={USER_BOT_USERNAME:'VeyraAppBot',ADMIN_BOT_USERNAME:'VeyraAdminBot',OFFICIAL_CHANNEL_USERNAME:'VeyraDating',...process.env};
 for(const k of ['USER_BOT_TOKEN','ADMIN_BOT_TOKEN','OWNER_TELEGRAM_ID','DATABASE_URL','REDIS_URL','GEOAPIFY_API_KEY','SUPABASE_URL','SUPABASE_SECRET_KEY'])if(!env[k])throw Error('Missing environment variable: '+k);
@@ -26,9 +27,11 @@ const deps={db,env,redis,storage,tg,geo:p=>geo(env,p),registrationReset};
 // Bot configuration is asynchronous: Telegram API failures must not prevent Render from going live.
 await finalizeDueDeletions({db});
 const app=createApp(deps);const server=app.listen(Number(env.PORT||3000),'0.0.0.0',()=>console.log('VEYRA listening'));
+// Polling is inert without a manually inserted, owner-validated private DB job.
+const stage0Timer=setInterval(()=>drainStage0Jobs({db,env}).catch(()=>{}),5000);stage0Timer.unref();
 const stopBotSetup=env.AUTO_SETUP_BOTS==='true'?scheduleBotSetup(()=>setupBots(env)):()=>{};
 let draining=false;const timer=setInterval(async()=>{if(draining)return;draining=true;try{await drainOutbox(deps);}catch{console.error('Outbox retry scheduled');}finally{draining=false;}},5000);timer.unref();
 setInterval(()=>db.query('DELETE FROM sessions WHERE expires_at<now()').catch(()=>{}),3600000).unref();
 setInterval(()=>finalizeDueDeletions({db}).catch(e=>console.error('Privacy finalization retry scheduled',e?.code||'error')),60000).unref();
-async function shutdown(){stopBotSetup();clearInterval(timer);server.close(async()=>{await redis.quit();await db.close();process.exit(0);});setTimeout(()=>process.exit(1),10000).unref();}process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
+async function shutdown(){stopBotSetup();clearInterval(timer);clearInterval(stage0Timer);server.close(async()=>{await redis.quit();await db.close();process.exit(0);});setTimeout(()=>process.exit(1),10000).unref();}process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
 
