@@ -106,7 +106,7 @@ export function Registration({me,refresh}){
  },[query,cityEdit]);
  const invalid=(field,message)=>{const problem=new Error(message);problem.field=field;throw problem};
  const fail=e=>{
-  const message=e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message==='BIO_TOO_LONG'?'Максимум 250 символов в описании. Сократи текст.':e.message;
+  const message=/NETWORK|failed to fetch|HTTP_50[234]|timeout|UPLOAD_ABORTED/i.test(e.message||'')?'Не удалось связаться с VEYRA. Проверь интернет и попробуй ещё раз.':e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message==='BIO_TOO_LONG'?'Максимум 250 символов в описании. Сократи текст.':e.message;
   if(e.field){setFieldError({step,field:e.field,message});setError('')}
   else setError(message);
   haptic('error');
