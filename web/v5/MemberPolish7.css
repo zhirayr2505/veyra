@@ -179,6 +179,13 @@
  font-size:clamp(11px,2.9vw,12px)!important;
  font-weight:760!important;
 }
+/* Override legacy nth-child colors with semantic token colors at a higher
+   specificity. Otherwise unrelated neighboring interests would recolor chips. */
+.veyra-v2 .vx-master-profile .vx-member-interest[data-tone]{
+ background:var(--vx-chip-bg)!important;
+ color:var(--vx-chip-fg)!important;
+ border:1px solid var(--vx-chip-border)!important;
+}
 .veyra-v2 .vx-master-profile .vx-member-interest[data-tone="rose"]{--vx-chip-bg:#fff0f5;--vx-chip-fg:#9a345f;--vx-chip-border:#f6d6e2}
 .veyra-v2 .vx-master-profile .vx-member-interest[data-tone="sky"]{--vx-chip-bg:#e9f3ff;--vx-chip-fg:#305f94;--vx-chip-border:#ccdef7}
 .veyra-v2 .vx-master-profile .vx-member-interest[data-tone="mint"]{--vx-chip-bg:#e9f7f1;--vx-chip-fg:#2a7354;--vx-chip-border:#cce8dc}
