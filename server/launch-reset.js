@@ -39,6 +39,12 @@ export async function applyRegistrationReset(db,env,{backupManifest}={}){
   const previous=await one(q,"SELECT created_at,metadata FROM audit_log WHERE action='registration.reset' AND subject=$1 ORDER BY id DESC LIMIT 1",[RESET_ID]);
   if(previous)return {id:RESET_ID,status:'completed',already_completed:true,completed_at:previous.created_at,deleted:previous.metadata?.deleted||{}};
   await q.query(`LOCK TABLE ${[...datingTables,'users','outbox','audit_log','storage_gc'].join(',')} IN ACCESS EXCLUSIVE MODE`);
+  // Paid courtships depend on deleted match rows; never silently destroy them.
+  if((await one(q,"SELECT count(*)::int AS n FROM courtships WHERE order_id IS NOT NULL OR status IN ('active','payment_pending')")).n>0)
+   throw Error('RESET_BLOCKED_FINANCIAL_COURTSHIP');
+  // Deferred account deletion must complete without losing the 72h restore state.
+  if((await one(q,"SELECT count(*)::int AS n FROM users WHERE status='deleting'")).n>0)
+   throw Error('RESET_BLOCKED_PENDING_ACCOUNT_DELETION');
   const deleted={};
   for(const table of datingTables)
    deleted[table]=(await one(q,`SELECT count(*)::int AS n FROM ${table}`)).n;
@@ -53,8 +59,8 @@ export async function applyRegistrationReset(db,env,{backupManifest}={}){
   await q.query("DELETE FROM outbox WHERE payload ? 'review_user_id'");
   // Preserve user IDs and existing Premium/VEYS entitlements, purchases, refunds
   // and referrals already credited. Reauthentication will refresh Telegram data.
-  await q.query(`UPDATE users SET username=NULL,first_name='',referrer_id=NULL,
-   referral_rewarded=false,invisible=false,paused=false,deletion_snapshot=NULL`);
+  await q.query(`UPDATE users SET username=NULL,first_name='',invisible=false,paused=false
+   WHERE status='active'`);
   for(const table of ['profiles','photos','registration_drafts','sessions','matches','messages']){
    if((await one(q,`SELECT count(*)::int AS n FROM ${table}`)).n!==0)
     throw Error('RESET_POSTCONDITION_FAILED_'+table);
