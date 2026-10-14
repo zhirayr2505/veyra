@@ -12,9 +12,9 @@ const DATING_ART='/veyra-approved/dating_stage02/';
 // Versioned lossless masters intentionally bypass older cached low-quality WebPs.
 const ORIGINAL_ART_VERSION='_master_20261013.png';
 const THEMED_COLLECTIONS=[
- {id:'common',name:'Схожие интересы',description:'Увлечения объединяют',image:'collection_common_interests_master_20261013.png',icon:'everyone'},
- {id:'serious',name:'Серьёзные отношения',description:'Для тех, кто ищет близость',image:'collection_serious_relationships_master_20261013.png',icon:'heart'},
- {id:'travel',name:'Любят путешествовать',description:'Откройте мир вдвоём',image:'collection_travel_master_20261013.png',icon:'location'}
+ {id:'common',name:'Схожие интересы',description:'Увлечения объединяют',image:'collection_common_interests_master_20261013.png',symbol:'for_you_common_headphones.svg'},
+ {id:'serious',name:'Серьёзные отношения',description:'Для тех, кто ищет близость',image:'collection_serious_relationships_master_20261013.png',symbol:'for_you_serious_hearts.svg'},
+ {id:'travel',name:'Любят путешествовать',description:'Откройте мир вдвоём',image:'collection_travel_master_20261013.png',symbol:'for_you_travel_plane.svg'}
 ];
 const haptic=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* optional */}};
 const distanceFor=p=>Number.isFinite(Number(p.distance_km))&&p.distance_km!=null
@@ -178,7 +178,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
       onClick={()=>{haptic();setCollection(collection===group.id?null:group.id);setShowAllRecommendations(false)}}>
      <img className="vx-collection-art" src={DATING_ART+group.image} width="1152" height="1536" alt="" loading="lazy" decoding="async"/>
      <span className="vx-collection-shade" aria-hidden="true"/>
-     <span className="vx-for-you-collection-glass" aria-hidden="true"><Icon name={group.icon} tone="pink" size={37}/></span>
+     <span className="vx-for-you-collection-glass" aria-hidden="true"><img className="vx-for-you-collection-symbol" src={DATING_ART+group.symbol} alt="" width="92" height="92" loading="lazy" decoding="async"/></span>
      <span className="vx-collection-label"><b>{group.name}</b><small>{group.description}</small></span>
     </button>)}
    </div>
