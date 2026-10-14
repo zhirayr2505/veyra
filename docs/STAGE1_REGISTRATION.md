@@ -73,7 +73,13 @@ GitHub Actions Verify run `38592595857` on commit `4436902b42ebe6e2b1feed3df5a49
 - [x] S1-F08 — Compact interest tabs, one category visible, selected chip tray, instant case-insensitive Russian/synonym search and search clear.
 - [x] S1-F09 — 3–12 selection guard, synced count, selected item deduplication, warning on 13th, persist in existing draft.
 - [x] S1-F10 — Narrow/mobile CSS, 44px chip targets, short 180ms transition, keyboard-safe pinned glass nav, 0 horizontal overflow.
-- [ ] S1-F11 — Verify browser intermediate step frames, max 205ms+grace, repeated clicks, arrow geometry, upload failure/retry, drag cross-row and preview mode.
-- [ ] S1-F12 — HEAD typecheck, lint, check, secrets:check, Node and browser baseline 0 new regressions.
+- [x] S1-F11 — Verify browser intermediate step frames, max 205ms+grace, repeated clicks, arrow geometry, upload failure/retry, drag cross-row and preview mode.
+- [x] S1-F12 — HEAD typecheck, lint, check, secrets:check, Node and browser baseline 0 new regressions.
 - [ ] S1-F13 — Diff review, merge bugfix PR, Render live smoke, main SHA equality, no reset and unchanged private snapshot.
 - [ ] S1-F14 — **Owner manually retests on Samsung Galaxy A55 Telegram and accepts Stage 1. No Stage 2 until then.**
+
+### Bugfix PR #79 CI evidence
+- HEAD before documentation-only status update: `904e6c721036873cb710578443133d7b230963c3`
+- Verify run `38607583890` on 2026-10-14: `npm run typecheck` PASS; `npm run check` PASS (186/186 Node tests, Vite build); `npm run lint` PASS; `npm run secrets:check` PASS.
+- Browser baseline gate: **59 scenarios / 48 passed / 11 known prior baseline failures / 0 new regressions**; Playwright reports actual pass for Stage-1 transition and interests tests. The 11 known unrelated baseline failures are not hidden, and no new failures are accepted.
+- Last checklist items S1-F13 (merged/live/smoke) and S1-F14 (owner device sign-off) deliberately remain open until independently verified.
