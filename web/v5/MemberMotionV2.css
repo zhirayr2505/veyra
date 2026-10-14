@@ -260,7 +260,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  transform:translate3d(0,0,0);will-change:transform;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
- position:relative;z-index:2;overflow:hidden;width:100%;
+ position:relative;z-index:2;overflow:clip;width:100%;
  background:#faf6ff;touch-action:pan-y pinch-zoom;
  /* Embla has overflow:hidden: contain on Y blocks native scroll chaining.
     Keep X boundary contained while allowing Y to reach .vx-profile-scroller. */

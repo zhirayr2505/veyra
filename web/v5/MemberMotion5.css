@@ -72,7 +72,7 @@
  box-shadow:none!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
- overflow:hidden!important;
+ /* Clipping is owned by MemberMotionV2: overflow:clip (not a scroll container). */
  clip-path:none!important;
  margin:0!important;
 }
