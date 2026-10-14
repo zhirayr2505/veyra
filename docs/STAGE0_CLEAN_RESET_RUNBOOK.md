@@ -1,49 +1,57 @@
-# VEYRA Stage 0 — backup-gated clean registration reset (2026-10-14)
+# VEYRA Stage 0 internal recovery runbook — 2026-10-14
 
-Status: **BLOCKED — NO VERIFIED BACKUPS. DO NOT RUN RESET**.
+Status: **NOT COMPLETE UNTIL VERIFIED SNAPSHOT + RESET + LIVE CHECKS**.
+Snapshot and reset ID: `registration-clean-2026-10-14-v1`.
+Production only: `https://veyra-3806.onrender.com`.
+The feature-branch code does **not** run any job during deployment, startup or reboot. Only an explicitly inserted private database command can start the worker.
 
-Base production Git revision before this work: `3e358d34addd16d2f93e60d6f9a79038a34c92f1`.
-Target: `https://veyra-3806.onrender.com`.
-Reset ID: `registration-clean-2026-10-14-v1`.
+## Architecture and guarantees
+- `migrations/024_stage0_jobs.sql`: `veyra.stage0_jobs` is a private, RLS-denied SQL-only job inbox with a unique `(id,action)` key. There are no HTTP routes for snapshot or reset.
+- `server/stage0-jobs.js`: validates the production origin, Render commit SHA and owner ID against the existing environment. Only claims manually inserted `pending` jobs. It does not automatically retry failed/running jobs or reschedule completed ones.
+- `server/stage0-snapshot.js`: logical gzip/JSON snapshot including table definitions and exact row representations; private Supabase Storage copies of every existing working-media object, a checksum manifest, restoration script and validation marker. Restores all dating tables into PostgreSQL temporary tables; restores each copied media object to a separate backup validation prefix and compares bytes with the original. **Only a validated snapshot obtains an audit record.**
+- `server/launch-reset.js`: idempotent one-shot deletion transaction. Production guard requires the verified internal manifest, hashes of every dating table and a financial baseline. It locks dating and financial tables, rechecks their SHA-256, preserves all financial tables/rights and queues original media for existing `storage_gc`. The marker in `audit_log` prevents recurrence.
+- `scripts/stage0-restore.js`: explicitly confirmed manual disaster recovery to a separate `stage0_restore_20261014` schema in an isolated PostgreSQL instance; verifies all private media hashes. It refuses to run against the live app or using the same `DATABASE_URL`.
 
-## Safety invariants
-- No production reset endpoint. The reset function in `server/launch-reset.js` must never be called automatically from startup, CI, Render, or a bot.
-- Never touch Render service configuration, environment variables, Telegram tokens, Supabase project, bucket settings, products, or checkout settings.
-- A *real* encrypted/PostgreSQL-consistent backup must be downloaded and checked before any deletion. A database metadata SQL query or a file list is **not a backup**.
-- Independently download **all Storage object bytes** in the existing bucket, preserve original keys and metadata in a manifest; database dump does not contain Storage object bytes.
-- Backups must reside in a protected location **outside** the database/Storage project being reset. Protect encryption keys; never commit backups, credentials, or personal data to GitHub.
-- Verify checksums, object counts and byte totals. Prove database restoration into a separate isolated PostgreSQL environment and sample/full Storage object restoration into a separate isolated destination. A test manifest with fake IDs/checksums is **not** sufficient.
-- Freeze/match concurrent writes to the snapshot before reset, then re-check backup consistency and inspect pending Telegram checkouts and settlements; reserve a maintenance window so no purchases are lost during cutover.
-- Get a review of every FK and payment table before actual execution. Preserve paid/refunded orders, accepted/prechecked Telegram checkouts, wallets, ledger, pending refunds, gifted purchases, minimal user records and all audit.
-- Compare pre/post row counts and payment invariants, inspect the Storage GC queue, validate /healthz /readyz and re-registration in Telegram.
-- Do not declare completion until the exact production Render commit is Live and confirmed.
+No new environment variables or secrets are needed to carry out the private snapshot inside Render. No secret may be copied to PRs, logs or chat. The backup bucket `veyra-stage0-backups` is private and distinct from `veyra-media`; storage path `stage0-backups/registration-clean-2026-10-14-v1/`. Never include this backup bucket in `storage_gc`.
 
-## Required backup artifact record
-A trusted operator must supply *verified* independent records after actual backup/restore inspection:
+## Actual reviewed production delete allowlist
+In FK-safe order (no table-name pattern matching):
+```
+message_edits, message_hides, message_reactions, message_media,
+chat_pins, chat_presence, match_views, courtships, messages, matches,
+reactions, impressions, profile_hides, blocks, reports, daily_usage,
+today, content_interests, review_bot_messages, registration_drafts,
+sessions, photos, profiles
+```
+Explicitly retained: `orders`, `gifts`, `veys_wallets`, `veys_ledger`, `veys_purchases`, `products`, `promos`, `promo_redemptions`, `feature_flags`, `webhook_updates`, `content_items`, `tickets`, `support_messages`, `boost_runs`, `users`, `outbox`, `audit_log`, `schema_migrations`. Username and first name are cleared on the retained user records; Premium, consumables, referral rights and financial identity remain unchanged.
 
-```json
-{
-  "postgres": {"id": "actual-backup-id", "sha256": "64-char-real-sha256", "bytes": 1, "restore_tested": true},
-  "storage": {"id": "actual-storage-archive-id", "sha256": "64-char-real-sha256", "bytes": 1, "objects": 1, "objects_verified": 1, "restore_tested": true}
-}
+The reset refuses paid/VEYS-funded courtships, users with in-flight deferred deletion, drift in any dating table, or drift in any financial table/user entitlement/audit prefix. Old active sessions and dating data are removed, but financial user records remain for refunds, checkout and re-registration. The reset is **not** safe to run without the verified snapshot and review of any new FK/schema changes.
+
+## Release sequence — do not skip
+1. Review all 26+ changed files, confirm tests, CI and the 13 known pre-existing V5 browser baseline failures are distinguished from Stage 0 regressions. Verify no new browser failure. Do not waive new regressions.
+2. Merge PR #75 only after code review and test gating. Confirm new Render deployment LIVE and that `/healthz` revision equals `main`. Check `/readyz` returns 200.
+3. Only then manually enqueue snapshot using privileged Supabase project SQL-management permission (never app/anon/auth credentials). This is the admin-only action; only the existing owner account may be its recorded requester:
+
+```sql
+INSERT INTO veyra.stage0_jobs (id,action,requested_by)
+SELECT 'registration-clean-2026-10-14-v1','snapshot',id
+FROM veyra.users WHERE admin_role='owner'
+ON CONFLICT DO NOTHING;
 ```
 
-The illustrative values above are not a valid attestation. Current code performs syntactic manifest checks only. **The operator must independently verify file bytes and restoration; do not trust self-declared metadata.**
+Verify exactly one owner, inspect `stage0_jobs` and wait for `state='completed'`. If the state becomes `failed`, do not reset. If the state stays `running` following a restart, **do not** blindly re-enqueue or overwrite backups.
 
-Suggested PostgreSQL approach with the correctly authenticated, TLS-protected connection: `pg_dump --format=custom --schema=veyra --no-owner --no-acl --file=veyra-2026-10-14.dump "$DATABASE_URL"`; then `pg_restore --list veyra-2026-10-14.dump`, checksum, inspect table counts, test actual restore into an isolated compatible Postgres. Keep raw dumps encrypted and off-site. Ensure payment/authoritative schemas and relevant metadata are in scope.
+4. Inspect the private backup manifest and immutable marker, full byte and SHA-256 checks for every object, original/validation media, exact row counts, temporary-table restoration report and `stage0.snapshot.verified` audit. Verify 6 media photos and 1 profile in the snapshot. Verify the originals still exist and the financial checkpoint is present.
+5. Only after all snapshot proof is present and finance invariants have not drifted, manually enqueue one reset:
 
-For Storage: list all objects via authenticated Supabase Storage API, page through the complete bucket, download each object to an encrypted archive with keys and metadata; verify each object hash and that downloaded keys/count match the database; restore representative objects in an isolated bucket/account. **Do not remove originals during backup.**
+```sql
+INSERT INTO veyra.stage0_jobs (id,action,requested_by)
+SELECT 'registration-clean-2026-10-14-v1','reset',id
+FROM veyra.users WHERE admin_role='owner'
+ON CONFLICT DO NOTHING;
+```
 
-## Reset execution
-No script currently invokes `applyRegistrationReset`. This is intentional. Do not wire it into startup or an HTTP route. The reset logic is staged for review/tests only while backups are blocked. The implementation has been designed to be idempotent using the audit marker and a transaction lock; review and test against a scrubbed, isolated copy before executing production.
+6. Verify `stage0_jobs` reset `state='completed'`, `registration.reset` audit, /healthz and /readyz. Check all profile/dating tables empty, original Storage objects zero after the existing GC completes, and the private backup remains accessible. Snapshot, payment and entitlement checksums must match. Only then perform authenticated Telegram Mini App smoke checks (new registration starts at step 1 and no demo controls exist).
+7. Do not declare Stage 0 complete until the exact Render SHA is LIVE, the manual reset ran once and financial rights/data exactly match the pre-reset checkpoint. A restart MUST NOT re-run either action.
 
-## Before marking complete
-- [ ] Obtain fresh, restorable Postgres dump and verify SHA and row counts.
-- [ ] Obtain independent, restorable Storage backup and verify every object.
-- [ ] Audit financial/payment/user foreign keys for any new schema changes.
-- [ ] Green typecheck, lint, check, secrets:check and required browser CI.
-- [ ] Separate PR review, merge, Live Render SHA check.
-- [ ] Carry out manually authorized backup-attested one-shot operation (not deploy-triggered).
-- [ ] Confirm profiles and sessions zero; financial tables invariant.
-- [ ] Confirm new auth opens registration, demo never recreated.
-- [ ] Confirm /healthz contains sanitized one-time result and /readyz is healthy.
+Never use mock test manifests as production proof. Never execute the restore script in production or via app startup.
