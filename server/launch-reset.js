@@ -23,6 +23,7 @@ const datingTables=[
 // Only tables in the dating lifecycle. Do not touch orders, Telegram checkout
 // confirmations, product catalogs, promotions, payment rights, gifts paid for,
 // VEYS wallets/ledger/purchases, support tickets, feature flags or audit history.
+/** @param {any} db @param {any} env @param {{backupManifest?: any}} [options] */
 export async function applyRegistrationReset(db,env,{backupManifest}={}){
  if(env.APP_URL!==RESET_TARGET||env.RENDER_EXTERNAL_URL!==RESET_TARGET)
   return {id:RESET_ID,status:'not_applicable'};
