@@ -60,7 +60,7 @@ export function Chats({onOpen,refreshTick=0,active=true}){
   {error&&<div className="alert" role="alert">{error} <button className="text-link" onClick={load}>Повторить</button></div>}
   {busy&&list.length===0?<div className="center-loading"><Spinner/></div>:filtered.length===0&&!error?<Empty art="chat" title={q?'Ничего не найдено':tab==='unread'?'Всё прочитано':'Пока нет переписок'} body={q?'Попробуй другое имя.':tab==='unread'?'Новых сообщений пока нет.':'После взаимной симпатии вы сможете общаться здесь.'}/>:<div className="chat-list ve-chat-list">
    {filtered.map(m=><div className={'chat-tile ve-chat-tile '+(m.pinned?'ve-pinned':'')} key={m.id} role="button" tabIndex={0} onClick={()=>{haptic();onOpen(m.id,m.profile)}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOpen(m.id,m.profile)}}}>
-    <span className="ve-avatar-wrap"><Photo id={m.profile?.photos?.[0]} className="chat-avatar"/>{m.profile?.online&&<i className="ve-online-dot" aria-label="В сети"/>}</span>
+    <span className="ve-avatar-wrap"><Photo id={m.profile?.photos?.[0]} className="chat-avatar" placeholder={m.profile?.photo_placeholders?.[String(m.profile?.photos?.[0])]} resolution={256}/>{m.profile?.online&&<i className="ve-online-dot" aria-label="В сети"/>}</span>
     <span className="chat-preview">
      {m.pinned&&<span className="ve-pinned-caption"><Icon name="pin" tone="pink" size={12}/> Закреплённый чат</span>}
      <span className="chat-preview-head"><b>{m.profile?.name||'Собеседник'}{m.profile?.age?', '+m.profile.age:''}</b><small>{shortTime(m.last?.created_at||m.created_at)}</small></span>
@@ -253,7 +253,7 @@ export function Conversation({matchId,partner,onBack,onProfile,onGift,myId}){
   <header className="conversation-head">
    <button type="button" onClick={onBack} aria-label="Назад" className="quiet"><Icon name="back"/></button>
    <button type="button" className="chat-user" disabled={archived} onClick={()=>!archived&&onProfile(partner?.id,matchId,partner)}>
-    <span className="ve-avatar-wrap"><Photo id={partner?.photos?.[0]} className="mini-avatar"/>{online&&<i className="ve-online-dot" aria-label="В сети"/>}</span>
+    <span className="ve-avatar-wrap"><Photo id={partner?.photos?.[0]} className="mini-avatar" placeholder={partner?.photo_placeholders?.[String(partner?.photos?.[0])]} resolution={256}/>{online&&<i className="ve-online-dot" aria-label="В сети"/>}</span>
     <span><b>{partner?.name||'Собеседник'}{partner?.age?', '+partner.age:''}</b><small className={typing?'ve-typing-status':''}>{archived?'Переписка сохранена':typing?'печатает…':online?'в сети':'не в сети'}</small></span>
    </button>
    <button type="button" className="quiet ve-header-more" title="Дополнительно" aria-label="Меню переписки" onClick={()=>setMenu(true)}><Icon name="more"/></button>
