@@ -62,9 +62,6 @@ body>.vx-member-native-header::before{
  z-index:9;
  box-shadow:0 3px 8px #513b701c;
 }
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box{
- border-radius:inherit!important;
-}
 .veyra-v2 .vx-master-profile .vx-profile-identity{
  z-index:7;
  pointer-events:none;
