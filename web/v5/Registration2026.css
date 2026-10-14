@@ -619,3 +619,10 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .registration-actions[data-keyboard-open="true"]{opacity:0;pointer-events:none;visibility:hidden}
 .v2-onboarding .veyra-registration-2026 .veyra-field-error{margin:5px 0 9px;padding:9px 12px;border-radius:12px;border:1px solid #e4adc1;background:#fff2f7;color:#8f234e;font-size:13px;font-weight:700;line-height:1.4}
 .v2-onboarding .veyra-registration-2026 .registration-name-field:has(+.veyra-field-error) input{border-color:#c04670}
+
+/* First-visit drag hint is a one-shot compositor transform, not a perpetual effect. */
+.v2-onboarding .veyra-registration-2026 .veyra-photo-drag-guide{display:flex;align-items:center;gap:8px}
+.v2-onboarding .veyra-registration-2026 .veyra-drag-hand{display:inline-block;font-size:20px;flex:none;transform-origin:bottom center}
+.v2-onboarding .veyra-registration-2026 .veyra-photo-drag-guide.is-first-visit .veyra-drag-hand{animation:veyraDragExplain 1.2s cubic-bezier(.2,.8,.2,1) 2}
+@keyframes veyraDragExplain{0%,100%{transform:translate3d(0,0,0) rotate(-7deg)}45%{transform:translate3d(16px,-5px,0) rotate(8deg)}}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .veyra-photo-drag-guide.is-first-visit .veyra-drag-hand{animation:none}}
