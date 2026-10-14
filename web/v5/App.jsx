@@ -40,6 +40,8 @@ import './MemberMotion5.css'; // Motion 5 brand, flags, attached avatar border, 
 import './MemberMotion6.css'; // Direct circle + spring/haptic, safe text and adaptive wordmark
 import './FeedPremium2026.css'; // Approved feed reference, liquid tabs, interest drawer & CTA geometry
 import './ForYouApproved2026.css'; // Approved light lavender For You design
+import './TelegramSwipeGuard.css'; // Native overscroll fallback without blocking touch scroll
+import './MemberPolish7.css'; // Profile visual-only polish: preserves existing scroll motion
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
