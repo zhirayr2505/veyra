@@ -61,7 +61,8 @@ test('private Stage 0 snapshot stores and restores exact rows and all original m
   const mediaPath=r.manifest.media.files[0].backup_key;
   stored.set(BACKUP_BUCKET+'/'+mediaPath,Buffer.from('corrupt'));
   await assert.rejects(()=>verifyStage0Backup(db,env),/STAGE0_FILE_BACKUP_INVALID/);
-  globalThis.fetch=async()=>Response.json({code:'InvalidJWT',message:'invalid authentication'},{status:400});
+  const workingStorageMock=globalThis.fetch;
+  globalThis.fetch=async(...args)=>String(args[0]).includes('/object/authenticated/')?Response.json({code:'InvalidJWT',message:'invalid authentication'},{status:400}):workingStorageMock(...args);
   await assert.rejects(()=>verifyStage0Backup(db,env),/BACKUP_STORAGE_READ_FAILED_400/);
  }finally{globalThis.fetch=originalFetch;await db.close()}
 });
