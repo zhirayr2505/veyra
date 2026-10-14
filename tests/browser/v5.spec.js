@@ -1780,7 +1780,9 @@ for(const disableTimeline of [false,true]){
 
 // Stage 2 §17.3 — 12-origin real Chromium touch arbitration and hit-target scan.
 // Only Embla implements horizontal capture; native scrolling owns pan-y.
-test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and tappable actions',async({page},testInfo)=>{
+test.describe('Stage 2 Android-like touch context',()=>{
+ test.use({isMobile:true,hasTouch:true});
+ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and tappable actions',async({page},testInfo)=>{
  await telegram(page,10);
  await page.setViewportSize({width:390,height:844});
  await page.goto('/');
@@ -1857,6 +1859,8 @@ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and
  await page.screenshot({path:testInfo.outputPath('stage2-12-origin-gestures.png')});
  await cdp.detach();
 });
+});
+
 
 
 // Stage 2 visibility gate — DOM-visible is NOT enough. An own profile must
