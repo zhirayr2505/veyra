@@ -6,15 +6,14 @@ import './OnboardingOptions.css';
 
 export const GOALS=[
  {value:'relationship',title:'Серьёзные отношения',subtitle:'Хочу найти своего человека',icon:'heart'},
- {value:'dating',title:'Свидания',subtitle:'Знакомиться, встречаться и узнавать друг друга',icon:'flirt'},
- {value:'friends',title:'Общение',subtitle:'Новые люди и интересные разговоры',icon:'chats'},
- {value:'unsure',title:'Пока не определился',subtitle:'Посмотрим, куда приведёт знакомство',icon:'sparkle'},
- {value:'friendship',title:'Новые друзья',subtitle:'Найти близких по духу людей',icon:'everyone'},
- {value:'flirt',title:'Лёгкий флирт',subtitle:'Лёгкость, улыбки и взаимная симпатия',icon:'flirt'},
- {value:'casual',title:'Свободные отношения',subtitle:'Честное знакомство без обязательств',icon:'sparkle'},
- {value:'travel',title:'Компания для путешествий',subtitle:'Исследовать мир вместе',icon:'everyone'}
+ {value:'dating',title:'Свидания',subtitle:'Встречаться и узнавать друг друга',icon:'flirt'},
+ {value:'friendship',title:'Дружба и общение',subtitle:'Знакомства и новые друзья',icon:'everyone'},
+ {value:'flirt',title:'Флирт',subtitle:'Лёгкое знакомство и взаимная симпатия',icon:'flirt'},
+ {value:'casual',title:'Свободные отношения',subtitle:'Общение без серьёзных обязательств',icon:'sparkle'},
+ {value:'unsure',title:'Пока не определился',subtitle:'Посмотрим, к чему приведёт знакомство',icon:'sparkle'}
 ];
-export const goalTitle=value=>GOALS.find(x=>x.value===value)?.title||'Пока не определился';
+const LEGACY_GOAL_TITLES={friends:'Общение',travel:'Компания для путешествий'};
+export const goalTitle=value=>GOALS.find(x=>x.value===value)?.title||LEGACY_GOAL_TITLES[value]||'Пока не определился';
 export const INTEREST_GROUPS=[
  {title:'Музыка',icon:'музыка',items:['музыка','концерты','поп','рок','рэп','электронная музыка','живые выступления','караоке','игра на гитаре']},
  {title:'Активность',icon:'спорт',items:['спорт','фитнес','бег','тренажёрный зал','плавание','велосипед','футбол','бокс','йога','походы','танцы']},
