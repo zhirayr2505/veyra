@@ -34,6 +34,7 @@ export function Registration({me,refresh}){
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10),bio:truncateBio(start.bio??me?.profile?.bio??'')});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
+ const [keyboardActive,setKeyboardActive]=useState(false),[fieldError,setFieldError]=useState(null);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
  const [ctaPressed,setCtaPressed]=useState(false);
@@ -45,6 +46,23 @@ export function Registration({me,refresh}){
  const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),ctaTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
+ const focusableEditor=node=>node?.matches?.('input:not([type="checkbox"]):not([type="range"]),textarea');
+ const editing=e=>{if(focusableEditor(e.target))setKeyboardActive(true)};
+ const finishedEditing=()=>{
+  setTimeout(()=>setKeyboardActive(Boolean(focusableEditor(document.activeElement))),0);
+ };
+ useEffect(()=>{
+  const tg=window.Telegram?.WebApp;
+  const change=()=>{
+   const viewport=window.visualViewport;
+   if(!viewport)return;
+   const keyboard=window.innerHeight-viewport.height-viewport.offsetTop>135;
+   if(!keyboard&&!focusableEditor(document.activeElement))setKeyboardActive(false);
+  };
+  window.visualViewport?.addEventListener('resize',change);
+  tg?.onEvent?.('viewportChanged',change);
+  return()=>{window.visualViewport?.removeEventListener('resize',change);tg?.offEvent?.('viewportChanged',change)};
+ },[]);
  const setDobPart=(key,raw)=>{const max=key==='year'?4:2,val=String(raw).replace(/\D/g,'').slice(0,max),parts={...dobParts,[key]:val};setDobParts(parts);const {day,month,year}=parts;change('birth_date',day.length===2&&month.length===2&&year.length===4?year+'-'+month+'-'+day:'');if(val.length===max){
   if(key!=='year')dobRefs.current[key==='day'?1:2]?.focus();
   else if(day.length===2&&month.length===2){
@@ -65,28 +83,34 @@ export function Registration({me,refresh}){
   }else back.hide?.();
   return()=>{tg.offEvent?.('fullscreenChanged',sync);back.offClick?.(onBack);back.hide?.()};
  },[step,preview,busy,uploading,telegramFull]);
- const setName=value=>{const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
+ const setName=value=>{setFieldError(null);const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
  useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);clearTimeout(ctaTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
   return()=>{alive=false;clearTimeout(timer)};
  },[query,cityEdit]);
- const fail=e=>setError(e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message==='BIO_TOO_LONG'?'Максимум 250 символов в описании. Сократи текст.':e.message);
+ const invalid=(field,message)=>{const problem=new Error(message);problem.field=field;throw problem};
+ const fail=e=>{
+  const message=e.message==='AGE_18_REQUIRED'?'VEYRA доступна с 18 лет':e.message==='VALIDATION_ERROR'?'Проверь заполненные поля':e.message==='BIO_TOO_LONG'?'Максимум 250 символов в описании. Сократи текст.':e.message;
+  if(e.field){setFieldError({step,field:e.field,message});setError('')}
+  else setError(message);
+  try{window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.('error')}catch{}
+ };
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{
-  if(step===1){if(f.name.trim().length<2)throw Error('Имя должно содержать минимум 2 буквы');if(!consent)throw Error('Прими условия использования и политику конфиденциальности')}
-  if(step===2){if(!f.gender)throw Error('Выбери свой пол');if(!age(f.birth_date))throw Error('Проверь дату рождения');if(age(f.birth_date)<18||age(f.birth_date)>110)throw Error('VEYRA доступна с 18 лет')}
-  if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))throw Error('Выбери город из предложенного списка');
-  if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))throw Error('Проверь предпочтения поиска');
+  if(step===1){if(f.name.trim().length<2)invalid('name','Имя должно содержать минимум 2 буквы');if(!consent)invalid('consent','Прими условия использования и политику конфиденциальности')}
+  if(step===2){if(!f.gender)invalid('gender','Выбери свой пол');if(!age(f.birth_date))invalid('birth_date','Проверь дату рождения');if(age(f.birth_date)<18||age(f.birth_date)>110)invalid('birth_date','VEYRA доступна с 18 лет')}
+  if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))invalid('city','Выбери город из предложенного списка');
+  if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))invalid('looking_for','Проверь предпочтения поиска');
  };
 
- const go=(n,dir)=>{setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
+ const go=(n,dir)=>{setFieldError(null);setKeyboardActive(false);setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
  const next=()=>work(async()=>{valid();hapticNext();const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
   go(step+1,'forward');
  });
- const choosePlace=p=>{setF(old=>({...old,city:p.city,country:p.country,lat:p.lat,lon:p.lon}));setPlaces([]);setQuery('');setCityEdit(false);setError('')};
+ const choosePlace=p=>{setFieldError(null);setF(old=>({...old,city:p.city,country:p.country,lat:p.lat,lon:p.lon}));setPlaces([]);setQuery('');setCityEdit(false);setError('')};
  const locate=()=>{if(locating||busy)return;setError('');setLocating(true);if(!navigator.geolocation){setLocating(false);setCityEdit(true);setError('Геолокация недоступна. Выбери город из списка.');return}
  navigator.geolocation.getCurrentPosition(async pos=>{try{const found=await get('/geo?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude);if(!found.length)throw Error('Не удалось определить город');choosePlace(found[0]);navigator.vibrate?.(15)}catch(e){fail(e);setCityEdit(true)}finally{setLocating(false)}},()=>{setLocating(false);setCityEdit(true);setError('Разрешение на геолокацию не получено. Выбери город вручную.')},{enableHighAccuracy:false,timeout:12000,maximumAge:90000});
  };
@@ -180,19 +204,22 @@ export function Registration({me,refresh}){
  };
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
- return <div className="page registration registration-v6 registration-v7 veyra-registration-2026">
+ return <div className="page registration registration-v6 registration-v7 veyra-registration-2026" onFocusCapture={editing} onBlurCapture={finishedEditing}>
   <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}/>
   <div className={'registration-step '+direction} key={step} ref={scrollRef}>
    <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
    <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
      <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
+     {fieldError?.step===1&&fieldError.field==='name'&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
      <p className="registration-telegram-hint">Имя подставлено из Telegram. Вы можете изменить его.</p>
      <div className="registration-consent"><label className="registration-checkline"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} aria-label="Согласие с условиями VEYRA"/><span className="consent-square" aria-hidden="true">{consent&&<Icon name="check" tone="pink" size={15}/>}</span><span>Мне исполнилось 18 лет. Я принимаю <button type="button" className="legal-inline-link" onClick={e=>{e.preventDefault();setLegalTab('terms');setLegalOpen(true)}}>Условия использования</button> и <button type="button" className="legal-inline-link" onClick={e=>{e.preventDefault();setLegalTab('privacy');setLegalOpen(true)}}>Политику конфиденциальности</button> VEYRA.</span></label></div>
+     {fieldError?.step===1&&fieldError.field==='consent'&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
     </div>}
     {step===2&&<div className="fields">
      <div className="veyra-dob"><div className="veyra-dob-label">Дата рождения</div><div className="veyra-dob-fields">{[['day','День','ДД',2],['month','Месяц','ММ',2],['year','Год','ГГГГ',4]].map(([key,title,placeholder,len],index)=><label key={key}>{title}<input ref={node=>{dobRefs.current[index]=node}} aria-label={title+' рождения'} inputMode="numeric" autoComplete="off" maxLength={len} placeholder={placeholder} value={dobParts[key]} onChange={e=>setDobPart(key,e.target.value)}/></label>)}</div>{age(f.birth_date)>0&&<p className={'veyra-age-feedback '+(age(f.birth_date)<18?'underage':'')}>{age(f.birth_date)<18?'Регистрация доступна только с 18 лет':'Вам '+age(f.birth_date)+' лет'}</p>}</div>
      <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><Choice key={k} selected={f.gender===k} className="gender-choice" onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><Icon name={k==='man'?'man':'woman'} tone={f.gender===k?'pink':'dark'} size={34}/>{v}</Choice>)}</div>
+     {fieldError?.step===2&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
     </div>}
     {step===3&&<div className="fields">
     {selectedCity&&<div className="location-card veyra-city-row"><span className="location-mark"><Icon name="location" tone="pink" size={27}/></span><div className="veyra-city-info"><small>ТВОЁ МЕСТОПОЛОЖЕНИЕ</small><h2>{f.city}</h2><p><CountryFlag country={f.country}/> {f.country}</p></div><button type="button" className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'Закрыть':'Изменить город'}</button></div>}
@@ -202,6 +229,7 @@ export function Registration({me,refresh}){
      {places.length>0&&<div className="city-results" role="listbox" aria-label="Результаты поиска городов">{places.map((p,i)=><button type="button" role="option" aria-selected="false" key={p.label+'-'+i} onClick={()=>choosePlace(p)}><Icon name="pin" tone="pink" size={17}/><span><b>{p.city}</b><small><CountryFlag country={p.country}/> {p.country}</small></span></button>)}</div>}
      {!searching&&query.trim().length>=2&&!places.length&&<p className="city-empty">Не нашли такой город. Проверь написание.</p>}
     </>}
+    {fieldError?.step===3&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
     {selectedCity&&<div className="distance-control"><div className="range-labels"><span>Радиус поиска</span><strong>{f.radius_km>=20000?'весь мир':f.radius_km+' км'}</strong></div>
       <Slider min={1} max={1000} step={1} label="Радиус поиска" value={Math.max(1,Math.min(1000,f.radius_km))} onChange={v=>change('radius_km',v)} disabled={f.radius_km===20000}/>
       <div className="range-ends"><span>1 км</span><span>1000 км</span></div>
@@ -209,6 +237,7 @@ export function Registration({me,refresh}){
      </div>}
    </div>}
    {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><Choice key={k} className="looking-choice" selected={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><Icon name={k==='man'?'man':k==='woman'?'woman':'everyone'} tone={(k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'pink':'dark'} size={42}/><span>{v}</span></Choice>)}</div>
+    {fieldError?.step===4&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
    {step===5&&<div className="fields veyra-goal-step"><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
@@ -240,7 +269,7 @@ export function Registration({me,refresh}){
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-   <div className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>
+   <div data-keyboard-open={keyboardActive?'true':'false'} aria-hidden={keyboardActive?'true':undefined} className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>
     <Button className={'full veyra-smart-next'+(busy?' is-loading':'')+(ctaPressed?' was-pressed':'')} disabled={busy||uploading} onClick={primaryAction}>
      <span className="veyra-smart-next-content">
       <span className="veyra-smart-next-label" key={nextLabel}>{nextLabel}</span>
