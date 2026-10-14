@@ -17,3 +17,10 @@ test('profile preview stage is local and hides account actions but retains scrol
  assert.match(css,/\.vx-profile-read-only \.vx-profile-primary-actions/);
  assert.match(css,/\.vx-profile-scroller\{position:absolute/);
 });
+
+test('preview feed card and live discover use identical visual component',()=>{
+ const feed=read('web/v5/Discover.jsx'),preview=read('web/v5/ProfilePreview.jsx');
+ assert.match(feed,/<FeedCardVisual card=\{card\}/);
+ assert.match(preview,/<FeedCardVisual card=\{readOnlyData\}/);
+ assert.match(read('web/v5/FeedCardVisual.jsx'),/<CardCaption /);
+});
