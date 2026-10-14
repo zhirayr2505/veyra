@@ -13,6 +13,7 @@ import {useVeyraProfileMotion} from './useVeyraProfileMotion.js';
 import {interestTone,sharedInterestSet,normalizeInterest} from './profilePolishLogic.js';
 import {MemberSwipePages} from './MemberSwipePages.jsx';
 import {PhotoSegments} from './PhotoSegments.jsx';
+import {HeroPhotoTrack} from './HeroPhotoTrack.jsx';
 import {normalizeProfileSeed,mergeProfileSeed} from './profileSeed.js';
 import {Pencil,Settings2,Wallet,ShieldCheck,Crown,Medal,ImagePlus,MessageCircleHeart} from 'lucide-react';
 
@@ -47,6 +48,10 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const moveTabIndicator=useCallback(position=>{
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
   if(underline)underline.style.transform='translate3d('+(position*100).toFixed(3)+'%,0,0)';
+ },[]);
+ const onPhotoDragProgress=useCallback(amount=>{
+  const indicator=motionRef.current?.querySelector('.vx-profile-photo-bars');
+  indicator?.style.setProperty('--veyra-swipe-drag',Math.min(1,Math.max(0,amount)).toFixed(3));
  },[]);
  const {onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
 
@@ -148,14 +153,11 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
-      <Photo id={photos[idx]} alt={data.name} placeholder={data.photo_placeholders?.[String(photos[idx])]} onClick={()=>openGallery()} priority resolution={960}/>
+      <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
-      {photos.length>1&&<div className="vx-profile-photo-nav">
-       <button type="button" onClick={()=>photosNext(-1)} aria-label="Предыдущее фото"><ChevronLeft size={26}/></button>
-       <button type="button" onClick={()=>photosNext(1)} aria-label="Следующее фото"><ChevronRight size={26}/></button>
-      </div>}
+      
       {data.test_profile&&!isOwn&&<span className="vx-profile-demo-badge">ДЕМО</span>}
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
      </div>
