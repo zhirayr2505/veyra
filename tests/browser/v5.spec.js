@@ -1426,3 +1426,70 @@ test('Dragging from photo thumbnails changes the horizontal tab without opening 
   {timeout:4000}).toBe('true');
  await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
 });
+
+
+test('VEYRA premium feed morphs violet pill between all three tabs with readable crown and balance',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);
+ await page.goto('/');
+ const tabs=page.getByRole('tablist',{name:'Способы знакомств'});
+ const blob=tabs.locator('.vx-liquid-indicator');
+ await expect(blob).toBeVisible();
+ await expect(page.locator('.vx-feed-wordmark-glint')).toHaveCount(1);
+ await expect(page.getByRole('button',{name:'VEYRA Premium'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Открыть VEYS кошелёк'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Фильтры',exact:true})).toBeVisible();
+ const first=await blob.boundingBox();
+ await tabs.getByRole('tab',{name:'Для вас'}).click();
+ await expect(tabs.getByRole('tab',{name:'Для вас'})).toHaveAttribute('aria-selected','true');
+ await expect.poll(async()=> (await blob.boundingBox()).x,{timeout:4000}).toBeGreaterThan(first.x+65);
+ await tabs.getByRole('tab',{name:'Рядом'}).click();
+ await expect(tabs.getByRole('tab',{name:'Рядом'})).toHaveAttribute('aria-selected','true');
+ await expect.poll(async()=> (await blob.boundingBox()).x,{timeout:4000}).toBeGreaterThan(first.x+170);
+ await tabs.getByRole('tab',{name:'Лента'}).click();
+ await expect.poll(async()=> (await blob.boundingBox()).x,{timeout:4000}).toBeLessThan(first.x+8);
+ const like=await page.locator('.discover .action-like .feed-action-circle').boundingBox();
+ const superlike=await page.locator('.discover .action-super .feed-action-circle').boundingBox();
+ const pass=await page.locator('.discover .action-pass .feed-action-circle').boundingBox();
+ expect(like.width).toBeGreaterThan(superlike.width+5);
+ expect(superlike.width).toBeGreaterThan(55);
+ expect(pass.width).toBeGreaterThan(55);
+});
+
+test('VEYRA feed uses a single top-right goal, round country flag and draggable interest drawer',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);
+ await page.route('**/api/feed?*',async route=>{
+  const response=await route.fetch();
+  const body=await response.json();
+  if(body.profiles?.[0]){
+   body.profiles[0].goal='relationship';
+   body.profiles[0].country='Россия';
+   body.profiles[0].interests=['Кофе','Путешествия','Музыка','Спорт','Книги','Кино','Прогулки'];
+  }
+  await route.fulfill({response,json:body});
+ });
+ await page.goto('/');
+ const card=page.locator('.vx-feed-card-stage');
+ await expect(card.locator('.feed-photo')).toBeVisible();
+ await expect(card.locator('.veyra-card-top-goal')).toContainText('Серьёзные отношения');
+ await expect(card.locator('.veyra-card-name-row .veyra-card-goal-badge')).toHaveCount(0);
+ await expect(card.locator('.veyra-country-flag-round')).toHaveCount(1);
+ const chips=card.locator('.vx-feed-interest-row');
+ await expect(chips.locator('.veyra-interest-inline-chip')).toHaveCount(3);
+ await chips.getByRole('button',{name:'Показать все интересы, ещё 4'}).click();
+ const dialog=page.getByRole('dialog',{name:'Все интересы'});
+ await expect(dialog).toBeVisible();
+ await expect(dialog.locator('.veyra-interests-sheet-list > span')).toHaveCount(7);
+ const handle=dialog.locator('.vx-feed-sheet-drag-area');
+ const pos=await handle.boundingBox();
+ await page.mouse.move(pos.x+pos.width/2,pos.y+14);
+ await page.mouse.down();
+ await page.mouse.move(pos.x+pos.width/2,pos.y+150,{steps:9});
+ await page.mouse.up();
+ await expect(dialog).toHaveCount(0);
+ await chips.getByRole('button',{name:'Показать все интересы, ещё 4'}).click();
+ await expect(dialog).toBeVisible();
+ await dialog.getByRole('button',{name:'Закрыть интересы'}).click();
+ await expect(dialog).toHaveCount(0);
+});

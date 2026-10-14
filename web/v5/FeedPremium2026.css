@@ -1,0 +1,379 @@
+/* VEYRA FEED 2026 — approved violet/lilac premium concept.
+   LAST App stylesheet; narrowly scoped so profile/registration/other pages remain intact. */
+.veyra-v2 .vx-dating-stage02{
+ --vx-feed-purple:#8538de;--vx-feed-violet:#6921d0;
+ background:radial-gradient(ellipse 90% 30% at 50% 0,#ecdafa 0,transparent 91%),#faf4ff;
+}
+.veyra-v2 .vx-dating-stage02 .vx-head{
+ min-height:52px;margin-bottom:9px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-crown{
+ width:46px!important;height:46px!important;
+ border:2px solid #fff7!important;
+ background:radial-gradient(circle at 30% 16%,#b788e7,#6526a7 77%)!important;
+ box-shadow:0 6px 19px #8b4cc75b,inset 0 2px 3px #ffffffa8,0 0 0 1px #d6b3fb!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-crown .vx-premium-crown{
+ width:29px;height:29px;filter:drop-shadow(0 2px 3px #40106288)!important;
+}
+/* Keep the original approved wordmark file; add depth and a masked streak. */
+.veyra-v2 .vx-dating-stage02 .vx-head .vx-logo{
+ filter:drop-shadow(0 1px 0 #fff) drop-shadow(0 2px 3px #53227878) drop-shadow(0 0 7px #e0b0fa8c);
+}
+.veyra-v2 .vx-dating-stage02 .vx-feed-wordmark-glint{
+ position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+ width:clamp(113px,34vw,146px);height:44px;z-index:2;pointer-events:none;
+ -webkit-mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
+ mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
+ background:linear-gradient(115deg,transparent 35%,#fff0fa00 42%,#ffffffd9 49%,#f4d2ff66 54%,transparent 61%) -180% 0/250% 100% no-repeat;
+ animation:vxFeedLogoGlint 7s ease-in-out infinite;
+}
+@keyframes vxFeedLogoGlint{
+ 0%,13%{background-position:-180% 0}32%,100%{background-position:180% 0}
+}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head .vx-feed-wordmark-glint{
+ position:fixed;top:max(39px,calc(var(--veyra-telegram-status-top,0px) + 13px));
+ left:50vw;width:clamp(108px,32vw,135px);height:31px;transform:translateX(-50%);
+}
+.veyra-v2 .vx-dating-stage02 .vx-head-actions{gap:8px}
+.veyra-v2 .vx-dating-stage02 .vx-head-actions>button{
+ border:1px solid #e6d4f8!important;
+ background:linear-gradient(154deg,#fffefe 0%,#f1e2ff 100%)!important;
+ box-shadow:0 5px 15px #68459622,inset 0 1px 1px white!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-head-actions .veys-header-button{
+ min-width:91px!important;max-width:124px!important;gap:5px!important;
+ height:42px!important;padding:0 7px!important;border-radius:999px!important;
+ background:linear-gradient(110deg,#f9e9ff,#e8d5ff 70%,#f7e8ff)!important;
+}
+.veyra-v2 .vx-dating-stage02 .veys-header-button .vx-feed-balance-number{
+ display:inline!important;color:#4f227e;font-size:clamp(11px,3.5vw,14px);
+ font-weight:850;letter-spacing:-.35px;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.veyra-v2 .vx-dating-stage02 .vx-feed-balance-plus{
+ display:grid;place-items:center;flex:0 0 23px;height:23px;width:23px;
+ border-radius:50%;color:white;font-size:19px;line-height:1;font-weight:550;
+ background:linear-gradient(155deg,#bc75fa,#7d34d2);
+ box-shadow:0 2px 5px #7c32b84a,inset 0 1px 2px #ffffffb0;
+}
+/* Three compact tabs; the INDICATOR moves as one viscous blob, text never flies.
+   translate is composited; scale stretching gives a gel/slime feeling. */
+.veyra-v2 .vx-dating-stage02 .vx-tabs.vx-liquid-tabs{
+ position:relative;isolation:isolate;display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+ min-height:49px;height:49px;margin:0 0 10px;padding:4px;
+ border:1px solid #dfc9f6;border-radius:999px;
+ background:linear-gradient(155deg,#f9f3ff,#eadcfb);
+ box-shadow:inset 0 1px 5px #9c6dd11d,0 4px 12px #5b27751a;
+ overflow:visible;
+}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-indicator{
+ position:absolute;z-index:0;pointer-events:none;
+ top:4px;left:4px;bottom:4px;width:calc((100% - 8px)/3);
+ border-radius:999px;
+ background:linear-gradient(155deg,#ae67ee 0%,#8b36e0 56%,#6921ca 100%);
+ box-shadow:0 3px 10px #8530d75b,inset 0 1px 2px #ffffff9c,0 0 0 1px #e7c0ffb3;
+ transform:translate3d(var(--vx-liquid-offset,0%),0,0);
+ transition:transform .53s cubic-bezier(.2,1.04,.28,1);
+ will-change:transform;
+}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-indicator::before{
+ content:"";position:absolute;inset:2px;border-radius:inherit;
+ background:linear-gradient(175deg,#fff7 0%,transparent 40%);opacity:.66;
+}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-indicator::after{
+ content:"";position:absolute;inset:-5px;border-radius:inherit;
+ box-shadow:0 0 12px #ad5df45c;opacity:.75;filter:blur(3px);
+}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-tabs.is-flowing .vx-liquid-indicator{
+ animation:vxLiquidStretch .53s cubic-bezier(.23,.92,.36,1) both;
+}
+@keyframes vxLiquidStretch{
+ 0%{scale:1 1;border-radius:999px}
+ 32%{scale:1.21 .92;border-radius:47% 53% 51% 49% / 50%}
+ 62%{scale:.95 1.07;border-radius:56% 44% 48% 52% / 50%}
+ 100%{scale:1 1;border-radius:999px}
+}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-tabs button,
+.veyra-v2 .vx-dating-stage02 .vx-liquid-tabs button.active{
+ position:relative;z-index:1;display:grid;place-items:center;min-height:39px;height:39px;
+ padding:4px 0;border:0;border-radius:999px;
+ background:transparent!important;box-shadow:none!important;
+ font-size:clamp(12px,3.7vw,15px);font-weight:780;
+ transition:color .15s ease-out,opacity .18s ease-out;
+}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-tabs button{color:#694d88!important}
+.veyra-v2 .vx-dating-stage02 .vx-liquid-tabs button.active{
+ color:#fff!important;text-shadow:0 1px 2px #30104666;
+}
+/* Portrait: simple, premium; no translucent boxes under the face. */
+.veyra-v2 .vx-dating-stage02 .discover .feed-photo{
+ border-radius:27px!important;
+ background:#dfcde8;
+ box-shadow:0 11px 25px #36174d2c,0 0 0 1px #ffffffb0!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .feed-photo .veyra-card-shade{
+ background:linear-gradient(180deg,#1208204f 0%,transparent 20%,transparent 43%,#11061d26 57%,#0b061680 74%,#080513f3 100%)!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-photo-bars{
+ top:16px!important;left:15px!important;right:15px!important;gap:6px!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-photo-bars button{
+ height:4px!important;border-radius:99px;background:#ffffff79;box-shadow:0 1px 5px #11051d45;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-photo-bars button.active{
+ background:#fff;box-shadow:0 0 7px #fff9;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-goal-badge.veyra-card-top-goal{
+ display:inline-flex!important;position:absolute!important;
+ top:38px!important;bottom:auto!important;right:13px!important;left:auto!important;
+ width:max-content;max-width:min(67%,245px)!important;min-height:32px;
+ padding:4px 10px 4px 5px;
+ border-radius:999px;color:#fff!important;
+ background:linear-gradient(120deg,#6d337fb8,#563669b9)!important;
+ border:1px solid #e9c7ffae!important;
+ box-shadow:0 4px 15px #2813355c,inset 0 1px 2px #ffffff38!important;
+ font-size:clamp(10px,2.7vw,12px);font-weight:750;
+ backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-top-goal .veyra-card-goal-mark{
+ background:linear-gradient(150deg,#ffbff5,#edd0ff)!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-demo-feed-badge{
+ top:42px;left:15px;right:auto;
+}
+/* Caption is pinned to card bottom, never to CTA row. Reserve right for info. */
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-caption.hero-info{
+ left:clamp(14px,3.5vw,22px)!important;
+ right:54px!important;bottom:clamp(15px,2.5vh,23px)!important;
+ gap:6px!important;width:auto!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .feed-online{
+ margin:0 0 2px;padding:4px 10px;
+ border-radius:999px;border:1px solid #56ec9680;
+ background:#0c3d27b3;font-size:11px;letter-spacing:.15px;
+ box-shadow:0 1px 5px #020d0855;
+}
+.veyra-v2 .vx-dating-stage02 .discover .feed-online-dot{
+ width:9px;height:9px;box-shadow:0 0 6px #20f2808c;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-name-row{
+ width:100%;max-width:100%;gap:9px;
+}
+.veyra-v2 .vx-dating-stage02 .discover .hero-name{
+ font-size:clamp(25px,7.6vw,38px)!important;line-height:1.13!important;
+ letter-spacing:-.65px;font-weight:900!important;
+ max-width:calc(100% - 32px)!important;min-width:0;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ padding:0;text-align:left;text-shadow:0 2px 6px #05020cb0;
+}
+.veyra-v2 .vx-dating-stage02 .discover .feed-checked{
+ width:21px;height:21px;flex:none;filter:drop-shadow(0 2px 5px #3a0a63c9);
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-caption .feed-location{
+ display:flex!important;align-items:center;flex-wrap:nowrap;
+ gap:7px!important;margin:0!important;min-width:0;max-width:100%;
+ font-size:clamp(12px,3.25vw,14px)!important;
+ font-weight:640;white-space:nowrap;text-shadow:0 1px 5px #060414c4;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-city-distance{
+ max-width:calc(100% - 43px);overflow:hidden;text-overflow:ellipsis;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-country-flag-round{
+ display:inline-flex!important;align-items:center;justify-content:center;
+ width:23px!important;height:23px!important;min-width:23px;min-height:23px;
+ overflow:hidden;border-radius:50%;background:#eedbff;
+ border:2px solid #fffb!important;box-shadow:0 2px 7px #1710255a;
+ text-shadow:none;
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-country-flag-glyph{
+ display:block;font-size:23px;line-height:24px;width:24px;
+ text-align:center;transform:scale(1.14);
+}
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-caption .veyra-card-bio{
+ display:-webkit-box!important;
+ -webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;line-clamp:2!important;
+ overflow:hidden!important;margin:2px 0 0!important;
+ max-width:100%;font-size:clamp(12px,3.5vw,14px)!important;line-height:1.35!important;
+ text-shadow:0 1px 5px #020106a8;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-profile-info{
+ position:absolute;z-index:8;bottom:15px;right:13px;
+ width:36px;height:36px;border-radius:50%;
+ display:grid;place-items:center;color:#fff;
+ background:linear-gradient(155deg,#2e164d9e,#21142ba8);
+ border:1px solid #e7c5ffb5;
+ box-shadow:0 3px 9px #0c071a77,inset 0 1px 2px #ffffff33;
+ backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+ transition:transform .14s ease;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-profile-info:active{transform:scale(.93)}
+/* Exactly three preview chips and +N, horizontally clipped on small phones. */
+.veyra-v2 .vx-dating-stage02 .discover .veyra-card-caption .veyra-card-tags{
+ width:100%;max-width:100%;margin-top:3px!important;
+ height:30px!important;max-height:30px!important;overflow:visible!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row{
+ display:flex!important;flex-wrap:nowrap!important;gap:5px!important;
+ align-items:center;overflow:hidden!important;max-width:100%;
+ height:30px!important;min-width:0;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row .veyra-interest-inline-chip{
+ display:inline-flex;flex:0 1 auto;min-width:0;
+ gap:5px;align-items:center;justify-content:center;
+ max-width:28%!important;min-height:28px!important;
+ padding:4px 7px!important;border-radius:999px;
+ border:1px solid #d9b1f3a6!important;
+ background:linear-gradient(120deg,#35223bba,#382748b8)!important;
+ color:#fff!important;font-size:clamp(9px,2.7vw,11px)!important;font-weight:700;
+ backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row .veyra-interest-inline-chip svg,
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row .veyra-interest-inline-chip img{
+ flex:none;width:14px;height:14px;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row .vx-interest-chip-label{
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row .veyra-interest-more{
+ display:inline-flex!important;flex:0 0 auto!important;
+ padding:4px 10px!important;height:29px;min-width:41px!important;
+ margin:0;justify-content:center;
+ border-radius:999px;border:1px solid #e7c8ffa6!important;
+ background:linear-gradient(135deg,#ad65eaed,#743dc4ee)!important;
+ color:#fff!important;font-size:12px!important;font-weight:850!important;
+ box-shadow:0 2px 9px #42206564;
+}
+/* Primary controls are beneath the card, with generous real touch targets.
+   The largest heart comes THIRD, followed by a smaller Super Like star. */
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage{
+ position:relative;padding-bottom:94px!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-actions{
+ position:absolute!important;bottom:1px!important;left:50%!important;right:auto!important;
+ width:calc(100% - 12px)!important;max-width:440px!important;
+ height:88px!important;min-height:88px!important;
+ transform:translateX(-50%)!important;
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ align-items:center;justify-items:center;gap:5px;padding:0!important;margin:0!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action{
+ display:grid!important;place-items:center!important;width:100%!important;
+ min-height:86px!important;min-width:0;margin:0!important;padding:0!important;
+ border:0;background:transparent;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action-circle{
+ display:grid;place-items:center;border-radius:50%;
+ width:clamp(54px,15vw,66px)!important;height:clamp(54px,15vw,66px)!important;
+ border:2px solid #fff!important;
+ background:linear-gradient(155deg,#fffaff 0%,#e9d4ff 100%)!important;
+ color:#7950bd!important;
+ box-shadow:0 5px 13px #6e359139,inset 0 1px 3px #ffffffed,0 0 0 1px #dcb9ffc7!important;
+ transition:scale .2s cubic-bezier(.2,1.5,.4,1),box-shadow .22s ease;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo .feed-action-circle{
+ width:clamp(50px,13.5vw,58px)!important;height:clamp(50px,13.5vw,58px)!important;
+ background:linear-gradient(150deg,#fffaff,#ead6ff)!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-pass .feed-action-circle{
+ width:clamp(60px,16.2vw,73px)!important;height:clamp(60px,16.2vw,73px)!important;
+ background:linear-gradient(150deg,#fff6fd,#f5cfec 95%)!important;color:#cf3e8b!important;
+ box-shadow:0 7px 19px #be6eae50,inset 0 1px 4px white,0 0 0 1px #efbedfdc!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-like .feed-action-circle{
+ width:clamp(76px,21vw,92px)!important;height:clamp(76px,21vw,92px)!important;
+ background:radial-gradient(circle at 33% 13%,#dca4ff 0%,#a151f7 36%,#772ed7 75%,#6322bd 100%)!important;
+ color:white!important;border:2px solid #e9d2ff!important;
+ box-shadow:0 0 25px #bd83ff9e,0 8px 20px #632ea080,inset 0 2px 4px #ffffffa8!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-like .feed-action-circle img{
+ filter:brightness(0) invert(1);
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-super .feed-action-circle{
+ width:clamp(62px,17.2vw,75px)!important;height:clamp(62px,17.2vw,75px)!important;
+ color:#7f3ad8!important;background:linear-gradient(145deg,#fffaff,#e4d0ff)!important;
+ box-shadow:0 6px 19px #7844bf56,inset 0 2px 4px white,0 0 0 1px #d2abfdcf!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action:active .feed-action-circle{
+ scale:.89;filter:brightness(1.04);
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action:disabled{
+ opacity:.55!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo:disabled{
+ opacity:1!important;
+}
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo:disabled .feed-action-circle .kit-icon{opacity:.6}
+/* Bottom sheet floats OVER photo, leaving bottom CTA row visually visible.
+   Only the drawer overlay is modal: underlying actions are not clickable. */
+.veyra-interests-overlay.vx-feed-interests-overlay{
+ padding:12px 10px calc(158px + env(safe-area-inset-bottom,0px));
+ background:#160b2b70;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+ align-items:flex-end;justify-content:center;
+}
+.vx-feed-interests-overlay .veyra-interests-sheet{
+ width:min(100%,580px);max-height:min(58dvh,440px);
+ border-radius:30px;padding:0 17px 23px;
+ background:linear-gradient(155deg,#fffcff 0%,#f1e5ff 100%);
+ border:1px solid #fff;
+ box-shadow:0 13px 45px #16093363,0 0 22px #c89dfd36;
+ color:#26143f;overflow-y:auto;overscroll-behavior:contain;
+ transform:translateY(var(--vx-sheet-drag,0px));
+ transition:transform .18s ease-out;
+ animation:vxFeedSheetUp .37s cubic-bezier(.14,.83,.26,1.08) both;
+}
+@keyframes vxFeedSheetUp{
+ from{opacity:.6;translate:0 45px}to{opacity:1;translate:0 0}
+}
+.vx-feed-interests-overlay .vx-feed-sheet-drag-area{
+ display:flex;align-items:flex-start;justify-content:center;height:37px;
+ padding:11px 0 14px;cursor:grab;touch-action:none;user-select:none;
+}
+.vx-feed-interests-overlay .vx-feed-sheet-handle{
+ display:block;width:55px;height:6px;border-radius:99px;background:#c5b1dc;
+ box-shadow:inset 0 1px 2px #8c76a642;
+}
+.vx-feed-interests-overlay .veyra-interests-sheet header{
+ display:flex;align-items:center;justify-content:space-between;
+ margin:0 0 13px;font-size:clamp(18px,5vw,21px);
+}
+.vx-feed-interests-overlay .veyra-interests-sheet header strong{
+ font-weight:900;letter-spacing:-.5px;
+}
+.vx-feed-interests-overlay .veyra-interests-sheet header button{
+ display:grid;place-items:center;width:36px;height:36px;border-radius:50%;
+ border:1px solid #e4d1fc;background:#f3e8ff;color:#7b47bd;font-size:23px;
+}
+.vx-feed-interests-overlay .veyra-interests-sheet-list{
+ display:flex;flex-wrap:wrap;gap:9px;
+}
+.vx-feed-interests-overlay .veyra-interests-sheet-list span{
+ display:inline-flex;min-height:38px;align-items:center;gap:8px;
+ border-radius:999px;padding:8px 12px;
+ background:linear-gradient(135deg,#f6edff,#eee0ff);
+ border:1px solid #ddc7f9;color:#56317f;
+ font-weight:750;font-size:12px;
+ box-shadow:inset 0 1px 2px #ffffffbb;
+}
+@media(max-width:360px){
+ .veyra-v2 .vx-dating-stage02 .vx-liquid-tabs button{font-size:12px}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-interest-row .veyra-interest-inline-chip{max-width:27%!important;padding:4px 5px!important}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-like .feed-action-circle{width:73px!important;height:73px!important}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .feed-action-circle{width:51px!important;height:51px!important}
+}
+@media(max-height:680px){
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-caption.hero-info{
+  bottom:12px!important;gap:4px!important;
+ }
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-bio{
+  -webkit-line-clamp:2!important;line-clamp:2!important;
+ }
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage>.feed-actions{height:85px!important;min-height:85px!important}
+ .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage{padding-bottom:90px!important}
+ .veyra-interests-overlay.vx-feed-interests-overlay{padding-bottom:120px}
+}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-dating-stage02 .vx-feed-wordmark-glint{animation:none!important;opacity:0}
+ .veyra-v2 .vx-dating-stage02 .vx-liquid-indicator{transition:none!important;animation:none!important}
+ .vx-feed-interests-overlay .veyra-interests-sheet{animation:none!important;transition:none!important}
+}
