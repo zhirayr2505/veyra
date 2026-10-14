@@ -1,5 +1,6 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {LiquidLogo} from './LiquidLogo.jsx';
+import {haptic} from './haptics.js';
 import {photoUrl,cachedPhoto,cachedPhotoAny} from './api.js';
 import './PhotoReveal.css';
 import './UiPrimitives.css';
@@ -46,7 +47,7 @@ export function Button({children,onClick,kind='primary',variant,size='large',loa
 }
 export function Choice({children,selected=false,onClick,className='',disabled=false,...rest}){
  return <button {...rest} type="button" className={'choice veyra-choice'+(selected?' selected is-active':'')+' '+className}
-  aria-pressed={selected} disabled={disabled} onClick={onClick}>{children}</button>;
+  aria-pressed={selected} disabled={disabled} onClick={e=>{if(!selected)haptic('selection');onClick?.(e)}}>{children}</button>;
 }
 export function InterestChip({tone='violet',label,common=false,selected=false,removable=false,onRemove,onClick,disabled=false,icon,className='',children}){
  const clickable=typeof onClick==='function'||(removable&&typeof onRemove==='function');
