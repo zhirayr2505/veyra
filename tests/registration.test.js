@@ -77,32 +77,42 @@ test('gift placeholder cannot create a charge, reaction, notification or purchas
  assert.equal((await one(db,'SELECT count(*)::int AS n FROM reactions')).n,0);
  assert.equal((await one(db,'SELECT count(*)::int AS n FROM outbox')).n,before);
 });
-test('launch reset clears profiles and sessions, preserves purchases and accepted checkouts, and runs only once',async()=>{
+test('backup-gated launch reset wipes dating data once, retains settled and pending payment records',async()=>{
  await user(db,201);await user(db,202);await db.tx(q=>react(q,'201','202','like'));await db.tx(q=>react(q,'202','201','like'));
  const before=(await one(db,'SELECT count(*)::int AS n FROM users')).n;
- assert.equal((await applyRegistrationReset(db,env)).status,'not_applicable');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
+ assert.equal((await applyRegistrationReset(db,env)).status,'not_applicable');
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
  const target={...env,APP_URL:'https://veyra-3806.onrender.com',RENDER_EXTERNAL_URL:'https://veyra-3806.onrender.com'};
+ const manifest={
+  postgres:{id:'pg-isolated-test',sha256:'c'.repeat(64),bytes:2000,restore_tested:true},
+  storage:{id:'storage-isolated-test',sha256:'d'.repeat(64),bytes:2000,objects:9,objects_verified:9,restore_tested:true}
+ };
+ assert.equal((await applyRegistrationReset(db,target)).status,'blocked_backup_required');
  await db.query("UPDATE feature_flags SET enabled=true WHERE key='payments'");
  const paidId=randomUUID(),checkoutId=randomUUID(),unusedId=randomUUID();
  await db.query("INSERT INTO orders(id,user_id,total,kind,amount,status,telegram_charge) VALUES($1,200,9,'superlikes',1,'paid','reset-protection-fixture')",[paidId]);
  await db.query("INSERT INTO orders(id,user_id,total,kind,amount,status,precheckout_id,precheckout_at) VALUES($1,201,9,'superlikes',1,'pending','accepted-before-reset',now())",[checkoutId]);
  await db.query("INSERT INTO orders(id,user_id,total,kind,amount,status) VALUES($1,202,9,'superlikes',1,'pending')",[unusedId]);
  await db.query('UPDATE users SET superlikes=7 WHERE id=200');
- assert.equal((await applyRegistrationReset(db,target)).status,'completed');
- for(const table of ['profiles','photos','sessions','outbox','matches','reactions','registration_drafts'])assert.equal((await one(db,`SELECT count(*)::int AS n FROM ${table}`)).n,0,table);
+ const first=await applyRegistrationReset(db,target,{backupManifest:manifest});
+ assert.equal(first.status,'completed');
+ for(const table of ['profiles','photos','sessions','matches','messages','reactions','registration_drafts'])
+  assert.equal((await one(db,`SELECT count(*)::int AS n FROM ${table}`)).n,0,table);
  assert.ok((await one(db,'SELECT count(*)::int AS n FROM storage_gc')).n>=9);
- assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,2);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
  assert.equal((await one(db,'SELECT superlikes FROM users WHERE id=200')).superlikes,7);
  assert.equal((await one(db,'SELECT status FROM orders WHERE id=$1',[paidId])).status,'paid');
  assert.equal((await one(db,'SELECT precheckout_id FROM orders WHERE id=$1',[checkoutId])).precheckout_id,'accepted-before-reset');
- assert.equal(await one(db,'SELECT id FROM orders WHERE id=$1',[unusedId]),undefined);
- assert.equal(await one(db,'SELECT id FROM users WHERE id=202'),undefined);
+ assert.equal((await one(db,'SELECT status FROM orders WHERE id=$1',[unusedId])).status,'pending');
+ assert.ok(await one(db,'SELECT id FROM users WHERE id=202'));
  assert.equal((await one(db,"SELECT enabled FROM feature_flags WHERE key='payments'")).enabled,true);
-
  assert.equal((await auth(request(app).get('/api/me'))).status,401);
  token=(await request(app).post('/api/auth').send({initData:initData(200)})).body.token;
- const me=(await auth(request(app).get('/api/me'))).body;assert.equal(me.profile,null);assert.equal(me.registration,null);
- assert.equal((await applyRegistrationReset(db,target)).status,'completed');assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,2);
+ const me=(await auth(request(app).get('/api/me'))).body;
+ assert.equal(me.profile,null);assert.equal(me.registration,null);
+ const second=await applyRegistrationReset(db,target,{backupManifest:manifest});
+ assert.equal(second.status,'completed');assert.equal(second.already_completed,true);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM users')).n,before);
  assert.equal(me.user.first_name,'Tester');
  assert.equal((await one(db,"SELECT count(*)::int AS n FROM audit_log WHERE action='registration.reset' AND subject=$1",[RESET_ID])).n,1);
 });
