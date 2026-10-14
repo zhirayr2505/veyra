@@ -23,7 +23,7 @@
 | [x] | 4.1 | Единые дизайн-токены | `tokens.css`, `App.jsx`, `V2.css`, `Registration2026.css`, `ProfilePreview.css`, `MemberPolish7.css`, `BrandConsistency.css`, `tests/ui-tokens.test.js`, `tests/telegram-swipe-profile-polish.test.js`, `tests/veyra-brand-consistency.test.js` | CI #38549891572: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; перенос оставшихся локальных цветов в общие компоненты (4.2–6.1), Android QA |
 | [x] | 4.2 | Button / Choice / InterestChip | `UI.jsx`, `UiPrimitives.css`, `Registration.jsx`, `OnboardingOptions.jsx`, `Member.jsx`, `ProfilePreview.jsx`, `Discover.jsx`, `tests/ui-components.test.js` | CI #38550831532: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Android visual + touch QA still needed |
 | [x] | 4.3 | Цветные интересы в регистрации | `OnboardingOptions.jsx`, `OnboardingV9.css`, `tests/interest-picker-ui.test.js` | CI #38551424163: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; визуально и haptic Telegram Android — требуется |
-| [~] | 4.4 | Превью через настоящий Member | — | Render read-only Member, disable side effects, match feed visual |
+| [x] | 4.4 | Превью через настоящий Member | `Member.jsx`, `ProfilePreview.jsx`, `ProfilePreview.css`, `FeedCardVisual.jsx`, `Discover.jsx`, `tests/member-readonly-preview.test.js`, `tests/ui-components.test.js` | CI #38553212186: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Telegram device visual/scroll QA required |
 | [ ] | 4.5 | Единая система иконок | — | Не начато |
 | [ ] | 4.6 | Клавиатура, локальные ошибки, цели | — | Не начато |
 | [ ] | 4.7 | Имена с дефисом и апострофом | — | Не начато |
