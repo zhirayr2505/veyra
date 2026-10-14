@@ -207,7 +207,7 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  const tiles=page.locator('.photo-slot[data-photo-id]');
  const before=await tiles.evaluateAll(nodes=>nodes.map(n=>n.dataset.photoId));
  await tiles.nth(4).focus();await page.keyboard.press('ArrowUp');
- await expect.poll(async()=>tiles.first().getAttribute('data-photo-id')).not.toBe(before[0]);
+ await expect.poll(async()=>tiles.nth(1).getAttribute('data-photo-id')).toBe(before[4]);
  await expect(page.getByRole('button',{name:'Предпросмотр анкеты'})).toBeEnabled();
  await page.getByRole('button',{name:'Предпросмотр анкеты'}).click();
  await expect(page.locator('.mode-detail .vx-preview-member-stage .vx-profile-read-only')).toBeVisible();
