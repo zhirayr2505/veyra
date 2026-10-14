@@ -28,7 +28,12 @@ jobs:
         if: false # Superseded V4 browser suite
       - run: npx playwright install --with-deps chromium
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.ref == 'refs/heads/rebuild/veyra-v5-clean-slate'
-      - run: npx playwright test --project=v5
+      - run: |
+          mkdir -p test-results
+          npx playwright test --project=v5 --reporter=json > "$RUNNER_TEMP/v5-results.json" || true
+          cp "$RUNNER_TEMP/v5-results.json" test-results/v5-results.json
+        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.ref == 'refs/heads/rebuild/veyra-v5-clean-slate'
+      - run: node scripts/stage0-browser-baseline.js test-results/v5-results.json
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.ref == 'refs/heads/rebuild/veyra-v5-clean-slate'
       - uses: actions/upload-artifact@v4
         if: always()
