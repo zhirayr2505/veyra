@@ -292,7 +292,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
   </header>
   <DemoStrip status={demoStatus} enabled={demoMode} onToggle={onDemoModeChange} onRetry={onDemoRetry} onReset={onDemoReset} resetBusy={demoResetBusy} resetNotice={demoResetNotice}/>
   <div className={'vx-tabs vx-liquid-tabs'+(liquidFlow?' is-flowing':'')} role="tablist" aria-label="Способы знакомств"
-   style={{'--vx-liquid-index':TABS.findIndex(([key])=>key===tab)}}>
+   style={{'--vx-liquid-offset':(TABS.findIndex(([key])=>key===tab)*100)+'%'}}>
    <span className="vx-liquid-indicator" aria-hidden="true"/>
    {TABS.map(([key,label])=><button key={key} id={'vx-tab-'+key} type="button" role="tab"
     aria-selected={tab===key} aria-controls={'vx-panel-'+key} className={tab===key?'active':''}
