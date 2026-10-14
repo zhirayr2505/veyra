@@ -1,0 +1,44 @@
+/* One indicator treatment in member hero, gallery and onboarding preview. */
+.veyra-photo-segments{
+ display:flex;align-items:center;justify-content:center;
+ gap:5px;box-sizing:border-box;
+ padding:9px 11px;
+ min-height:23px;
+ border:1px solid rgba(255,255,255,.22);
+ border-radius:999px;
+ background:rgba(32,20,48,.28);
+ box-shadow:0 3px 12px rgba(24,12,36,.12),inset 0 1px rgba(255,255,255,.18);
+ -webkit-backdrop-filter:blur(8px);
+ backdrop-filter:blur(8px);
+ pointer-events:none;
+}
+.veyra-photo-segments .veyra-photo-segment{
+ display:block;position:relative;flex:1 1 0;min-width:0;
+ height:3px;border-radius:999px;overflow:hidden;
+ background:rgba(255,255,255,.39);
+}
+.veyra-photo-segments .veyra-photo-segment-fill{
+ position:absolute;inset:0;border-radius:inherit;
+ background:#fff;
+ transform-origin:left center;
+ transform:scaleX(0);
+ opacity:.6;
+ transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .24s ease;
+}
+.veyra-photo-segments .veyra-photo-segment.active .veyra-photo-segment-fill{
+ transform:scaleX(var(--veyra-photo-progress,1));opacity:1;
+}
+.vx-profile-gallery .veyra-photo-segments{
+ position:absolute;z-index:351;left:50%;bottom:66px;top:auto;
+ transform:translateX(-50%);width:min(72vw,270px);
+}
+.veyra-profile-preview .preview-gallery .veyra-photo-segments{
+ position:absolute;top:13px;bottom:auto;left:50%;right:auto;
+ z-index:8;transform:translateX(-50%);width:min(65%,245px);
+}
+.veyra-profile-preview.mode-detail .preview-gallery .veyra-photo-segments{
+ top:auto;bottom:14px;
+}
+@media(prefers-reduced-motion:reduce){
+ .veyra-photo-segments .veyra-photo-segment-fill{transition:none}
+}
