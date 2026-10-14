@@ -1546,3 +1546,85 @@ test('Approved VEYRA For You matches the light lavender reference and stays with
  await section.getByRole('button',{name:'Свернуть'}).click();
  await expect(section.getByRole('button',{name:'Смотреть все'})).toBeVisible();
 });
+
+
+test('Telegram 7.7+ prevents vertical Mini App dismissal in expanded and fullscreen layouts while scroll stays native',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.route('https://telegram.org/**',route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));
+ await page.addInitScript(({data})=>{
+  const handlers={},calls=[];
+  window.__tgSwipe={handlers,calls};
+  window.Telegram={WebApp:{
+   initData:data,initDataUnsafe:{user:{language_code:'ru'}},
+   isFullscreen:false,safeAreaInset:{top:0,bottom:0},contentSafeAreaInset:{top:0,bottom:0},
+   isVersionAtLeast:version=>parseFloat(version)<=8.0,
+   ready(){calls.push('ready')},expand(){calls.push('expand')},
+   disableVerticalSwipes(){calls.push('disable')},
+   requestFullscreen(){calls.push('fullscreen')},openInvoice(){},
+   setHeaderColor(){},setBackgroundColor(){},
+   onEvent:(name,fn)=>{handlers[name]=fn},
+   offEvent:(name,fn)=>{if(handlers[name]===fn)delete handlers[name]}
+  }};
+ },{data:initData(10,env.USER_BOT_TOKEN)});
+ await page.goto('/');
+ await expect(page.locator('.feed-photo')).toBeVisible();
+ let calls=await page.evaluate(()=>window.__tgSwipe.calls);
+ expect(calls.slice(0,4)).toEqual(['ready','expand','disable','fullscreen']);
+ await page.evaluate(()=>{
+  window.__tgSwipe.handlers.viewportChanged?.();
+  window.Telegram.WebApp.isFullscreen=true;
+  window.__tgSwipe.handlers.fullscreenChanged?.();
+ });
+ calls=await page.evaluate(()=>window.__tgSwipe.calls);
+ expect(calls.filter(v=>v==='disable')).toHaveLength(3);
+ await expect(page.locator('html')).toHaveClass(/veyra-telegram-fullscreen/);
+ expect(await page.evaluate(()=>getComputedStyle(document.documentElement).overscrollBehaviorY)).toBe('none');
+ expect(await page.evaluate(()=>getComputedStyle(document.body).overscrollBehaviorY)).toBe('none');
+ await page.locator('.feed-photo .hero-name').click();
+ const scroller=page.locator('.vx-profile-scroller');
+ await expect(scroller).toBeVisible();
+ const before=await scroller.evaluate(el=>{el.scrollTop=80;return el.scrollTop});
+ await scroller.evaluate(el=>{el.scrollTop+=170});
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeGreaterThan(before+110);
+ expect(await scroller.evaluate(el=>getComputedStyle(el).overscrollBehaviorY)).toBe('contain');
+});
+
+test('Premium member polish keeps 44px tabs, semantic colors, gallery counter and one-time swipe hint',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.feed-photo .hero-name').click();
+ const member=page.locator('.vx-master-profile');
+ await expect(member).toBeVisible();
+ const buttons=member.locator('.vx-profile-tab-rail [role=tab]');
+ await expect(buttons).toHaveCount(4);
+ const heights=await buttons.evaluateAll(els=>els.map(el=>Math.round(el.getBoundingClientRect().height)));
+ for(const height of heights)expect(height).toBeGreaterThanOrEqual(44);
+ await expect(member.locator('.vx-profile-name-row .vx-demo-member-label')).toHaveCount(0);
+ await expect(buttons.first().locator('.vx-tab-label-stack>span')).toHaveCount(2);
+ await expect(member.locator('.vx-profile-action.primary')).toBeVisible();
+ const surfaces=member.locator('.vx-profile-swipe-page:first-child .vx-profile-surface');
+ const radius=await surfaces.first().evaluate(el=>getComputedStyle(el).borderTopLeftRadius);
+ expect(radius).toBe('20px');
+ const interests=member.locator('.vx-profile-swipe-page:first-child .vx-member-interest');
+ if(await interests.count()){
+  const tones=await interests.evaluateAll(els=>els.map(el=>el.dataset.tone));
+  expect(tones.every(Boolean)).toBe(true);
+  const firstSize=await interests.first().evaluate(el=>getComputedStyle(el).height);
+  expect(firstSize).toBe('44px');
+ }
+ await buttons.getByRole('tab',{name:'Фото'}).click();
+ const galleryTile=member.locator('.vx-profile-photos-grid button').first();
+ await expect(galleryTile).toBeVisible();
+ await galleryTile.click();
+ const gallery=page.getByRole('dialog',{name:/Галерея/});
+ await expect(gallery).toBeVisible();
+ await expect(gallery.locator('.vx-profile-gallery-counter')).toHaveText(/^\d+\/\d+$/);
+ await expect(gallery.locator('.vx-profile-gallery-hint')).toContainText('Свайп вниз');
+ const close=gallery.getByRole('button',{name:'Закрыть'});
+ const bounds=await close.boundingBox();
+ expect(bounds.height).toBeGreaterThanOrEqual(44);
+ await close.click();
+ await galleryTile.click();
+ await expect(gallery.locator('.vx-profile-gallery-hint')).toHaveCount(0);
+ await gallery.getByRole('button',{name:'Закрыть'}).click();
+});
