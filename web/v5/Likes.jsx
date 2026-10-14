@@ -11,7 +11,7 @@ function PersonCard({person,match,onProfile,onChat,onLike,onSeen,processing}){
  const open=()=>{haptic();if(mutual)onSeen(match);onProfile(p.id,mutual?match.id:null,p)};
  const action=()=>{haptic('medium');if(mutual){onSeen(match);onChat(match.id,p)}else onLike(p)};
  return <article className="likes-person">
-  <Photo className="likes-person-photo" id={p.photos?.[0]} alt={'Фото '+label(p)} onClick={open}/>
+  <Photo className="likes-person-photo" id={p.photos?.[0]} alt={'Фото '+label(p)} placeholder={p.photo_placeholders?.[String(p.photos?.[0])]} onClick={open}/>
   <div className="likes-photo-shade" aria-hidden="true"/>
   {match?.is_new&&<span className="likes-new-tag"><Icon name="sparkle" tone="white" size={12}/> новый мэтч</span>}
   <div className="likes-person-details">
