@@ -70,6 +70,26 @@ test('one-time reset removes dating data, queues files and preserves all payment
  }finally{await db.close()}
 });
 
+test('reset refuses to destroy paid courtships and in-flight account deletion',async()=>{
+ const db=await testDB();
+ try{
+  await user(db,1);await user(db,2);
+  const m=randomUUID(),o=randomUUID();
+  await db.query('INSERT INTO matches(id,a,b) VALUES($1,1,2)',[m]);
+  await db.query("INSERT INTO orders(id,user_id,sku,kind,amount,total,status) VALUES($1,1,'premium_day','premium',1,25,'paid')",[o]);
+  await db.query("INSERT INTO courtships(id,sender,recipient,match_id,order_id,status) VALUES($1,1,2,$2,$3,'active')",[randomUUID(),m,o]);
+  await assert.rejects(()=>applyRegistrationReset(db,prod,{backupManifest:manifest}),/RESET_BLOCKED_FINANCIAL_COURTSHIP/);
+  assert.equal(await count(db,'profiles'),2);
+  assert.equal(await count(db,'orders'),1);
+  assert.equal(await count(db,'courtships'),1);
+  await db.query('DELETE FROM courtships');
+  await db.query("UPDATE users SET status='deleting' WHERE id=1");
+  await assert.rejects(()=>applyRegistrationReset(db,prod,{backupManifest:manifest}),/RESET_BLOCKED_PENDING_ACCOUNT_DELETION/);
+  assert.equal(await count(db,'profiles'),2);
+  assert.equal(await count(db,'audit_log'),0);
+ }finally{await db.close()}
+});
+
 test('owner login never seeds demo, endpoints are absent, legacy synthetic identities stay hidden',async()=>{
  const db=await testDB();
  try{
