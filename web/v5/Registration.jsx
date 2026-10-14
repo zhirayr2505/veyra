@@ -53,7 +53,7 @@ export function Registration({me,refresh}){
  const [telegramFull,setTelegramFull]=useState(()=>Boolean(window.Telegram?.WebApp?.isFullscreen));
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
- const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
+ const photoInput=useRef(null),replaceInput=useRef(null),replaceIndex=useRef(-1),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),stepAnimationsRef=useRef([]),exitCloneRef=useRef(null),workRunning=useRef(false),reorderRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
@@ -200,9 +200,10 @@ export function Registration({me,refresh}){
    setJobs([]);uploadRunning.current=false;setUploading(false);
   }
  };
- const reorder=async(from,to)=>{if(uploading||busy||from===to||from<0||to<0||from>=photos.length||to>=photos.length)return;
- const before=photos,arr=[...photos],moved=arr.splice(from,1)[0];arr.splice(to,0,moved);setPhotos(arr);
- try{await photoOrder(arr.map(p=>p.id))}catch(e){setPhotos(before);fail(e)}
+ const reorder=async(from,to)=>{if(uploading||busy||reorderRunning.current||from===to||from<0||to<0||from>=photos.length||to>=photos.length)return;
+  reorderRunning.current=true;
+  const before=photos,arr=[...photos],moved=arr.splice(from,1)[0];arr.splice(to,0,moved);setPhotos(arr);
+  try{await photoOrder(arr.map(p=>p.id))}catch(e){setPhotos(before);fail(e)}finally{reorderRunning.current=false}
  };
  const captureDragLayout=()=>new Map(Array.from(document.querySelectorAll('.registration-v7 .photo-slot[data-photo-id]')).map(el=>[el.dataset.photoId,el.getBoundingClientRect()]));
  useLayoutEffect(()=>{const before=dragLayoutRects.current;if(!before||!dragVisual)return;dragLayoutRects.current=null;
@@ -215,11 +216,12 @@ export function Registration({me,refresh}){
  const dragStart=(e,i)=>{if(uploading||busy||(e.pointerType==='mouse'&&e.button!==0))return;
   dragRef.current?.cleanup?.();
   const rect=e.currentTarget.getBoundingClientRect();
-  const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null};
+  const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null,frame:0};
   // Moving a keyed tile can disconnect it from the pointer capture target.
   // Document-level capture retains the gesture until the finger or mouse releases.
   const onMove=event=>dragMove(event),onUp=event=>dragFinish(event),onCancel=()=>dragCancel();
   state.cleanup=()=>{
+   if(state.frame)cancelAnimationFrame(state.frame);
    window.removeEventListener('pointermove',onMove,true);
    window.removeEventListener('pointerup',onUp,true);
    window.removeEventListener('pointercancel',onCancel,true);
@@ -233,14 +235,14 @@ export function Registration({me,refresh}){
    if(dragRef.current!==state)return;
    state.active=true;
    try{state.node.setPointerCapture?.(state.id)}catch{}
-   setDragVisual({index:i,x:state.x,y:state.y,width:state.width,height:state.height});setDragOver(i);
+   setDragVisual({index:i,x:state.x,y:state.y,offsetX:state.offsetX,offsetY:state.offsetY,width:state.width,height:state.height});setDragOver(i);
    haptic('selection');
   },320);
   dragRef.current=state;
  };
  const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
   if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);s.cleanup?.();dragRef.current=null}return}
-  e.preventDefault();setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null);const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
+  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null)});const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
  };
  const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);s.cleanup?.();dragRef.current=null;
   if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
@@ -320,22 +322,23 @@ export function Registration({me,refresh}){
      {display.map((item,i)=>{const loading=!!item?.file;
       return <div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
        onContextMenuCapture={e=>e.preventDefault()} onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
-       onPointerMove={dragMove} onPointerUp={dragFinish} onPointerCancel={dragCancel}
-       tabIndex={!loading?0:-1} aria-label={'Фотография '+(i+1)+', перетащи для смены позиции'}
-       onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
+       
+       tabIndex={!loading?0:-1} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown" aria-label={'Фотография '+(i+1)+', перетащи или используй стрелки для смены позиции'}
+       onKeyDown={e=>{const moves={ArrowLeft:-1,ArrowRight:1,ArrowUp:-3,ArrowDown:3};if(Object.hasOwn(moves,e.key)){e.preventDefault();reorder(i,Math.max(0,Math.min(photos.length-1,i+moves[e.key])))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id} placeholder={{lqip:item.lqip||null,dominant:item.dominant||item.dominant_color||null}}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
         {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{transform:'scaleX('+((item.progress||0)/100)+')'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':item.status==='processing'?'обработка':'загрузка'}</small></span></span>}</span></>:
-        <><button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
+        <><button type="button" className="photo-replace" aria-label={'Заменить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>{replaceIndex.current=i;replaceInput.current?.click()}}><Camera size={18}/></button><button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
        </div>})}
      {uploaded.length<MAX_PHOTOS&&<button type="button" aria-label="Добавить фото" className={'photo-slot photo-slot-add'+(uploaded.length===0?' primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}><Icon name="plus" tone="pink" size={30}/></button>}
     </div>
-    <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
+    <input ref={replaceInput} hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={async e=>{const file=e.target.files?.[0],index=replaceIndex.current;e.target.value='';if(!file||index<0||!photos[index]||uploadRunning.current)return;uploadRunning.current=true;setUploading(true);setError('');try{const image=await compressPortrait(file,{maxSide:2048,quality:.86});const body=new FormData();body.append('photo',image,'photo.jpg');const result=await request('/photos/'+photos[index].id,{method:'PUT',body});setPhotos(old=>old.map((p,i)=>i===index?{...p,id:result.id}:p));await refresh();haptic('success')}catch(err){fail(err)}finally{uploadRunning.current=false;replaceIndex.current=-1;setUploading(false)}}}/>
+     <input ref={photoInput} hidden accept="image/jpeg,image/png,image/webp" multiple type="file" onChange={e=>{const selected=e.target.files;upload(selected);e.target.value=''}}/>
 
     
    </div>}
   </div>
-  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
+  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.offsetX,top:dragVisual.y-dragVisual.offsetY,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
    <nav className="registration-actions veyra-glass-navigation" aria-label="Навигация регистрации">
