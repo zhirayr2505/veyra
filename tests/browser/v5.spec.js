@@ -1480,7 +1480,7 @@ test('VEYRA feed uses a single top-right goal, round country flag and draggable 
  await chips.getByRole('button',{name:'Показать все интересы, ещё 4'}).click();
  const dialog=page.getByRole('dialog',{name:'Все интересы'});
  await expect(dialog).toBeVisible();
- await expect(dialog.locator('.veyra-interests-sheet-list span')).toHaveCount(7);
+ await expect(dialog.locator('.veyra-interests-sheet-list > span')).toHaveCount(7);
  const handle=dialog.locator('.vx-feed-sheet-drag-area');
  const pos=await handle.boundingBox();
  await page.mouse.move(pos.x+pos.width/2,pos.y+14);
