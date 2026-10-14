@@ -1,8 +1,8 @@
 import {one} from './db.js';
 import {audit} from './domain.js';
 
-// No startup hook or HTTP route invokes this function. The operator must first
-// create and restore-test independent Postgres AND Storage backups.
+// Only the separately queued, privileged Stage 0 worker can invoke this.
+// A verified private logical/Storage snapshot is a hard production prerequisite.
 export const RESET_ID='registration-clean-2026-10-14-v1';
 export const RESET_TARGET='https://veyra-3806.onrender.com';
 const SHA256=/^[0-9a-f]{64}$/i;
@@ -23,24 +23,32 @@ export const datingTables=[
 // Only tables in the dating lifecycle. Do not touch orders, Telegram checkout
 // confirmations, product catalogs, promotions, payment rights, gifts paid for,
 // VEYS wallets/ledger/purchases, support tickets, feature flags or audit history.
-/** @param {any} db @param {any} env @param {{backupManifest?: any}} [options] */
 /** @param {any} db
  * @param {Record<string,string>} env
- * @param {{backupManifest?: {postgres?: any,storage?: any}}} [options]
+ * @param {{backupManifest?: any, expectedDating?: any, expectedFinance?: any}} [options]
  */
-export async function applyRegistrationReset(db,env,{backupManifest}={}){
+export async function applyRegistrationReset(db,env,{backupManifest,expectedDating,expectedFinance}={}){
  if(env.APP_URL!==RESET_TARGET||env.RENDER_EXTERNAL_URL!==RESET_TARGET)
   return {id:RESET_ID,status:'not_applicable'};
  if(!verifiedBackupManifest(backupManifest))
   return {id:RESET_ID,status:'blocked_backup_required'};
+ if(env.NODE_ENV==='production'&&(!backupManifest?.verified_internally||!expectedDating||!expectedFinance))
+  return {id:RESET_ID,status:'blocked_private_snapshot_required'};
  return db.tx(async q=>{
   // Serializes simultaneous maintenance invocations, independent of Render restarts.
   await q.query('SELECT pg_advisory_xact_lock(20261014)');
   const previous=await one(q,"SELECT created_at,metadata FROM audit_log WHERE action='registration.reset' AND subject=$1 ORDER BY id DESC LIMIT 1",[RESET_ID]);
   if(previous)return {id:RESET_ID,status:'completed',already_completed:true,completed_at:previous.created_at,deleted:previous.metadata?.deleted||{}};
   await q.query(`LOCK TABLE ${[...datingTables,'users','outbox','audit_log','storage_gc'].join(',')} IN ACCESS EXCLUSIVE MODE`);
+  if(expectedDating&&expectedFinance){
+   const {currentDigests,assertFinancialCheckpoint,FINANCIAL_TABLES}=await import('./stage0-snapshot.js');
+   await q.query('LOCK TABLE '+FINANCIAL_TABLES.join(',')+' IN SHARE MODE');
+   const current=await currentDigests(q,datingTables);
+   for(const table of datingTables)if(JSON.stringify(current[table])!==JSON.stringify(expectedDating[table]))throw Error('STAGE0_DATING_DATA_CHANGED_'+table);
+   await assertFinancialCheckpoint(q,expectedFinance);
+  }
   // Paid courtships depend on deleted match rows; never silently destroy them.
-  if((await one(q,"SELECT count(*)::int AS n FROM courtships WHERE order_id IS NOT NULL OR status IN ('active','payment_pending')")).n>0)
+  if((await one(q,"SELECT count(*)::int AS n FROM courtships WHERE order_id IS NOT NULL OR veys_cost>0 OR status IN ('active','payment_pending')")).n>0)
    throw Error('RESET_BLOCKED_FINANCIAL_COURTSHIP');
   // Deferred account deletion must complete without losing the 72h restore state.
   if((await one(q,"SELECT count(*)::int AS n FROM users WHERE status='deleting'")).n>0)
@@ -69,11 +77,13 @@ export async function applyRegistrationReset(db,env,{backupManifest}={}){
    if((await one(q,`SELECT count(*)::int AS n FROM ${table}`)).n!==n)
     throw Error('RESET_FINANCIAL_INVARIANT_'+table);
   }
+  if(expectedFinance){const {assertFinancialCheckpoint}=await import('./stage0-snapshot.js');await assertFinancialCheckpoint(q,expectedFinance);}
   const queued=(photoQueue.rowCount||0)+(chatQueue.rowCount||0);
   await audit(q,env.OWNER_TELEGRAM_ID,'registration.reset',RESET_ID,{
    deleted,retained,storage_queued:queued,
    postgres_backup_id:backupManifest.postgres.id,
    storage_backup_id:backupManifest.storage.id,
+   snapshot_manifest_sha256:backupManifest.storage.sha256,
    reason:'Owner approved one-time clean re-registration on 2026-10-14'
   });
   const result=await one(q,"SELECT created_at FROM audit_log WHERE action='registration.reset' AND subject=$1 ORDER BY id DESC LIMIT 1",[RESET_ID]);
