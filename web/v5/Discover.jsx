@@ -18,7 +18,7 @@ async function decodePhoto(url){if(!url||typeof Image==='undefined')return;
 function Interest({name}){return <span className="feed-interest"><InterestIcon name={name} size={14}/><span>{name}</span></span>;}
 function FeedPicture({card,index}){
  const photos=card.photos||[],id=photos[index],profileId=card.id;
- const [state,setState]=useState(()=>({profileId,src:cachedPhoto(id),previous:'',failed:!id}));
+ const [state,setState]=useState(()=>({profileId,src:cachedPhoto(id,{width:960}),previous:'',failed:!id}));
  useEffect(()=>{
   let alive=true;
   if(!id){setState({profileId,src:'',previous:'',failed:true});return;}
@@ -26,11 +26,11 @@ function FeedPicture({card,index}){
    const previous=prev.profileId===profileId?prev.src:'';
    return {profileId,src:url,previous:previous!==url?previous:'',failed:false};
   });
-  const cached=cachedPhoto(id);
+  const cached=cachedPhoto(id,{width:960});
   if(cached)apply(cached);
   else {
    setState(prev=>prev.profileId===profileId?{...prev,failed:false}:{profileId,src:'',previous:'',failed:false});
-   photoUrl(id).then(async url=>{await decodePhoto(url);if(alive)apply(url)})
+   photoUrl(id,{width:960}).then(async url=>{await decodePhoto(url);if(alive)apply(url)})
     .catch(()=>{if(alive)setState(prev=>({...prev,profileId,failed:true}))});
   }
   return()=>{alive=false};
@@ -39,10 +39,22 @@ function FeedPicture({card,index}){
   const timer=setTimeout(()=>setState(prev=>({...prev,previous:''})),250);
   return()=>clearTimeout(timer);
  },[state.src,state.previous]);
- useEffect(()=>{if(photos.length<2)return;
-  for(const p of new Set([photos[(index+1)%photos.length],photos[(index+photos.length-1)%photos.length]])){
-   if(p&&p!==id)photoUrl(p).then(decodePhoto).catch(()=>{});
-  }
+ useEffect(()=>{
+  if(!id)return;
+  let cancelled=false;
+  // The currently visible portrait wins network priority. Preload its
+  // 640px thumbnail next, then the neighboring carousel frames.
+  photoUrl(id,{width:960}).then(async url=>{
+   await decodePhoto(url);
+   if(cancelled)return;
+   await photoUrl(id,{width:640}).catch(()=>{});
+   if(cancelled||photos.length<2)return;
+   for(const p of new Set([photos[(index+1)%photos.length],photos[(index+photos.length-1+photos.length)%photos.length]])){
+    if(cancelled)return;
+    if(p&&p!==id)await photoUrl(p,{width:640}).catch(()=>{});
+   }
+  }).catch(()=>{});
+  return()=>{cancelled=true};
  },[photos,index,id]);
  const same=state.profileId===profileId;
  return <div className="feed-picture">
