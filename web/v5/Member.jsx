@@ -31,6 +31,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   if(!ownMe)return null;
   const p=ownMe.profile||{},year=p.birth_year||p.year_of_birth;
   return normalizeProfileSeed({...p,id:p.id||ownMe.user?.id,photos:ownMe.photos||[],
+   photo_placeholders:Object.fromEntries((ownMe.photos||[]).map(photo=>[photo.id,{lqip:photo.lqip||null,dominant:photo.dominant_color||null}])),
    age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});
  },[ownMe]);
  const [data,setData]=useState(()=>ownSeed||seed),[loading,setLoading]=useState(()=>!ownSeed),[error,setError]=useState('');
