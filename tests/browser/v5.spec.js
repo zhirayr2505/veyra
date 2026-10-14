@@ -248,7 +248,8 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  await page.getByRole('button',{name:'Предпросмотр анкеты'}).click();
  await expect(page.locator('.mode-detail .vx-preview-member-stage .vx-profile-read-only')).toBeVisible();
  await expect(page.locator('.vx-profile-name-row')).toContainText('Six Photos Test');
- await expect(page.locator('.vx-profile-primary-actions')).toHaveCount(0);
+ await expect(page.locator('.vx-profile-primary-actions')).toHaveCount(1);
+  for(const action of await page.locator('.vx-preview-member-stage .vx-profile-primary-actions button').all())await expect(action).toBeDisabled();
  await page.getByRole('button',{name:'редактировать'}).click();
  await expect(page.locator('.photo-slot[data-photo-id]')).toHaveCount(6);
 });
@@ -1189,7 +1190,11 @@ test('VEYRA drives profile transform with Chromium ScrollTimeline when available
   const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
    parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
   await root.evaluate((el,y)=>el.scrollTop=y,distance*.46);
-  await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-190),{timeout:4500}).toBeLessThan(5);
+  await expect.poll(async()=>hero.evaluate(el=>{
+    const cs=getComputedStyle(el),m=new DOMMatrixReadOnly(cs.transform);
+    const diameter=parseFloat(cs.getPropertyValue('--vx-profile-mask-diameter'));
+    return cs.clipPath.startsWith('circle(')&&diameter*m.a<=390*.62+1&&diameter*m.a>=98;
+   }),{timeout:4500}).toBe(true);
   await root.evaluate(el=>el.scrollTop=0);
   await expect.poll(async()=>Math.abs((await hero.boundingBox()).width-start.width),{timeout:4500}).toBeLessThan(5);
  }
@@ -1208,7 +1213,8 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  const lip=page.locator('.vx-profile-sheet-lip');
  const actions=page.locator('.vx-profile-primary-actions');
  const primary=actions.locator('.vx-profile-action.primary');
- await expect(blur.locator('.photo-box')).toHaveCount(1);
+ await expect(blur).toHaveCount(0);
+  await expect(page.locator('.vx-profile-photo-shade')).toHaveCount(0);
  await expect(grip).toHaveCSS('opacity','1');
  await expect(primary).toContainText('Нравится');
  const visual=await primary.evaluate(el=>({bg:getComputedStyle(el).backgroundImage,
@@ -1228,11 +1234,11 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
    parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,y)=>el.scrollTop=y,distance);
  await expect(motion).toHaveAttribute('data-state','compact');
- await expect.poll(()=>blur.evaluate(el=>+getComputedStyle(el).opacity)).toBeGreaterThan(.94);
+ await expect(blur).toHaveCount(0);
  await expect.poll(()=>ring.evaluate(el=>+getComputedStyle(el).opacity)).toBeGreaterThan(.94);
  await expect.poll(()=>grip.evaluate(el=>+getComputedStyle(el).opacity)).toBeLessThan(.05);
  const [avatar,name]=await Promise.all([
-  hero.boundingBox(),page.locator('.vx-profile-name-row h1').boundingBox()
+  ring.boundingBox(),page.locator('.vx-profile-name-row h1').boundingBox()
  ]);
  expect(name.x).toBeGreaterThan(avatar.x+avatar.width-2);
  expect(Math.abs(avatar.width-98)).toBeLessThan(3);
@@ -1247,7 +1253,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  await expect(page.locator('.vx-profile-tab-rail [role=tab]')).toHaveCount(4);
  await root.evaluate(el=>el.scrollTop=0);
  await expect(motion).toHaveAttribute('data-state','expanded');
- await expect.poll(()=>blur.evaluate(el=>+getComputedStyle(el).opacity)).toBeLessThan(.05);
+ await expect(blur).toHaveCount(0);
 });
 
 test('VEYRA expanded elastic drag stretches softly and restores without changing scroll timeline',async({page})=>{
@@ -1326,11 +1332,16 @@ test('VEYRA Motion 6 keeps circular rim with the moving hero and exposes four ic
  const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,scroll)=>el.scrollTop=scroll,distance*.39);
- await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius)).toBe('50%');
+ await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).clipPath.startsWith('circle('))).toBe(true);
  await expect.poll(()=>rim.evaluate(el=>parseFloat(getComputedStyle(el).opacity))).toBeGreaterThan(.25);
  const imageBounds=await hero.boundingBox(),rimBounds=await rim.boundingBox();
- expect(Math.abs(imageBounds.x-rimBounds.x)).toBeLessThan(2);
- expect(Math.abs(imageBounds.width-rimBounds.width)).toBeLessThan(3);
+ const mask=await hero.evaluate(el=>{
+   const cs=getComputedStyle(el),m=new DOMMatrixReadOnly(cs.transform);
+   return parseFloat(cs.getPropertyValue('--vx-profile-mask-diameter'))*m.a;
+  });
+ expect(Math.abs(rimBounds.width-mask)).toBeLessThan(3);
+ expect(rimBounds.width).toBeLessThanOrEqual(390*.62+1);
+ expect(imageBounds.width).toBeGreaterThan(rimBounds.width);
  await root.evaluate((el,scroll)=>el.scrollTop=scroll,distance);
  await expect.poll(()=>rim.evaluate(el=>parseFloat(getComputedStyle(el).opacity))).toBeGreaterThan(.97);
  const rounded=await page.locator('.vx-profile-location .veyra-country-flag-round').evaluate(el=>getComputedStyle(el).borderRadius);
@@ -1736,6 +1747,8 @@ for(const disableTimeline of [false,true]){
   for(let i=0;i<=count;i++)forward.push(await collect(Math.min(distance,i*4)));
   const backwards=[];
   for(let i=count;i>=0;i--)backwards.push(await collect(Math.min(distance,i*4)));
+  const pairDebug=forward.map((a,i)=>({progress:Math.min(distance,i*4)/distance,forward:a,reverse:backwards[backwards.length-1-i]}));
+  await testInfo.attach('stage2-geometry-parity.json',{body:Buffer.from(JSON.stringify({distance,disableTimeline,pairDebug},null,2)),contentType:'application/json'});
   for(let i=0;i<forward.length;i++){
    const a=forward[i],b=backwards[backwards.length-1-i];
    const at=Math.min(distance,i*4)/distance;
@@ -1799,11 +1812,11 @@ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and
     rect:{x:r.x,y:r.y,w:r.width,h:r.height}};
   }),origin);
   const before=await scroller.evaluate(el=>el.scrollTop);
-  await drag(origin.x,origin.y,0,-200);
+  await drag(origin.x,origin.y,0,200);
   const after=await scroller.evaluate(el=>el.scrollTop);
   diagnostic.push({...origin,before,after,hierarchy});
   expect(hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
-  expect(after,'vertical touch from '+origin.x+','+origin.y).toBeGreaterThan(before+20);
+  expect(after,'vertical touch from '+origin.x+','+origin.y).toBeLessThan(before-20);
  }
  await testInfo.attach('stage2-hit-test-grid.json',{body:Buffer.from(JSON.stringify(diagnostic,null,2)),contentType:'application/json'});
  for(const origin of origins){
