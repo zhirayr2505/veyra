@@ -16,7 +16,8 @@ const MAX_PHOTOS=7,MIN_PHOTOS=3,MAX_BIO=250;
 const NEXT_STEP_LABELS=['Указать возраст','Выбрать город','Настроить поиск','Выбрать цель знакомства','Выбрать интересы','Рассказать о себе'];
 function hapticNext(){try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{}}
 const truncateBio=value=>Array.from(String(value||'')).slice(0,MAX_BIO).join('');
-const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s]/gu,'').replace(/\s+/g,' ').slice(0,50);
+const NAME_PATTERN=/^[\p{L}\p{M}]+(?:[-'’ ][\p{L}\p{M}]+)*$/u;
+const cleanName=value=>String(value||'').replace(/[^\p{L}\p{M}\s'’\-]/gu,'').replace(/\s+/g,' ').slice(0,50);
 const adultDate=()=>{const now=new Date();now.setFullYear(now.getFullYear()-18);return [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-')};
 const empty={name:'',birth_date:'',gender:'',looking_for:['woman'],min_age:18,max_age:40,radius_km:50,city:'',country:'',lat:null,lon:null,interests:[],bio:'',goal:'relationship',smoking:'',leisure:'',languages:[],prompts:[],height_cm:null};
 const age=b=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return 0;const d=new Date(b+'T00:00:00Z'),n=new Date();if(Number.isNaN(+d)||d.toISOString().slice(0,10)!==b)return 0;let y=n.getUTCFullYear()-d.getUTCFullYear();if(n.getUTCMonth()<d.getUTCMonth()||(n.getUTCMonth()===d.getUTCMonth()&&n.getUTCDate()<d.getUTCDate()))y--;return y;};
@@ -99,7 +100,7 @@ export function Registration({me,refresh}){
  };
  const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
  const valid=()=>{
-  if(step===1){if(f.name.trim().length<2)invalid('name','Имя должно содержать минимум 2 буквы');if(!consent)invalid('consent','Прими условия использования и политику конфиденциальности')}
+  if(step===1){if(f.name.trim().length<2||!NAME_PATTERN.test(f.name.trim()))invalid('name','Имя: буквы, пробелы, дефис или апостроф между буквами');if(!consent)invalid('consent','Прими условия использования и политику конфиденциальности')}
   if(step===2){if(!f.gender)invalid('gender','Выбери свой пол');if(!age(f.birth_date))invalid('birth_date','Проверь дату рождения');if(age(f.birth_date)<18||age(f.birth_date)>110)invalid('birth_date','VEYRA доступна с 18 лет')}
   if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))invalid('city','Выбери город из предложенного списка');
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))invalid('looking_for','Проверь предпочтения поиска');
@@ -210,7 +211,7 @@ export function Registration({me,refresh}){
    <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
    <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
-     <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Только буквы, без цифр и символов</span>}</label>
+     <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Можно использовать буквы, пробел, дефис и апостроф</span>}</label>
      {fieldError?.step===1&&fieldError.field==='name'&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
      <p className="registration-telegram-hint">Имя подставлено из Telegram. Вы можете изменить его.</p>
      <div className="registration-consent"><label className="registration-checkline"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} aria-label="Согласие с условиями VEYRA"/><span className="consent-square" aria-hidden="true">{consent&&<Icon name="check" tone="pink" size={15}/>}</span><span>Мне исполнилось 18 лет. Я принимаю <button type="button" className="legal-inline-link" onClick={e=>{e.preventDefault();setLegalTab('terms');setLegalOpen(true)}}>Условия использования</button> и <button type="button" className="legal-inline-link" onClick={e=>{e.preventDefault();setLegalTab('privacy');setLegalOpen(true)}}>Политику конфиденциальности</button> VEYRA.</span></label></div>
