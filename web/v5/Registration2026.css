@@ -387,7 +387,7 @@
 }
 .v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress span{
  background:linear-gradient(90deg,#D7B7FF,#8F55F1)!important;
- transition:width .18s linear!important;
+ transition:transform .18s linear!important;
 }
 @keyframes veyraUploadTickAppear{from{transform:scale(.45);opacity:0}to{transform:scale(1);opacity:1}}
 @media(max-width:390px){
@@ -457,7 +457,7 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 }
 .v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress>span{
  display:block!important;max-width:100%!important;height:100%!important;
- border-radius:99px!important;transform:none!important;
+ border-radius:99px!important;transform-origin:left center!important;
 }
 
 /* Interest categories may be scrolled without hijacking the vertical form. */
@@ -630,3 +630,9 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 /* Keep icon-only actions reachable by touch and keyboard. */
 .v2-onboarding .veyra-registration-2026 :is(.thumb-delete,.location-change,.registration-photo-delete,.photo-order button,.veyra-bio-emoji-button){min-width:44px;min-height:44px;touch-action:manipulation}
 .v2-onboarding .veyra-registration-2026 :is(button,input,textarea,select):focus-visible{outline:3px solid var(--vx-color-accent);outline-offset:3px}
+
+/* Photo slot appearance uses only opacity/transform; no reflow per frame. */
+.v2-onboarding .veyra-registration-2026 .photo-slot.uploading{animation:veyraPhotoSlotIn .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes veyraPhotoSlotIn{from{opacity:0;transform:translate3d(0,12px,0) scale(.98)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+.v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress>span{width:100%;transform-origin:left center;transition:transform .18s linear}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .photo-slot.uploading{animation:none}}
