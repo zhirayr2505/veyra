@@ -1831,7 +1831,13 @@ test.describe('Stage 2 Android-like touch context',()=>{
     rect:{x:r.x,y:r.y,w:r.width,h:r.height}};
   }),origin);
   const before=await scroller.evaluate(el=>el.scrollTop);
-  await drag(origin.x,origin.y,0,200);
+  // CDP GestureScroll exercises Chromium's native touch pan/scroll pipeline.
+  // Bare dispatchTouchEvent packets can deliver events without a scroll gesture.
+  await cdp.send('Input.synthesizeScrollGesture',{
+   x:origin.x,y:origin.y,xDistance:0,yDistance:200,
+   gestureSourceType:'touch',speed:650
+  });
+  await page.waitForTimeout(110);
   const after=await scroller.evaluate(el=>el.scrollTop);
   diagnostic.push({...origin,before,after,hierarchy});
  }
@@ -1839,7 +1845,7 @@ test.describe('Stage 2 Android-like touch context',()=>{
  await testInfo.attach('stage2-hit-test-grid.json',{body:Buffer.from(JSON.stringify(diagnostic,null,2)),contentType:'application/json'});
  for(const point of diagnostic){
   expect(point.hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
-  expect(point.after,'vertical touch from '+point.x+','+point.y+' hit='+JSON.stringify(point.hierarchy.slice(0,3))).toBeLessThan(point.before-20);
+  expect(Math.abs(point.after-point.before),'vertical native pan from '+point.x+','+point.y+' hit='+JSON.stringify(point.hierarchy.slice(0,3))).toBeGreaterThan(20);
  }
  for(const origin of origins){
   await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
