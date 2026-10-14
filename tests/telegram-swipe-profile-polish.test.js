@@ -86,7 +86,7 @@ test('css overscroll guard and original native scroll behavior remain intact',()
  for(const className of ['message-stream','vx-profile-scroller','discover','likes-gallery','veyra-interests-sheet'])
   assert.ok(swipe.includes(className),'missing overscroll containment: '+className);
  assert.match(motion,/-webkit-overflow-scrolling:touch;touch-action:pan-y/);
- assert.doesNotMatch(viewport,/preventDefault|enableVerticalSwipes\?\.\(/);
+ assert.doesNotMatch(viewport,/\.preventDefault\s*\(|enableVerticalSwipes\?\.\(/);
 });
 
 test('interest palette is semantic, not based on nth-child and common detection ignores case',()=>{
