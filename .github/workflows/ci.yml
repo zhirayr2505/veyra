@@ -19,6 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm run lint
       - run: npm run secrets:check
       - run: npx playwright install --with-deps chromium
         if: false # Superseded V4 browser suite
