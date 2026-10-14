@@ -33,3 +33,8 @@
 .veyra-v2 button.veyra-interest-chip:focus-visible,.v2-onboarding button.veyra-interest-chip:focus-visible{
  outline:3px solid var(--vx-color-accent);outline-offset:3px
 }
+
+/* Tactile selected state: one 220ms transform pulse (no layout work). */
+.veyra-v2 .veyra-choice[aria-pressed="true"],.v2-onboarding .veyra-choice[aria-pressed="true"]{animation:veyraChoiceSelect .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes veyraChoiceSelect{0%{transform:scale(.97)}55%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.veyra-v2 .veyra-choice[aria-pressed="true"],.v2-onboarding .veyra-choice[aria-pressed="true"]{animation:none}}
