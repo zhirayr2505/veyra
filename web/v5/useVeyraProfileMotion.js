@@ -1,7 +1,7 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {clamp,profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
+import {clamp,profileFrame,profileCircleGeometry,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
-import {createProfileScrollAnimations,blurClipBottom,PROFILE_RIM_FADE_START,PROFILE_RIM_FADE_END} from './profileScrollTimeline.js';
+import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
 
 // Additive CSS translate/scale properties never replace WAAPI transform tracks.
@@ -62,12 +62,13 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // In Chromium, the scroll position drives visual transforms without JS.
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
+   const shape=p<PROFILE_CIRCLE_AT?'cover':'circle';
+   if(shape!==s.radiusPhase){
+    s.radiusPhase=shape;
+    motion.dataset.photoShape=shape;
+    parts.hero.style.clipPath=shape==='cover'?'inset(0)':'circle(var(--vx-profile-mask-radius) at 50% var(--vx-profile-mask-center-y))';
+   }
    if(s.nativeAnimation){
-    const shape=p<PROFILE_CIRCLE_AT?'cover':'circle';
-    if(shape!==s.radiusPhase){
-     s.radiusPhase=shape;
-     parts.hero.style.borderRadius=shape==='cover'?'0px':'50%';
-    }
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
     const motionStage=p<PROFILE_CIRCLE_AT?'sheet':p<PROFILE_CENTER_AT?'center':'avatar';
@@ -79,21 +80,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    }
    const f=profileFrame(p,s.width,s.height,s.compactHeight);
    const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
-   const scaleX=f.width/s.width,scaleY=f.height/s.height;
-   const scale=' scale('+scaleX.toFixed(6)+','+scaleY.toFixed(6)+')';
-   parts.hero.style.transform=translate(f.x,f.y)+scale;
-   // Legacy fallback updates shape only at two boundaries, rather than
-   // invalidating a large clipped image on each individual scroll frame.
-   const shape=p<PROFILE_CIRCLE_AT?'cover':'circle';
-   if(shape!==s.radiusPhase){
-    s.radiusPhase=shape;
-    parts.hero.style.borderRadius=shape==='cover'?'0px':'50%';
-   }
-   // Compensate for portrait-to-square squash on the image itself.
-   if(!parts.image?.isConnected){
-    parts.image=parts.hero.querySelector('.vx-hero-image-compensation');
-   }
-   if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
+   parts.hero.style.transform=translate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(6)+')';
    if(parts.panel){parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));parts.panel.style.clipPath='inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)';}
    if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
@@ -105,23 +92,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
-   if(parts.online)parts.online.style.opacity=f.compactOnlineOpacity.toFixed(3);
-   if(parts.shade)parts.shade.style.opacity=f.shadeOpacity.toFixed(3);
-   // Only the JS fallback needs these extra visual layers; ScrollTimeline
-   // animates them natively in Chromium without extra hot-path writes.
-   if(parts.blur)parts.blur.style.opacity=(f.progress<=.24?0:f.progress>=.86?1:(()=>{
-    const t=(f.progress-.24)/.62;return t*t*(3-2*t);
-   })()).toFixed(3);
-   if(parts.blur)parts.blur.style.clipPath='inset(0px 0px '+blurClipBottom(f.sheetY,s.compactHeight).toFixed(3)+'px 0px)';
-   if(parts.ring)parts.ring.style.opacity=(f.progress<=.82?0:f.progress>=.99?1:(()=>{
-    const t=(f.progress-.82)/.17;return t*t*(3-2*t);
-   })()).toFixed(3);
-   if(parts.onlineDot)parts.onlineDot.style.opacity=(f.progress<=.85?0:f.progress>=1?1:(()=>{
-    const t=(f.progress-.85)/.15;return t*t*(3-2*t);
-   })()).toFixed(3);
-   if(parts.rim)parts.rim.style.opacity=(p<=PROFILE_RIM_FADE_START?0:p>=PROFILE_RIM_FADE_END?1:(()=>{
-     const t=(p-PROFILE_RIM_FADE_START)/(PROFILE_RIM_FADE_END-PROFILE_RIM_FADE_START);return t*t*(3-2*t);
-    })()).toFixed(3);
+
+
     if(parts.grabber){
     parts.grabber.style.transform=translate(0,f.sheetY-(s.height-30));
     parts.grabber.style.opacity=f.progress>=.24?'0':f.progress<=.03?'1':
@@ -224,6 +196,11 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.width=Math.max(1,hero.offsetWidth);
   s.height=Math.max(1,hero.offsetHeight);
   s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
+  const geometry=profileCircleGeometry(s.width,s.height,s.compactHeight);
+  const diameter=geometry.diameter;
+  hero.style.setProperty('--vx-profile-mask-diameter',diameter.toFixed(3)+'px');
+  hero.style.setProperty('--vx-profile-mask-radius',(diameter/2).toFixed(3)+'px');
+  hero.style.setProperty('--vx-profile-mask-center-y',geometry.maskCenterY.toFixed(3)+'px');
   s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
   if(s.elastic>0)writeElastic(el,s.elastic,s.width,false);
   s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;
@@ -232,7 +209,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
   }
   s.refs={
-   hero,image:hero.querySelector('.vx-hero-image-compensation'),
+   hero,
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
@@ -242,12 +219,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    goal:motion.querySelector('.vx-profile-goal'),
    bars:motion.querySelector('.vx-profile-photo-bars'),
    nav:motion.querySelector('.vx-profile-photo-nav'),
-   online:motion.querySelector('.vx-profile-online'),
-   shade:motion.querySelector('.vx-profile-photo-shade'),
-   blur:motion.querySelector('.vx-profile-blurred-header'),
-   ring:motion.querySelector('.vx-profile-avatar-ring'),
-   rim:motion.querySelector('.vx-profile-photo-morph-rim'),
-   onlineDot:motion.querySelector('.vx-profile-avatar-online-dot'),
+
    grabber:motion.querySelector('.vx-profile-sheet-grabber'),
   };
   s.nativeAnimation=createProfileScrollAnimations(el,s.refs,{

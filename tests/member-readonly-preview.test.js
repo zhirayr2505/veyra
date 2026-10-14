@@ -11,10 +11,12 @@ test('profile preview uses real, fully seeded read-only Member and keeps registr
  assert.match(member,/!isPreview&&createPortal/);
  assert.match(preview,/onSubmit\?<>/);
 });
-test('profile preview stage is local and hides account actions but retains scroll',()=>{
+test('profile preview stage retains scroll and native-looking disabled actions',()=>{
  const css=read('web/v5/ProfilePreview.css');
  assert.match(css,/\.vx-preview-member-stage/);
- assert.match(css,/\.vx-profile-read-only \.vx-profile-primary-actions/);
+ const member=read('web/v5/Member.jsx');
+ assert.match(member,/disabled=\{isPreview\}/);
+ assert.match(css,/\.vx-preview-member-stage/);
  assert.match(css,/\.vx-profile-scroller\{position:absolute/);
 });
 

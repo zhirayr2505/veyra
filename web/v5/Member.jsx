@@ -41,7 +41,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    photo_placeholders:Object.fromEntries((ownMe.photos||[]).map(photo=>[photo.id,{lqip:photo.lqip||null,dominant:photo.dominant_color||null}])),
    age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});
  },[ownMe,isPreview,previewData]);
- const [data,setData]=useState(()=>ownSeed||seed),[loading,setLoading]=useState(()=>!ownSeed),[error,setError]=useState('');
+ const [data,setData]=useState(()=>ownSeed||seed),[loading,setLoading]=useState(()=>!ownSeed),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[galleryHint,setGalleryHint]=useState(false),[more,setMore]=useState(false);
  const [reactionPulse,setReactionPulse]=useState('');
  const [courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false);
@@ -74,7 +74,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   }).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});
   get('/courtships/profile/'+id).then(c=>{if(active)setCourtship(c)}).catch(()=>{});
   return()=>{active=false};
- },[id,ownSeed,seed]);
+ },[id,ownSeed,seed,retry]);
  useEffect(()=>{if(isOwn)return;const root=document.documentElement,body=document.body;const prev=[root.style.overflow,body.style.overflow];root.style.overflow='hidden';body.style.overflow='hidden';return()=>{root.style.overflow=prev[0];body.style.overflow=prev[1]}},[isOwn]);
 
  // Read a tiny canvas sample of the actual portrait, once per photo change.
@@ -150,35 +150,33 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   </header>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
-   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-motion-phase="sheet" data-sheet-overlap="true">
+   <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
-     <div className="vx-profile-blurred-header" aria-hidden="true">
-      <Photo id={photos[idx]} resolution={640} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>
-     </div>
+
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
-      <div className="vx-profile-photo-shade" aria-hidden="true"/>
+
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
       
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
+      <button type="button" className="vx-profile-avatar-hit" aria-label="Открыть фотографию профиля" onClick={()=>openGallery(idx)} disabled={!photos.length}/>
      </div>
-     <div className="vx-profile-avatar-ring" aria-hidden="true"/>
-     {data.online&&<div className="vx-profile-avatar-online-dot" aria-label="В сети"/>}
+
 
      <section className="vx-profile-identity" aria-label="Информация об анкете">
       <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.verified?<Icon name="verified" tone="pink" size={18}/>:null}</div>
       <div className="vx-profile-location"><CountryFlag country={data.country} round/> {data.city}</div>
       {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
-     {isPreview?null:isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
-      <button type="button" className="vx-profile-action" onClick={()=>openTab('photos')}><ImagePlus size={20}/><span>Мои фото</span></button>
-      <button type="button" className="vx-profile-action primary" onClick={onEdit}><Pencil size={20}/><span>Изменить</span></button>
-      <button type="button" className="vx-profile-action" onClick={onSettings}><Settings2 size={20}/><span>Настройки</span></button>
+     {isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
+      <button type="button" className="vx-profile-action" onClick={isPreview?undefined:()=>openTab('photos')} disabled={isPreview}><ImagePlus size={20}/><span>Мои фото</span></button>
+      <button type="button" className="vx-profile-action primary" onClick={isPreview?undefined:onEdit} disabled={isPreview}><Pencil size={20}/><span>Изменить</span></button>
+      <button type="button" className="vx-profile-action" onClick={isPreview?undefined:onSettings} disabled={isPreview}><Settings2 size={20}/><span>Настройки</span></button>
      </div>:<div className="vx-profile-primary-actions" aria-label="Действия с человеком">
       <button type="button" className="vx-profile-action" onClick={()=>onGift(data)} aria-label="Подарить подарок"><VeyraPackIcon name="gift" size={21}/><span>Подарок</span></button>
       <button type="button" className={"vx-profile-action primary"+(reactionPulse==='like'?" vx-reaction-burst":"")} onAnimationEnd={()=>setReactionPulse('')} onClick={()=>match?(feedback(),onChat(match)):like()} aria-label={match?'Написать сообщение':'Поставить лайк'}><VeyraPackIcon name={match?'chat':'heart'} size={21} filled={!match}/><span>{match?'Написать':'Нравится'}</span></button>
@@ -186,7 +184,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
        :<button type="button" className={"vx-profile-action vx-profile-super"+(reactionPulse==='super'?' vx-reaction-burst':'')} onAnimationEnd={()=>setReactionPulse('')} onClick={()=>like('super')} aria-label="Суперлайк"><VeyraPackIcon name="star" size={21} filled/><span>Суперлайк</span></button>}
       </div>}
       {isOwn
-       ? <button type="button" className="vx-profile-card-more" aria-label="Настройки" onClick={onSettings}><Settings2 size={21}/></button>
+       ? <button type="button" className="vx-profile-card-more" aria-label="Настройки" onClick={isPreview?undefined:onSettings} disabled={isPreview}><Settings2 size={21}/></button>
        : <button type="button" className="vx-profile-card-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={20}/></button>}
      </div>
     </div>
@@ -216,7 +214,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      {(courtship?.suitors||[]).length>0&&<section className="vx-profile-surface"><h2>Ухажёры</h2><p>{courtship.suitors.map(x=>x.sender_name).join(' · ')}</p></section>}
     </>}
     {key==='common'&&isOwn&&!isPreview&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe?.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}</section>}
-    {key===tab&&<InlineAlert>{error}</InlineAlert>}
+    {key===tab&&<InlineAlert>{error}</InlineAlert>}{key===tab&&error&&!isPreview&&<button type="button" className="vx-profile-retry" onClick={()=>setRetry(n=>n+1)}>Повторить загрузку</button>}
     </div>}
    </MemberSwipePages>
   </div>

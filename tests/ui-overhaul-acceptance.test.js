@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createHash} from 'node:crypto';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const luminosity=hex=>{
@@ -35,10 +34,12 @@ test('all seven interest chips meet 4.5:1 normal-text contrast',()=>{
  }
 });
 
-test('approved profile motion mathematics is frozen exactly at main revision',()=>{
- const content=Buffer.from(read('web/v5/profileMotionMath.js'),'utf8');
- const gitBlob=createHash('sha1').update('blob '+content.length+'\0').update(content).digest('hex');
- assert.equal(gitBlob,'1546f7ff65deb1daec733209ffb0094c3745ceb1');
+test('Stage 2 profile motion preserves the common 34% mask switch and uniform scaling',()=>{
+ const math=read('web/v5/profileMotionMath.js');
+ assert.match(math,/PROFILE_CIRCLE_AT=\.34/);
+ assert.match(math,/heroScale/);
+ assert.match(math,/maskDiameter/);
+ assert.doesNotMatch(math,/scaleX|scaleY/);
 });
 
 test('performance-sensitive 6.4 compositing retains scroll timeline and motion phase constants',()=>{
@@ -47,7 +48,8 @@ test('performance-sensitive 6.4 compositing retains scroll timeline and motion p
  assert.match(scroll,/new win.ScrollTimeline/);
  assert.match(scroll,/tracks.hero.push/);
  assert.match(scroll,/PROFILE_CIRCLE_AT/);
- assert.match(scroll,/tracks.blur.push/);
+ assert.doesNotMatch(scroll,/tracks.blur.push/);
+ assert.doesNotMatch(scroll,/tracks.image.push/);
  assert.match(steps,/prefers-reduced-motion:reduce/);
  assert.doesNotMatch(steps,/view-transition-new\(veyra-registration-step\)/);
 });

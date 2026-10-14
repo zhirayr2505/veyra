@@ -85,33 +85,44 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  pointer-events:auto;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{content:none!important;display:none!important}
-/* Adaptive scrim reaches 140px with a feathered edge. Tone crossfade is
-   opacity-only; the scrolling photo/shade transforms remain unchanged. */
-.veyra-v2 .vx-master-profile .vx-profile-photo-shade{
- position:absolute;top:0;left:0;right:0;height:140px;
- z-index:1;pointer-events:none;opacity:1;
- background:transparent;
+/* Stage 2: one original-color portrait; discrete mask + uniform scaling.
+   The white ring and online indicator are attached to that same canvas. */
+.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
+ clip-path:inset(0);border-radius:0;transition:none;
+ --vx-profile-mask-diameter:180px;--vx-profile-mask-radius:90px;--vx-profile-mask-center-y:160px;
 }
-.veyra-v2 .vx-master-profile .vx-profile-photo-shade::before,
-.veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{
- content:"";position:absolute;inset:0;pointer-events:none;
- transition:opacity .32s ease-in-out;
+.veyra-v2 .vx-master-profile .vx-profile-photo-morph-rim{
+ position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
+ width:var(--vx-profile-mask-diameter);height:var(--vx-profile-mask-diameter);
+ transform:translate(-50%,-50%);border:7px solid white;border-radius:50%;
+ box-sizing:border-box;opacity:0;pointer-events:none;z-index:5;
 }
-/* Deep background: darker scrim supports the luminous wordmark. */
-.veyra-v2 .vx-master-profile .vx-profile-photo-shade::before{
- background:linear-gradient(180deg,#150b2d9e 0%,#150b2d4d 48%,#150b2d00 100%);
- opacity:1;
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-photo-morph-rim{opacity:1}
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-hero-photo{pointer-events:none}
+.veyra-v2 .vx-master-profile .vx-profile-avatar-hit{
+ position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
+ width:var(--vx-profile-mask-diameter);height:var(--vx-profile-mask-diameter);
+ transform:translate(-50%,-50%);
+ border:0;border-radius:50%;padding:0;opacity:0;background:transparent;
+ visibility:hidden;pointer-events:none;z-index:7;
 }
-/* Bright background: light scrim supports a darker outline, never a hard band. */
-.veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{
- background:linear-gradient(180deg,#fcf6ffc9 0%,#fcf6ff5e 50%,#fcf6ff00 100%);
- opacity:0;
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-avatar-hit{visibility:visible;pointer-events:auto}
+.veyra-v2 .vx-master-profile .vx-profile-online{
+ display:block;position:absolute;
+ left:calc(50% + var(--vx-profile-mask-radius) - 21px);
+ top:calc(var(--vx-profile-mask-center-y) + var(--vx-profile-mask-radius) - 20px);
+ width:22px;height:22px;border:4px solid white;border-radius:50%;
+ background:#12c98c;box-sizing:border-box;z-index:6;
+ opacity:0;pointer-events:none;
 }
-body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master-profile .vx-profile-photo-shade::before{opacity:0}
-body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{opacity:1}
-@media(prefers-reduced-motion:reduce){
- .veyra-v2 .vx-master-profile .vx-profile-photo-shade::before,
- .veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{transition:none}
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-online{opacity:1}
+.veyra-v2 .vx-master-profile.vx-profile-read-only .vx-profile-action:disabled,
+.veyra-v2 .vx-master-profile.vx-profile-read-only .vx-profile-card-more:disabled{
+ opacity:1;cursor:default;
+}
+.veyra-v2 .vx-master-profile .vx-profile-retry{
+ min-height:44px;border-radius:16px;border:1px solid #d9c4f5;
+ background:white;color:#7339ca;padding:10px 16px;font-weight:750;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-bars{
  left:50%;right:auto;top:auto;bottom:46px;
@@ -130,11 +141,6 @@ body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master
  visibility:hidden;pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-demo-badge{display:none!important}
-.veyra-v2 .vx-master-profile .vx-profile-online{
- right:0;bottom:0;z-index:16;opacity:0;
- width:17px;height:17px;border-radius:50%;
- border:3px solid white;background:#12c98c;
-}
 .veyra-v2 .vx-master-profile .vx-profile-identity{
  position:absolute;left:19px!important;right:54px!important;
  top:calc(var(--vx-profile-hero-height) + 9px)!important;
@@ -184,10 +190,10 @@ body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master
  display:grid!important;grid-template-columns:104fr 138fr 104fr!important;
  gap:7px!important;width:auto;max-width:none;margin:0;
  transform:translate3d(0,0,0);will-change:transform;
- pointer-events:auto;
+ pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action{
- position:relative;display:flex;flex-direction:row;
+ pointer-events:auto;position:relative;display:flex;flex-direction:row;
  align-items:center;justify-content:center;gap:5px;
  height:50px!important;min-height:50px!important;
  width:100%;min-width:0;overflow:hidden;
@@ -254,9 +260,12 @@ body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master
  transform:translate3d(0,0,0);will-change:transform;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
- position:relative;z-index:2;overflow:hidden;width:100%;
+ position:relative;z-index:2;overflow:clip;width:100%;
  background:#faf6ff;touch-action:pan-y pinch-zoom;
+ /* Embla has overflow:hidden: contain on Y blocks native scroll chaining.
+    Keep X boundary contained while allowing Y to reach .vx-profile-scroller. */
  overscroll-behavior-x:contain;
+ overscroll-behavior-y:auto;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track{
  display:flex;flex-wrap:nowrap;width:100%;min-width:0;
@@ -275,8 +284,6 @@ body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page[aria-hidden="true"]{
  pointer-events:none;user-select:none;
- content-visibility:auto;
- contain-intrinsic-size:auto 720px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-section-body{
  display:flex;flex-direction:column;gap:12px;
@@ -320,6 +327,14 @@ body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master
  border-radius:18px;aspect-ratio:174/224;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid img{object-fit:cover}
+/* The generic .view-tab entrance animation persists transform:translateX(0)
+   through fill-mode:both. It becomes the containing block of fixed Member and
+   collapses the owning host to its 85px padding. Only the profile host opts out;
+   all other tab transition animations remain unchanged. */
+.veyra-v2 .view-tab.vx-own-profile-host{
+ animation:none!important;
+ transform:none!important;
+}
 /* Own profile keeps persistent Android bottom navigation and editing tools. */
 .veyra-v2 .vx-master-profile.vx-own-member{
  bottom:calc(75px + env(safe-area-inset-bottom,0px))!important;

@@ -38,13 +38,6 @@
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="sheet"] .vx-profile-demo-badge{
  opacity:.86;
 }
-/* Darken the bottom of the full photograph, with zero additional image blur.
-   The overlay is part of the EXISTING photo clipping stack. */
-.veyra-v2 .vx-master-profile .vx-profile-photo-shade{
- height:100%!important;inset:0!important;
- background:linear-gradient(180deg,#180e2850 0%,transparent 22%,transparent 54%,#180c2935 72%,#11091a9c 100%)!important;
- pointer-events:none;
-}
 .veyra-v2 .vx-master-profile .vx-profile-sheet-grabber{
  width:54px!important;height:6px!important;
  border-radius:999px;
@@ -309,21 +302,6 @@
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button:focus-visible{
  outline:2px solid #8d39dd;outline-offset:2px;
 }
-/* Online dot gently breathes in color/shadow only, not in the photo transform. */
-.veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot{
- background:#17c57b!important;border:3px solid white;
-}
-.veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot::after{
- content:"";position:absolute;inset:-5px;border-radius:50%;
- border:3px solid #24c98993;pointer-events:none;
- transform:scale(.75);opacity:0;will-change:transform,opacity;
- animation:vxProfileOnlinePulse 3.6s ease-out infinite;
-}
-@keyframes vxProfileOnlinePulse{
- 0%,72%,100%{transform:scale(.75);opacity:0}
- 80%{transform:scale(1);opacity:.55}
- 92%{transform:scale(1.9);opacity:0}
-}
 /* Multi-modal accessibility, no forced body scroll lock beyond existing sheets. */
 .veyra-v2 .vx-master-profile .vx-own-section-heading :is(button,.vx-own-pencil),
 .veyra-v2 .vx-master-profile .vx-profile-section-heading :is(button,.vx-own-pencil){
@@ -334,7 +312,7 @@
  .veyra-v2 .vx-master-profile .vx-profile-common-tag{font-size:8px;padding:4px}
 }
 @media(prefers-reduced-motion:reduce){
- .veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot::after,
+ .veyra-v2 .vx-master-profile .vx-profile-online::after,
  .veyra-v2 .vx-master-profile .vx-profile-photos-grid button::before,
  .veyra-v2 .vx-master-profile .vx-profile-photos-grid img,
  .veyra-v2 .vx-master-profile .vx-profile-action.vx-reaction-burst .vx-pack-icon,
