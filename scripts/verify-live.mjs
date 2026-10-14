@@ -1,7 +1,7 @@
 /**
  * VEYRA production smoke check.
  * Runs on GitHub Actions AFTER main is pushed. No user tokens or credentials:
- * verifies the public Render revision and four approved static SVG assets.
+ * verifies public /healthz and /readyz, Render revision and four approved static SVG assets.
  * A successful local build is not treated as proof of a successful deploy.
  */
 const origin=(process.env.VEYRA_PRODUCTION_URL||'https://veyra-3806.onrender.com').replace(/\/$/,'');
@@ -25,6 +25,8 @@ if(!/^[0-9a-f]{40}$/.test(revision)){
    if(!response.ok)throw Error('healthz HTTP '+response.status);
    const data=await response.json();
    if(!data.ok||data.service!=='veyra')throw Error('unexpected healthz payload');
+   const readiness=await fetch(origin+'/readyz',{headers:{'accept':'application/json'},signal:AbortSignal.timeout(20000)});
+   if(!readiness.ok)throw Error('readyz HTTP '+readiness.status);
    const live=String(data.revision||'');
    if(live!==revision)throw Error('Render is on '+(live?live.slice(0,8):'an unknown revision')+', expected '+revision.slice(0,8));
    for(const path of resources){
@@ -35,7 +37,7 @@ if(!/^[0-9a-f]{40}$/.test(revision)){
    }
    const app=await fetch(origin+'/',{signal:AbortSignal.timeout(20000)});
    if(!app.ok||(await app.text()).toLowerCase().includes('<html')===false)throw Error('HTML app entrypoint unavailable');
-   console.log('VEYRA production verified: revision '+live.slice(0,8)+', app HTML and '+resources.length+' vector assets');
+   console.log('VEYRA production verified: revision '+live.slice(0,8)+', /readyz, app HTML and '+resources.length+' vector assets');
    verified=true;break;
   }catch(e){
    reason=String(e?.message||e);
