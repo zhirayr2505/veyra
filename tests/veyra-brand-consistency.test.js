@@ -45,6 +45,7 @@ test('brand-wide asset illustrations and badges use the same violet palette',()=
  }
  const css=contents('web/v5/BrandConsistency.css');
  assert.ok(contents('web/v5/App.jsx').includes("import './BrandConsistency.css'"));
- assert.ok(css.includes('#6817FF'));
+ assert.ok(css.includes('var(--vx-color-accent)'));
+ assert.ok(contents('web/v5/tokens.css').includes('--vx-color-accent:#7628e5'));
  assert.doesNotMatch(css,/#FF6A9B|#FF126B|#FF4058/);
 });
