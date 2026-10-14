@@ -74,7 +74,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   return()=>{observer.disconnect();root.removeEventListener('load',sample,true)};
  },[data,idx]);
 
- const openGallery=index=>{if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
+ const openGallery=index=>{if(!data?.photos?.length)return;if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
  useEffect(()=>{
   if(!gallery)return;
   const onKey=e=>{const length=data?.photos?.length||0;if(e.key==='Escape')setGallery(false);if(e.key==='ArrowLeft'&&length>1)setIdx(i=>(i-1+length)%length);if(e.key==='ArrowRight'&&length>1)setIdx(i=>(i+1)%length)};
