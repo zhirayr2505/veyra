@@ -47,7 +47,7 @@ function remoteStore(env){
  if(!key.startsWith('sb_secret_'))headers.Authorization='Bearer '+key;
  const path=s=>s.split('/').map(encodeURIComponent).join('/');
  const req=async(url,options={})=>fetch(base+url,{...options,headers:{...headers,...options.headers},signal:AbortSignal.timeout(30000)});
- const get=async(bucket,name)=>{const r=await req('/object/authenticated/'+path(bucket)+'/'+path(name));if(r.status===404)return null;if(!r.ok)throw Error('BACKUP_STORAGE_READ_FAILED_'+r.status);return Buffer.from(await r.arrayBuffer())};
+ const get=async(bucket,name)=>{const r=await req('/object/authenticated/'+path(bucket)+'/'+path(name));if(r.status===404)return null;if(r.status===400){let code='';try{const body=await r.clone().json();code=String(body.code||body.error||'')}catch{}if(code==='NoSuchKey'||code==='ObjectNotFound')return null;}if(!r.ok)throw Error('BACKUP_STORAGE_READ_FAILED_'+r.status);return Buffer.from(await r.arrayBuffer())};
  const put=async(bucket,name,data,mime)=>{
   const existing=await get(bucket,name);
   if(existing){if(sha(existing)!==sha(data))throw Error('BACKUP_IMMUTABILITY_VIOLATION');return}
