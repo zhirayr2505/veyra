@@ -28,7 +28,9 @@ test('all core screens use one branded rounded wordmark, including error and dis
  for(const p of ['web/v5/UI.jsx','web/v5/App.jsx','web/v5/Discover.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
   assert.doesNotMatch(contents(p),/\/assets\/veyra\/00_brand\/veyra_logo\.svg/,p+' still references an old logo');
  }
- assert.ok(contents('web/v5/UI.jsx').includes('veyra-wordmark-purple.svg'));
+ assert.ok(contents('web/v5/UI.jsx').includes("import {LiquidLogo} from './LiquidLogo.jsx'"));
+ assert.ok(contents('web/v5/LiquidLogo.jsx').includes('veyra-wordmark-purple.svg'));
+ assert.ok(contents('web/v5/Discover.jsx').includes('<Logo width={126}'));
  assert.ok(contents('web/v5/DiscoveryHub.jsx').includes('<Logo width={145}'),'DiscoveryHub renders the approved shared wordmark');
  assert.ok(contents('web/v5/ErrorBoundary.jsx').includes('veyra_logo_primary.svg'));
 });
