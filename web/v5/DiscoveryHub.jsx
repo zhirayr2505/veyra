@@ -89,6 +89,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
  const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false),[showAllRecommendations,setShowAllRecommendations]=useState(false);
  const [previewPerson,setPreviewPerson]=useState(null);
  const loadedKey=useRef(null),requestNumber=useRef(0);
+ const recommendationHeadingRef=useRef(null);
  const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,collection,demoMode,refreshTick,retry].join(':');
  const sharedPeople=useMemo(()=>[...people].sort((a,b)=>(b.shared_interests||0)-(a.shared_interests||0)),[people]);
  const nearbyLocation=profile?.city?profile.city:'Местоположение не определено';
@@ -169,7 +170,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
      return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} forYou onProfile={previewProfile}/>;
     })}
    </div>}
-   <SectionTitle action="Все" onAction={()=>{setCollection(null);setShowAllRecommendations(true);document.getElementById('vx-for-you-recommendations')?.scrollIntoView({behavior:'smooth',block:'nearest'})}}>Подборки для тебя</SectionTitle>
+   <SectionTitle action="Все" onAction={()=>{setCollection(null);setShowAllRecommendations(true);recommendationHeadingRef.current?.scrollIntoView({behavior:'smooth',block:'nearest'})}}>Подборки для тебя</SectionTitle>
    <div className="vx-collections vx-themed-collections" aria-label="Тематические подборки">
     {THEMED_COLLECTIONS.map(group=><button type="button" key={group.id}
       className={'vx-collection vx-themed-collection vx-for-you-themed-'+group.id+(collection===group.id?' chosen':'')}
@@ -181,7 +182,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
      <span className="vx-collection-label"><b>{group.name}</b><small>{group.description}</small></span>
     </button>)}
    </div>
-   <div id="vx-for-you-recommendations" className="vx-for-you-rec-heading">
+   <div ref={recommendationHeadingRef} className="vx-for-you-rec-heading">
     <SectionTitle action={collection?'Сбросить':showAllRecommendations?'Свернуть':'Смотреть все'}
      onAction={collection?()=>{setCollection(null);setShowAllRecommendations(false)}:()=>setShowAllRecommendations(v=>!v)}>
      {collection?THEMED_COLLECTIONS.find(g=>g.id===collection)?.name:'Рекомендуем тебе'}</SectionTitle>
