@@ -905,10 +905,12 @@ test('approved VEYRA art loads as files and category cards request filtered real
  await telegram(page,10,false,true);
  await page.goto('/');
  await page.getByRole('tab',{name:'Для вас'}).click();
- const artworks=page.locator('.vx-for_you .vx-hero-art, .vx-for_you .vx-collection-art');
- await expect(artworks).toHaveCount(4);
+ const artworks=page.locator('.vx-for_you .vx-collection-art');
+ await expect(artworks).toHaveCount(3);
+ const heart=page.locator('.vx-for_you .vx-for-you-glossy-heart');
+ await expect.poll(()=>heart.evaluate(img=>img.complete&&img.naturalWidth>=380&&img.currentSrc.endsWith('/for_you_glossy_heart.svg'))).toBe(true);
  await expect(page.locator('.vx-themed-collection')).toHaveCount(3);
- for(let i=0;i<4;i++)await expect.poll(()=>artworks.nth(i).evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ for(let i=0;i<3;i++)await expect.poll(()=>artworks.nth(i).evaluate(img=>img.complete&&img.naturalWidth>=1152)).toBe(true);
  const chosen=page.locator('.vx-themed-collection');
  const collectionCases=[
   ['Схожие интересы','common_interests=true'],
@@ -931,9 +933,10 @@ test('original PNG images and new premium crown render without overflowing benef
  await telegram(page,10,false,true);
  await page.goto('/');
  await page.getByRole('tab',{name:'Для вас'}).click();
- const art=page.locator('.vx-for_you .vx-hero-art, .vx-for_you .vx-collection-art');
- await expect(art).toHaveCount(4);
- for(let i=0;i<4;i++){
+ const art=page.locator('.vx-for_you .vx-collection-art');
+ await expect(art).toHaveCount(3);
+ await expect(page.locator('.vx-for_you .vx-for-you-glossy-heart')).toBeVisible();
+ for(let i=0;i<3;i++){
   await expect.poll(()=>art.nth(i).evaluate(el=>el.complete&&el.naturalWidth>=1152&&el.currentSrc.includes('_master_20261013.png'))).toBe(true);
  }
  const crown=page.locator('.vx-crown .vx-premium-crown');
@@ -1492,4 +1495,47 @@ test('VEYRA feed uses a single top-right goal, round country flag and draggable 
  await expect(dialog).toBeVisible();
  await dialog.getByRole('button',{name:'Закрыть интересы'}).click();
  await expect(dialog).toHaveCount(0);
+});
+
+
+test('Approved VEYRA For You matches the light lavender reference and stays within a narrow phone',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);
+ await page.goto('/');
+ await page.getByRole('tab',{name:'Для вас'}).click();
+ await expect(page.locator('.vx-dating-stage02')).toHaveClass(/vx-for-you-active/);
+ const personal=page.locator('.vx-for_you');
+ await expect(personal.locator('.vx-for-you-approved-hero')).toBeVisible();
+ await expect(personal.locator('.vx-for-you-approved-hero h1')).toContainText('Это для тебя');
+ await expect(personal.locator('.vx-for-you-benefits .vx-benefit-chip')).toHaveCount(3);
+ await expect(personal.locator('.vx-themed-collection')).toHaveCount(3);
+ const section=personal.locator('.vx-for-you-rec-heading');
+ await expect(section).toContainText('Рекомендуем тебе');
+ const grid=personal.locator('.vx-recommendations');
+ await expect(grid).toBeVisible();
+ const geom=await grid.evaluate(el=>{
+  const style=getComputedStyle(el),cards=[...el.querySelectorAll('.vx-person')].map(x=>x.getBoundingClientRect());
+  return {columns:style.gridTemplateColumns.split(' ').length,visible:cards.length,
+   cardWidths:cards.map(x=>x.width),cardHeights:cards.map(x=>x.height)};
+ });
+ expect(geom.columns).toBe(2);
+ expect(geom.visible).toBeLessThanOrEqual(2);
+ for(let i=0;i<geom.visible;i++){
+  expect(geom.cardWidths[i]).toBeGreaterThan(140);
+  expect(geom.cardHeights[i]).toBeGreaterThan(130);
+ }
+ for(const width of [390,360,320]){
+  await page.setViewportSize({width,height:844});
+  const sizes=await personal.locator('.vx-for-you-benefits .vx-benefit-chip').evaluateAll(els=>els.map(el=>{
+   const r=el.getBoundingClientRect(),text=el.querySelector('.vx-benefit-copy');
+   return {width:r.width,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,textOverflow:text.scrollWidth-text.clientWidth};
+  }));
+  expect(sizes).toHaveLength(3);
+  for(const sz of sizes){expect(sz.width).toBeGreaterThan(70);expect(sz.scrollWidth).toBeLessThanOrEqual(sz.clientWidth+1);expect(sz.textOverflow).toBeLessThanOrEqual(1)}
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+ }
+ await section.getByRole('button',{name:'Смотреть все'}).click();
+ await expect(section.getByRole('button',{name:'Свернуть'})).toBeVisible();
+ await section.getByRole('button',{name:'Свернуть'}).click();
+ await expect(section.getByRole('button',{name:'Смотреть все'})).toBeVisible();
 });
