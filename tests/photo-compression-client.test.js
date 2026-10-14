@@ -21,11 +21,13 @@ test('camera original larger than 5MB compresses before checking server upload s
   assert.ok(dim.height<=2048);
  }finally{globalThis.createImageBitmap=oldBitmap;globalThis.document=oldDocument}
 });
-test('registration uploads at most two photos concurrently with progress, retry and drag guidance',()=>{
+test('registration uploads photos sequentially with confirmed count, retry and drag guidance',()=>{
  const code=read('web/v5/Registration.jsx');
- assert.match(code,/Math\.min\(2,initial\.length\)/);
+ assert.match(code,/for\(const job of initial\)/);
+ assert.match(code,/const retryUpload=async id/);
+ assert.match(code,/const removeUpload=id/);
  assert.match(code,/await compressPortrait\(item\.file/);
- assert.match(code,/uploadPhoto\(compressed,n=>update/);
+ assert.match(code,/uploadPhoto\(compressed,n=>updateJob/);
  assert.match(code,/showDragHint/);
  assert.match(read('web/v5/Registration2026.css'),/@keyframes veyraDragExplain/);
 });
