@@ -290,7 +290,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
    onPremium={onPremium} onFilters={onFilters} onReaction={()=>setReactionRefresh(x=>x+1)}
    refreshTick={refreshTick+reactionRefresh}/>
  </section>;
- return <section ref={hubRef} className={"vx-hub vx-dating-stage02"+(freezeFeed&&tab==="feed"?" vx-feed-locked":"")} aria-label="Раздел знакомств VEYRA">
+ return <section ref={hubRef} className={"vx-hub vx-dating-stage02"+(freezeFeed&&tab==="feed"?" vx-feed-locked":"")+(tab==='for_you'?" vx-for-you-active":"")} aria-label="Раздел знакомств VEYRA">
   <header className="vx-head">
    <button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
