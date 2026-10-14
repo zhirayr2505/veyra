@@ -1,4 +1,4 @@
-/* VEYRA 2026 registration • seven-step light purple/white journey */
+/* VEYRA 2026 registration · eight-step journey */
 .v2-onboarding .veyra-registration-2026{
  --registration-purple:var(--vx-color-accent);--registration-ink:var(--vx-color-ink);--registration-soft:var(--vx-color-surface);
  background:radial-gradient(ellipse 90% 42% at 50% -3%,#EEE5FF 0%,#FBF7FF 75%);color:var(--registration-ink);
@@ -14,7 +14,7 @@
 .v2-onboarding .veyra-registration-2026 .progress span::after{background:#9165F2;transition:transform .4s cubic-bezier(.2,.75,.2,1)}
 .v2-onboarding .veyra-registration-2026 h1{font-size:clamp(26px,7vw,33px);font-weight:830;letter-spacing:-.8px;line-height:1.18;color:#292033;text-align:center;margin-bottom:9px;text-transform:none}
 .v2-onboarding .veyra-registration-2026 .subheading{text-align:center;font-size:13px;line-height:1.55;color:#80788F;margin:0 auto 28px;max-width:330px}
-.v2-onboarding .veyra-registration-2026 .registration-step{animation-duration:.36s}
+
 .v2-onboarding .veyra-registration-2026 .fields{gap:19px}
 .v2-onboarding .veyra-registration-2026 .fields>label{font-size:13px;gap:9px}
 .v2-onboarding .veyra-registration-2026 .fields input:not([type=range]):not([type=checkbox]){border:1px solid #E2D9F2;border-radius:18px;background:#fff;min-height:57px;font-size:16px;color:#292033}
@@ -32,10 +32,6 @@
 .v2-onboarding .veyra-registration-2026 .location-card{border:1px solid #E6DDF4;border-radius:22px;background:#fff;box-shadow:0 12px 30px #3823510B;padding:28px 16px}
 .v2-onboarding .veyra-registration-2026 .location-mark{background:#F2E9FF;box-shadow:0 0 0 9px #9165F211}
 .v2-onboarding .veyra-registration-2026 .location-change{color:#8354E8}
-.v2-onboarding .veyra-registration-2026 .registration-actions{position:fixed;left:50%;transform:translateX(-50%);width:min(100%,560px);background:linear-gradient(0deg,#FBF7FF 76%,#FBF7FFEE 88%,transparent);border-top:0;bottom:0;padding:20px 19px calc(15px + env(safe-area-inset-bottom));box-shadow:none}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.primary,
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn:not(.outline){min-height:56px;background:var(--vx-gradient-primary)!important;border:0;border-radius:var(--vx-radius-button);color:#fff!important;font-size:15px;font-weight:790;box-shadow:0 9px 23px #9165F237!important}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn:disabled{opacity:.48;box-shadow:none!important}
 .v2-onboarding .veyra-registration-2026 .photo-layout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;width:100%;align-items:start}
 .v2-onboarding .veyra-registration-2026 .photo-slot,.v2-onboarding .veyra-registration-2026 .photo-slot.primary{grid-column:auto;grid-row:auto;aspect-ratio:3/3.8;border-radius:17px;box-shadow:0 6px 18px #35225110;border:1.5px solid #E5D8F4;background:#F3ECFE}
 .v2-onboarding .veyra-registration-2026 .photo-slot-add{border:1.5px dashed #B69BF3;background:linear-gradient(160deg,#F9F5FF,#EEE5FD);color:#8056DC;gap:5px}
@@ -280,15 +276,6 @@
  margin:0 auto 23px!important;font-size:13px!important;line-height:1.47!important;
 }
 .v2-onboarding .veyra-registration-2026 .registration-step .fields{gap:15px!important}
-.v2-onboarding .veyra-registration-2026 .registration-actions{
- flex:0 0 auto!important;position:relative!important;left:auto!important;bottom:auto!important;
- transform:none!important;box-sizing:border-box!important;width:auto!important;
- min-height:0!important;margin:0 -19px!important;padding:11px 19px calc(12px + env(safe-area-inset-bottom))!important;
- background:linear-gradient(0deg,#FBF7FF 75%,#FBF7FFEE)!important;z-index:80!important;
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn{
- min-height:var(--vx-height-primary)!important;border-radius:var(--vx-radius-button)!important;font-weight:780!important;
-}
 .v2-onboarding .veyra-registration-2026 .location-card.veyra-city-row{
  box-sizing:border-box!important;display:grid!important;
  grid-template-columns:52px minmax(0,1fr) auto!important;align-items:center!important;
@@ -510,113 +497,7 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .photo-layout .photo-slot-add{display:flex;align-items:center;justify-content:center;border:1.5px dashed #B698F4!important;background:#F1E8FF!important}
 
 
-/* Permit ordinary vertical swipes starting on a photo, not only in the gaps.
-   Existing long-press/keyboard reordering remains available. */
-.v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout) .photo-slot:not(.photo-slot-add),
-.v2-onboarding .veyra-registration-2026 .registration-step:has(.photo-layout) .photo-slot:not(.photo-slot-add) img{
- touch-action:pan-y!important;
-}
 
-
-/* VEYRA Smart Next: coherent branded navigation across all eight onboarding steps.
-   An animated highlight is triggered by interaction only, never loops when idle. */
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next{
-  position:relative!important;isolation:isolate;overflow:hidden!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  box-sizing:border-box!important;width:100%!important;min-height:var(--vx-height-primary)!important;
-  padding:12px 24px!important;border:1px solid var(--vx-color-primary-end)!important;
-  border-radius:var(--vx-radius-button)!important;
-  color:#fff!important;font-size:16px!important;font-weight:800!important;
-  background:var(--vx-gradient-primary)!important;
-  box-shadow:0 8px 23px #7847D75C,0 3px 8px #9560D935,
-             inset 0 1px 0 #FFFFFF75,inset 0 -1px 0 #5B25AF26!important;
-  text-shadow:0 1px 2px #42247C55;
-  -webkit-tap-highlight-color:transparent;
-  touch-action:manipulation;cursor:pointer;
-  transition:transform .2s cubic-bezier(.2,.9,.2,1),
-    box-shadow .25s ease,filter .2s ease!important;
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next::before{
-  content:"";position:absolute;z-index:0;inset:0 0 49%;
-  border-radius:inherit;pointer-events:none;
-  background:linear-gradient(180deg,#FFFFFF2E,transparent 95%);
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next::after{
-  content:"";position:absolute;z-index:0;top:-40%;bottom:-40%;left:-95%;
-  width:48%;transform:skewX(-20deg);pointer-events:none;
-  background:linear-gradient(90deg,transparent,#FFFFFF59 48%,transparent);
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled){
-  transform:scale(.98)!important;
-  filter:brightness(1.065);
-  box-shadow:0 5px 14px #7847D74D,inset 0 1px 3px #471C891F!important;
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next.was-pressed::after,
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled)::after{
-  animation:veyraSmartPressSweep .46s ease-out forwards;
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next.was-pressed:not(.is-loading){transform:scale(.98)!important}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next.was-pressed .veyra-smart-next-arrow{transform:translateX(3px)}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:focus-visible{
-  outline:3px solid #C5A8FE!important;outline-offset:3px!important;
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:disabled{
-  cursor:default;opacity:.77!important;
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions.is-ready .btn.veyra-smart-next{
-  animation:none!important;
-}
-.veyra-smart-next-content{
-  z-index:1;position:relative;display:inline-flex;align-items:center;
-  justify-content:center;max-width:100%;min-width:0;gap:12px;
-  pointer-events:none;
-}
-.veyra-smart-next-label{
-  display:block;min-width:0;white-space:nowrap;
-  font-size:clamp(14px,4vw,16px);font-weight:800;
-  line-height:1.3;letter-spacing:.05px;
-  animation:veyraSmartLabelIn .22s ease-out both;
-}
-.veyra-smart-next-arrow{
-  flex:0 0 21px;object-fit:contain;filter:drop-shadow(0 1px 1px #4B1B8340);
-  transition:transform .22s cubic-bezier(.2,.9,.2,1);
-}
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next:active:not(:disabled) .veyra-smart-next-arrow{
-  transform:translateX(3px);
-}
-.veyra-smart-next-spinner{
-  flex:0 0 20px;width:20px;height:20px;border-radius:50%;
-  border:2px solid #FFFFFF70;border-top-color:#fff;box-sizing:border-box;
-  animation:veyraSmartSpinner .75s linear infinite;
-}
-@keyframes veyraSmartPressSweep{
-  from{left:-95%;opacity:0}
-  14%{opacity:1}
-  to{left:150%;opacity:0}
-}
-@keyframes veyraSmartLabelIn{
-  from{opacity:.45;transform:translateY(5px)}
-  to{opacity:1;transform:translateY(0)}
-}
-@keyframes veyraSmartSpinner{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){
- .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next,
- .veyra-smart-next-arrow{transition:none!important}
- .veyra-smart-next-label,.veyra-smart-next-spinner,
- .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next::after{
-  animation:none!important;
- }
-}
-@media(max-width:350px){
- .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next{padding-inline:12px!important}
- .veyra-smart-next-content{gap:8px}
- .veyra-smart-next-label{font-size:13px}
-}
-
-/* Keyboard safety: hiding fixed CTA while the user edits prevents Android
-   visualViewport overlap without changing its measured height or position. */
-.v2-onboarding .veyra-registration-2026 .registration-actions{transition:opacity .12s ease}
-.v2-onboarding .veyra-registration-2026 .registration-actions[data-keyboard-open="true"]{opacity:0;pointer-events:none;visibility:hidden}
 .v2-onboarding .veyra-registration-2026 .veyra-field-error{margin:5px 0 9px;padding:9px 12px;border-radius:12px;border:1px solid #e4adc1;background:#fff2f7;color:#8f234e;font-size:13px;font-weight:700;line-height:1.4}
 .v2-onboarding .veyra-registration-2026 .registration-name-field:has(+.veyra-field-error) input{border-color:#c04670}
 
@@ -636,3 +517,66 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 @keyframes veyraPhotoSlotIn{from{opacity:0;transform:translate3d(0,12px,0) scale(.98)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
 .v2-onboarding .veyra-registration-2026 .photo-slot .veyra-upload-progress>span{width:100%;transform-origin:left center;transition:transform .18s linear}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .photo-slot.uploading{animation:none}}
+
+/* Stage 1: one fixed and viewport-aware glass navigation, not a hidden keyboard CTA. */
+.v2-onboarding .veyra-registration-2026 .registration-actions.veyra-glass-navigation{
+ position:fixed!important;left:50%!important;bottom:var(--veyra-nav-keyboard-gap,0px)!important;transform:translateX(-50%)!important;
+ width:min(100%,560px)!important;min-height:80px!important;z-index:240!important;
+ padding:10px calc(18px + env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) calc(18px + env(safe-area-inset-left,0px))!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;
+ margin:0!important;border:0!important;box-shadow:none!important;
+ background:linear-gradient(0deg,#fbf7ffed,rgba(251,247,255,.58) 76%,transparent)!important;
+ pointer-events:none!important;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow{
+ position:relative;isolation:isolate;flex:0 0 56px;width:56px;min-width:56px;max-width:56px;height:56px;min-height:56px;max-height:56px;
+ box-sizing:border-box;padding:0;border-radius:50%!important;border:1px solid #ffffffb8;
+ display:grid;place-items:center;color:#6133a6;background:linear-gradient(135deg,#ffffff91,#cfa4fd3d 49%,#9b7ced2a);
+ box-shadow:inset 0 1.5px 1px #ffffffd9,inset 0 -1px 2px #8c5ac054,0 7px 23px #5e34893b,0 1px 3px #5b38831d;
+ -webkit-backdrop-filter:blur(9px) saturate(1.45);backdrop-filter:blur(9px) saturate(1.45);
+ pointer-events:auto;touch-action:manipulation;cursor:pointer;
+ transition:transform .15s cubic-bezier(.2,.8,.2,1),opacity .15s ease,box-shadow .15s ease;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow::before{
+ content:"";position:absolute;inset:3px 7px 53% 7px;border-radius:100% 100% 36% 36%;pointer-events:none;
+ background:linear-gradient(180deg,#fff9,#fff1);box-shadow:0 1px 0 #ffffff3b;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow::after{
+ content:"";position:absolute;inset:1.5px;border:1px solid #ffffff65;border-radius:inherit;pointer-events:none;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-next{
+ margin-left:auto!important;color:#fff;
+ background:linear-gradient(138deg,#ffa2dfb8,#b978f3a8 45%,#6057eaad 72%,#49bef5a3);
+ box-shadow:inset 0 1px 2px #fff9,inset 0 -2px 5px #49238250,0 7px 25px #8454ba66;
+}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow svg{position:relative;z-index:2;filter:drop-shadow(0 1px 2px #30104c35)}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow:active:not(:disabled){transform:scale(.94)}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow:disabled{opacity:.36;cursor:default;pointer-events:none}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow:focus-visible{outline:3px solid #8f65dc;outline-offset:3px}
+.v2-onboarding .veyra-registration-2026 .veyra-glass-spinner{
+ position:relative;z-index:2;width:23px;height:23px;border-radius:50%;border:2px solid #ffffff7c;border-top-color:#fff;animation:veyra-glass-spin .7s linear infinite;
+}
+@keyframes veyra-glass-spin{to{transform:rotate(360deg)}}
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+ .v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow{background:#e9dcf8f2}
+ .v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-next{background:#8050d9;color:#fff}
+}
+.v2-onboarding .veyra-registration-2026 .registration-step{padding-bottom:112px!important;animation:none!important;will-change:auto}
+.v2-onboarding .veyra-registration-2026 .veyra-onboarding-fixed-header .step-top>.quiet{visibility:hidden;pointer-events:none}
+.v2-onboarding .veyra-registration-2026 .photo-layout{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row}
+.v2-onboarding .veyra-registration-2026 .photo-slot:not(.photo-slot-add),
+.v2-onboarding .veyra-registration-2026 .photo-slot:not(.photo-slot-add) img{touch-action:none!important}
+.v2-onboarding .veyra-registration-2026 .photo-slot-add{touch-action:manipulation}
+.v2-onboarding .veyra-registration-2026 .photo-drag-ghost{pointer-events:none!important;z-index:500;transform:scale(1.06);filter:drop-shadow(0 8px 15px #3826535a)}
+@media(prefers-color-scheme:dark){
+ .v2-onboarding .veyra-registration-2026{background:radial-gradient(ellipse at 50% 0%,#38204d,#181123 80%)!important;color:#f5ecff}
+ .v2-onboarding .veyra-registration-2026 .veyra-onboarding-fixed-header{background:#20162bd9!important;box-shadow:none}
+ .v2-onboarding .veyra-registration-2026 :is(h1,.field-label){color:#f7efff!important}
+ .v2-onboarding .veyra-registration-2026 .subheading{color:#c6b3d2}
+ .v2-onboarding .veyra-registration-2026 .registration-actions.veyra-glass-navigation{background:linear-gradient(0deg,#1c1325dc,#1c13257d 76%,transparent)!important}
+ .v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-back{color:#f7eaff;background:linear-gradient(125deg,#a989c64f,#301b4757)}
+}
+@media(prefers-reduced-motion:reduce){
+ .v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow{transition:none}
+ .v2-onboarding .veyra-registration-2026 .veyra-glass-spinner{animation:none}
+}
