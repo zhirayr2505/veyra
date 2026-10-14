@@ -201,7 +201,7 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  await expect(page.getByRole('heading',{name:'Кого вы ищете?'})).toBeVisible();
  await next.click();await page.locator('.veyra-goal-choice').nth(1).click();await next.click();
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
- await page.locator('.veyra-interest-options button').first().click();await next.click();
+ for(let i=0;i<3;i++)await page.locator('.veyra-interest-options button:not([data-selected="true"])').first().click();await next.click();
  await page.getByRole('textbox',{name:'О себе'}).fill('Люблю музыку');await next.click();
  await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
  const png=await sharp({create:{width:120,height:120,channels:3,background:'#c88bdf'}}).png().toBuffer();
@@ -1548,4 +1548,81 @@ test('Premium member polish keeps 44px tabs, semantic colors, gallery counter an
  await galleryTile.click();
  await expect(gallery.locator('.vx-profile-gallery-hint')).toHaveCount(0);
  await gallery.getByRole('button',{name:'Закрыть'}).click();
+});
+
+
+test('Stage 1 regression: 205ms transition moves adjacent panels with no intermediate overlap',async({page})=>{
+ await telegram(page,104801);await page.goto('/');
+ await page.getByRole('textbox',{name:'Ваше имя'}).fill('Алина');
+ await page.locator('.registration-consent input').check();
+ await page.evaluate(()=>{
+  window.__stage1Frames=[];window.__stage1Duration=null;window.__stage1Done=false;
+  let started=null,observed=false;
+  const sample=now=>{
+   const old=document.querySelector('.registration-step-viewport [data-exit-snapshot]');
+   const current=document.querySelector('.registration-step-viewport [data-step-active]');
+   if(old&&current){
+    observed=true;if(started==null)started=now;
+    const a=old.getBoundingClientRect(),b=current.getBoundingClientRect();
+    window.__stage1Frames.push({old:[a.left,a.right],next:[b.left,b.right],width:a.width,count:document.querySelectorAll('.registration-step-viewport>.registration-step').length});
+    requestAnimationFrame(sample);
+   }else if(observed){window.__stage1Duration=now-started;window.__stage1Done=true;}
+   else requestAnimationFrame(sample);
+  };
+  requestAnimationFrame(sample);
+ });
+ await page.getByRole('button',{name:'Следующий шаг'}).click();
+ await expect(page.getByRole('heading',{name:'Когда ваш день рождения?'})).toBeVisible();
+ await page.waitForFunction(()=>window.__stage1Done,{timeout:1500});
+ const report=await page.evaluate(()=>({frames:window.__stage1Frames,duration:window.__stage1Duration}));
+ expect(report.frames.length).toBeGreaterThan(2);
+ expect(report.duration).toBeLessThan(310);
+ for(const frame of report.frames){
+  expect(frame.count).toBe(2);
+  const adjacent=frame.old[1]<=frame.next[0]+3||frame.next[1]<=frame.old[0]+3;
+  expect(adjacent,'outgoing and incoming panels must not overlap').toBe(true);
+ }
+ await expect(page.locator('[data-exit-snapshot]')).toHaveCount(0);
+ const arrows=await page.locator('.veyra-glass-arrow').evaluateAll(nodes=>nodes.map(el=>{const r=el.getBoundingClientRect(),css=getComputedStyle(el);return {w:r.width,h:r.height,radius:css.borderRadius,bg:css.backgroundImage,border:css.borderWidth,shadow:css.boxShadow}}));
+ expect(arrows).toHaveLength(2);
+ expect(arrows[0].w).toBeCloseTo(56,0);expect(arrows[1].h).toBeCloseTo(56,0);
+ expect(arrows[0].bg).toBe(arrows[1].bg);
+ expect(arrows[0].border).toBe(arrows[1].border);
+ expect(arrows[0].shadow).toBe(arrows[1].shadow);
+});
+test('Stage 1 interests: compact category tabs, search, stable selection and limit',async({page})=>{
+ await telegram(page,104802);await page.goto('/');
+ const next=page.getByRole('button',{name:'Следующий шаг'});
+ await page.getByRole('textbox',{name:'Ваше имя'}).fill('Алина');
+ await page.locator('.registration-consent input').check();await next.click();
+ await page.getByLabel('День рождения').fill('12');await page.getByLabel('Месяц рождения').fill('05');
+ await page.getByLabel('Год рождения').fill('1998');await page.getByRole('button',{name:'женщина'}).click();await next.click();
+ await page.getByRole('textbox',{name:'Поиск города'}).fill('Par');
+ await page.locator('.city-results button').first().click();await next.click();
+ await next.click();await page.locator('.veyra-goal-choice').nth(1).click();await next.click();
+ await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
+ const tabs=page.getByRole('tablist',{name:'Категории интересов'});
+ await expect(tabs.getByRole('tab')).toHaveCount(15);
+ await expect(next).toBeDisabled();
+ for(let i=0;i<3;i++)await page.locator('.vx-interest-choice:not([data-selected="true"])').first().click();
+ await expect(page.locator('.vx-interest-counter')).toHaveText('3/12');await expect(next).toBeEnabled();
+ await tabs.getByRole('tab',{name:'Музыка'}).click();
+ await expect(page.locator('.vx-interest-counter')).toHaveText('3/12');
+ const search=page.getByRole('searchbox',{name:'Поиск по интересам'});
+ await search.fill('туризм');
+ await expect(page.locator('.vx-interest-panel')).toContainText('путешествия');
+ await page.getByRole('button',{name:'Очистить поиск интересов'}).click();
+ await tabs.getByRole('tab',{name:'Активность'}).click();
+ while(Number((await page.locator('.vx-interest-counter').innerText()).split('/')[0])<12){
+  const nextPick=page.locator('.vx-interest-choice:not([data-selected="true"])').first();
+  if(!(await nextPick.count()))break;
+  await nextPick.click();
+ }
+ await expect(page.locator('.vx-interest-counter')).toHaveText('12/12');
+ await page.locator('.vx-interest-choice:not([data-selected="true"])').first().click();
+ await expect(page.getByText('Можно выбрать до 12 интересов')).toBeVisible();
+ await expect(page.locator('.vx-interest-counter')).toHaveText('12/12');
+ await page.getByRole('button',{name:/Убрать /}).first().click();
+ await expect(page.locator('.vx-interest-counter')).toHaveText('11/12');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
