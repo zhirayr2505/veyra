@@ -10,7 +10,7 @@ body,#root{background:var(--milk);color:var(--ink)}
 .veyra-v2 .kit-icon,.veyra-v2 .veyra-detail-icon,.veyra-v2 .veyra-interest-icon,.v2-onboarding .kit-icon,.v2-onboarding .veyra-interest-icon{object-fit:contain;filter:none!important;flex-shrink:0;pointer-events:none}
 .veyra-v2 .logo,.v2-onboarding .logo{object-fit:contain;max-height:43px}
 .veyra-v2 .btn,.v2-onboarding .btn{min-height:44px;border-radius:99px;font-weight:760;letter-spacing:0;box-shadow:none!important;transition:transform .15s ease,background .15s ease}
-.veyra-v2 .btn.primary,.v2-onboarding .btn.primary{background:var(--purple)!important;color:#fff!important;border:1px solid var(--purple)!important}
+.veyra-v2 .btn.primary,.v2-onboarding .btn.primary{background:var(--vx-gradient-primary)!important;color:#fff!important;border:1px solid var(--vx-color-accent)!important;min-height:var(--vx-height-primary);border-radius:var(--vx-radius-button)}
 .veyra-v2 .btn.outline,.v2-onboarding .btn.outline{background:#fff!important;border:1px solid #D9C8F8!important;color:var(--purple)!important}
 .veyra-v2 .btn.soft{background:var(--soft)!important;color:var(--purple)!important;border:1px solid transparent}
 .veyra-v2 .btn:active:not(:disabled),.v2-onboarding .btn:active:not(:disabled){transform:scale(.98)}
