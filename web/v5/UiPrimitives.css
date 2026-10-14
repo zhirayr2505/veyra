@@ -25,3 +25,11 @@
 .veyra-interest-chip .vx-interest-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .veyra-interest-chip .veyra-interest-remove{font-size:18px;line-height:1;opacity:.8}
 @media(prefers-reduced-motion:reduce){.veyra-button,.veyra-choice{transition:none!important}.veyra-button-spinner{animation:none}}
+
+/* Minimum accessible hit-area even when the visible pill is compact. */
+.veyra-v2 button.veyra-interest-chip,.v2-onboarding button.veyra-interest-chip{min-height:44px}
+.veyra-v2 .veyra-button:focus-visible,.v2-onboarding .veyra-button:focus-visible,
+.veyra-v2 .veyra-choice:focus-visible,.v2-onboarding .veyra-choice:focus-visible,
+.veyra-v2 button.veyra-interest-chip:focus-visible,.v2-onboarding button.veyra-interest-chip:focus-visible{
+ outline:3px solid var(--vx-color-accent);outline-offset:3px
+}
