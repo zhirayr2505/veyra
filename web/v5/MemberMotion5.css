@@ -207,3 +207,34 @@ body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::bef
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{gap:3px!important;font-size:10.5px!important}
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button .vx-tab-icon{width:13px;height:13px}
 }
+
+
+/* Eager profile entry: never a white spinner while details are fetched. */
+.vx-profile-entry-fallback{
+ position:relative;min-height:100dvh;overflow:hidden;
+ background:linear-gradient(180deg,#e6d5f3 0%,#f8f3ff 53%,#faf7ff 100%);
+}
+.vx-profile-entry-fallback>.logo{
+ position:absolute;top:calc(env(safe-area-inset-top) + 12px);
+ left:50%;transform:translateX(-50%);z-index:2;
+}
+.vx-profile-entry-cover{
+ height:min(60dvh,470px);min-height:340px;
+ background:radial-gradient(ellipse at 52% 31%,#d7bdf5 0%,#bc9be4 37%,#eee0f7 85%);
+}
+.vx-profile-entry-sheet{
+ position:relative;margin-top:-26px;min-height:65dvh;
+ border-radius:30px 30px 0 0;background:#faf7ff;
+ padding:70px 22px 0;display:flex;flex-direction:column;gap:16px;
+}
+.vx-profile-entry-sheet>span,.vx-profile-loading-lines>span{
+ display:block;height:13px;border-radius:999px;
+ background:linear-gradient(90deg,#eae0f7,#f5f0fc,#eae0f7);
+}
+.vx-profile-entry-sheet>span:first-child{width:55%;height:25px}
+.vx-profile-entry-sheet>span:nth-child(2){width:75%}
+.vx-profile-entry-sheet>span:nth-child(3){width:63%}
+.vx-profile-loading-lines{display:grid;gap:10px;padding:6px 0;min-height:42px}
+.vx-profile-loading-lines>span:first-child{width:93%}
+.vx-profile-loading-lines>span:nth-child(2){width:79%}
+.vx-profile-loading-lines>span:nth-child(3){width:58%}
