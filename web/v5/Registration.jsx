@@ -1,4 +1,5 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
+import {flushSync} from 'react-dom';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
 import {compressPortrait} from './compressPortrait.js';
@@ -11,6 +12,7 @@ import {CountryFlag} from './CountryFlag.jsx';
 import {ProfilePreview} from './ProfilePreview.jsx';
 import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './Registration2026.css';
+import './RegistrationTransitions.css';
 import {LegalScreen} from './Legal.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 
@@ -34,6 +36,7 @@ export function Registration({me,refresh}){
  const savedStep=me?.registration?.step||1;
  const initialStep=start.registration_ui_version===3?savedStep:start.registration_ui_version===2?(savedStep>=7?8:savedStep):1; // Resume legacy drafts on their matching new step.
  const [step,setStep]=useState(Math.min(8,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
+ const [transitioning,setTransitioning]=useState(false),[exitLabel,setExitLabel]=useState('');
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10),bio:truncateBio(start.bio??me?.profile?.bio??'')});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
@@ -48,6 +51,7 @@ export function Registration({me,refresh}){
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
  const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),ctaTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
+ const registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),labelTimerRef=useRef(null),prevLabelRef=useRef('');
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  const focusableEditor=node=>node?.matches?.('input:not([type="checkbox"]):not([type="range"]),textarea');
@@ -117,7 +121,67 @@ export function Registration({me,refresh}){
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))invalid('looking_for','Проверь предпочтения поиска');
  };
 
- const go=(n,dir)=>{setFieldError(null);setKeyboardActive(false);setDirection(dir);setStep(Math.min(8,Math.max(1,n)));scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'})};
+ const go=(n,dir)=>{
+  const target=Math.min(8,Math.max(1,n));
+  if(target===step||stepTransitionRef.current)return;
+  const change=()=>{
+   setFieldError(null);setKeyboardActive(false);setDirection(dir);setStep(target);
+   scrollRef.current?.scrollTo({top:0,behavior:'instant'});
+   window.scrollTo({top:0,behavior:'instant'});
+  };
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||false;
+  const duration=reduced?120:320;
+  stepTransitionRef.current=true;setTransitioning(true);
+  const done=()=>{
+   clearTimeout(stepTransitionTimerRef.current);
+   stepTransitionRef.current=false;setTransitioning(false);
+   registrationRootRef.current?.removeAttribute('data-native-transition');
+   registrationRootRef.current?.removeAttribute('data-waapi-transition');
+  };
+  const oldStep=scrollRef.current;
+  // Native View Transitions capture both mounted step states without affecting the header.
+  if(!reduced&&typeof document.startViewTransition==='function'&&oldStep){
+   registrationRootRef.current?.setAttribute('data-native-transition','true');
+   document.documentElement.dataset.veyraStepDirection=dir;
+   try{
+    const transition=document.startViewTransition(()=>flushSync(change));
+    transition.finished.then(done,done);
+    stepTransitionTimerRef.current=setTimeout(done,650);
+    return;
+   }catch{/* Older Telegram clients use the WAAPI fallback below. */}
+   registrationRootRef.current?.removeAttribute('data-native-transition');
+  }
+  // WAAPI fallback: a non-interactive snapshot of the outgoing step persists
+  // while React mounts the incoming step; no top/left/height animations.
+  let clone;
+  if(oldStep){
+   const rect=oldStep.getBoundingClientRect();
+   clone=oldStep.cloneNode(true);
+   clone.setAttribute('aria-hidden','true');clone.inert=true;
+   clone.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+   clone.setAttribute('data-exit-snapshot','true');
+   for(const [key,value] of Object.entries({position:'fixed',top:rect.top+'px',left:rect.left+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',zIndex:'250',pointerEvents:'none',animation:'none',overflow:'hidden',background:'var(--vx-color-surface)'})){
+    clone.style.setProperty(key.replace(/[A-Z]/g,x=>'-'+x.toLowerCase()),value,'important');
+   }
+   registrationRootRef.current?.appendChild(clone);
+  }
+  registrationRootRef.current?.setAttribute('data-waapi-transition','true');
+  flushSync(change);
+  const sign=dir==='backward'?-1:1;
+  const incoming=scrollRef.current;
+  if(incoming?.animate)incoming.animate([
+   {transform:reduced?'none':'translate3d('+(sign*40)+'px,0,0)',opacity:0},
+   {transform:'translate3d(0,0,0)',opacity:1}
+  ],{duration,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'});
+  if(clone?.animate){
+   const outgoing=clone.animate([
+    {transform:'translate3d(0,0,0)',opacity:1},
+    {transform:reduced?'none':'translate3d('+(-sign*24)+'px,0,0)',opacity:0}
+   ],{duration:reduced?120:180,easing:'ease-in',fill:'forwards'});
+   outgoing.finished.then(()=>clone.remove(),()=>clone.remove());
+  }else clone?.remove();
+  stepTransitionTimerRef.current=setTimeout(()=>{clone?.remove();done()},duration);
+ };
  const next=()=>work(async()=>{valid();haptic('light');const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
   go(step+1,'forward');
@@ -233,8 +297,21 @@ export function Registration({me,refresh}){
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
  const nextLabel=step===8?(photos.length<MIN_PHOTOS?'Добавить ещё '+(MIN_PHOTOS-photos.length)+' фото':'Посмотреть анкету'):step===7?(String(f.bio||'').trim()?'Добавить фото':'Пропустить'):NEXT_STEP_LABELS[step-1];
+ useEffect(()=>{
+  const previous=prevLabelRef.current;
+  if(previous&&previous!==nextLabel){
+   setExitLabel(previous);
+   clearTimeout(labelTimerRef.current);
+   labelTimerRef.current=setTimeout(()=>setExitLabel(''),195);
+  }
+  prevLabelRef.current=nextLabel;
+  return()=>clearTimeout(labelTimerRef.current);
+ },[nextLabel]);
+ useLayoutEffect(()=>{scrollRef.current?.querySelector('[data-step-heading]')?.focus({preventScroll:true})},[step]);
+ useEffect(()=>()=>{clearTimeout(stepTransitionTimerRef.current);clearTimeout(labelTimerRef.current)},[]);
+
  const primaryAction=()=>{
-  if(busy||uploading)return;
+  if(busy||uploading||stepTransitionRef.current)return;
   setCtaPressed(true);clearTimeout(ctaTimer.current);
   ctaTimer.current=setTimeout(()=>setCtaPressed(false),480);
   if(step===8){
@@ -246,10 +323,10 @@ export function Registration({me,refresh}){
  };
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
- return <div className="page registration registration-v6 registration-v7 veyra-registration-2026" onFocusCapture={editing} onBlurCapture={finishedEditing}>
-  <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&go(step-1,'backward')} disabled={step===1||busy||uploading}/>
+ return <div ref={registrationRootRef} className="page registration registration-v6 registration-v7 veyra-registration-2026" onFocusCapture={editing} onBlurCapture={finishedEditing}>
+  <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&!transitioning&&go(step-1,'backward')} disabled={step===1||busy||uploading||transitioning}/>
   <div className={'registration-step '+direction} key={step} ref={scrollRef}>
-   <h1>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
+   <h1 tabIndex={-1} data-step-heading>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
    <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
      <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Можно использовать буквы, пробел, дефис и апостроф</span>}</label>
@@ -312,9 +389,9 @@ export function Registration({me,refresh}){
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
    <div data-keyboard-open={keyboardActive?'true':'false'} aria-hidden={keyboardActive?'true':undefined} className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>
-    <Button className={'full veyra-smart-next'+(busy?' is-loading':'')+(ctaPressed?' was-pressed':'')} disabled={busy||uploading} onClick={primaryAction}>
+    <Button className={'full veyra-smart-next'+(busy?' is-loading':'')+(ctaPressed?' was-pressed':'')} disabled={busy||uploading||transitioning} onClick={primaryAction}>
      <span className="veyra-smart-next-content">
-      <span className="veyra-smart-next-label" key={nextLabel}>{nextLabel}</span>
+      {exitLabel&&<span className="veyra-smart-next-old-label" aria-hidden="true">{exitLabel}</span>}<span className="veyra-smart-next-label" key={nextLabel}>{nextLabel}</span>
       {busy?<span className="veyra-smart-next-spinner" role="status" aria-label="Сохраняем данные"/>:<Icon name="arrow-right" tone="white" size={21} className="veyra-smart-next-arrow"/>}
      </span>
     </Button>
