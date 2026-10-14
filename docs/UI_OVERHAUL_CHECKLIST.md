@@ -32,7 +32,7 @@
 | [x] | 6.1 | Обновить регистрацию и связанные экраны | `ProfileEditor.jsx`, `Legal.jsx`, `CompletionScene.jsx`, `CompletionScene.css`, `OnboardingUnified.css`, `tests/onboarding-unified.test.js` | CI #38556746618: npm run check (test/build) ✓, npm run lint ✓; screenshots and all 8 stages on Telegram Android require device review |
 | [x] | 6.2 | Плавные переходы шагов | `Registration.jsx`, `RegistrationTransitions.css`, `OnboardingHeader.jsx`, `tests/registration-step-transition.test.js` | CI #38557574487: npm run check (test/build) ✓, npm run lint ✓; Chrome Telegram Android visual/easing/focus verification pending |
 | [x] | 6.3 | Микроанимации вариантов и успеха | `UiPrimitives.css`, `Registration.jsx`, `Registration2026.css`, `CompletionScene.jsx`, `CompletionScene.css`, `tests/onboarding-micro-motion.test.js` | CI #38558254061: npm run check (test/build) ✓, npm run lint ✓; visual mobile performance pending |
-| [~] | 6.4 | Финальная приёмка и 60 fps | — | Global CI, contrast audit, ScrollTimeline invariant check, Android physical-device blockers |
+| [!] | 6.4 | Финальная приёмка и 60 fps | `tests/ui-overhaul-acceptance.test.js`, `docs/UI_OVERHAUL_DEVICE_QA.md`, `docs/UI_OVERHAUL_CHECKLIST.md` | CI #38560021647: npm run check (tests/build) ✓, npm run lint ✓, secrets:check ✓; blocker: no physical Telegram Android trace/screen recording to verify 60 fps, haptics, keyboard, photo LQIP and visual interaction. Browser suite was skipped. See `docs/UI_OVERHAUL_DEVICE_QA.md`. Separately, production photo requests with code 23 require investigation; not caused by a feature-branch deployment. |
 
 ## Ручная приёмка на реальном Android/Telegram
 
