@@ -61,3 +61,13 @@ test('compact blur is clipped at the sheet edge rather than remaining cover-size
  assert.equal(last.clipPath,`inset(0px 0px ${expected}px 0px)`);
  assert.ok(Number(expected)>100,'must crop the phantom blurred band');
 });
+
+
+test('white circle rim stays invisible until after the circle threshold',()=>{
+ const tracks=buildProfileScrollKeyframes(390,447,373,1600,292);
+ const before=tracks.rim.find(v=>Math.abs(v.offset-.35*373/1600)<.00002);
+ const after=tracks.rim.find(v=>Math.abs(v.offset-.425*373/1600)<.00002);
+ assert.ok(before&&after);
+ assert.equal(before.opacity,0);
+ assert.equal(after.opacity,1);
+});
