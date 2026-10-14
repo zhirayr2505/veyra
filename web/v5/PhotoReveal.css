@@ -1,0 +1,7 @@
+.photo-box.photo-progressive{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--photo-dominant,#ded0ef),#f5eeff)}
+.photo-progressive>.photo-blur{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.photo-progressive>.photo-blur>img{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;filter:blur(22px) saturate(1.1);transform:scale(1.08)}
+.photo-progressive>img.photo-sharp{position:relative;z-index:1;opacity:0;transition:opacity .26s ease-in-out;will-change:opacity}
+.photo-progressive>img.photo-sharp.photo-revealed{opacity:1}
+.photo-progressive>.photo-unavailable{position:relative;z-index:2}
+@media(prefers-reduced-motion:reduce){.photo-progressive>img.photo-sharp{transition:none}}
