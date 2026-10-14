@@ -73,7 +73,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head .vx-feed-wo
  border-radius:999px;
  background:linear-gradient(155deg,#ae67ee 0%,#8b36e0 56%,#6921ca 100%);
  box-shadow:0 3px 10px #8530d75b,inset 0 1px 2px #ffffff9c,0 0 0 1px #e7c0ffb3;
- transform:translate3d(calc(var(--vx-liquid-index)*100%),0,0);
+ transform:translate3d(var(--vx-liquid-offset,0%),0,0);
  transition:transform .53s cubic-bezier(.2,1.04,.28,1);
  will-change:transform;
 }
