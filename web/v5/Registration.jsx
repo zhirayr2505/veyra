@@ -1,7 +1,7 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {flushSync} from 'react-dom';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
-import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
+import {get,put,post,request,photoOrder,uploadPhoto,photoUrl,cachedPhotoAny} from './api.js';
 import {compressPortrait} from './compressPortrait.js';
 import {haptic} from './haptics.js';
 import {Button,Choice,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
@@ -13,6 +13,7 @@ import {ProfilePreview} from './ProfilePreview.jsx';
 import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './Registration2026.css';
 import './RegistrationTransitions.css';
+import './Stage1Bugfix.css';
 import {LegalScreen} from './Legal.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 
@@ -54,7 +55,7 @@ export function Registration({me,refresh}){
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
  const photoInput=useRef(null),dragGhostRef=useRef(null),replaceInput=useRef(null),replaceIndex=useRef(-1),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
- const registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),stepAnimationsRef=useRef([]),exitCloneRef=useRef(null),workRunning=useRef(false),reorderRunning=useRef(false);
+ const stepViewportRef=useRef(null),registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),stepAnimationsRef=useRef([]),exitCloneRef=useRef(null),workRunning=useRef(false),reorderRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
  // Follow the actual Android/Telegram visual viewport without React renders per keyboard frame.
@@ -115,32 +116,35 @@ export function Registration({me,refresh}){
  const valid=()=>{
   if(step===1){if(f.name.trim().length<2||!NAME_PATTERN.test(f.name.trim()))invalid('name','Имя: буквы, пробелы, дефис или апостроф между буквами');if(!consent)invalid('consent','Прими условия использования и политику конфиденциальности')}
   if(step===2){if(!f.gender)invalid('gender','Выбери свой пол');if(!age(f.birth_date))invalid('birth_date','Проверь дату рождения');if(age(f.birth_date)<18||age(f.birth_date)>110)invalid('birth_date','VEYRA доступна с 18 лет')}
-  if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))invalid('city','Выбери город из предложенного списка');
+  if(step===6&&((f.interests||[]).length<3||(f.interests||[]).length>12))invalid('interests','Выбери от 3 до 12 интересов');
+   if(step===3&&(!f.city||!f.country||f.lat==null||f.lon==null||(cityEdit&&query.trim())))invalid('city','Выбери город из предложенного списка');
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))invalid('looking_for','Проверь предпочтения поиска');
  };
 
- // Use WAAPI alone; header/CTA are outside the animated step.
+ // One WAAPI engine: adjacent full-width panels in a clipped viewport.
  const go=(n,dir)=>{
   const target=Math.min(8,Math.max(1,n));if(target===step||stepTransitionRef.current)return;
+  stepAnimationsRef.current.forEach(animation=>animation.cancel());stepAnimationsRef.current=[];
+  exitCloneRef.current?.remove();exitCloneRef.current=null;clearTimeout(stepTransitionTimerRef.current);
   stepTransitionRef.current=true;setTransitioning(true);
-  stepAnimationsRef.current.forEach(a=>a.cancel());stepAnimationsRef.current=[];exitCloneRef.current?.remove();
-  const node=scrollRef.current,rect=node?.getBoundingClientRect(),clone=node?.cloneNode(true);
-  if(clone&&rect){
-   clone.inert=true;clone.setAttribute('aria-hidden','true');clone.dataset.exitSnapshot='true';
+  const container=stepViewportRef.current,previous=scrollRef.current,clone=previous?.cloneNode(true);
+  if(container&&clone){
+   clone.inert=true;clone.setAttribute('aria-hidden','true');clone.dataset.exitSnapshot='true';clone.removeAttribute('data-step-active');
    clone.querySelectorAll('[id],[name]').forEach(el=>{el.removeAttribute('id');el.removeAttribute('name')});
-   Object.assign(clone.style,{position:'fixed',top:rect.top+'px',left:rect.left+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',overflow:'hidden',pointerEvents:'none',zIndex:'250',animation:'none'});
-   registrationRootRef.current?.appendChild(clone);exitCloneRef.current=clone;
+   container.appendChild(clone);clone.scrollTop=previous.scrollTop;exitCloneRef.current=clone;
   }
-  setFieldError(null);setDirection(dir);
-  flushSync(()=>setStep(target));scrollRef.current?.scrollTo({top:0,behavior:'instant'});
-  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,duration=reduced?0:290,sign=dir==='backward'?-1:1;
-  const options={duration,easing:'cubic-bezier(.22,.78,.22,1)',fill:'both'},animations=[];
-  if(duration&&scrollRef.current?.animate)animations.push(scrollRef.current.animate([{transform:'translate3d('+(sign*12)+'%,0,0)',opacity:.78},{transform:'translate3d(0,0,0)',opacity:1}],options));
-  if(duration&&clone?.animate)animations.push(clone.animate([{transform:'translate3d(0,0,0)',opacity:1},{transform:'translate3d('+(-sign*12)+'%,0,0)',opacity:.72}],options));
+  setFieldError(null);setDirection(dir);flushSync(()=>setStep(target));
+  const incoming=scrollRef.current;if(incoming)incoming.scrollTop=0;
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,duration=reduced?0:205,sign=dir==='backward'?-1:1;
+  const options={duration,easing:'cubic-bezier(.22,.72,.25,1)',fill:'both'},animations=[];
+  if(duration&&incoming?.animate&&clone?.animate){
+   animations.push(incoming.animate([{transform:'translate3d('+(sign*100)+'%,0,0)',opacity:1},{transform:'translate3d(0,0,0)',opacity:1}],options));
+   animations.push(clone.animate([{transform:'translate3d(0,0,0)',opacity:1},{transform:'translate3d('+(-sign*100)+'%,0,0)',opacity:1}],options));
+  }
   stepAnimationsRef.current=animations;
-  const done=()=>{if(!stepTransitionRef.current)return;clearTimeout(stepTransitionTimerRef.current);animations.forEach(a=>a.cancel());stepAnimationsRef.current=[];exitCloneRef.current?.remove();exitCloneRef.current=null;stepTransitionRef.current=false;setTransitioning(false)};
-  if(animations.length)Promise.allSettled(animations.map(a=>a.finished)).then(done);else done();
-  stepTransitionTimerRef.current=setTimeout(done,duration+120);
+  const done=()=>{if(!stepTransitionRef.current)return;clearTimeout(stepTransitionTimerRef.current);animations.forEach(animation=>animation.cancel());stepAnimationsRef.current=[];exitCloneRef.current?.remove();exitCloneRef.current=null;stepTransitionRef.current=false;setTransitioning(false)};
+  if(animations.length)Promise.allSettled(animations.map(animation=>animation.finished)).then(done);else done();
+  stepTransitionTimerRef.current=setTimeout(done,duration+80);
  };
  const next=()=>work(async()=>{valid();haptic('light');const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
@@ -265,24 +269,29 @@ export function Registration({me,refresh}){
   :step===2?!!f.gender&&age(f.birth_date)>=18&&age(f.birth_date)<=110
   :step===3?selectedCity&&(!cityEdit||!query.trim())
   :step===4?f.looking_for.length>0&&+f.min_age>=18&&+f.max_age>=+f.min_age&&+f.max_age<=90
-  :step===8?photos.length>=MIN_PHOTOS:true;
+  :step===6?(f.interests||[]).length>=3&&f.interests.length<=12
+   :step===8?photos.length>=MIN_PHOTOS:true;
  useEffect(()=>()=>{clearTimeout(stepTransitionTimerRef.current);stepAnimationsRef.current.forEach(a=>a.cancel());exitCloneRef.current?.remove()},[]);
  const primaryAction=()=>{
   if(busy||uploading||stepTransitionRef.current)return;
   if(step===8){
-   haptic('light');
-   if(photos.length<MIN_PHOTOS)return;
-   setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true);return;
-  }
+    haptic('light');if(photos.length<MIN_PHOTOS)return;
+    work(async()=>{await Promise.all(photos.map(async p=>{try{
+      const url=await photoUrl(p.id,{width:960});const img=new Image();img.src=url;await img.decode?.();
+     }catch{/* Neutral photo fallback. */}}));
+     setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true);
+    });return;
+   }
   next();
  };
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div ref={registrationRootRef} className="page registration registration-v6 registration-v7 veyra-registration-2026" >
   <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&!transitioning&&go(step-1,'backward')} disabled={step===1||busy||uploading||transitioning}/>
-  <div className={'registration-step '+direction} key={step} ref={scrollRef}>
+  <div className="registration-step-viewport" ref={stepViewportRef} data-transition-ms="205">
+   <div className={'registration-step '+direction} key={step} ref={scrollRef} data-step-active="true">
    <h1 tabIndex={-1} data-step-heading>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
-   <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 6 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
+   <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Выберите от 3 до 12 — так рекомендации станут точнее','Пара слов о себе помогут начать интересное знакомство.','От 3 до 6 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
      <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Можно использовать буквы, пробел, дефис и апостроф</span>}</label>
      {fieldError?.step===1&&fieldError.field==='name'&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
@@ -340,6 +349,7 @@ export function Registration({me,refresh}){
 
     
    </div>}
+  </div>
   </div>
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" ref={dragGhostRef} aria-hidden="true" style={{left:dragVisual.x-dragVisual.offsetX,top:dragVisual.y-dragVisual.offsetY,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
