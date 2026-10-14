@@ -94,3 +94,6 @@
 .v2-onboarding .veyra-registration-2026 .vx-interest-limit-message{background:#f3e5ff;border:1px solid #d3a9f5;color:#6b299b;border-radius:10px;padding:9px;font-size:12px;margin:0}
 .v2-onboarding .veyra-registration-2026 .registration-step:has(.vx-onboard-interest){padding-bottom:128px!important}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .vx-interest-panel,.v2-onboarding .veyra-registration-2026 .vx-interest-counter.at-limit{animation:none!important}}
+
+.v2-onboarding .veyra-registration-2026 .photo-slot>.vx-upload-error{height:auto!important;min-height:0!important;width:100%!important;pointer-events:auto!important}
+.v2-onboarding .veyra-registration-2026 .photo-slot .vx-upload-error-actions,.v2-onboarding .veyra-registration-2026 .photo-slot .vx-upload-error-actions button{pointer-events:auto!important;touch-action:manipulation!important}
