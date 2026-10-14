@@ -204,10 +204,21 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  for(let i=0;i<3;i++)await page.locator('.veyra-interest-options button:not([data-selected="true"])').first().click();await next.click();
  await page.getByRole('textbox',{name:'О себе'}).fill('Люблю музыку');await next.click();
  await expect(page.getByRole('heading',{name:'Добавьте свои фото'})).toBeVisible();
+ // Fixture-only 503 for the first photo; the real user and storage are untouched.
+ let failOneUpload=true;
+ await page.route('**/api/photos',route=>{
+  if(route.request().method()==='POST'&&failOneUpload){failOneUpload=false;return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'TEST_UPLOAD_FAILURE'})});}
+  return route.continue();
+ });
  const png=await sharp({create:{width:120,height:120,channels:3,background:'#c88bdf'}}).png().toBuffer();
  const files=Array.from({length:8},(_,i)=>({name:'test'+i+'.png',mimeType:'image/png',buffer:png}));
  await page.locator('input[multiple][type=file]').setInputFiles(files);
+ await expect(page.locator('.vx-upload-error')).toHaveCount(1,{timeout:60000});
+ await expect(page.locator('.registration-photo-count')).toContainText('5 из 6');
+ await expect(page.locator('.photo-slot .photo-box')).toHaveCount(5);
+ await page.getByRole('button',{name:/Повторить загрузку/}).click();
  await expect(page.locator('.registration-photo-count')).toContainText('6 из 6',{timeout:60000});
+ await expect(page.locator('.vx-upload-error')).toHaveCount(0);
  await expect(page.locator('.photo-slot .photo-box')).toHaveCount(6);
  const tiles=page.locator('.photo-slot[data-photo-id]');
  const before=await tiles.evaluateAll(nodes=>nodes.map(n=>n.dataset.photoId));
@@ -223,7 +234,12 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  const src=await from.boundingBox(),dst=await to.boundingBox();
  await page.mouse.move(src.x+src.width/2,src.y+src.height/2);
  await page.mouse.down();await page.waitForTimeout(375);
- await expect(page.locator('.photo-drag-ghost')).toBeVisible();
+ const ghost=page.locator('.photo-drag-ghost');
+ await expect(ghost).toBeVisible();
+ const bounds=await ghost.boundingBox();
+ expect(Math.abs(bounds.width-src.width)).toBeLessThan(3);
+ expect(Math.abs(bounds.height-src.height)).toBeLessThan(3);
+ await expect(ghost.locator('img')).toHaveAttribute('src',/.+/);
  await page.mouse.move(dst.x+dst.width/2,dst.y+dst.height/2,{steps:8});
  await page.mouse.up();
  await expect.poll(async()=>tiles.first().getAttribute('data-photo-id')).toBe(fromId);
