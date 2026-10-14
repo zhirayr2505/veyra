@@ -52,13 +52,14 @@ function SectionTitle({children,action,onAction}){
  return <div className="vx-section-title"><h2>{children}</h2>
   {action&&<button type="button" onClick={onAction}>{action}<Icon name="chevron-right" tone="dark" size={18}/></button>}</div>;
 }
-function Portrait({person,onProfile,interest}){
+function Portrait({person,onProfile,interest,forYou=false}){
  return <button className="vx-portrait-card" type="button" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
   <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name}/></span>
   {person.test_profile&&<span className="vx-portrait-demo-tag">демо</span>}
-  {interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
-   person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null}
-  <span className="vx-portrait-name">{person.name}</span>
+  {!forYou&&(interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
+   person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null)}
+  <span className="vx-portrait-name">{person.name}{forYou&&Number.isFinite(Number(person.age))?', '+person.age:''}</span>
+  {forYou&&<span className="vx-for-you-common"><Icon name="heart" tone="pink" size={12}/>{Number(person.shared_interests)>0?Number(person.shared_interests)+' общих':'Подходит тебе'}</span>}
  </button>;
 }
 function BrowsePerson({person,onProfile,variant='nearby'}){
@@ -67,10 +68,14 @@ function BrowsePerson({person,onProfile,variant='nearby'}){
    <Photo id={person.photos?.[0]} alt={person.name}/>
    {person.test_profile&&<span className="vx-demo-card-badge">ДЕМО</span>}
    <span className="vx-person-gradient" aria-hidden="true"/>
-   {person.online&&<span className="vx-card-online" title="В сети"/>}
+   {person.online&&(variant==='recommended'
+    ?<span className="vx-for-you-online"><span/>В сети</span>
+    :<span className="vx-card-online" title="В сети"/>)}
    <span className="vx-person-caption">
     <strong>{person.name}, {person.age}</strong>
-    <small><CountryFlag country={person.country}/> {person.city}</small>
+    <small>{variant==='recommended'
+     ?<>{person.city}<CountryFlag country={person.country} round/>{Number(person.shared_interests)>0&&<span className="vx-for-you-shared">· {person.shared_interests} общих</span>}</>
+     :<><CountryFlag country={person.country}/>{person.city}</>}</small>
     {variant==='nearby'&&distanceFor(person)&&<small><Icon name="pin" tone="white" size={13}/>{distanceFor(person)}</small>}
    </span>
   </button>
@@ -81,7 +86,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
  const [people,setPeople]=useState([]),[loading,setLoading]=useState(false),[limited,setLimited]=useState(false);
  const [error,setError]=useState(''),[hasMore,setHasMore]=useState(false),[moreBusy,setMoreBusy]=useState(false);
  const [choice,setChoice]=useState('all'),[collection,setCollection]=useState(null),[pending,setPending]=useState([]);
- const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false);
+ const [retry,setRetry]=useState(0),[showAllPortraits,setShowAllPortraits]=useState(false),[showAllRecommendations,setShowAllRecommendations]=useState(false);
  const [previewPerson,setPreviewPerson]=useState(null);
  const loadedKey=useRef(null),requestNumber=useRef(0);
  const requestKey=[kind,filters?.only_online,filters?.common_interests,choice,collection,demoMode,refreshTick,retry].join(':');
@@ -140,37 +145,47 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
  const previewProfile=personId=>{const person=people.find(p=>String(p.id)===String(personId));if(person){haptic();setPreviewPerson(person)}};
  return <div className={'vx-browse vx-'+kind} aria-label={personal?'Для вас':'Люди рядом'}>
   {personal?<>
-   <section className="vx-personal-head"><img className="vx-hero-art vx-for-you-art" src={DATING_ART+"for_you_hero"+ORIGINAL_ART_VERSION} width="1536" height="686" fetchPriority="high" alt="" aria-hidden="true"/>
-    <div className="vx-personal-hello"><h1>{profile?.name?profile.name+', это':'Это'} для тебя <span aria-hidden="true" className="vx-purple-heart"><Icon name="heart" tone="pink" size={24}/></span></h1>
-     <p>Мы подобрали людей, которые разделяют твои интересы и ценности</p></div>
-
-    <div className="vx-benefits" aria-label="Преимущества персональных рекомендаций">
-     <div className="vx-benefit-chip"><Icon name="sparkle" tone="pink" size={18}/><span className="vx-benefit-copy">Общие интересы</span></div>
-     <div className="vx-benefit-chip"><Icon name="heart" tone="pink" size={18}/><span className="vx-benefit-copy">Близкие цели</span></div>
-     <div className="vx-benefit-chip"><Icon name="rating" tone="pink" size={18}/><span className="vx-benefit-copy">Больше совпадений</span></div>
+   <section className="vx-personal-head vx-for-you-approved-hero" aria-label="Персональные рекомендации VEYRA">
+    <div className="vx-personal-hello">
+     <span className="vx-for-you-eyebrow"><Icon name="sparkle" tone="pink" size={15}/> VEYRA MATCH</span>
+     <h1>Это <span>для тебя</span></h1>
+     <p>Мы подобрали людей, которые разделяют твои интересы и ценности</p>
     </div>
+    <img className="vx-for-you-glossy-heart" src="/veyra-approved/dating_stage02/for_you_glossy_heart.svg" alt="" aria-hidden="true"/>
+    <span className="vx-for-you-sparkle vx-for-you-sparkle-a" aria-hidden="true">✧</span>
+    <span className="vx-for-you-sparkle vx-for-you-sparkle-b" aria-hidden="true">✦</span>
+    <span className="vx-for-you-sparkle vx-for-you-sparkle-c" aria-hidden="true">✧</span>
+    <span className="vx-for-you-dots" aria-hidden="true"><i/><i/><i/></span>
    </section>
+   <div className="vx-for-you-benefits" aria-label="Преимущества персональных рекомендаций">
+    <span className="vx-benefit-chip"><Icon name="sparkle" tone="pink" size={17}/><span>Общие интересы</span></span>
+    <span className="vx-benefit-chip"><Icon name="heart" tone="pink" size={17}/><span>Близкие цели</span></span>
+    <span className="vx-benefit-chip"><Icon name="rating" tone="pink" size={17}/><span>Больше совпадений</span></span>
+   </div>
    <SectionTitle action={showAllPortraits?'Свернуть':'Смотреть все'} onAction={()=>setShowAllPortraits(x=>!x)}>Люди, похожие на тебя</SectionTitle>
-   {people.length>0&&<div className={'vx-interest-portraits'+(showAllPortraits?' expanded':'')}>
+   {people.length>0&&<div className={'vx-interest-portraits vx-for-you-portraits'+(showAllPortraits?' expanded':'')}>
     {(showAllPortraits?sharedPeople:sharedPeople.slice(0,6)).map(p=>{
      const common=(p.interests||[]).find(x=>(profile?.interests||[]).some(i=>interestKey(x)===interestKey(i)));
-     return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} onProfile={previewProfile}/>;
+     return <Portrait key={p.id} person={p} interest={common||(p.interests||[])[0]} forYou onProfile={previewProfile}/>;
     })}
    </div>}
-   <SectionTitle action={collection?'Все анкеты':null} onAction={()=>setCollection(null)}>Подборки для тебя</SectionTitle>
+   <SectionTitle action="Все" onAction={()=>{setCollection(null);setShowAllRecommendations(true);document.getElementById('vx-for-you-recommendations')?.scrollIntoView({behavior:'smooth',block:'nearest'})}}>Подборки для тебя</SectionTitle>
    <div className="vx-collections vx-themed-collections" aria-label="Тематические подборки">
     {THEMED_COLLECTIONS.map(group=><button type="button" key={group.id}
-      className={'vx-collection vx-themed-collection'+(collection===group.id?' chosen':'')}
+      className={'vx-collection vx-themed-collection vx-for-you-themed-'+group.id+(collection===group.id?' chosen':'')}
       aria-pressed={collection===group.id} aria-label={'Подборка: '+group.name}
-      onClick={()=>{haptic();setCollection(collection===group.id?null:group.id)}}>
+      onClick={()=>{haptic();setCollection(collection===group.id?null:group.id);setShowAllRecommendations(false)}}>
      <img className="vx-collection-art" src={DATING_ART+group.image} width="1152" height="1536" alt="" loading="lazy" decoding="async"/>
      <span className="vx-collection-shade" aria-hidden="true"/>
-     <span className="vx-collection-icon"><Icon name={group.icon} tone="pink" size={20}/></span>
+     <span className="vx-for-you-collection-glass" aria-hidden="true"><Icon name={group.icon} tone="pink" size={37}/></span>
      <span className="vx-collection-label"><b>{group.name}</b><small>{group.description}</small></span>
     </button>)}
    </div>
-   <SectionTitle action={collection?'Сбросить':hasMore?'Смотреть все':null}
-     onAction={collection?()=>setCollection(null):loadMore}>{collection?THEMED_COLLECTIONS.find(g=>g.id===collection)?.name:'Рекомендуем тебе'}</SectionTitle>
+   <div id="vx-for-you-recommendations" className="vx-for-you-rec-heading">
+    <SectionTitle action={collection?'Сбросить':showAllRecommendations?'Свернуть':'Смотреть все'}
+     onAction={collection?()=>{setCollection(null);setShowAllRecommendations(false)}:()=>setShowAllRecommendations(v=>!v)}>
+     {collection?THEMED_COLLECTIONS.find(g=>g.id===collection)?.name:'Рекомендуем тебе'}</SectionTitle>
+   </div>
   </>:<>
    <section className="vx-nearby-hero"><img className="vx-hero-art vx-nearby-art" src={DATING_ART+"nearby_hero"+ORIGINAL_ART_VERSION} width="1536" height="768" alt="" aria-hidden="true" fetchPriority="high"/>
     <div className="vx-nearby-copy"><h1>Люди рядом</h1><p className="vx-nearby-place"><Icon name="pin" tone="pink" size={18}/>{nearbyLocation}</p>
@@ -193,10 +208,10 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
   {loading?<div className="vx-state" role="status"><Spinner/><p>{demoMode?'Готовим демо-подборку…':'Подбираем настоящие анкеты…'}</p></div>:
    people.length>0?<>
     {rows.length>0?<div className={'vx-people'+(personal?' vx-recommendations':' vx-nearby-grid')}>
-     {rows.map(p=><BrowsePerson person={p} key={p.id} variant={personal?'recommended':'nearby'}
+     {(personal&&!showAllRecommendations?rows.slice(0,2):rows).map(p=><BrowsePerson person={p} key={p.id} variant={personal?'recommended':'nearby'}
        onProfile={previewProfile}/>)}
     </div>:<div className="vx-state"><p>Пока нет анкет в этой подборке.</p><Button kind="outline" onClick={()=>setCollection(null)}>Все анкеты</Button></div>}
-    {hasMore&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>
+    {hasMore&&(!personal||showAllRecommendations)&&<button type="button" className="vx-more" disabled={moreBusy} onClick={loadMore}>
      {moreBusy?'Загружаем…':'Показать ещё'}<Icon name="chevron-right" tone="pink" size={18}/></button>}
     {limited&&<p className="vx-quota">Дневной лимит анкет исчерпан. <button onClick={onPremium}>VEYRA Premium</button></p>}
    </>:<div className="vx-state vx-empty">
