@@ -23,7 +23,7 @@ reactions, impressions, profile_hides, blocks, reports, daily_usage,
 today, content_interests, review_bot_messages, registration_drafts,
 sessions, photos, profiles
 ```
-Explicitly retained: `orders`, `gifts`, `veys_wallets`, `veys_ledger`, `veys_purchases`, `products`, `promos`, `promo_redemptions`, `feature_flags`, `webhook_updates`, `content_items`, `tickets`, `support_messages`, `boost_runs`, `users`, `outbox`, `audit_log`, `schema_migrations`. Username and first name are cleared on the retained user records; Premium, consumables, referral rights and financial identity remain unchanged.
+Explicitly retained: `orders`, `gifts`, `veys_wallets`, `veys_ledger`, `veys_purchases`, `products`, `promos`, `promo_redemptions`, `feature_flags`, `webhook_updates`, `content_items`, `tickets`, `support_messages`, `boost_runs`, `users`, `outbox`, `audit_log`, `schema_migrations`. Retained user records (including usernames, first names, Premium, consumables and referral rights) and outbox are not updated by reset.
 
 The reset refuses paid/VEYS-funded courtships, users with in-flight deferred deletion, drift in any dating table, or drift in any financial table/user entitlement/audit prefix. Old active sessions and dating data are removed, but financial user records remain for refunds, checkout and re-registration. The reset is **not** safe to run without the verified snapshot and review of any new FK/schema changes.
 
