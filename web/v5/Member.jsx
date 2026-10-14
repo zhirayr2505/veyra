@@ -195,7 +195,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    {photos.length>1&&<button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>photosNext(-1)}><ChevronLeft size={28}/></button>}
    <Photo id={photos[idx]} alt={data.name} priority resolution={960}/>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>photosNext(1)}><ChevronRight size={28}/></button>}
-   <small className="vx-profile-gallery-counter" aria-live="polite">{idx+1} / {photos.length}</small>
+   <small className="vx-profile-gallery-counter" aria-live="polite">{idx+1}/{photos.length}</small>
    {galleryHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
   </div>,document.body)}
 
