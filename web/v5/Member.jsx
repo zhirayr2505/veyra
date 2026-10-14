@@ -165,14 +165,13 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
       
-      {data.test_profile&&!isOwn&&<span className="vx-profile-demo-badge">ДЕМО</span>}
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
      </div>
      <div className="vx-profile-avatar-ring" aria-hidden="true"/>
      {data.online&&<div className="vx-profile-avatar-online-dot" aria-label="В сети"/>}
 
      <section className="vx-profile-identity" aria-label="Информация об анкете">
-      <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.verified&&!data.test_profile?<Icon name="verified" tone="pink" size={18}/>:null}</div>
+      <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.verified?<Icon name="verified" tone="pink" size={18}/>:null}</div>
       <div className="vx-profile-location"><CountryFlag country={data.country} round/> {data.city}</div>
       {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
