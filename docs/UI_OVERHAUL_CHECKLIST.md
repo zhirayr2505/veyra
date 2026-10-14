@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | [x] | 1.1 | Убрать серую размытую полосу под вкладками | `MemberReferencePolish.css`, `MemberFinish.css`, `MemberMotion5.css`, `profileScrollTimeline.js`, `useVeyraProfileMotion.js`, `tests/profile-scrolltimeline.test.js` | GitHub Actions #38540092434: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓, `secrets:check` ✓; Android — требуется |
 | [x] | 1.2 | Исключить квадратную рамку при морфинге | `profileScrollTimeline.js`, `useVeyraProfileMotion.js`, `tests/profile-scrolltimeline.test.js` | CI #38540582183: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; устройство — требуется |
-| [ ] | 1.3 | Перенести индикатор фото вниз обложки | — | Не начато |
+| [~] | 1.3 | Перенести индикатор фото вниз обложки | — | Общая стеклянная капсула для профиля, галереи и превью |
 | [ ] | 1.4 | Улучшить контраст логотипа и scrim | — | Не начато |
 | [ ] | 5.1 | Мгновенный каркас профиля из данных карточки | — | Не начато |
 | [ ] | 5.2 | Кэш фото, LQIP и доминантный цвет | — | Не начато |
