@@ -32,3 +32,38 @@
  --vx-tone-iris-bg:#ece8ff;--vx-tone-iris-fg:#51419b;--vx-tone-iris-border:#dbd3fa;
  --vx-tone-teal-bg:#e5f5f5;--vx-tone-teal-fg:#28646e;--vx-tone-teal-border:#c9e5e5;
 }
+
+/* Compatibility aliases for existing v5 screens while their components migrate. */
+:root,.veyra-v2,.v2-onboarding{
+ --purple:var(--vx-color-accent);
+ --pink:var(--vx-color-accent);
+ --coral:var(--vx-color-accent);
+ --registration-purple:var(--vx-color-accent);
+ --registration-ink:var(--vx-color-ink);
+ --registration-soft:var(--vx-color-surface);
+ --milk:var(--vx-color-surface);
+ --ink:var(--vx-color-ink);
+ --muted:var(--vx-color-muted);
+ --line:var(--vx-color-outline);
+ --stroke:var(--vx-color-outline);
+ --soft:var(--vx-color-soft);
+ --shadow:var(--vx-shadow-card);
+}
+[data-tone="violet"]{--vx-chip-bg:var(--vx-tone-violet-bg);--vx-chip-fg:var(--vx-tone-violet-fg);--vx-chip-border:var(--vx-tone-violet-border)}
+[data-tone="rose"]{--vx-chip-bg:var(--vx-tone-rose-bg);--vx-chip-fg:var(--vx-tone-rose-fg);--vx-chip-border:var(--vx-tone-rose-border)}
+[data-tone="sky"]{--vx-chip-bg:var(--vx-tone-sky-bg);--vx-chip-fg:var(--vx-tone-sky-fg);--vx-chip-border:var(--vx-tone-sky-border)}
+[data-tone="mint"]{--vx-chip-bg:var(--vx-tone-mint-bg);--vx-chip-fg:var(--vx-tone-mint-fg);--vx-chip-border:var(--vx-tone-mint-border)}
+[data-tone="amber"]{--vx-chip-bg:var(--vx-tone-amber-bg);--vx-chip-fg:var(--vx-tone-amber-fg);--vx-chip-border:var(--vx-tone-amber-border)}
+[data-tone="iris"]{--vx-chip-bg:var(--vx-tone-iris-bg);--vx-chip-fg:var(--vx-tone-iris-fg);--vx-chip-border:var(--vx-tone-iris-border)}
+[data-tone="teal"]{--vx-chip-bg:var(--vx-tone-teal-bg);--vx-chip-fg:var(--vx-tone-teal-fg);--vx-chip-border:var(--vx-tone-teal-border)}
+/* Shared touch targets, gradient and semantic radii for all principal CTAs. */
+.veyra-v2 .btn.primary,.v2-onboarding .btn.primary{
+ min-height:var(--vx-height-primary);
+ border-radius:var(--vx-radius-button);
+ background:var(--vx-gradient-primary);
+ box-shadow:var(--vx-shadow-cta);
+}
+.veyra-v2 .btn.outline,.v2-onboarding .btn.outline{
+ min-height:var(--vx-height-secondary);
+ border-radius:var(--vx-radius-button);
+}
