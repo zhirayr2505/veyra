@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none">
+<defs><linearGradient id="heart1" x1="37" y1="32" x2="137" y2="124" gradientUnits="userSpaceOnUse"><stop stop-color="#FFB8D7"/><stop offset=".48" stop-color="#F95C9D"/><stop offset="1" stop-color="#D82679"/></linearGradient><linearGradient id="heart2" x1="25" y1="47" x2="116" y2="139" gradientUnits="userSpaceOnUse"><stop stop-color="#F47DAE"/><stop offset=".6" stop-color="#E43482"/><stop offset="1" stop-color="#BF2068"/></linearGradient><filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#B82E7D" flood-opacity=".38"/></filter></defs>
+<g filter="url(#shadow)">
+<path d="M80 115C57 96 24 71 24 48C24 27 48 21 61 29C70 34 76 40 80 46C85 38 93 29 107 28C125 25 139 36 139 53C139 75 106 99 80 115Z" fill="#C52E77" opacity=".46"/>
+<path d="M87 120C62 101 32 77 32 54C32 33 51 25 66 33C76 37 83 44 87 49C92 41 100 32 113 32C132 32 144 45 144 61C144 82 109 105 87 120Z" fill="url(#heart1)" stroke="#FFA0C5" stroke-width="2"/>
+<path d="M73 142C54 123 15 99 15 78C15 61 30 51 46 55C59 58 67 66 73 74C80 63 91 55 104 57C120 58 129 69 129 83C129 104 96 124 73 142Z" fill="url(#heart2)" stroke="#F77EAE" stroke-width="3"/>
+<path d="M30 77C31 67 42 61 52 65C62 68 65 75 70 81" stroke="#FFF0FA" stroke-opacity=".68" stroke-width="5" stroke-linecap="round"/>
+<path d="M101 42C113 35 128 43 131 53" stroke="#FFF0FA" stroke-opacity=".6" stroke-width="4" stroke-linecap="round"/>
+</g></svg>
