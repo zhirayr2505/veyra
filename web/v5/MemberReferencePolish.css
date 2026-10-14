@@ -25,43 +25,6 @@ body>.vx-member-native-header::before{
 .veyra-v2 .vx-master-profile .vx-profile-scroller{
  background:linear-gradient(180deg,#fcfaff 0%,#faf6ff 55%,#f8f3ff 100%);
 }
-/* A cropped and decoded small version of the ACTUAL profile portrait.
-   Only opacity changes while scrolling. Blur is a static cached layer. */
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header{
- position:absolute;
- z-index:2;
- inset:0 0 auto;
- height:178px;
- overflow:hidden;
- pointer-events:none;
- opacity:0;
- background:#eee7fa;
- contain:paint;
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box{
- position:absolute;
- inset:-23px -18px -20px!important;
- width:calc(100% + 36px)!important;
- height:calc(100% + 43px)!important;
- background:#e9e3f3;
- overflow:hidden;
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box img{
- display:block!important;
- width:100%!important;
- height:100%!important;
- object-fit:cover!important;
- object-position:50% 23%!important;
- filter:blur(20px) saturate(.8) brightness(1.14);
- transform:translateZ(0);
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header::after{
- content:"";
- position:absolute;
- inset:0;
- pointer-events:none;
- background:linear-gradient(180deg,#f5eeffc9 0%,#f4edffc4 42%,#f7f2ffd5 74%,#fbf8ff 100%);
-}
 /* ONE opaque moving sheet. Never switch sheet/photo stacking on the
    center/avatar boundary: that was responsible for horizontal image slices. */
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
