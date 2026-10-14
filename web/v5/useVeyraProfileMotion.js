@@ -1,7 +1,7 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
 import {clamp,profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
-import {createProfileScrollAnimations} from './profileScrollTimeline.js';
+import {createProfileScrollAnimations,blurClipBottom} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
 
 // Additive CSS translate/scale properties never replace WAAPI transform tracks.
@@ -112,6 +112,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.blur)parts.blur.style.opacity=(f.progress<=.24?0:f.progress>=.86?1:(()=>{
     const t=(f.progress-.24)/.62;return t*t*(3-2*t);
    })()).toFixed(3);
+   if(parts.blur)parts.blur.style.clipPath='inset(0px 0px '+blurClipBottom(f.sheetY,s.compactHeight).toFixed(3)+'px 0px)';
    if(parts.ring)parts.ring.style.opacity=(f.progress<=.82?0:f.progress>=.99?1:(()=>{
     const t=(f.progress-.82)/.17;return t*t*(3-2*t);
    })()).toFixed(3);
