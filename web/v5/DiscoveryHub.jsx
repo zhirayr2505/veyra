@@ -212,6 +212,8 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
 export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
  const [tab,setTab]=useState('feed'),[visited,setVisited]=useState(new Set(['feed'])),[directoryTab,setDirectoryTab]=useState('nearby');
  const [reactionRefresh,setReactionRefresh]=useState(0);
+ const [liquidFlow,setLiquidFlow]=useState(false);
+ const liquidTimer=useRef(null);
  const scroll=useRef({feed:0,for_you:0,nearby:0}),scrollTimeout=useRef(null);
  const hubRef=useRef(null);
  // Main Feed is a fixed-height scene. Nearby / For You retain natural scrolling.
@@ -237,7 +239,8 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
     if(!panel)return;
     const top=panel.getBoundingClientRect().top;
     const bottom=nav?.getBoundingClientRect().top??(window.visualViewport?.height||window.innerHeight)-72;
-    const height=Math.max(225,Math.floor(bottom-top-12-48));
+    const actionHeight=hub.querySelector('#vx-panel-feed .feed-actions')?.getBoundingClientRect().height||92;
+    const height=Math.max(225,Math.floor(bottom-top-actionHeight-14));
     hub.style.setProperty('--vx-feed-photo-height',height+'px');
    });
   };
@@ -250,10 +253,12 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
   return()=>{cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener('resize',fit);window.visualViewport?.removeEventListener('resize',fit);root.classList.remove('veyra-feed-viewport-locked');root.style.overflow=previousOverflow;document.body.style.overflow=previousBodyOverflow;window.removeEventListener('scroll',keepAtTop);hub.style.removeProperty('--vx-feed-photo-height');window.scrollTo(0,Math.max(0,previousScroll))};
  },[directory,freezeFeed,tab,demoStatus,demoMode]);
 
- useEffect(()=>()=>{if(scrollTimeout.current)cancelAnimationFrame(scrollTimeout.current)},[]);
+ useEffect(()=>()=>{if(scrollTimeout.current)cancelAnimationFrame(scrollTimeout.current);clearTimeout(liquidTimer.current)},[]);
  const switchTab=next=>{
   if(next===tab)return;
-  haptic();scroll.current[tab]=window.scrollY;setTab(next);setVisited(v=>new Set([...v,next]));
+  haptic();clearTimeout(liquidTimer.current);setLiquidFlow(true);
+   liquidTimer.current=setTimeout(()=>setLiquidFlow(false),540);
+   scroll.current[tab]=window.scrollY;setTab(next);setVisited(v=>new Set([...v,next]));
   scrollTimeout.current=requestAnimationFrame(()=>window.scrollTo({top:scroll.current[next]||0,behavior:'instant'}));
  };
  if(directory)return <section className="vx-hub v2-directory" aria-label="Поиск людей VEYRA">
@@ -276,16 +281,19 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
    </button>
    <Logo width={145} className="vx-logo"/>
+   <span className="vx-feed-wordmark-glint" aria-hidden="true"/>
    <div className="vx-head-actions">
     <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>
      <img alt="" aria-hidden="true" width="21" height="21" src="/veyra-approved/09_veys/veys-diamond.svg"/>
-     <span>{new Intl.NumberFormat('ru-RU').format(veysBalance)}<small>VEYS</small></span>
+     <span className="vx-feed-balance-number">{new Intl.NumberFormat('ru-RU').format(veysBalance)}</span><span className="vx-feed-balance-plus" aria-hidden="true">+</span>
     </button>
     <button type="button" aria-label="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={23}/></button>
    </div>
   </header>
   <DemoStrip status={demoStatus} enabled={demoMode} onToggle={onDemoModeChange} onRetry={onDemoRetry} onReset={onDemoReset} resetBusy={demoResetBusy} resetNotice={demoResetNotice}/>
-  <div className="vx-tabs" role="tablist" aria-label="Способы знакомств">
+  <div className={'vx-tabs vx-liquid-tabs'+(liquidFlow?' is-flowing':'')} role="tablist" aria-label="Способы знакомств"
+   style={{'--vx-liquid-index':TABS.findIndex(([key])=>key===tab)}}>
+   <span className="vx-liquid-indicator" aria-hidden="true"/>
    {TABS.map(([key,label])=><button key={key} id={'vx-tab-'+key} type="button" role="tab"
     aria-selected={tab===key} aria-controls={'vx-panel-'+key} className={tab===key?'active':''}
     onClick={()=>switchTab(key)}>{label}</button>)}
