@@ -157,10 +157,10 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
     <span className="vx-for-you-sparkle vx-for-you-sparkle-c" aria-hidden="true">✧</span>
     <span className="vx-for-you-dots" aria-hidden="true"><i/><i/><i/></span>
    </section>
-   <div className="vx-for-you-benefits" aria-label="Преимущества персональных рекомендаций">
-    <span className="vx-benefit-chip"><Icon name="sparkle" tone="pink" size={17}/><span>Общие интересы</span></span>
-    <span className="vx-benefit-chip"><Icon name="heart" tone="pink" size={17}/><span>Близкие цели</span></span>
-    <span className="vx-benefit-chip"><Icon name="rating" tone="pink" size={17}/><span>Больше совпадений</span></span>
+   <div className="vx-benefits vx-for-you-benefits" aria-label="Преимущества персональных рекомендаций">
+    <span className="vx-benefit-chip"><Icon name="sparkle" tone="pink" size={17}/><span className="vx-benefit-copy">Общие интересы</span></span>
+    <span className="vx-benefit-chip"><Icon name="heart" tone="pink" size={17}/><span className="vx-benefit-copy">Близкие цели</span></span>
+    <span className="vx-benefit-chip"><Icon name="rating" tone="pink" size={17}/><span className="vx-benefit-copy">Больше совпадений</span></span>
    </div>
    <SectionTitle action={showAllPortraits?'Свернуть':'Смотреть все'} onAction={()=>setShowAllPortraits(x=>!x)}>Люди, похожие на тебя</SectionTitle>
    {people.length>0&&<div className={'vx-interest-portraits vx-for-you-portraits'+(showAllPortraits?' expanded':'')}>
