@@ -25,15 +25,17 @@ export function CardCaption({profile={},age,location,preview=false,showInterests
  return <div className={(preview?'preview-card-caption':'hero-info')+' veyra-card-caption'}>
   {!preview&&profile.online&&<span className="feed-online"><span className="feed-online-dot"/>в сети</span>}
   <div className="veyra-card-name-row">
-   {preview?<h2>{title}{age?', '+age:''}</h2>:<><button type="button" className="hero-name" onClick={e=>{e.stopPropagation();onProfile?.()}}>{title}{age?', '+age:''}</button><CardGoalBadge goal={profile.goal} compact/>{profile.test_profile?<span className="vx-demo-caption-label">демо</span>:<Icon name="verified" tone="white" size={20} className="feed-checked"/>}</>}
+   {preview?<h2>{title}{age?', '+age:''}</h2>:<><button type="button" className="hero-name" onClick={e=>{e.stopPropagation();onProfile?.()}}>{title}{age?', '+age:''}</button>{profile.verified&&<Icon name="verified" tone="white" size={20} className="feed-checked"/>}</>}
   </div>
   {(city||country||location)&&<p className={preview?'preview-card-location':'feed-location'}>
    <Icon name="pin" tone="white" size={16}/>
-   <span>{city||location}{country?', ':''}{country&&<><CountryFlag country={country}/> {country}</>}{distance&&<span className="veyra-card-distance"> · {distance}</span>}</span>
+   {preview
+    ? <span>{city||location}{country?', ':''}{country&&<><CountryFlag country={country}/> {country}</>}{distance&&<span className="veyra-card-distance"> · {distance}</span>}</span>
+    : <><span className="vx-feed-city-distance">{city||location}{distance&&<span className="veyra-card-distance"> · {distance}</span>}</span>{country&&<CountryFlag country={country} round/>}</>}
   </p>}
   {profile.bio?.trim()&&<p className="hero-bio veyra-card-bio">{profile.bio.trim()}</p>}
   {showInterests&&interestList.length>0&&<div className={preview?'veyra-preview-tags veyra-card-tags':'hero-tags veyra-card-tags'}>
-   <InterestReveal items={interestList} preview={preview} maxVisible={preview?2:3}/>
+   <InterestReveal items={interestList} preview={preview} maxVisible={preview?2:3} feed={!preview}/>
   </div>}
  </div>;
 }
