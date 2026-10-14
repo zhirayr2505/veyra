@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound,UserRound} from 'lucide-react';
-import {Logo,Icon,DetailIcon,Photo,Button,Sheet,Empty,InlineAlert} from './UI.jsx';
+import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {get,post} from './api.js';
 import {openInvoice,GiftCollection,OwnerTestTools} from './Extras.jsx';
@@ -21,7 +21,7 @@ const TABS=[['about','О себе'],['photos','Фото'],['gifts','Подарк
 const TAB_ICONS={about:UserRound,photos:Images,gifts:Gift,common:UsersRound};
 const ICONS_BY_GROUP={'Музыка':Music2,'Активность':Dumbbell,'Культура':Clapperboard,'Путешествия':Plane,'Вкус и стиль':Coffee,'Образ жизни':Heart,'Кино и развлечения':Clapperboard,'Спорт и движение':Dumbbell,'Искусство и творчество':Palette,'Еда и напитки':UtensilsCrossed,'Природа и питомцы':PawPrint,'Технологии и игры':Gamepad2,'Саморазвитие':BookOpen,'Город и встречи':Footprints};
 const clamp=(n,min=0,max=1)=>Math.min(max,Math.max(min,n));
-function MemberInterest({label,common=false}){return <span className="vx-member-interest" data-tone={interestTone(label,INTEREST_GROUPS)} data-common={common?'true':undefined}><VeyraPackIcon name={interestGlyph(label)} size={19}/><span className="vx-interest-text">{label}</span>{common&&<span className="vx-profile-common-tag">общее</span>}</span>}
+function MemberInterest({label,common=false}){return <InterestChip label={label} tone={interestTone(label,INTEREST_GROUPS)} common={common} icon={<VeyraPackIcon name={interestGlyph(label)} size={19}/>}/>;}
 const feedback=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* No haptic outside Telegram. */}};
 
 export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onCollection,onRanking,onCourtship,onAdmin,initialData=null}){
