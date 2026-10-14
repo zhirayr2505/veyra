@@ -28,7 +28,7 @@
 | [x] | 4.6 | Клавиатура, локальные ошибки, цели | `Registration.jsx`, `Registration2026.css`, `OnboardingOptions.jsx`, `tests/registration-keyboard-validation.test.js` | CI #38554400354: npm run check (test/build) ✓, npm run lint ✓; Telegram keyboard animation/device QA pending |
 | [x] | 4.7 | Имена с дефисом и апострофом | `Registration.jsx`, `server/validation.js`, `server/registration.js`, `tests/international-names.test.js` | CI #38554728663: npm run check (test/build) ✓, npm run lint ✓; backend accepts hyphen and both apostrophes |
 | [x] | 4.8 | Сжатие и загрузка фотографий | `compressPortrait.js`, `Registration.jsx`, `Registration2026.css`, `tests/photo-compression-client.test.js` | CI #38555242098: npm run check (test/build) ✓, npm run lint ✓; real Android camera files and memory testing pending |
-| [ ] | 4.9 | Хаптика и доступность | — | Не начато |
+| [~] | 4.9 | Хаптика и доступность | — | Unified haptic helper; choice, next, error, success; ≥44px controls + contrast |
 | [ ] | 6.1 | Обновить регистрацию и связанные экраны | — | Не начато |
 | [ ] | 6.2 | Плавные переходы шагов | — | Не начато |
 | [ ] | 6.3 | Микроанимации вариантов и успеха | — | Не начато |
