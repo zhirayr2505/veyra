@@ -7,7 +7,7 @@
  font-family:var(--vx-font-sans);
 }
 .veyra-legal .veyra-legal-accept,.vc-screen .vc-preview-btn,
-.vc-screen .vc-close-btn,.veyra-editor-unified .veyra-editor-save{
+.vc-screen .vc-close-btn,.veyra-editor-save{
  border-radius:var(--vx-radius-button);
  min-height:var(--vx-height-primary);
  touch-action:manipulation;
@@ -21,7 +21,7 @@
 }
 .vc-screen .vc-close-btn{background:var(--vx-color-raised);color:var(--vx-color-accent);border:1px solid var(--vx-color-outline)}
 .veyra-legal .veyra-legal-accept:active,.vc-screen .vc-preview-btn:active,
-.vc-screen .vc-close-btn:active,.veyra-editor-unified .veyra-editor-save:active{transform:scale(.97)}
+.vc-screen .vc-close-btn:active,.veyra-editor-save:active{transform:scale(.97)}
 .veyra-editor-unified .fields>:is(label,section),
 .veyra-legal .veyra-legal-document,
 .vc-screen .vc-status{border-radius:var(--vx-radius-card)}
