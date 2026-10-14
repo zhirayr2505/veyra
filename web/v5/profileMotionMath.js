@@ -1,33 +1,53 @@
-// VEYRA Stage 2: fixed portrait canvas, uniform transform, discrete mask.
+// VEYRA Stage 2 — one immutable WxH portrait canvas + a discrete round mask.
+// All sizes are pixels in the profile scroll viewport; no animated border-radius.
 export const clamp=(v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 export const mix=(a,b,t)=>a+(b-a)*t;
 export const smooth=(t)=>{const x=clamp(t);return x*x*(3-2*x)};
 export const segment=(p,a,b)=>smooth((p-a)/(b-a));
 export const PROFILE_CIRCLE_AT=.34;
 export const PROFILE_CENTER_AT=.46;
-export const profileMaskDiameter=(width,height)=>Math.min(180,Math.max(140,width*.46),Math.max(140,height*.52));
+export const PROFILE_VISIBLE_TOP_INSET=64; // bottom edge of profile's native logo/header
+export const PROFILE_CIRCLE_WIDTH_FRACTION=.62; // absolute upper bound at morph
+export const PROFILE_AVATAR_DIAMETER=98;
+export const PROFILE_PRE_DOCK_RATIO=.94;
+export function profileCircleGeometry(width,height,compactHeight=292){
+ const w=Math.max(1,width),h=Math.max(1,height);
+ const coverY=-16*segment(PROFILE_CIRCLE_AT,0,PROFILE_CIRCLE_AT);
+ const sheetY=mix(h-30,109,smooth(clamp(PROFILE_CIRCLE_AT/.78)));
+ const visibleTop=Math.max(0,Math.min(PROFILE_VISIBLE_TOP_INSET,sheetY-PROFILE_AVATAR_DIAMETER));
+ const visibleBottom=Math.min(h+coverY,sheetY);
+ const visibleHeight=Math.max(PROFILE_AVATAR_DIAMETER,visibleBottom-visibleTop);
+ const diameter=Math.max(PROFILE_AVATAR_DIAMETER,Math.min(visibleHeight,w*PROFILE_CIRCLE_WIDTH_FRACTION));
+ const centerY=visibleTop+(visibleBottom-visibleTop)/2;
+ return {diameter,visibleTop,visibleBottom,visibleHeight,centerY,
+  maskCenterY:centerY-coverY,compactHeight};
+}
+export const profileMaskDiameter=(width,height,compactHeight=292)=>profileCircleGeometry(width,height,compactHeight).diameter;
 export function profileFrame(progress,width,height,compactHeight=292){
  const p=clamp(progress),w=Math.max(1,width),h=Math.max(1,height);
- const maskDiameter=profileMaskDiameter(w,h),maskTop=h*.36-maskDiameter/2;
+ const circleGeometry=profileCircleGeometry(w,h,compactHeight);
+ const {diameter:maskDiameter,maskCenterY}=circleGeometry;
  const circle=p>=PROFILE_CIRCLE_AT;
  const formation=segment(p,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT);
  const docking=segment(p,PROFILE_CENTER_AT,1);
  const coverY=-16*segment(p,0,PROFILE_CIRCLE_AT);
- // The unmodified WxH photo is revealed through a face-sized circle.
- const midWidth=maskDiameter*.94;
- const photoW=!circle?w:p<PROFILE_CENTER_AT?mix(maskDiameter,midWidth,formation):mix(midWidth,98,docking);
+ const midWidth=maskDiameter*PROFILE_PRE_DOCK_RATIO;
+ const photoW=!circle?w:p<PROFILE_CENTER_AT?mix(maskDiameter,midWidth,formation):mix(midWidth,PROFILE_AVATAR_DIAMETER,docking);
  const photoX=!circle?0:p<PROFILE_CENTER_AT?(w-photoW)/2:mix((w-midWidth)/2,16,docking);
- const photoY=!circle?coverY:p<PROFILE_CENTER_AT?mix(maskTop-16,82,formation):mix(82,102,docking);
+ const circleStartY=circleGeometry.centerY-maskDiameter/2;
+ const photoY=!circle?coverY:p<PROFILE_CENTER_AT?mix(circleStartY,82,formation):mix(82,102,docking);
  const heroScale=circle?photoW/maskDiameter:1;
  const heroX=circle?photoX-(w/2-maskDiameter/2)*heroScale:0;
- const heroY=circle?photoY-maskTop*heroScale:coverY;
+ const heroY=circle?photoY-(maskCenterY-maskDiameter/2)*heroScale:coverY;
  const sheetY=mix(h-30,109,smooth(clamp(p/.78)));
  const railY=mix(h+218,compactHeight,p);
  const panelClipBottom=Math.max(0,284-Math.max(0,railY-sheetY));
  return {
   progress:p,stage:!circle?'sheet':p<PROFILE_CENTER_AT?'center':'avatar',
   x:photoX,y:photoY,width:photoW,height:circle?photoW:h,radius:circle?50:0,
-  heroX,heroY,heroScale,maskDiameter,
+  heroX,heroY,heroScale,maskDiameter,maskCenterY,
+  visibleTop:circleGeometry.visibleTop,visibleBottom:circleGeometry.visibleBottom,
+  visibleHeight:circleGeometry.visibleHeight,
   sheetY,panelClipBottom,
   nameX:110*segment(p,.30,.89),
   nameY:mix(h+9,116,smooth(p)),
