@@ -156,7 +156,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
    const following=next.profiles?.[0]||null;
    if(following?.photos?.[0]){
     // Prefetch/decode before revealing the next card, without delaying indefinitely on slow networks.
-    await Promise.race([photoUrl(following.photos[0]).then(decodePhoto).catch(()=>{}),wait(700)]);
+    await Promise.race([photoUrl(following.photos[0],{width:960}).then(decodePhoto).catch(()=>{}),wait(700)]);
    }
    ++requestToken.current;
    setCard(following);setIndex(0);setLimited(!!next.limited);
@@ -180,7 +180,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   clearTimeout(entranceTimer.current);setBusy(true);setError('');haptic('undo');
   try{
    const r=await post('/reactions/undo',{target:String(last.target)});
-   if(r.profile?.photos?.[0])await Promise.race([photoUrl(r.profile.photos[0]).then(decodePhoto).catch(()=>{}),wait(550)]);
+   if(r.profile?.photos?.[0])await Promise.race([photoUrl(r.profile.photos[0],{width:960}).then(decodePhoto).catch(()=>{}),wait(550)]);
    ++requestToken.current;
    setCard(r.profile);setIndex(0);setLimited(false);setLoading(false);
    setMotion('enter');entranceTimer.current=setTimeout(()=>setMotion(''),440);
