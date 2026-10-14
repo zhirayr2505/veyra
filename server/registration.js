@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {createPhotoPlaceholder} from './photo-placeholder.js';
 import {one} from './db.js';
 import {fail,validBirth} from './core.js';
 import {z,parse,profileFields,uuid} from './validation.js';
@@ -61,17 +62,17 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
   if(!req.file)fail(400,'PHOTO_REQUIRED');
   if(!['image/jpeg','image/png','image/webp'].includes(req.file.mimetype))fail(400,'IMAGE_TYPE');
   await rate('upload:'+req.user.id,30,3600);
-  const id=randomUUID(),key=req.user.id+'/'+id+'.webp';let uploaded=false;
+  const id=randomUUID(),key=req.user.id+'/'+id+'.webp';const placeholder=await createPhotoPlaceholder(req.file.buffer);let uploaded=false;
   try{await db.tx(async q=>{
    await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
    const old=await one(q,'SELECT * FROM photos WHERE id=$1 AND user_id=$2',[oldId,req.user.id]);
    if(!old)fail(404,'PHOTO_NOT_FOUND');
    await storage.put(key,req.file.buffer);uploaded=true;
-   await q.query('UPDATE photos SET id=$3,object_key=$4 WHERE id=$1 AND user_id=$2',[oldId,req.user.id,id,key]);
+   await q.query('UPDATE photos SET id=$3,object_key=$4,lqip=$5,dominant_color=$6 WHERE id=$1 AND user_id=$2',[oldId,req.user.id,id,key,placeholder.lqip,placeholder.dominant]);
    await q.query('INSERT INTO storage_gc(object_key) VALUES($1) ON CONFLICT DO NOTHING',[old.object_key]);
    await q.query("UPDATE profiles SET moderation='draft',revision=revision+1 WHERE user_id=$1",[req.user.id]);
   });}catch(e){if(uploaded)await db.query('INSERT INTO storage_gc(object_key) VALUES($1) ON CONFLICT DO NOTHING',[key]);throw e;}
-  res.json({id});
+  res.json({id,lqip:placeholder.lqip,dominant:placeholder.dominant});
  });
  // Gifts are deliberately unavailable, including direct API attempts.
  app.get('/api/gifts',(req,res)=>res.json({enabled:false,status:'coming_soon',gifts:[]}));
