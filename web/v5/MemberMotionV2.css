@@ -103,8 +103,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  background:linear-gradient(#2c254443,transparent);
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-bars{
- left:18px!important;right:18px!important;top:82px!important;
- z-index:3;opacity:1;pointer-events:auto;
+ left:50%;right:auto;top:auto;bottom:46px;
+ width:min(68%,260px);transform:translateX(-50%);
+ z-index:3;opacity:1;pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-nav{
  inset:20% 0 14%!important;z-index:3;opacity:1;
