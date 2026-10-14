@@ -13,7 +13,7 @@ export function verifiedBackupManifest(manifest){
   Number.isSafeInteger(manifest.storage.objects)&&manifest.storage.objects>0&&
   manifest.storage.objects_verified===manifest.storage.objects);
 }
-const datingTables=[
+export const datingTables=[
  'message_edits','message_hides','message_reactions','message_media',
  'chat_pins','chat_presence','match_views','courtships','messages','matches',
  'reactions','impressions','profile_hides','blocks','reports','daily_usage',
