@@ -16,7 +16,7 @@ import './RegistrationTransitions.css';
 import {LegalScreen} from './Legal.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 
-const MAX_PHOTOS=7,MIN_PHOTOS=3,MAX_BIO=250;
+const MAX_PHOTOS=6,MIN_PHOTOS=3,MAX_BIO=250;
 const NEXT_STEP_LABELS=['Указать возраст','Выбрать город','Настроить поиск','Выбрать цель знакомства','Выбрать интересы','Рассказать о себе'];
 
 const truncateBio=value=>Array.from(String(value||'')).slice(0,MAX_BIO).join('');
@@ -32,44 +32,42 @@ function Slider({value,min,max,step=1,onChange,label,disabled=false}){return <Br
 function AgeRange({min,max,onChange}){const start=Math.min(90,Math.max(18,min)),end=Math.min(90,Math.max(start,max));return <div className="age-range"><div className="range-labels"><span>Возраст от <strong>{start}</strong></span><span>до <strong>{end}</strong></span></div><BrandedDualSlider min={18} max={90} lower={start} upper={end} onChange={onChange}/><div className="range-ends"><span>18 лет</span><span>90 лет</span></div></div>}
 
 export function Registration({me,refresh}){
- const start=me?.registration?.data||{},draftKey='veyra.registration.v9.'+String(me?.user?.id||'anonymous');
- const savedStep=me?.registration?.step||1;
+ const draftKey='veyra.registration.v9.'+String(me?.user?.id||'anonymous');
+ // Stage-0 reset is authoritative: never rehydrate stale data without a server draft.
+ const localDraft=(()=>{if(!me?.registration)return null;try{return JSON.parse(localStorage.getItem(draftKey)||'null')}catch{return null}})();
+ const start={...(me?.registration?.data||{}),...(localDraft?.data||{})};
+ const savedStep=localDraft?.step||me?.registration?.step||1;
  const initialStep=start.registration_ui_version===3?savedStep:start.registration_ui_version===2?(savedStep>=7?8:savedStep):1; // Resume legacy drafts on their matching new step.
  const [step,setStep]=useState(Math.min(8,Math.max(1,initialStep))),[direction,setDirection]=useState('forward');
- const [transitioning,setTransitioning]=useState(false),[exitLabel,setExitLabel]=useState('');
+ const [transitioning,setTransitioning]=useState(false);
  const [f,setF]=useState({...empty,...start,...(me?.profile||{}),name:cleanName(start.name??me?.profile?.name??me?.user?.first_name??window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name??''),birth_date:String(start.birth_date||me?.profile?.birth_date||'').slice(0,10),bio:truncateBio(start.bio??me?.profile?.bio??'')});
  const [photos,setPhotos]=useState(me?.photos||[]),[jobs,setJobs]=useState([]),[uploading,setUploading]=useState(false);
  const [cityEdit,setCityEdit]=useState(!start.city&&!me?.profile?.city),[places,setPlaces]=useState([]),[query,setQuery]=useState(''),[searching,setSearching]=useState(false);
- const [keyboardActive,setKeyboardActive]=useState(false),[fieldError,setFieldError]=useState(null);
+ const [fieldError,setFieldError]=useState(null);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
  const [showDragHint,setShowDragHint]=useState(()=>{try{return !sessionStorage.getItem('veyra.photo-drag-hint.v1')}catch{return true}});
- const [ctaPressed,setCtaPressed]=useState(false);
+
  const [legalOpen,setLegalOpen]=useState(false),[legalTab,setLegalTab]=useState('terms');
 
  const [telegramFull,setTelegramFull]=useState(()=>Boolean(window.Telegram?.WebApp?.isFullscreen));
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
- const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),ctaTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
- const registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),labelTimerRef=useRef(null),prevLabelRef=useRef('');
+ const photoInput=useRef(null),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
+ const registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),stepAnimationsRef=useRef([]),exitCloneRef=useRef(null),workRunning=useRef(false),reorderRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
- const focusableEditor=node=>node?.matches?.('input:not([type="checkbox"]):not([type="range"]),textarea');
- const editing=e=>{if(focusableEditor(e.target))setKeyboardActive(true)};
- const finishedEditing=()=>{
-  setTimeout(()=>setKeyboardActive(Boolean(focusableEditor(document.activeElement))),0);
- };
+ // Follow the actual Android/Telegram visual viewport without React renders per keyboard frame.
  useEffect(()=>{
-  const tg=window.Telegram?.WebApp;
-  const change=()=>{
-   const viewport=window.visualViewport;
-   if(!viewport)return;
-   const keyboard=window.innerHeight-viewport.height-viewport.offsetTop>135;
-   if(!keyboard&&!focusableEditor(document.activeElement))setKeyboardActive(false);
-  };
-  window.visualViewport?.addEventListener('resize',change);
-  tg?.onEvent?.('viewportChanged',change);
-  return()=>{window.visualViewport?.removeEventListener('resize',change);tg?.offEvent?.('viewportChanged',change)};
+  const tg=window.Telegram?.WebApp,vv=window.visualViewport,root=registrationRootRef.current;
+  let frame=0;
+  const update=()=>{frame=0;if(!root)return;const lowerEdge=vv?vv.height+vv.offsetTop:(tg?.viewportHeight||window.innerHeight);root.style.setProperty('--veyra-nav-keyboard-gap',Math.round(Math.max(0,window.innerHeight-lowerEdge))+'px')};
+  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
+  schedule();
+  vv?.addEventListener('resize',schedule);vv?.addEventListener('scroll',schedule);
+  window.addEventListener('resize',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);
+  tg?.onEvent?.('viewportChanged',schedule);
+  return()=>{if(frame)cancelAnimationFrame(frame);vv?.removeEventListener('resize',schedule);vv?.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);tg?.offEvent?.('viewportChanged',schedule);root?.style.removeProperty('--veyra-nav-keyboard-gap')};
  },[]);
  const setDobPart=(key,raw)=>{const max=key==='year'?4:2,val=String(raw).replace(/\D/g,'').slice(0,max),parts={...dobParts,[key]:val};setDobParts(parts);const {day,month,year}=parts;change('birth_date',day.length===2&&month.length===2&&year.length===4?year+'-'+month+'-'+day:'');if(val.length===max){
   if(key!=='year')dobRefs.current[key==='day'?1:2]?.focus();
@@ -100,7 +98,7 @@ export function Registration({me,refresh}){
   return()=>clearTimeout(timer);
  },[step,showDragHint]);
  const setName=value=>{setFieldError(null);const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
- useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);clearTimeout(ctaTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
+ useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
  useEffect(()=>{if(!cityEdit||query.trim().length<2){setPlaces([]);setSearching(false);return;}let alive=true;setSearching(true);
   const timer=setTimeout(()=>get('/geo?q='+encodeURIComponent(query.trim())+'&autocomplete=true').then(r=>{if(alive)setPlaces(r||[])}).catch(()=>{if(alive){setPlaces([]);setError('Поиск городов пока недоступен')}}).finally(()=>{if(alive)setSearching(false)}),330);
@@ -113,7 +111,7 @@ export function Registration({me,refresh}){
   else setError(message);
   haptic('error');
  };
- const work=async fn=>{if(busy||uploading)return;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{setBusy(false)}};
+ const work=async fn=>{if(workRunning.current||uploadRunning.current)return;workRunning.current=true;setBusy(true);setError('');try{await fn()}catch(e){fail(e)}finally{workRunning.current=false;setBusy(false)}};
  const valid=()=>{
   if(step===1){if(f.name.trim().length<2||!NAME_PATTERN.test(f.name.trim()))invalid('name','Имя: буквы, пробелы, дефис или апостроф между буквами');if(!consent)invalid('consent','Прими условия использования и политику конфиденциальности')}
   if(step===2){if(!f.gender)invalid('gender','Выбери свой пол');if(!age(f.birth_date))invalid('birth_date','Проверь дату рождения');if(age(f.birth_date)<18||age(f.birth_date)>110)invalid('birth_date','VEYRA доступна с 18 лет')}
@@ -193,8 +191,8 @@ export function Registration({me,refresh}){
  const upload=async fileList=>{
   if(uploadRunning.current||busy)return;
   const files=Array.from(fileList||[]),remaining=MAX_PHOTOS-photos.length;
-  if(!remaining){toast('Можно добавить максимум 7 фото');return}
-  if(files.length>remaining)toast('Можно добавить максимум 7 фото — добавляем первые '+remaining);
+  if(!remaining){toast('Можно добавить максимум 6 фото');return}
+  if(files.length>remaining)toast('Можно добавить максимум 6 фото — добавляем первые '+remaining);
   const selected=files.slice(0,remaining);
   if(!selected.length)return;
   uploadRunning.current=true;setUploading(true);setError('');
@@ -323,11 +321,11 @@ export function Registration({me,refresh}){
  };
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
  if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
- return <div ref={registrationRootRef} className="page registration registration-v6 registration-v7 veyra-registration-2026" onFocusCapture={editing} onBlurCapture={finishedEditing}>
+ return <div ref={registrationRootRef} className="page registration registration-v6 registration-v7 veyra-registration-2026" >
   <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&!transitioning&&go(step-1,'backward')} disabled={step===1||busy||uploading||transitioning}/>
   <div className={'registration-step '+direction} key={step} ref={scrollRef}>
    <h1 tabIndex={-1} data-step-heading>{['Как вас зовут?','Когда ваш день рождения?','Разрешите доступ к геолокации','Кого вы ищете?','Каких отношений вы хотите?','Ваши интересы','Немного о себе','Добавьте свои фото'][step-1]}</h1>
-   <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 7 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
+   <p className="subheading">{['','Укажите дату рождения и пол, чтобы находить подходящих людей.','Покажем людей рядом. Город можно определить или выбрать вручную.','Настройте предпочтения, чтобы видеть подходящие анкеты.','Выбирайте то, что ближе вам.','Найдите людей с общими увлечениями.','Пара слов о себе помогут начать интересное знакомство.','От 3 до 6 фотографий. Удерживайте фото и перетаскивайте, чтобы менять порядок.'][step-1]}</p>
    {step===1&&<div className="fields">
      <label className="registration-name-field">Ваше имя<input maxLength={50} value={f.name} onChange={e=>setName(e.target.value)} placeholder="Как вас зовут?" autoComplete="given-name"/>{nameNote&&<span className="name-feedback" role="status">Можно использовать буквы, пробел, дефис и апостроф</span>}</label>
      {fieldError?.step===1&&fieldError.field==='name'&&<p className="veyra-field-error" role="alert">{fieldError.message}</p>}
@@ -364,7 +362,7 @@ export function Registration({me,refresh}){
    {step===7&&<BioStep value={f.bio||''} onChange={v=>change('bio',v)}/>}
    {step===8&&<div className="fields">
      <div className="photo-guidelines"><p><Icon name="camera" tone="pink" size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
-     <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 7':photos.length<MIN_PHOTOS?photos.length+' из 7 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 7 · Можно посмотреть анкету'}</span>
+     <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 6':photos.length<MIN_PHOTOS?photos.length+' из 6 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 6 · Можно посмотреть анкету'}</span>
       <p className={"tip veyra-photo-drag-guide"+(showDragHint?" is-first-visit":"")}><span className="veyra-drag-hand" aria-hidden="true">☝️</span> Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {display.map((item,i)=>{const loading=!!item?.file;
