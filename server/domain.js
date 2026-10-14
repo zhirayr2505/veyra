@@ -46,34 +46,34 @@ export const blocked=async(q,a,b)=>!!await one(q,'SELECT 1 FROM blocks WHERE (ac
 export async function ensurePair(q,a,b){if(String(a)===String(b))fail(400,'SELF_ACTION');await approved(q,a);await approved(q,b);if(await blocked(q,a,b))fail(403,'BLOCKED');}
 export async function activeMatch(q,id,user,lock=false){const m=await one(q,`SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2) AND active=true ${lock?'FOR UPDATE':''}`,[id,user]);if(!m)fail(404,'MATCH_NOT_FOUND');if((String(m.a)===String(user)?m.a_erased_at:m.b_erased_at))fail(404,'MATCH_NOT_FOUND');const other=String(m.a)===String(user)?m.b:m.a;await ensurePair(q,user,other);return {...m,other};}
 export async function usage(q,id){await q.query('INSERT INTO daily_usage(user_id) VALUES($1) ON CONFLICT DO NOTHING',[id]);return one(q,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE FOR UPDATE',[id]);}
-export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos,
-  (SELECT coalesce(jsonb_object_agg(ph.id::text,jsonb_build_object('lqip',ph.lqip,'dominant',ph.dominant_color)) FILTER (WHERE ph.lqip IS NOT NULL),'{}'::jsonb) FROM photos ph WHERE ph.user_id=p.user_id) AS photo_placeholders FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1 AND u.status='active'`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}
+export async function publicProfile(q,id){if(isTestProfile(id))return null;const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos,
+  (SELECT coalesce(jsonb_object_agg(ph.id::text,jsonb_build_object('lqip',ph.lqip,'dominant',ph.dominant_color)) FILTER (WHERE ph.lqip IS NOT NULL),'{}'::jsonb) FROM photos ph WHERE ph.user_id=p.user_id) AS photo_placeholders FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1 AND u.status='active'`,[id]);if(!p)return null;p.photos=p.photos||[];return p;}
 // Bulk equivalent of publicProfile, for loading full match lists with one DB roundtrip.
 export async function publicProfiles(q,ids){
- if(!ids.length)return new Map();
+ ids=ids.filter(id=>!isTestProfile(id));if(!ids.length)return new Map();
  const rows=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,
   (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos,
   (SELECT coalesce(jsonb_object_agg(ph.id::text,jsonb_build_object('lqip',ph.lqip,'dominant',ph.dominant_color)) FILTER (WHERE ph.lqip IS NOT NULL),'{}'::jsonb) FROM photos ph WHERE ph.user_id=p.user_id) AS photo_placeholders
   FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
   WHERE p.user_id=ANY($1::bigint[]) AND u.status='active'`,[ids.map(String)])).rows;
- return new Map(rows.map(p=>{p.test_profile=isTestProfile(p.id);if(p.test_profile){p.online=false;p.last_seen=null}p.photos=p.photos||[];return [String(p.id),p]}));
+ return new Map(rows.map(p=>{p.photos=p.photos||[];return [String(p.id),p]}));
 }
 export async function recommendations(q,user,todayOnly=false,limit=1,mode='discover',filters={}){const p=await approved(q,user.id);const use=await usage(q,user.id);
- const ownerDemo=filters.demo===true&&user.admin_role==='owner';if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
+ if(!premium(user)&&use.views>=30) return {profiles:[],limited:true};
  const rows=(await q.query(`SELECT p.user_id,
   6371*2*asin(sqrt(least(1.0,power(sin(radians(p.lat-$2)/2),2)+cos(radians($2))*cos(radians(p.lat))*power(sin(radians(p.lon-$3)/2),2)))) AS distance,
   (SELECT count(*) FROM unnest(p.interests) i WHERE i=ANY($9::text[])) AS shared,
   u.boost_until>now() AS boosted, (p.goal=$15) AS same_goal, (p.languages && $16::text[]) AS shared_language, u.last_seen
  FROM profiles p JOIN users u ON u.id=p.user_id
  WHERE p.user_id<>$1 AND p.moderation='approved' AND u.status='active' AND NOT u.paused AND (NOT u.invisible OR u.premium_until IS NULL OR u.premium_until<=now())
- AND ($19::boolean OR (p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for)))
- AND ($19::boolean OR extract(year FROM age(p.birth_date)) BETWEEN $6 AND $7)
- AND ($19::boolean OR extract(year FROM age($8::date)) BETWEEN p.min_age AND p.max_age)
+ AND (p.gender=ANY($4::text[]) AND $5=ANY(p.looking_for))
+ AND extract(year FROM age(p.birth_date)) BETWEEN $6 AND $7
+ AND extract(year FROM age($8::date)) BETWEEN p.min_age AND p.max_age
  AND NOT EXISTS(SELECT 1 FROM blocks WHERE (actor=$1 AND target=p.user_id) OR (target=$1 AND actor=p.user_id))
  AND NOT EXISTS(SELECT 1 FROM reports WHERE (reporter=$1 AND target=p.user_id) OR (target=$1 AND reporter=p.user_id))
  AND NOT EXISTS(SELECT 1 FROM profile_hides WHERE actor=$1 AND target=p.user_id)
- AND ($19::boolean OR $10='' OR lower(p.city)=lower($10))
-  AND ($19::boolean OR NOT $11::boolean OR (NOT u.invisible AND u.last_seen>now()-interval '5 minutes'))
+ AND ($10='' OR lower(p.city)=lower($10))
+  AND (NOT $11::boolean OR (NOT u.invisible AND u.last_seen>now()-interval '5 minutes'))
   AND (NOT $12::boolean OR p.interests && $9::text[])
  AND NOT p.user_id=ANY($13::bigint[])
   AND ($14::text='' OR EXISTS(SELECT 1 FROM unnest(p.interests) i WHERE lower(i)=lower($14)))
@@ -81,10 +81,10 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   AND NOT EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=p.user_id)
  AND NOT EXISTS(SELECT 1 FROM matches WHERE ((a=$1 AND b=p.user_id) OR (b=$1 AND a=p.user_id)) AND a_erased_at IS NULL AND b_erased_at IS NULL)
  AND EXISTS(SELECT 1 FROM photos WHERE user_id=p.user_id)
- AND (($19::boolean AND p.user_id=ANY($18::bigint[])) OR (NOT $19::boolean AND NOT p.user_id=ANY($18::bigint[])))
+ AND NOT p.user_id=ANY($18::bigint[])
  ${todayOnly?'AND EXISTS(SELECT 1 FROM today WHERE user_id=p.user_id AND expires_at>now())':''}
- ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[],filters.goal||'',TEST_PROFILE_IDS,ownerDemo])).rows;
- const candidates=rows.filter(x=>(ownerDemo||!isTestProfile(x.user_id))&&(ownerDemo||p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
+ ORDER BY ${mode==='nearby'?'distance ASC,boosted DESC NULLS LAST,shared DESC':mode==='for_you'?'same_goal DESC,shared_language DESC,shared DESC,boosted DESC NULLS LAST,distance ASC':'boosted DESC NULLS LAST,shared DESC,distance ASC'},u.last_seen DESC LIMIT 200`,[user.id,p.lat,p.lon,p.looking_for,p.gender,p.min_age,p.max_age,p.birth_date,p.interests,p.filter_city||'',!!filters.only_online,!!filters.common_interests,filters.skip_ids||[],filters.interest||'',p.goal,p.languages||[],filters.goal||'',TEST_PROFILE_IDS])).rows;
+ const candidates=rows.filter(x=>!isTestProfile(x.user_id)&&(p.radius_km===20000||x.distance<=p.radius_km)).slice(0,Math.min(limit,premium(user)?limit:30-use.views));
  if(!candidates.length)return {profiles:[],limited:false};
  // One impressions write, one usage write and one profile query: the former
  // N+1 loop multiplied network latency on Render/Supabase for every card.
@@ -105,8 +105,6 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
   WHERE p.user_id=ANY($1::bigint[])`,[candidateIds])).rows;
  const byId=new Map(cards.map(card=>{
-  card.test_profile=isTestProfile(card.id);
-  if(card.test_profile){card.online=false;card.last_seen=null;}
   card.photos=card.photos||[];
   return [String(card.id),card];
  }));
@@ -124,20 +122,18 @@ async function finishMatch(q,actor,target) {
  let m=await one(q,'INSERT INTO matches(id,a,b) VALUES($1,$2,$3) ON CONFLICT(a,b) WHERE a_erased_at IS NULL AND b_erased_at IS NULL DO NOTHING RETURNING *',[randomUUID(),a,b]);
  const created=!!m;if(!m)m=await one(q,'SELECT * FROM matches WHERE a=$1 AND b=$2 AND a_erased_at IS NULL AND b_erased_at IS NULL',[a,b]);
  if(!m.active)fail(409,'MATCH_ENDED');
- if(isTestProfile(target)&&!isTestProfile(actor)&&!await one(q,'SELECT 1 FROM messages WHERE match_id=$1',[m.id]))
-  await q.query('INSERT INTO messages(id,match_id,sender,body,client_id) VALUES($1,$2,$3,$4,$2) ON CONFLICT(sender,client_id) DO NOTHING',[randomUUID(),m.id,target,'Тестовая анкета VEYRA · автоматическое приветствие. Привет! Мэтч создан — здесь можно проверить сообщения и фотографии.']);
- if(created&&!isTestProfile(target)&&!isTestProfile(actor)){await notify(q,actor,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');await notify(q,target,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');}
- return {matched:true,match_id:m.id,test_profile:isTestProfile(target)};
+ if(created){await notify(q,actor,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');await notify(q,target,'💜 Взаимная симпатия! Новый чат уже в VEYRA.');}
+ return {matched:true,match_id:m.id};
 }
 export async function react(q,actor,target,kind,message){
+ if(isTestProfile(actor)||isTestProfile(target))fail(404,'PROFILE_NOT_FOUND');
  await pairLock(q,actor,target);await ensurePair(q,actor,target);
  const u=await one(q,'SELECT * FROM users WHERE id=$1',[actor]);
- if(isTestProfile(target)&&!isTestProfile(actor)&&u.admin_role!=='owner'&&process.env.NODE_ENV==='production')fail(404,'PROFILE_NOT_FOUND');
  const old=await one(q,'SELECT * FROM reactions WHERE actor=$1 AND target=$2',[actor,target]);
  const existing=await one(q,'SELECT * FROM matches WHERE (a=$1 AND b=$2 OR a=$2 AND b=$1) AND a_erased_at IS NULL AND b_erased_at IS NULL',[actor,target]);
  if(existing&&(existing.a_erased_at||existing.b_erased_at))fail(409,'MATCH_ARCHIVED');
  if(existing&&!existing.active)fail(409,'MATCH_ENDED');
- if(existing)return {matched:true,match_id:existing.id,test_profile:isTestProfile(target)};
+ if(existing)return {matched:true,match_id:existing.id};
  const repeat=old&&old.kind!=='pass';
  if(!repeat){
   const d=await usage(q,actor);if(kind!=='pass'&&!premium(u)&&d.likes>=15)fail(429,'LIKE_LIMIT');
@@ -147,7 +143,6 @@ export async function react(q,actor,target,kind,message){
   if(kind==='pass')return {matched:false};
   await q.query('UPDATE daily_usage SET likes=likes+1 WHERE user_id=$1 AND day=CURRENT_DATE',[actor]);
  }
- if(isTestProfile(target)&&!isTestProfile(actor))await q.query("INSERT INTO reactions(actor,target,kind) VALUES($1,$2,'like') ON CONFLICT(actor,target) DO UPDATE SET kind='like'",[target,actor]);
  if(await one(q,"SELECT 1 FROM reactions WHERE actor=$1 AND target=$2 AND kind<>'pass'",[target,actor]))return finishMatch(q,actor,target);
  if(!repeat)await notify(q,target,kind==='super'?'✨ Кто-то отправил тебе Искру в VEYRA!':'💜 Вы кому-то понравились в VEYRA.');
  return {matched:false};
