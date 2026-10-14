@@ -124,9 +124,7 @@
 .veyra-v2 .vx-dating-stage02 .discover .veyra-card-top-goal .veyra-card-goal-mark{
  background:linear-gradient(150deg,#ffbff5,#edd0ff)!important;
 }
-.veyra-v2 .vx-dating-stage02 .discover .vx-demo-feed-badge{
- top:42px;left:15px;right:auto;
-}
+
 /* Caption is pinned to card bottom, never to CTA row. Reserve right for info. */
 .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .veyra-card-caption.hero-info{
  left:clamp(14px,3.5vw,22px)!important;
