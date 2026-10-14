@@ -212,11 +212,14 @@ export function Registration({me,refresh}){
    el.animate?.([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate(0,0)'}],{duration:260,easing:'cubic-bezier(.2,.75,.2,1)'});
   }
  },[dragOver]);
- const dragTarget=(x,y)=>{const target=document.elementFromPoint(x,y)?.closest?.('[data-slot-index]');return target?Number(target.dataset.slotIndex):-1};
+ // Hit-test fixed original cell geometry; provisional DOM rearrangement must not move the target.
+ const dragTarget=(x,y,slots)=>{const hit=slots.find(({rect})=>x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom);return hit?hit.index:-1};
  const dragStart=(e,i)=>{if(uploading||busy||(e.pointerType==='mouse'&&e.button!==0))return;
   dragRef.current?.cleanup?.();
   const rect=e.currentTarget.getBoundingClientRect();
-  const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null,frame:0};
+  const slots=Array.from(registrationRootRef.current?.querySelectorAll('.photo-slot[data-photo-id]')||[])
+   .map(el=>({index:Number(el.dataset.slotIndex),rect:el.getBoundingClientRect()}));
+  const state={index:i,target:i,id:e.pointerId,x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,width:rect.width,height:rect.height,node:e.currentTarget,active:false,timer:null,frame:0,slots};
   // Moving a keyed tile can disconnect it from the pointer capture target.
   // Document-level capture retains the gesture until the finger or mouse releases.
   const onMove=event=>dragMove(event),onUp=event=>dragFinish(event),onCancel=()=>dragCancel();
@@ -242,7 +245,7 @@ export function Registration({me,refresh}){
  };
  const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
   if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);s.cleanup?.();dragRef.current=null}return}
-  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;const ghost=dragGhostRef.current;if(ghost)ghost.style.transform='translate3d('+(s.x-s.originX)+'px,'+(s.y-s.originY)+'px,0) scale(1.06)'});const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
+  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;const ghost=dragGhostRef.current;if(ghost)ghost.style.transform='translate3d('+(s.x-s.originX)+'px,'+(s.y-s.originY)+'px,0) scale(1.06)'});const target=dragTarget(s.x,s.y,s.slots);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
  };
  const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);s.cleanup?.();dragRef.current=null;
   if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
