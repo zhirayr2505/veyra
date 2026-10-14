@@ -1,18 +1,16 @@
 import React,{useRef,useState,useEffect,useLayoutEffect,useMemo} from 'react';
 import {Member} from './Member.jsx';
 import {photoUrl} from './api.js';
-import {Photo,Icon,Button} from './UI.jsx';
+import {Icon,Button} from './UI.jsx';
+import {FeedCardVisual} from './FeedCardVisual.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
-import {CardCaption,CardGoalBadge} from './DatingCardLayers.jsx';
-import {PhotoSegments} from './PhotoSegments.jsx';
 import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
 export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,submitting=false,error='',submitted=false}){
  const [mode,setMode]=useState('feed'),[index,setIndex]=useState(0),touch=useRef(null),scrollRef=useRef(null);
- const ids=photos.map(p=>typeof p==='object'?p.id:p).filter(Boolean),current=ids[Math.min(index,ids.length-1)];
+ const ids=photos.map(p=>typeof p==='object'?p.id:p).filter(Boolean);
  const photoPlaceholders=Object.fromEntries(photos.filter(x=>typeof x==='object'&&x.id).map(x=>[String(x.id),{lqip:x.lqip||null,dominant:x.dominant||x.dominant_color||null}]));
- const galleryIds=ids.length?[ids[(index-1+ids.length)%ids.length],ids[index],ids[(index+1)%ids.length]]:[];
   const photoKeys=ids.join('|');
   // Preload every approved photo before the person taps the next frame.
   // photoUrl de-duplicates network requests and caches blob URLs per session.
@@ -31,14 +29,10 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
    {mode==='feed'&&<h1>Так тебя увидят в ленте</h1>}
    {mode==='feed'&&<p className="vp-subtitle">Первое впечатление начинается здесь ✨</p>}
    {mode==='feed'&&<>
-   <section className="preview-surface preview-dating-card">
-    <div className="preview-gallery" aria-label="Предпросмотр карточки знакомств" onTouchStart={e=>touch.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
-     {galleryIds.length?<div className="preview-gallery-track" style={{transform:'translate3d(-33.3333333%,0,0)'}}>{galleryIds.map((id,i)=><div className="preview-gallery-slide" key={id+'-'+i}><Photo id={id} placeholder={photoPlaceholders[String(id)]} className="preview-photo" alt={'Фото '+(i===0?(index-1+ids.length)%ids.length+1:i===1?index+1:(index+1)%ids.length+1)}/></div>)}</div>:<div className="vp-empty-photo"><Icon name="camera" tone="pink" size={44}/></div>}
-     {mode==='feed'&&<><div className="veyra-card-shade" aria-hidden="true"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span><CardGoalBadge goal={profile.goal} compact top/></>}
+   <section className="preview-surface preview-dating-card discover" aria-label="Так выглядит карточка в ленте">
+    <div className="preview-gallery feed-photo" onTouchStart={e=>touch.current=e.touches[0].clientX} onTouchEnd={swipeEnd}>
+     <FeedCardVisual card={readOnlyData} index={index} onIndex={setIndex} preview location={profile.city}/>
      {ids.length>1&&<><button type="button" className="preview-photo-tap left" aria-label="Предыдущее фото" onClick={()=>slide(-1)}/><button type="button" className="preview-photo-tap right" aria-label="Следующее фото" onClick={()=>slide(1)}/></>}
-     {mode==='feed'&&<CardCaption profile={profile} age={years} location={profile.city} preview/>}
-     <PhotoSegments count={ids.length} index={index} className="preview-photo-segments"/>
-     {mode==='detail'&&ids.length>1&&<div className="preview-member-thumbnails" aria-label="Выбор фотографии">{ids.map((id,i)=><button type="button" key={id} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={'Показать фото '+(i+1)}><Photo id={id} alt="" placeholder={photoPlaceholders[String(id)]}/></button>)}</div>}
     </div>
    </section>
    </>}
