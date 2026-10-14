@@ -48,6 +48,17 @@
  --stroke:var(--vx-color-outline);
  --soft:var(--vx-color-soft);
  --shadow:var(--vx-shadow-card);
+ --v2-primary:var(--vx-color-accent);
+ --v2-secondary:var(--vx-color-accent);
+ --v2-accent:var(--vx-color-accent);
+ --v2-ink:var(--vx-color-ink);
+ --v2-text-muted:var(--vx-color-muted);
+ --v2-background:var(--vx-color-surface);
+ --v2-primary-soft:var(--vx-color-soft);
+ --v2-surface:var(--vx-color-raised);
+ --v2-border:var(--vx-color-outline);
+ --rose:var(--vx-color-accent);
+ --violet:var(--vx-color-accent);
 }
 [data-tone="violet"]{--vx-chip-bg:var(--vx-tone-violet-bg);--vx-chip-fg:var(--vx-tone-violet-fg);--vx-chip-border:var(--vx-tone-violet-border)}
 [data-tone="rose"]{--vx-chip-bg:var(--vx-tone-rose-bg);--vx-chip-fg:var(--vx-tone-rose-fg);--vx-chip-border:var(--vx-tone-rose-border)}
