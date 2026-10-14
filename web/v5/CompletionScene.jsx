@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
-import {Logo,Icon} from './UI.jsx';
+import {Logo,Icon,Button} from './UI.jsx';
 import './CompletionScene.css';
+import './OnboardingUnified.css';
 
 /* Shared, resolution-independent VEYRA crystal scene for the two final screens. */
 export function CompletionArt({kind='pending'}){
@@ -85,6 +86,7 @@ export function CompletionScreen({kind='pending',reason='',onClose,onRefresh,onP
   <header className="vc-header"><div className="vc-logo-sheen"><Logo width={151}/></div></header>
   <section className="vc-content">
    <CompletionArt kind={kind}/>
+   {pending&&<div className="vc-success-burst" aria-hidden="true">{Array.from({length:8},(_,i)=><span key={i}>♥</span>)}</div>}
    <div className="vc-copy">
     <h1>{deleted?'Нам жаль, что ты уходишь':rejected?'Давайте исправим анкету':'Анкета отправлена'}</h1>
     <p>{deleted?'Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.':rejected?(reason||'Модератор оставил замечания к анкете.') :'Мы проверим её перед публикацией. Обычно это занимает несколько минут. Результат отправим в Telegram.'}</p>
@@ -93,9 +95,9 @@ export function CompletionScreen({kind='pending',reason='',onClose,onRefresh,onP
    <div className="vc-status" role="status"><div className="vc-status-icon"><Icon name={deleted?'broken_heart':rejected?'info':'verified'} tone="pink" size={29}/></div><div className="vc-status-info"><span>Статус</span><strong>{status}</strong></div>{pending&&<span className="vc-status-dot" aria-hidden="true"/>}</div>
   </section>
   <footer className="vc-actions">
-   {!deleted&&onPreview&&<button type="button" className="vc-preview-btn" onClick={onPreview}><Icon name="user" tone="white" size={19}/> Посмотреть профиль</button>}
-   <button type="button" className="vc-close-btn" onClick={close}>{deleted?'Выйти из приложения':'Закрыть приложение'}</button>
-   {!deleted&&<div className="vc-footer-links"><button type="button" className="vc-refresh-btn" disabled={checking} onClick={refresh}>{checking?'Проверяем…':'Обновить статус'}</button>{onEdit&&<button type="button" className="vc-refresh-btn" disabled={busy} onClick={onEdit}>{busy?'Открываем…':'Изменить анкету'}</button>}</div>}
+   {!deleted&&onPreview&&<Button variant="primary" className="vc-preview-btn" onClick={onPreview}><Icon name="user" tone="white" size={19}/> Посмотреть профиль</Button>}
+   <Button variant="secondary" className="vc-close-btn" onClick={close}>{deleted?'Выйти из приложения':'Закрыть приложение'}</Button>
+   {!deleted&&<div className="vc-footer-links"><Button variant="ghost" size="small" className="vc-refresh-btn" disabled={checking} loading={checking} onClick={refresh}>{checking?'Проверяем…':'Обновить статус'}</Button>{onEdit&&<Button variant="ghost" size="small" className="vc-refresh-btn" disabled={busy} loading={busy} onClick={onEdit}>{busy?'Открываем…':'Изменить анкету'}</Button>}</div>}
    {error&&<p role="alert" className="vc-feedback-error">{error}</p>}
   </footer>
  </main>;

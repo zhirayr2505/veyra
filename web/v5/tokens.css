@@ -1,0 +1,82 @@
+/* VEYRA v5 single source of truth: one brand, seven interest tones. */
+:root{
+ --vx-color-primary-start:#ae60fc;
+ --vx-color-primary-end:#7628e5;
+ --vx-color-accent:#7628e5;
+ --vx-gradient-primary-base:linear-gradient(110deg,var(--vx-color-primary-start),var(--vx-color-primary-end));
+ /* Preserve approved brand stops; uniform 20% ink scrim gives white CTA text >=4.5:1. */
+ --vx-gradient-primary:linear-gradient(0deg,#251b3833,#251b3833),var(--vx-gradient-primary-base);
+ --vx-color-ink:#251b38;
+ --vx-color-muted:#726780;
+ --vx-color-surface:#fcf9ff;
+ --vx-color-raised:#fff;
+ --vx-color-outline:#e9ddf4;
+ --vx-color-soft:#f2ebff;
+ --vx-color-danger:#b62f65;
+ --vx-radius-button:999px;
+ --vx-radius-chip:999px;
+ --vx-radius-card:20px;
+ --vx-height-primary:56px;
+ --vx-height-secondary:50px;
+ --vx-height-chip:40px;
+ --vx-shadow-card:0 10px 28px #43205d12;
+ --vx-shadow-cta:0 8px 21px #7a37d934;
+ --vx-font-sans:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+ --vx-text-xs:11px;
+ --vx-text-sm:13px;
+ --vx-text-md:15px;
+ --vx-text-lg:19px;
+ --vx-tone-violet-bg:#f1eaff;--vx-tone-violet-fg:#663bb0;--vx-tone-violet-border:#e0cef8;
+ --vx-tone-sky-bg:#e9f3ff;--vx-tone-sky-fg:#305f94;--vx-tone-sky-border:#ccdef7;
+ --vx-tone-rose-bg:#fff0f5;--vx-tone-rose-fg:#9a345f;--vx-tone-rose-border:#f6d6e2;
+ --vx-tone-mint-bg:#e9f7f1;--vx-tone-mint-fg:#2a7354;--vx-tone-mint-border:#cce8dc;
+ --vx-tone-amber-bg:#fff4e6;--vx-tone-amber-fg:#835326;--vx-tone-amber-border:#f4dfbd;
+ --vx-tone-iris-bg:#ece8ff;--vx-tone-iris-fg:#51419b;--vx-tone-iris-border:#dbd3fa;
+ --vx-tone-teal-bg:#e5f5f5;--vx-tone-teal-fg:#28646e;--vx-tone-teal-border:#c9e5e5;
+}
+
+/* Compatibility aliases for existing v5 screens while their components migrate. */
+:root,.veyra-v2,.v2-onboarding{
+ --purple:var(--vx-color-accent);
+ --pink:var(--vx-color-accent);
+ --coral:var(--vx-color-accent);
+ --registration-purple:var(--vx-color-accent);
+ --registration-ink:var(--vx-color-ink);
+ --registration-soft:var(--vx-color-surface);
+ --milk:var(--vx-color-surface);
+ --ink:var(--vx-color-ink);
+ --muted:var(--vx-color-muted);
+ --line:var(--vx-color-outline);
+ --stroke:var(--vx-color-outline);
+ --soft:var(--vx-color-soft);
+ --shadow:var(--vx-shadow-card);
+ --v2-primary:var(--vx-color-accent);
+ --v2-secondary:var(--vx-color-accent);
+ --v2-accent:var(--vx-color-accent);
+ --v2-ink:var(--vx-color-ink);
+ --v2-text-muted:var(--vx-color-muted);
+ --v2-background:var(--vx-color-surface);
+ --v2-primary-soft:var(--vx-color-soft);
+ --v2-surface:var(--vx-color-raised);
+ --v2-border:var(--vx-color-outline);
+ --rose:var(--vx-color-accent);
+ --violet:var(--vx-color-accent);
+}
+[data-tone="violet"]{--vx-chip-bg:var(--vx-tone-violet-bg);--vx-chip-fg:var(--vx-tone-violet-fg);--vx-chip-border:var(--vx-tone-violet-border)}
+[data-tone="rose"]{--vx-chip-bg:var(--vx-tone-rose-bg);--vx-chip-fg:var(--vx-tone-rose-fg);--vx-chip-border:var(--vx-tone-rose-border)}
+[data-tone="sky"]{--vx-chip-bg:var(--vx-tone-sky-bg);--vx-chip-fg:var(--vx-tone-sky-fg);--vx-chip-border:var(--vx-tone-sky-border)}
+[data-tone="mint"]{--vx-chip-bg:var(--vx-tone-mint-bg);--vx-chip-fg:var(--vx-tone-mint-fg);--vx-chip-border:var(--vx-tone-mint-border)}
+[data-tone="amber"]{--vx-chip-bg:var(--vx-tone-amber-bg);--vx-chip-fg:var(--vx-tone-amber-fg);--vx-chip-border:var(--vx-tone-amber-border)}
+[data-tone="iris"]{--vx-chip-bg:var(--vx-tone-iris-bg);--vx-chip-fg:var(--vx-tone-iris-fg);--vx-chip-border:var(--vx-tone-iris-border)}
+[data-tone="teal"]{--vx-chip-bg:var(--vx-tone-teal-bg);--vx-chip-fg:var(--vx-tone-teal-fg);--vx-chip-border:var(--vx-tone-teal-border)}
+/* Shared touch targets, gradient and semantic radii for all principal CTAs. */
+.veyra-v2 .btn.primary,.v2-onboarding .btn.primary{
+ min-height:var(--vx-height-primary);
+ border-radius:var(--vx-radius-button);
+ background:var(--vx-gradient-primary);
+ box-shadow:var(--vx-shadow-cta);
+}
+.veyra-v2 .btn.outline,.v2-onboarding .btn.outline{
+ min-height:var(--vx-height-secondary);
+ border-radius:var(--vx-radius-button);
+}

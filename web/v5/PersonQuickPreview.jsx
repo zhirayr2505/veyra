@@ -24,7 +24,7 @@ export function PersonQuickPreview({person,kind='nearby',onClose,onOpenProfile})
   <section className="vx-quick-sheet" role="dialog" aria-modal="true" aria-label={'Предпросмотр анкеты '+person.name} onClick={e=>e.stopPropagation()}>
    <div className="vx-quick-grabber" aria-hidden="true"/>
    <div className="vx-quick-hero" onTouchStart={e=>touch.current=e.touches[0]?.clientX??null} onTouchEnd={e=>{if(touch.current===null)return;const dx=e.changedTouches[0].clientX-touch.current;touch.current=null;if(Math.abs(dx)>45)switchPhoto(dx<0?1:-1)}}>
-    <Photo id={images[index]} alt={person.name} className="vx-quick-portrait"/>
+    <Photo id={images[index]} alt={person.name} className="vx-quick-portrait" placeholder={person.photo_placeholders?.[String(images[index])]} resolution={640}/>
     <div className="vx-quick-image-scrim" aria-hidden="true"/>
     <CardPhotoBars photos={images} index={index} onSelect={setIndex}/>
     <button type="button" className="vx-quick-close" onClick={onClose} aria-label="Закрыть предпросмотр"><Icon name="close" tone="white" size={21}/></button>

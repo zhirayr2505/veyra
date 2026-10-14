@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {createPhotoPlaceholder} from './photo-placeholder.js';
 import {one} from './db.js';
 import {fail,validBirth} from './core.js';
 import {z,parse,profileFields,uuid} from './validation.js';
@@ -14,7 +15,7 @@ export async function saveProfile(q,userId,p,consent=false){
  await q.query('UPDATE profiles SET location_updated_at=now(),location_consent_at=coalesce(location_consent_at,now()) WHERE user_id=$1',[userId]);
 }
 
-const draftData=profileFields.partial().extend({name:z.string().max(50).regex(/^[\p{L}\p{M} ]*$/u),birth_date:z.string().max(10),gender:z.enum(['','man','woman']),looking_for:z.array(z.enum(['man','woman'])).max(2),city:z.string().max(100),country:z.string().max(100),lat:z.number().min(-90).max(90).nullable(),lon:z.number().min(-180).max(180).nullable(),registration_ui_version:z.union([z.literal(2),z.literal(3)]).optional(),consent_to_terms:z.boolean().optional()});
+const draftData=profileFields.partial().extend({name:z.string().max(50).regex(/^[\p{L}\p{M} '’\-]*$/u),birth_date:z.string().max(10),gender:z.enum(['','man','woman']),looking_for:z.array(z.enum(['man','woman'])).max(2),city:z.string().max(100),country:z.string().max(100),lat:z.number().min(-90).max(90).nullable(),lon:z.number().min(-180).max(180).nullable(),registration_ui_version:z.union([z.literal(2),z.literal(3)]).optional(),consent_to_terms:z.boolean().optional()});
 export function registrationRoutes(app,{db,storage,upload,rate}){
  app.put('/api/registration',async(req,res)=>{
   const {step,data}=parse(z.object({step:z.number().int().min(1).max(8),data:draftData}),req.body);
@@ -61,17 +62,17 @@ export function registrationRoutes(app,{db,storage,upload,rate}){
   if(!req.file)fail(400,'PHOTO_REQUIRED');
   if(!['image/jpeg','image/png','image/webp'].includes(req.file.mimetype))fail(400,'IMAGE_TYPE');
   await rate('upload:'+req.user.id,30,3600);
-  const id=randomUUID(),key=req.user.id+'/'+id+'.webp';let uploaded=false;
+  const id=randomUUID(),key=req.user.id+'/'+id+'.webp';const placeholder=await createPhotoPlaceholder(req.file.buffer);let uploaded=false;
   try{await db.tx(async q=>{
    await q.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.user.id]);
    const old=await one(q,'SELECT * FROM photos WHERE id=$1 AND user_id=$2',[oldId,req.user.id]);
    if(!old)fail(404,'PHOTO_NOT_FOUND');
    await storage.put(key,req.file.buffer);uploaded=true;
-   await q.query('UPDATE photos SET id=$3,object_key=$4 WHERE id=$1 AND user_id=$2',[oldId,req.user.id,id,key]);
+   await q.query('UPDATE photos SET id=$3,object_key=$4,lqip=$5,dominant_color=$6 WHERE id=$1 AND user_id=$2',[oldId,req.user.id,id,key,placeholder.lqip,placeholder.dominant]);
    await q.query('INSERT INTO storage_gc(object_key) VALUES($1) ON CONFLICT DO NOTHING',[old.object_key]);
    await q.query("UPDATE profiles SET moderation='draft',revision=revision+1 WHERE user_id=$1",[req.user.id]);
   });}catch(e){if(uploaded)await db.query('INSERT INTO storage_gc(object_key) VALUES($1) ON CONFLICT DO NOTHING',[key]);throw e;}
-  res.json({id});
+  res.json({id,lqip:placeholder.lqip,dominant:placeholder.dominant});
  });
  // Gifts are deliberately unavailable, including direct API attempts.
  app.get('/api/gifts',(req,res)=>res.json({enabled:false,status:'coming_soon',gifts:[]}));

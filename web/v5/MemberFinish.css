@@ -1,19 +1,6 @@
 /* VEYRA Profile Finish: additive to Motion 4 and approved premium reference.
    Native Telegram buttons and the ScrollTimeline keyframe transforms untouched. */
 
-/* The logo halo is functional: never shine across someone's face in expanded mode. */
-body>.vx-member-native-header::before{opacity:0;transition:opacity .2s ease-out;}
-body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::before{
- opacity:1;
- background:radial-gradient(ellipse,#fffefee8 0%,#faf7ffad 36%,#faf7ff00 78%);
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box img{
- filter:blur(22px) saturate(1.1)!important;
- object-position:50% 31%!important;
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header::after{
- background:linear-gradient(180deg,#ffffff18 0%,#f6efff1d 43%,#f7f2ff4c 79%,#faf7ffbb 100%)!important;
-}
 /* The opaque white lip covers the last 30px of the opened photograph;
    no z-index flips while the photograph is compacting into the avatar. */
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="true"] .vx-profile-sheet-lip{

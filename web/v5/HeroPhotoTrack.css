@@ -1,0 +1,24 @@
+/* Horizontal touch track lives UNDER the compositor's scaleY compensation. */
+.veyra-v2 .vx-master-profile .vx-hero-image-compensation{
+ position:absolute;inset:0;width:100%;height:100%;overflow:hidden;
+ transform-origin:center center;border-radius:inherit;
+}
+.veyra-v2 .vx-master-profile .vx-hero-swipe-track{
+ position:absolute;inset:0 auto 0 0;width:300%;height:100%;display:flex;
+ transform:translate3d(-33.333333%,0,0);will-change:transform;
+ touch-action:pan-y;user-select:none;-webkit-user-select:none;
+}
+.veyra-v2 .vx-master-profile .vx-hero-swipe-slide{
+ position:relative;flex:0 0 33.333333%;width:33.333333%;height:100%;overflow:hidden;
+}
+.veyra-v2 .vx-master-profile .vx-hero-swipe-slide>.photo-box{
+ position:absolute;inset:0;width:100%;height:100%;overflow:hidden;border-radius:inherit;
+}
+.veyra-v2 .vx-master-profile .vx-hero-swipe-slide>.photo-box>img.photo-sharp{
+ display:block;width:100%;height:100%;object-fit:cover;object-position:50% 36%;
+ user-select:none;-webkit-user-drag:none;pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-hero-swipe-slide>.photo-box>.photo-blur{pointer-events:none}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-master-profile .vx-hero-swipe-track{will-change:auto}
+}

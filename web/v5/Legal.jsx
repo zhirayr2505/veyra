@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
-import {Logo,Icon} from './UI.jsx';
+import {Logo,Icon,Button} from './UI.jsx';
 import './Legal.css';
+import './OnboardingUnified.css';
 
 /* Clear, user-facing rules; do not expose internal moderation tooling. */
 const TERMS=[
@@ -37,6 +38,6 @@ export function LegalScreen({asModal=false,initialTab='terms',onClose,onAccept})
   <div className="veyra-legal-scroll"><h1>Документы VEYRA</h1><p className="veyra-legal-intro">Пожалуйста, ознакомьтесь с правилами сервиса и тем, как мы обрабатываем данные.</p>
   <div className="veyra-legal-tabs" role="tablist" aria-label="Юридические документы"><button type="button" role="tab" aria-selected={tab==='terms'} onClick={()=>setTab('terms')}>Условия</button><button type="button" role="tab" aria-selected={tab==='privacy'} onClick={()=>setTab('privacy')}>Конфиденциальность</button></div>
   <article key={tab} className="veyra-legal-document"><h2>{tab==='terms'?'Условия использования':'Политика конфиденциальности'}</h2><p className="veyra-legal-version">VEYRA Dating · редакция от 13 октября 2026 года</p>{(tab==='terms'?TERMS:PRIVACY).map(([title,paragraph],index)=><section key={title}><div className="veyra-legal-section-title"><span>{String(index+1).padStart(2,'0')}</span><h3>{title}</h3></div><p>{paragraph}</p></section>)}</article>
-  </div><footer className="veyra-legal-footer">{onAccept?<button type="button" className="veyra-legal-accept" onClick={onAccept}>Принять условия и политику</button>:<button type="button" className="veyra-legal-accept" onClick={close}>Вернуться в VEYRA</button>}</footer></div>
+  </div><footer className="veyra-legal-footer">{onAccept?<Button variant="primary" className="veyra-legal-accept" onClick={onAccept}>Принять условия и политику</Button>:<Button variant="primary" className="veyra-legal-accept" onClick={close}>Вернуться в VEYRA</Button>}</footer></div>
  </div>;
 }

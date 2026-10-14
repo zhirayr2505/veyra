@@ -54,7 +54,7 @@ function SectionTitle({children,action,onAction}){
 }
 function Portrait({person,onProfile,interest,forYou=false}){
  return <button className="vx-portrait-card" type="button" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
-  <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name}/></span>
+  <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name} placeholder={person.photo_placeholders?.[String(person.photos?.[0])]} resolution={640}/></span>
   {person.test_profile&&<span className="vx-portrait-demo-tag">демо</span>}
   {!forYou&&(interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
    person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null)}
@@ -111,10 +111,19 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
   return()=>{alive=false;if(!done&&loadedKey.current===requestKey)loadedKey.current=null};
  },[active,requestKey,kind,filters,choice,collection,demoMode]);
  useEffect(()=>{
-  if(!people.length)return;
-  people.slice(0,Math.min(8,people.length)).forEach(p=>{
-   const id=p.photos?.[0];if(id)photoUrl(id).catch(()=>{});
-  });
+  let cancelled=false;
+  (async()=>{
+   const ids=people.slice(0,Math.min(5,people.length)).map(p=>p.photos?.[0]).filter(Boolean);
+   if(!ids.length)return;
+   await photoUrl(ids[0],{width:960}).catch(()=>{});
+   if(cancelled)return;
+   await photoUrl(ids[0],{width:640}).catch(()=>{});
+   for(const id of ids.slice(1)){
+    if(cancelled)return;
+    await photoUrl(id,{width:640}).catch(()=>{});
+   }
+  })();
+  return()=>{cancelled=true};
  },[people]);
  const loadMore=async()=>{
   if(moreBusy||!hasMore)return;
@@ -222,7 +231,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
     <Button onClick={limited?onPremium:error?retryLoad:onFilters}>{limited?'Открыть Premium':error?'Повторить':'Настроить поиск'}</Button>
    </div>}
   <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
-  {previewPerson&&<PersonQuickPreview person={previewPerson} kind={kind} onClose={()=>setPreviewPerson(null)} onOpenProfile={id=>{setPreviewPerson(null);onProfile(id)}}/>}
+  {previewPerson&&<PersonQuickPreview person={previewPerson} kind={kind} onClose={()=>setPreviewPerson(null)} onOpenProfile={id=>{setPreviewPerson(null);onProfile(id,null,previewPerson)}}/>}
  </div>;
 }
 export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
@@ -297,7 +306,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
    </button>
    <Logo width={145} className="vx-logo"/>
-   <span className="vx-feed-wordmark-glint" aria-hidden="true"/>
+   
    <div className="vx-head-actions">
     <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>
      <img alt="" aria-hidden="true" width="21" height="21" src="/veyra-approved/09_veys/veys-diamond.svg"/>

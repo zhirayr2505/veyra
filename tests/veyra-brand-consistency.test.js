@@ -28,7 +28,9 @@ test('all core screens use one branded rounded wordmark, including error and dis
  for(const p of ['web/v5/UI.jsx','web/v5/App.jsx','web/v5/Discover.jsx','web/v5/DiscoveryHub.jsx','web/v5/ErrorBoundary.jsx']){
   assert.doesNotMatch(contents(p),/\/assets\/veyra\/00_brand\/veyra_logo\.svg/,p+' still references an old logo');
  }
- assert.ok(contents('web/v5/UI.jsx').includes('veyra-wordmark-purple.svg'));
+ assert.ok(contents('web/v5/UI.jsx').includes("import {LiquidLogo} from './LiquidLogo.jsx'"));
+ assert.ok(contents('web/v5/LiquidLogo.jsx').includes('veyra-wordmark-purple.svg'));
+ assert.ok(contents('web/v5/Discover.jsx').includes('<Logo width={126}'));
  assert.ok(contents('web/v5/DiscoveryHub.jsx').includes('<Logo width={145}'),'DiscoveryHub renders the approved shared wordmark');
  assert.ok(contents('web/v5/ErrorBoundary.jsx').includes('veyra_logo_primary.svg'));
 });
@@ -43,6 +45,7 @@ test('brand-wide asset illustrations and badges use the same violet palette',()=
  }
  const css=contents('web/v5/BrandConsistency.css');
  assert.ok(contents('web/v5/App.jsx').includes("import './BrandConsistency.css'"));
- assert.ok(css.includes('#6817FF'));
+ assert.ok(css.includes('var(--vx-color-accent)'));
+ assert.ok(contents('web/v5/tokens.css').includes('--vx-color-accent:#7628e5'));
  assert.doesNotMatch(css,/#FF6A9B|#FF126B|#FF4058/);
 });

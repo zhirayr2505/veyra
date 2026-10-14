@@ -42,6 +42,7 @@ import './FeedPremium2026.css'; // Approved feed reference, liquid tabs, interes
 import './ForYouApproved2026.css'; // Approved light lavender For You design
 import './TelegramSwipeGuard.css'; // Native overscroll fallback without blocking touch scroll
 import './MemberPolish7.css'; // Profile visual-only polish: preserves existing scroll motion
+import './tokens.css'; // Unified brand palette, seven chip tones and shared component metrics
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
@@ -84,7 +85,7 @@ export function App(){
  },[match,overlay,member,conversation,returnChat]);
  const logout=()=>{setBearer('');clearPhotoCache();setMe(null);setError('');setDeleted(true);try{Object.keys(localStorage).filter(k=>k.startsWith('veyra.registration.')).forEach(k=>localStorage.removeItem(k))}catch{}};
  const navigate=next=>{setError('');setMember(null);setConversation(null);setReturnChat(null);setOverlay(null);setTabDirection(nav.findIndex(x=>x[0]===next)>=nav.findIndex(x=>x[0]===tab)?'left':'right');setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
- const openMember=(id,matchId=null)=>{if(!id)return;setError('');setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId});window.scrollTo(0,0)};
+ const openMember=(id,matchId=null,initialData=null)=>{if(!id)return;setError('');setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId,initialData});window.scrollTo(0,0)};
  const openChat=async(id,person)=>{if(!id){setError('Чат пока недоступен');return;}setError('');setReturnChat(null);setMember(null);setOverlay(null);setTab('chats');setVisited(s=>new Set([...s,'chats']));if(person){setConversation({id,partner:person});return;}try{const all=await get('/matches');const m=all.find(x=>x.id===id);if(!m?.profile)throw Error('Переписка больше недоступна');setConversation({id,partner:m.profile})}catch(e){setError(e.message)}};
  const gift=person=>{if(person?.id)setOverlay({type:'gift',target:person})};
  const matchFound=(matchId,profile)=>{setMatch({id:matchId,profile});setRefreshTick(x=>x+1)};
@@ -137,7 +138,7 @@ export function App(){
    />
   </div>}
  </div>
- {member&&<div className="subscreen"><Member id={member.id} viewer={me.profile} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
+ {member&&<div className="subscreen"><Member key={member.id} id={member.id} viewer={me.profile} initialData={member.initialData} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
  {match&&<MatchCelebration me={me} match={match}

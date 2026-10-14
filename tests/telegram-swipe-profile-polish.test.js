@@ -102,7 +102,8 @@ test('interest palette is semantic, not based on nth-child and common detection 
  assert.equal(normalizeInterest(' СпОрТ '),'спорт');
  assert.deepEqual([...sharedInterestSet(['Спорт','Кино','Кофе'],['спорт','КОФЕ'])],['спорт','кофе']);
  const css=readFileSync(new URL('../web/v5/MemberPolish7.css',import.meta.url),'utf8');
- assert.match(css,/data-tone="sky"/);
+ const tokens=readFileSync(new URL("../web/v5/tokens.css",import.meta.url),"utf8");
+ assert.match(tokens,/data-tone="sky"/); // Central palette shared by all screens
  assert.match(css,/data-common="true"/);
  assert.match(css,/prefers-reduced-motion:reduce/);
 });

@@ -1,9 +1,11 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
-import {get,post,photoUrl,cachedPhoto} from './api.js';
+import {get,post,photoUrl} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
-import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
-import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
+import {FeedCardVisual} from './FeedCardVisual.jsx';
+import {Button,Icon,InlineAlert,Spinner,InterestIcon,InterestChip,Logo} from './UI.jsx';
+import {INTEREST_GROUPS} from './OnboardingOptions.jsx';
+import {interestTone} from './profilePolishLogic.js';
 import './Discover.css';
 
 const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
@@ -15,43 +17,7 @@ async function decodePhoto(url){if(!url||typeof Image==='undefined')return;
  const image=new Image();image.src=url;
  if(typeof image.decode==='function')await image.decode().catch(()=>{});
 }
-function Interest({name}){return <span className="feed-interest"><InterestIcon name={name} size={14}/><span>{name}</span></span>;}
-function FeedPicture({card,index}){
- const photos=card.photos||[],id=photos[index],profileId=card.id;
- const [state,setState]=useState(()=>({profileId,src:cachedPhoto(id),previous:'',failed:!id}));
- useEffect(()=>{
-  let alive=true;
-  if(!id){setState({profileId,src:'',previous:'',failed:true});return;}
-  const apply=url=>setState(prev=>{
-   const previous=prev.profileId===profileId?prev.src:'';
-   return {profileId,src:url,previous:previous!==url?previous:'',failed:false};
-  });
-  const cached=cachedPhoto(id);
-  if(cached)apply(cached);
-  else {
-   setState(prev=>prev.profileId===profileId?{...prev,failed:false}:{profileId,src:'',previous:'',failed:false});
-   photoUrl(id).then(async url=>{await decodePhoto(url);if(alive)apply(url)})
-    .catch(()=>{if(alive)setState(prev=>({...prev,profileId,failed:true}))});
-  }
-  return()=>{alive=false};
- },[id,profileId]);
- useEffect(()=>{if(!state.previous)return;
-  const timer=setTimeout(()=>setState(prev=>({...prev,previous:''})),250);
-  return()=>clearTimeout(timer);
- },[state.src,state.previous]);
- useEffect(()=>{if(photos.length<2)return;
-  for(const p of new Set([photos[(index+1)%photos.length],photos[(index+photos.length-1)%photos.length]])){
-   if(p&&p!==id)photoUrl(p).then(decodePhoto).catch(()=>{});
-  }
- },[photos,index,id]);
- const same=state.profileId===profileId;
- return <div className="feed-picture">
-  {same&&state.previous&&<img className="feed-picture-previous" src={state.previous} alt="" draggable="false" aria-hidden="true"/>}
-  {same&&state.src?<img key={state.src} className="feed-picture-current" src={state.src} alt={card.name} draggable="false" fetchPriority="high" decoding="async"/>:
-   same&&state.failed?<div className="feed-picture-unavailable"><Icon name="camera" tone="dark" size={27}/><span>Фото недоступно</span></div>:
-   <div className="feed-picture-skeleton" aria-hidden="true"/>}
- </div>;
-}
+function Interest({name}){return <InterestChip className="feed-interest" label={name} tone={interestTone(name,INTEREST_GROUPS)} icon={<InterestIcon name={name} size={14}/>}/>;}
 function FeedState({kind,onRetry,onFilters,onPremium}){
  const isLoading=kind==='loading',isError=kind==='error',isLimited=kind==='limit';
  return <div className={'feed-state feed-state-'+kind} role={isLoading?'status':undefined}>
@@ -144,7 +110,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
    const following=next.profiles?.[0]||null;
    if(following?.photos?.[0]){
     // Prefetch/decode before revealing the next card, without delaying indefinitely on slow networks.
-    await Promise.race([photoUrl(following.photos[0]).then(decodePhoto).catch(()=>{}),wait(700)]);
+    await Promise.race([photoUrl(following.photos[0],{width:960}).then(decodePhoto).catch(()=>{}),wait(700)]);
    }
    ++requestToken.current;
    setCard(following);setIndex(0);setLimited(!!next.limited);
@@ -168,7 +134,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   clearTimeout(entranceTimer.current);setBusy(true);setError('');haptic('undo');
   try{
    const r=await post('/reactions/undo',{target:String(last.target)});
-   if(r.profile?.photos?.[0])await Promise.race([photoUrl(r.profile.photos[0]).then(decodePhoto).catch(()=>{}),wait(550)]);
+   if(r.profile?.photos?.[0])await Promise.race([photoUrl(r.profile.photos[0],{width:960}).then(decodePhoto).catch(()=>{}),wait(550)]);
    ++requestToken.current;
    setCard(r.profile);setIndex(0);setLimited(false);setLoading(false);
    setMotion('enter');entranceTimer.current=setTimeout(()=>setMotion(''),440);
@@ -183,7 +149,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const undoAvailable=!!last.target&&last.can_undo;
  return <section className={'discover screen'+(embedded?' discover-embedded':'')} aria-label="Лента знакомств">
   {!embedded&&<header className="feed-head">
-   <img src="/veyra-approved/00_brand/veyra_logo_primary.svg" alt="VEYRA" className="feed-brand"/>
+   <Logo width={126} className="feed-brand"/>
    <div className="feed-head-right">
     <span className="feed-mode-name">{mode==='nearby'?'рядом':mode==='for_you'?'по интересам':'для вас'}</span>
     <button className="icon-button" type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={23}/></button>
@@ -196,13 +162,8 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
       onClick={onCardClick} aria-label={'Листать фотографии: '+card.name}>
-      <FeedPicture key={card.id} card={card} index={index}/>
-      <div className="veyra-card-shade" aria-hidden="true"/>
-      <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
-      <CardGoalBadge goal={card.goal} top/>
-      {card.test_profile&&<span className="vx-demo-feed-badge">ДЕМО</span>}
-      <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
-      <button type="button" className="vx-feed-profile-info" onClick={e=>{e.stopPropagation();onProfile(card.id)}} aria-label={'Открыть полный профиль '+card.name}><Icon name="info" tone="white" size={21}/></button>
+      <FeedCardVisual card={card} index={index} onIndex={setIndex} location={location} onProfile={()=>onProfile(card.id,null,card)}/>
+      <button type="button" className="vx-feed-profile-info" onClick={e=>{e.stopPropagation();onProfile(card.id,null,card)}} aria-label={'Открыть полный профиль '+card.name}><Icon name="info" tone="white" size={21}/></button>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}
       {motion==='exit-super'&&<div className="feed-flash feed-flash-super" aria-hidden="true"><Star size={76} fill="white"/><b>Суперлайк!</b></div>}

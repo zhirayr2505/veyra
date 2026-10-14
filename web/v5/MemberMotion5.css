@@ -1,58 +1,50 @@
 /* VEYRA Motion 5: exact visual finish with preserved compositor scroll motion.
    Imported LAST. No changes to Telegram native controls or menu placement. */
 
-/* Wordmark: original brand geometry as SVG alpha mask + elegant dimensional
-   gradient. Contrast is sampled ONCE from the actual photo, never during scroll. */
-body>.vx-member-native-header::before,
-body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::before{
- content:none!important;display:none!important;
-}
-@supports ((mask-image:url("/veyra-design/veyra-wordmark-purple.svg")) or (-webkit-mask-image:url("/veyra-design/veyra-wordmark-purple.svg"))){
- body>.vx-member-native-header>.vx-member-floating-logo{
-  opacity:.001!important;
- }
- body>.vx-member-native-header::after{
-  content:"";position:absolute;
-  left:50%;top:50%;transform:translate(-50%,-50%);
-  width:clamp(105px,31vw,131px);height:42px;
-  -webkit-mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
-  mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
-  pointer-events:none;z-index:3;
-  background:linear-gradient(160deg,#e8b4ff 0%,#bd79ff 23%,#8040dc 48%,#6833dd 70%,#a465fa 100%);
-  filter:drop-shadow(0 2px 1px #25132f65) drop-shadow(0 -1px 1px #ffffff50);
- }
- body>.vx-member-native-header[data-logo-tone="light"]::after{
-  background:linear-gradient(160deg,#b869f4 0%,#7c34e3 37%,#5726b5 71%,#9848e9 100%);
-  filter:drop-shadow(0 1px 0 #ffffffc9) drop-shadow(0 2px 2px #3f236b5c);
- }
- body>.vx-member-native-header[data-logo-tone="dark"]::after{
-  background:linear-gradient(155deg,#ffd2ff 0%,#d49aff 30%,#ae60f3 62%,#e4a9ff 100%);
-  filter:drop-shadow(0 2px 2px #160a2eb5) drop-shadow(0 -1px 0 #fff5);
- }
-}
-
-/* The blur is not a generic lavender fill. This is the SAME profile photo,
-   occupying the background behind the shrinking foreground photograph. */
+/* Single source for the photo-derived compact backdrop.
+   Animated clip follows sheetY+24px; no blurred strip can extend below it. */
 .veyra-v2 .vx-master-profile .vx-profile-blurred-header{
- height:calc(var(--vx-profile-hero-height) + 16px)!important;
- inset:0 0 auto!important;
+ position:absolute;
+ inset:0 0 auto;
+ height:var(--vx-profile-compact-height,292px);
  z-index:3;
- background:#ded4e7;
+ overflow:hidden;
  pointer-events:none;
+ opacity:0;
+ background:#ded4e7;
+ contain:paint;
+ -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 100%);
+ mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 100%);
 }
 .veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box{
- inset:-31px -27px!important;
- height:calc(100% + 62px)!important;
- width:calc(100% + 54px)!important;
+ position:absolute;
+ inset:-31px -27px;
+ height:calc(100% + 62px);
+ width:calc(100% + 54px);
+ overflow:hidden;
+ background:#e9e3f3;
+ pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box img{
- object-fit:cover!important;object-position:50% 28%!important;
- filter:blur(22px) saturate(1.13) brightness(.98)!important;
+ display:block;
+ width:100%;height:100%;
+ object-fit:cover;object-position:50% 31%;
+ filter:blur(22px) saturate(1.1);
  transform:translateZ(0);
+ pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-blurred-header::after{
- background:linear-gradient(to bottom,#ffffff03 0%,#ffffff0d 25%,#ffffff0a 45%,#faf7ff60 74%,#faf7ffcc 100%)!important;
+ content:"";
+ position:absolute;
+ inset:0;
+ pointer-events:none;
+ background:linear-gradient(180deg,#ffffff18 0%,#f6efff1d 43%,#f7f2ff4c 79%,#faf7ffbb 100%);
 }
+.veyra-v2 .vx-master-profile :is(
+ .vx-profile-card-backdrop,.vx-profile-sheet-lip,
+ .vx-profile-sheet-grabber,.vx-profile-photo-morph-rim,
+ .vx-profile-photo-shade,.vx-profile-compact-backdrop
+){pointer-events:none}
 
 /* Above the opaque curved sheet, the name must ALWAYS be visible. */
 .veyra-v2 .vx-master-profile .vx-profile-identity{
@@ -185,3 +177,34 @@ body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::bef
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{gap:3px!important;font-size:10.5px!important}
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button .vx-tab-icon{width:13px;height:13px}
 }
+
+
+/* Eager profile entry: never a white spinner while details are fetched. */
+.vx-profile-entry-fallback{
+ position:relative;min-height:100dvh;overflow:hidden;
+ background:linear-gradient(180deg,#e6d5f3 0%,#f8f3ff 53%,#faf7ff 100%);
+}
+.vx-profile-entry-fallback>.logo{
+ position:absolute;top:calc(env(safe-area-inset-top) + 12px);
+ left:50%;transform:translateX(-50%);z-index:2;
+}
+.vx-profile-entry-cover{
+ height:min(60dvh,470px);min-height:340px;
+ background:radial-gradient(ellipse at 52% 31%,#d7bdf5 0%,#bc9be4 37%,#eee0f7 85%);
+}
+.vx-profile-entry-sheet{
+ position:relative;margin-top:-26px;min-height:65dvh;
+ border-radius:30px 30px 0 0;background:#faf7ff;
+ padding:70px 22px 0;display:flex;flex-direction:column;gap:16px;
+}
+.vx-profile-entry-sheet>span,.vx-profile-loading-lines>span{
+ display:block;height:13px;border-radius:999px;
+ background:linear-gradient(90deg,#eae0f7,#f5f0fc,#eae0f7);
+}
+.vx-profile-entry-sheet>span:first-child{width:55%;height:25px}
+.vx-profile-entry-sheet>span:nth-child(2){width:75%}
+.vx-profile-entry-sheet>span:nth-child(3){width:63%}
+.vx-profile-loading-lines{display:grid;gap:10px;padding:6px 0;min-height:42px}
+.vx-profile-loading-lines>span:first-child{width:93%}
+.vx-profile-loading-lines>span:nth-child(2){width:79%}
+.vx-profile-loading-lines>span:nth-child(3){width:58%}

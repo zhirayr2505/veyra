@@ -1,7 +1,7 @@
-import React,{useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
+import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound,UserRound} from 'lucide-react';
-import {Logo,Icon,DetailIcon,Photo,Button,Sheet,Empty,InlineAlert,Spinner} from './UI.jsx';
+import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {get,post} from './api.js';
 import {openInvoice,GiftCollection,OwnerTestTools} from './Extras.jsx';
@@ -12,38 +12,69 @@ import {VeyraPackIcon,interestGlyph} from './VeyraPackIcons.jsx';
 import {useVeyraProfileMotion} from './useVeyraProfileMotion.js';
 import {interestTone,sharedInterestSet,normalizeInterest} from './profilePolishLogic.js';
 import {MemberSwipePages} from './MemberSwipePages.jsx';
+import {PhotoSegments} from './PhotoSegments.jsx';
+import {HeroPhotoTrack} from './HeroPhotoTrack.jsx';
+import {normalizeProfileSeed,mergeProfileSeed} from './profileSeed.js';
 import {Pencil,Settings2,Wallet,ShieldCheck,Crown,Medal,ImagePlus,MessageCircleHeart} from 'lucide-react';
 
 const TABS=[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Общее']];
 const TAB_ICONS={about:UserRound,photos:Images,gifts:Gift,common:UsersRound};
 const ICONS_BY_GROUP={'Музыка':Music2,'Активность':Dumbbell,'Культура':Clapperboard,'Путешествия':Plane,'Вкус и стиль':Coffee,'Образ жизни':Heart,'Кино и развлечения':Clapperboard,'Спорт и движение':Dumbbell,'Искусство и творчество':Palette,'Еда и напитки':UtensilsCrossed,'Природа и питомцы':PawPrint,'Технологии и игры':Gamepad2,'Саморазвитие':BookOpen,'Город и встречи':Footprints};
 const clamp=(n,min=0,max=1)=>Math.min(max,Math.max(min,n));
-function MemberInterest({label,common=false}){return <span className="vx-member-interest" data-tone={interestTone(label,INTEREST_GROUPS)} data-common={common?'true':undefined}><VeyraPackIcon name={interestGlyph(label)} size={19}/><span className="vx-interest-text">{label}</span>{common&&<span className="vx-profile-common-tag">общее</span>}</span>}
+function MemberInterest({label,common=false}){return <InterestChip label={label} tone={interestTone(label,INTEREST_GROUPS)} common={common} icon={<VeyraPackIcon name={interestGlyph(label)} size={19}/>}/>;}
 const feedback=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* No haptic outside Telegram. */}};
 
-export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onCollection,onRanking,onCourtship,onAdmin}){
- const isOwn=!!ownMe;
+export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onCollection,onRanking,onCourtship,onAdmin,initialData=null,previewData=null,readOnly=false}){
+ const isPreview=readOnly&&!!previewData;
+ const isOwn=!!ownMe||isPreview;
  const tabs=isOwn?[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Ещё']]:TABS;
- const [data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ const seed=useMemo(()=>normalizeProfileSeed(initialData,id),[initialData,id]);
+ const ownSeed=useMemo(()=>{
+  if(isPreview){
+   const p=previewData||{},photos=Array.isArray(p.photos)?p.photos:[];
+   return normalizeProfileSeed({...p,id:p.id||'preview',photos,
+    photo_placeholders:p.photo_placeholders||{}},p.id||'preview');
+  }
+  if(!ownMe)return null;
+  const p=ownMe.profile||{},year=p.birth_year||p.year_of_birth;
+  return normalizeProfileSeed({...p,id:p.id||ownMe.user?.id,photos:ownMe.photos||[],
+   photo_placeholders:Object.fromEntries((ownMe.photos||[]).map(photo=>[photo.id,{lqip:photo.lqip||null,dominant:photo.dominant_color||null}])),
+   age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});
+ },[ownMe,isPreview,previewData]);
+ const [data,setData]=useState(()=>ownSeed||seed),[loading,setLoading]=useState(()=>!ownSeed),[error,setError]=useState('');
  const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[galleryHint,setGalleryHint]=useState(false),[more,setMore]=useState(false);
  const [reactionPulse,setReactionPulse]=useState('');
  const [courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false);
  const [reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false);
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState('about');
- const [logoTone,setLogoTone]=useState('light');
+ const [logoTone,setLogoTone]=useState(null);
  const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryTouch=useRef(null),galleryHintSeen=useRef(false);
  const swipeApiRef=useRef(null),tabRailRef=useRef(null);
  const moveTabIndicator=useCallback(position=>{
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
   if(underline)underline.style.transform='translate3d('+(position*100).toFixed(3)+'%,0,0)';
  },[]);
+ const onPhotoDragProgress=useCallback(amount=>{
+  const indicator=motionRef.current?.querySelector('.vx-profile-photo-bars');
+  indicator?.style.setProperty('--veyra-swipe-drag',Math.min(1,Math.max(0,amount)).toFixed(3));
+ },[]);
  const {onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
 
- useEffect(()=>{let active=true;setLoading(true);setData(null);setTab('about');setIdx(0);
-  if(ownMe){const p=ownMe.profile||{};const year=p.birth_year||p.year_of_birth;setData({...p,id:p.id||ownMe.user?.id,photos:(ownMe.photos||[]).map(x=>x.id),age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});setLoading(false);return()=>{active=false}}
-  Promise.all([get('/profiles/'+id),get('/courtships/profile/'+id).catch(()=>null)]).then(([profile,c])=>{if(active){setData(profile);setCourtship(c)}}).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}
- },[id,ownMe]);
+ useEffect(()=>{
+  let active=true;
+  setData(ownSeed||seed);
+  setLoading(!ownSeed);
+  setError('');setTab('about');setIdx(0);setCourtship(null);
+  if(ownSeed)return()=>{active=false};
+  // Paint known feed/chat/likes data first. Profile and courtship independently
+  // hydrate it; courtship latency must never hold back the hero photograph.
+  get('/profiles/'+id).then(profile=>{
+   if(active)setData(previous=>mergeProfileSeed(previous,profile));
+  }).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});
+  get('/courtships/profile/'+id).then(c=>{if(active)setCourtship(c)}).catch(()=>{});
+  return()=>{active=false};
+ },[id,ownSeed,seed]);
  useEffect(()=>{if(isOwn)return;const root=document.documentElement,body=document.body;const prev=[root.style.overflow,body.style.overflow];root.style.overflow='hidden';body.style.overflow='hidden';return()=>{root.style.overflow=prev[0];body.style.overflow=prev[1]}},[isOwn]);
 
  // Read a tiny canvas sample of the actual portrait, once per photo change.
@@ -53,7 +84,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   const root=motionRef.current;
   if(!root)return;
   const sample=()=>{
-   const image=root.querySelector('.vx-profile-hero-photo .photo-box img');
+   const image=root.querySelector('.vx-profile-hero-photo .vx-hero-swipe-slide:nth-child(2) .photo-box img.photo-sharp');
    if(!image?.complete||image.naturalWidth<4)return;
    try{
     const c=document.createElement('canvas');c.width=12;c.height=8;
@@ -64,8 +95,9 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     const bytes=ctx.getImageData(0,0,12,8).data;
     let sum=0;
     for(let i=0;i<bytes.length;i+=4)sum+=.2126*bytes[i]+.7152*bytes[i+1]+.0722*bytes[i+2];
-    setLogoTone(sum/(bytes.length/4)<139?'dark':'light');
-   }catch{setLogoTone('light')}
+    const brightness=sum/(bytes.length/4);
+    setLogoTone(prev=>prev==null?(brightness<140?'dark':'light'):prev==='dark'?(brightness>150?'light':'dark'):(brightness<130?'dark':'light'));
+   }catch{setLogoTone(prev=>prev??'light')}
   };
   const observer=new MutationObserver(sample);
   observer.observe(root,{childList:true,subtree:true});
@@ -97,7 +129,11 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const report=async()=>{if(reportBusy)return;setReportBusy(true);setError('');try{await post('/reports',{target:String(id),reason:reportReason,details:reportDetails});setReportOpen(false);onBack()}catch(e){setError('Не удалось отправить жалобу: '+e.message)}finally{setReportBusy(false)}};
  const block=async()=>{if(!window.confirm('Заблокировать пользователя?'))return;try{await post('/blocks',{target:String(id)});onBack()}catch(e){setError(e.message)}};
  const share=async()=>{try{await navigator.share?.({title:'VEYRA',text:'Анкета в VEYRA'})}catch{}setMore(false)};
- if(loading)return <div className="page"><div className="center-loading"><Spinner/></div></div>;
+ if(!data&&loading)return <main className="page vx-profile-entry-fallback" aria-busy="true" aria-label="Открывается профиль">
+  <div className="vx-profile-entry-cover" aria-hidden="true"/>
+  <Logo width={131}/>
+  <div className="vx-profile-entry-sheet" aria-hidden="true"><span/><span/><span/></div>
+ </main>;
  if(!data)return <div className="page"><Empty title="Анкета недоступна" body={error}/><Button onClick={onBack}>вернуться</Button></div>;
  const match=data.match_id||initialMatch,photos=data.photos||[];
  const courtStatus=courtship?.mine?.status||'available';
@@ -107,10 +143,10 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const sameGoal=!!(viewer?.goal&&viewer.goal!=='unsure'&&data.goal===viewer.goal);
  const fullName=(data.name||'Профиль')+(data.age?', '+data.age:'');
  const photosNext=step=>setIdx(n=>(n+step+photos.length)%photos.length);
- return <div className={'member page member-feed-profile vx-telegram-member vx-master-profile'+(isOwn?' vx-own-member own-profile':'')}>
-  {createPortal(<header className="vx-member-floating-header vx-member-native-header" data-logo-tone={logoTone} aria-label="Навигация профиля VEYRA">
+ return <div className={'member page member-feed-profile vx-telegram-member vx-master-profile'+(isPreview?' vx-profile-read-only':'')+(isOwn?' vx-own-member own-profile':'')+(loading?' vx-profile-hydrating':'')} aria-busy={loading}>
+  {!isPreview&&createPortal(<header className="vx-member-floating-header vx-member-native-header" data-logo-tone={logoTone||"pending"} aria-label="Навигация профиля VEYRA">
    {(isOwn||!window.Telegram?.WebApp?.BackButton)&&<button type="button" className="vx-member-fallback-back" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
-   <Logo width={115} className="vx-member-floating-logo"/>
+   <Logo width={131} tone={logoTone||"dark"} ready={logoTone!=null} className="vx-member-floating-logo"/>
   </header>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
@@ -118,20 +154,17 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
      <div className="vx-profile-blurred-header" aria-hidden="true">
-      <Photo id={photos[idx]} resolution={640} alt=""/>
+      <Photo id={photos[idx]} resolution={640} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>
      </div>
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
-      <Photo id={photos[idx]} alt={data.name} onClick={()=>openGallery()} priority resolution={960}/>
+      <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
-      {photos.length>1&&<div className="vx-profile-photo-bars">{photos.map((p,i)=><button key={p} type="button" className={i===idx?'active':''} onClick={()=>setIdx(i)} aria-label={'Фото '+(i+1)}/>)}</div>}
-      {photos.length>1&&<div className="vx-profile-photo-nav">
-       <button type="button" onClick={()=>photosNext(-1)} aria-label="Предыдущее фото"><ChevronLeft size={26}/></button>
-       <button type="button" onClick={()=>photosNext(1)} aria-label="Следующее фото"><ChevronRight size={26}/></button>
-      </div>}
+      <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
+      
       {data.test_profile&&!isOwn&&<span className="vx-profile-demo-badge">ДЕМО</span>}
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
      </div>
@@ -168,23 +201,23 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     {key=><div className="vx-profile-section-body">
     {key==='about'&&<>
      <section className="vx-profile-surface vx-profile-about">
-      <div className="vx-own-section-heading"><h2>О себе</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить описание"><Pencil size={17}/></button>}</div><p>{data.bio||'Пока ничего не рассказал о себе.'}</p>
+      <div className="vx-own-section-heading"><h2>О себе</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить описание"><Pencil size={17}/></button>}</div>{loading&&!data.bio?<div className="vx-profile-loading-lines" aria-hidden="true"><span/><span/><span/></div>:<p>{data.bio||'Пока ничего не рассказал о себе.'}</p>}
       
      </section>
-     <section className="vx-profile-surface"><div className="vx-own-section-heading"><h2>Интересы</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить интересы"><Pencil size={17}/></button>}</div>{(data.interests||[]).length?<div className="vx-member-interests-grid">{data.interests.map(label=><MemberInterest key={label} label={label} common={!isOwn&&shared.has(normalizeInterest(label))}/>)}</div>:<p className="vx-profile-secondary">Пока не указаны.</p>}</section>
-     <section className="vx-profile-surface vx-profile-goal-surface"><div className="vx-own-section-heading"><h2>Цель знакомства</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить цель знакомства"><Pencil size={17}/></button>}</div><div className="vx-profile-goal-detail"><span className="vx-profile-goal-emblem"><VeyraPackIcon name="goal" size={32}/></span><div className="vx-profile-goal-copy"><small>Моя цель на VEYRA</small><strong>{goalTitle(data.goal)}</strong></div></div></section>
+     <section className="vx-profile-surface"><div className="vx-own-section-heading"><h2>Интересы</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить интересы"><Pencil size={17}/></button>}</div>{(data.interests||[]).length?<div className="vx-member-interests-grid">{data.interests.map(label=><MemberInterest key={label} label={label} common={!isOwn&&shared.has(normalizeInterest(label))}/>)}</div> :loading?<div className="vx-profile-loading-lines" aria-hidden="true"><span/><span/></div>:<p className="vx-profile-secondary">Пока не указаны.</p>}</section>
+     <section className="vx-profile-surface vx-profile-goal-surface"><div className="vx-own-section-heading"><h2>Цель знакомства</h2>{isOwn&&<button type="button" onClick={onEdit} aria-label="Изменить цель знакомства"><Pencil size={17}/></button>}</div>{loading&&!data.goal?<div className="vx-profile-loading-lines" aria-hidden="true"><span/><span/></div>:<div className="vx-profile-goal-detail"><span className="vx-profile-goal-emblem"><VeyraPackIcon name="goal" size={32}/></span><div className="vx-profile-goal-copy"><small>Моя цель на VEYRA</small><strong>{goalTitle(data.goal)}</strong></div></div>}</section>
      {data.online&&<div className="vx-profile-hint"><DetailIcon name="online" size={13}/> Сейчас в сети</div>}
      {match&&courtship?.mine?.status&&<div className="vx-profile-hint">{courtship.mine.status==='active'?'Ты ухаживаешь за этим человеком':courtship.mine.status==='pending'?'Предложение ожидает согласия':courtship.mine.status==='accepted'?'Предложение принято, можно оплатить':'Ухаживание: '+courtship.mine.status}</div>}
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
       {data.test_profile&&!isOwn&&<p className="vx-profile-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотографии иллюстративные.</p>}
     </>}
-    {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>openGallery(i)} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640}/></button>)}</div>:<Empty art="profile" title="Фотографий пока нет" body="Пока здесь нет снимков."/>}</section></>}
-    {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}</section></>}
+    {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>openGallery(i)} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640} placeholder={data.photo_placeholders?.[String(p)]}/></button>)}</div>:<Empty art="profile" title="Фотографий пока нет" body="Пока здесь нет снимков."/>}</section></>}
+    {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{!isPreview&&tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}{isPreview&&<p className="vx-profile-secondary">Коллекция подарков появится после публикации анкеты.</p>}</section></>}
     {key==='common'&&!isOwn&&<>
      <section className="vx-profile-surface"><h2>Что вас объединяет</h2>{common.length||sameGoal?<><p className="vx-profile-secondary">Уже есть повод начать разговор.</p>{common.length>0&&<div className="vx-member-interests-grid">{common.map(label=><MemberInterest label={label} common key={label}/>)}</div>}{sameGoal&&<div className="vx-profile-goal-detail"><VeyraPackIcon name="heart" size={18}/>У вас совпадают цели знакомства</div>}</>:<p className="vx-profile-secondary">Пока общих интересов не нашлось. Узнайте друг друга в общении.</p>}</section>
      {(courtship?.suitors||[]).length>0&&<section className="vx-profile-surface"><h2>Ухажёры</h2><p>{courtship.suitors.map(x=>x.sender_name).join(' · ')}</p></section>}
     </>}
-    {key==='common'&&isOwn&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}{ownMe.user?.admin_role==='owner'&&<OwnerTestTools/>}</section>}
+    {key==='common'&&isOwn&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe?.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}{ownMe?.user?.admin_role==='owner'&&<OwnerTestTools/>}</section>}
     {key===tab&&<InlineAlert>{error}</InlineAlert>}
     </div>}
    </MemberSwipePages>
@@ -193,8 +226,9 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   {gallery&&createPortal(<div className="gallery vx-profile-gallery" role="dialog" aria-modal="true" aria-label={"Галерея "+data.name} onTouchStart={e=>{galleryTouch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}}} onTouchEnd={e=>{const start=galleryTouch.current;if(!start)return;const dx=e.changedTouches[0].clientX-start.x,dy=e.changedTouches[0].clientY-start.y;if(dy>90&&Math.abs(dy)>Math.abs(dx))setGallery(false);else if(Math.abs(dx)>40)photosNext(dx<0?1:-1);galleryTouch.current=null}}>
    <button type="button" className="gallery-close" aria-label="Закрыть" onClick={()=>setGallery(false)}><Icon name="close" tone="white" size={21}/></button>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>photosNext(-1)}><ChevronLeft size={28}/></button>}
-   <Photo id={photos[idx]} alt={data.name} priority resolution={960}/>
+   <Photo id={photos[idx]} alt={data.name} priority resolution={960} placeholder={data.photo_placeholders?.[String(photos[idx])]}/>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>photosNext(1)}><ChevronRight size={28}/></button>}
+   <PhotoSegments count={photos.length} index={idx} className="vx-profile-gallery-bars"/>
    <small className="vx-profile-gallery-counter" aria-live="polite">{idx+1}/{photos.length}</small>
    {galleryHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
   </div>,document.body)}

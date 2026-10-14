@@ -40,6 +40,15 @@ export async function photoUrl(id,{width=0}={}){
  inflight.set(key,promise);return promise;
 }
 export function cachedPhoto(id,{width=0}={}){const key=String(id)+([256,640,960].includes(width)?'@'+width:'');return photos.get(key)||'';}
+// Reuse any already decoded/cached resolution without performing I/O.
+export function cachedPhotoAny(id){
+ if(!id)return '';
+ for(const width of [960,640,256,0]){
+  const hit=cachedPhoto(id,{width});
+  if(hit)return hit;
+ }
+ return '';
+}
 export function clearPhotoCache(){cacheGeneration++;for(const url of photos.values())URL.revokeObjectURL(url);photos.clear();inflight.clear();}
 export function photoOrder(ids){return request('/photos/order',{method:'PUT',body:{ids}});}
 

@@ -49,3 +49,25 @@ test('Reference overlays preserve photo trajectory while tracking the collapse',
  assert.equal(tracks.grabber.at(-1).opacity,0);
  assert.equal(tracks.hero[0].transform,'translate3d(0.000px,0.000px,0) scale(1.0000000,1.0000000)');
 });
+
+
+test('compact blur is clipped at the sheet edge rather than remaining cover-sized',()=>{
+ const compact=292,height=447;
+ const tracks=buildProfileScrollKeyframes(390,height,373,2000,compact);
+ const first=tracks.blur[0],last=tracks.blur.at(-1);
+ assert.equal(first.clipPath,'inset(0px 0px 0.000px 0px)');
+ const sheet=profileFrame(1,390,height,compact).sheetY;
+ const expected=Math.max(0,compact-(sheet+24)).toFixed(3);
+ assert.equal(last.clipPath,`inset(0px 0px ${expected}px 0px)`);
+ assert.ok(Number(expected)>100,'must crop the phantom blurred band');
+});
+
+
+test('white circle rim stays invisible until after the circle threshold',()=>{
+ const tracks=buildProfileScrollKeyframes(390,447,373,1600,292);
+ const before=tracks.rim.find(v=>Math.abs(v.offset-.35*373/1600)<.00002);
+ const after=tracks.rim.find(v=>Math.abs(v.offset-.425*373/1600)<.00002);
+ assert.ok(before&&after);
+ assert.equal(before.opacity,0);
+ assert.equal(after.opacity,1);
+});

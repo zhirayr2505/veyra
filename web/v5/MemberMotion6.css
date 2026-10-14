@@ -41,46 +41,6 @@
  max-width:100%!important;box-sizing:border-box;
 }
 .veyra-v2 .vx-master-profile .vx-profile-primary-actions{z-index:15}
-/* Brand variant B: a masked 1–2px photo-adaptive outline behind the original
-   gradient letters. No halo over the face and no replacement logo geometry. */
-@supports ((mask-image:url("/veyra-design/veyra-wordmark-purple.svg")) or (-webkit-mask-image:url("/veyra-design/veyra-wordmark-purple.svg"))){
- body>.vx-member-native-header::before,
- body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::before{
-  content:""!important;display:block!important;position:absolute;
-  top:50%;left:50%;
-  width:clamp(105px,31vw,131px);height:42px;
-  border-radius:0;transform:translate(-50%,-50%) scale(1.045);
-  -webkit-mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
-  mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
-  background:#341650;
-  filter:drop-shadow(0 3px 5px #1a0c2aab);
-  opacity:1!important;z-index:2;pointer-events:none;
- }
- body>.vx-member-native-header[data-logo-tone="light"]::before{
-  background:#36164d;
-  filter:drop-shadow(0 3px 5px #1a0c2aaf);
- }
- body>.vx-member-native-header[data-logo-tone="dark"]::before{
-  background:#fffaff;
-  filter:drop-shadow(0 3px 5px #080412c9);
- }
- body>.vx-member-native-header::after{
-  z-index:3;
-  filter:drop-shadow(0 2px 2px #10071f9e) drop-shadow(0 -1px 1px #ffffffb5)!important;
- }
- body>.vx-member-native-header[data-logo-tone="light"]::after{
-  filter:drop-shadow(0 1px 1px #ffffff99) drop-shadow(0 3px 3px #130825a9)!important;
- }
- body>.vx-member-native-header[data-logo-tone="dark"]::after{
-  filter:drop-shadow(0 3px 5px #05020ec4) drop-shadow(0 -1px 1px #ffffffa8)!important;
- }
-}
-@supports not ((mask-image:url("/veyra-design/veyra-wordmark-purple.svg")) or (-webkit-mask-image:url("/veyra-design/veyra-wordmark-purple.svg"))){
- body>.vx-member-native-header>.vx-member-floating-logo{
-  opacity:1!important;
-  filter:drop-shadow(0 1px 1px #ffffffdd) drop-shadow(0 3px 4px #1f0d37b3)!important;
- }
-}
 @media(max-width:359px){
  .veyra-v2 .vx-master-profile .vx-profile-identity{
   width:calc(100% - 190px)!important;

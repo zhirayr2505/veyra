@@ -84,27 +84,39 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  will-change:transform;
  pointer-events:auto;
 }
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box{
- position:absolute;inset:0!important;width:100%!important;
- height:100%!important;border-radius:inherit!important;
- overflow:hidden!important;display:block!important;
- background:#e7def2;
-}
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo>.photo-box img{
- display:block!important;width:100%!important;height:100%!important;
- object-fit:cover!important;object-position:50% 36%!important;
- border-radius:0!important;transform-origin:50% 42%;
- image-rendering:auto;will-change:transform;
-}
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{content:none!important;display:none!important}
+/* Adaptive scrim reaches 140px with a feathered edge. Tone crossfade is
+   opacity-only; the scrolling photo/shade transforms remain unchanged. */
 .veyra-v2 .vx-master-profile .vx-profile-photo-shade{
- position:absolute;top:0;left:0;right:0;height:106px;
+ position:absolute;top:0;left:0;right:0;height:140px;
  z-index:1;pointer-events:none;opacity:1;
- background:linear-gradient(#2c254443,transparent);
+ background:transparent;
+}
+.veyra-v2 .vx-master-profile .vx-profile-photo-shade::before,
+.veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ transition:opacity .32s ease-in-out;
+}
+/* Deep background: darker scrim supports the luminous wordmark. */
+.veyra-v2 .vx-master-profile .vx-profile-photo-shade::before{
+ background:linear-gradient(180deg,#150b2d9e 0%,#150b2d4d 48%,#150b2d00 100%);
+ opacity:1;
+}
+/* Bright background: light scrim supports a darker outline, never a hard band. */
+.veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{
+ background:linear-gradient(180deg,#fcf6ffc9 0%,#fcf6ff5e 50%,#fcf6ff00 100%);
+ opacity:0;
+}
+body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master-profile .vx-profile-photo-shade::before{opacity:0}
+body:has(>.vx-member-native-header[data-logo-tone="light"]) .veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{opacity:1}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-master-profile .vx-profile-photo-shade::before,
+ .veyra-v2 .vx-master-profile .vx-profile-photo-shade::after{transition:none}
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-bars{
- left:18px!important;right:18px!important;top:82px!important;
- z-index:3;opacity:1;pointer-events:auto;
+ left:50%;right:auto;top:auto;bottom:46px;
+ width:min(68%,260px);transform:translateX(-50%);
+ z-index:3;opacity:1;pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-nav{
  inset:20% 0 14%!important;z-index:3;opacity:1;

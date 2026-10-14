@@ -1,7 +1,7 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
 import {clamp,profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
-import {createProfileScrollAnimations} from './profileScrollTimeline.js';
+import {createProfileScrollAnimations,blurClipBottom,PROFILE_RIM_FADE_START,PROFILE_RIM_FADE_END} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
 
 // Additive CSS translate/scale properties never replace WAAPI transform tracks.
@@ -91,7 +91,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    }
    // Compensate for portrait-to-square squash on the image itself.
    if(!parts.image?.isConnected){
-    parts.image=parts.hero.querySelector('.photo-box img');
+    parts.image=parts.hero.querySelector('.vx-hero-image-compensation');
    }
    if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
    if(parts.panel){parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));parts.panel.style.clipPath='inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)';}
@@ -112,14 +112,15 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.blur)parts.blur.style.opacity=(f.progress<=.24?0:f.progress>=.86?1:(()=>{
     const t=(f.progress-.24)/.62;return t*t*(3-2*t);
    })()).toFixed(3);
+   if(parts.blur)parts.blur.style.clipPath='inset(0px 0px '+blurClipBottom(f.sheetY,s.compactHeight).toFixed(3)+'px 0px)';
    if(parts.ring)parts.ring.style.opacity=(f.progress<=.82?0:f.progress>=.99?1:(()=>{
     const t=(f.progress-.82)/.17;return t*t*(3-2*t);
    })()).toFixed(3);
    if(parts.onlineDot)parts.onlineDot.style.opacity=(f.progress<=.85?0:f.progress>=1?1:(()=>{
     const t=(f.progress-.85)/.15;return t*t*(3-2*t);
    })()).toFixed(3);
-   if(parts.rim)parts.rim.style.opacity=(p<=PROFILE_CIRCLE_AT-.004?0:p>=PROFILE_CIRCLE_AT+.026?1:(()=>{
-     const t=(p-(PROFILE_CIRCLE_AT-.004))/.03;return t*t*(3-2*t);
+   if(parts.rim)parts.rim.style.opacity=(p<=PROFILE_RIM_FADE_START?0:p>=PROFILE_RIM_FADE_END?1:(()=>{
+     const t=(p-PROFILE_RIM_FADE_START)/(PROFILE_RIM_FADE_END-PROFILE_RIM_FADE_START);return t*t*(3-2*t);
     })()).toFixed(3);
     if(parts.grabber){
     parts.grabber.style.transform=translate(0,f.sheetY-(s.height-30));
@@ -161,11 +162,17 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  },[snap]);
  const onScroll=useCallback(()=>{
   const s=state.current,el=scrollRef.current;
+  const motion=motionRef.current;
+  if(motion){
+   motion.dataset.scrolling='true';
+   clearTimeout(s.scrollIdleTimer);
+   s.scrollIdleTimer=setTimeout(()=>{if(motion.isConnected)motion.dataset.scrolling='false'},160);
+  }
   if(s.elastic>0&&el?.scrollTop>1){
    s.elastic=0;writeElastic(el,0,s.width,true);
   }
   s.lastScrollAt=performance.now();paint();
- },[paint,scrollRef]);
+ },[paint,scrollRef,motionRef]);
  const onTouchStart=useCallback(e=>{
   const s=state.current,wasSnapping=s.snapping;stop();
   s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
@@ -225,7 +232,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
   }
   s.refs={
-   hero,image:hero.querySelector('.photo-box img'),
+   hero,image:hero.querySelector('.vx-hero-image-compensation'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
@@ -274,7 +281,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   window.addEventListener('resize',resize,{passive:true});
   window.visualViewport?.addEventListener('resize',resize,{passive:true});
   return()=>{
-   stop();cancelAnimationFrame(s.frame);s.frame=0;
+   stop();clearTimeout(s.scrollIdleTimer);cancelAnimationFrame(s.frame);s.frame=0;
    s.elastic=0;writeElastic(el,0,s.width,false);
    s.nativeAnimation?.cancel();s.nativeAnimation=null;
    s.resizeObserver?.disconnect();s.mutationObserver?.disconnect();

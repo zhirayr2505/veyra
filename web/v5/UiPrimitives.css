@@ -1,0 +1,40 @@
+/* Shared VEYRA input primitives. Existing screen positioning remains untouched. */
+.veyra-v2 .veyra-button,.v2-onboarding .veyra-button{
+ box-sizing:border-box;min-height:var(--vx-height-primary);border-radius:var(--vx-radius-button);
+ display:inline-flex;align-items:center;justify-content:center;gap:9px;
+ padding:10px 20px;font-family:var(--vx-font-sans);font-size:var(--vx-text-md);
+ font-weight:780;line-height:1.25;touch-action:manipulation;
+ transition:transform .16s ease,opacity .16s ease;
+}
+.veyra-v2 .veyra-button:active:not(:disabled),.v2-onboarding .veyra-button:active:not(:disabled){transform:scale(.97)}
+.veyra-v2 .veyra-button-small,.v2-onboarding .veyra-button-small{min-height:44px;padding:8px 14px;font-size:var(--vx-text-sm)}
+.veyra-v2 .veyra-button-medium,.v2-onboarding .veyra-button-medium{min-height:var(--vx-height-secondary)}
+.veyra-v2 .veyra-button-primary,.v2-onboarding .veyra-button-primary{background:var(--vx-gradient-primary);color:#fff;border-color:transparent}
+.veyra-v2 .veyra-button-secondary,.v2-onboarding .veyra-button-secondary{background:var(--vx-color-raised);color:var(--vx-color-accent);border:1px solid var(--vx-color-outline)}
+.veyra-v2 .veyra-button-ghost,.v2-onboarding .veyra-button-ghost{background:transparent;color:var(--vx-color-accent);border:1px solid transparent}
+.veyra-v2 .veyra-button-danger,.v2-onboarding .veyra-button-danger{background:var(--vx-color-danger);color:#fff;border:1px solid transparent}
+.veyra-v2 .veyra-button:disabled,.v2-onboarding .veyra-button:disabled{opacity:.45;cursor:not-allowed}
+.veyra-button-spinner{width:18px;height:18px;flex:none;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:veyra-shared-spin .7s linear infinite}
+@keyframes veyra-shared-spin{to{transform:rotate(360deg)}}
+.veyra-v2 .veyra-choice,.v2-onboarding .veyra-choice{box-sizing:border-box;min-height:50px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--vx-color-outline);border-radius:var(--vx-radius-card);padding:12px 15px;background:var(--vx-color-raised);color:var(--vx-color-ink);font-weight:730;transition:transform .22s cubic-bezier(.2,.8,.2,1),background .22s ease,border-color .22s ease}
+.veyra-v2 .veyra-choice[aria-pressed="true"],.v2-onboarding .veyra-choice[aria-pressed="true"]{background:var(--vx-color-soft);border-color:var(--vx-color-accent);color:var(--vx-color-accent)}
+.veyra-v2 .veyra-choice:active:not(:disabled),.v2-onboarding .veyra-choice:active:not(:disabled){transform:scale(.97)}
+.veyra-v2 .veyra-interest-chip,.v2-onboarding .veyra-interest-chip{box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;min-height:var(--vx-height-chip);max-width:100%;padding:7px 12px;border-radius:var(--vx-radius-chip);border:1px solid var(--vx-chip-border,var(--vx-tone-violet-border));background:var(--vx-chip-bg,var(--vx-tone-violet-bg));color:var(--vx-chip-fg,var(--vx-tone-violet-fg));font-size:var(--vx-text-sm);font-weight:680;line-height:1.25}
+.veyra-v2 .veyra-interest-chip[data-common="true"],.v2-onboarding .veyra-interest-chip[data-common="true"]{font-weight:760}
+.veyra-v2 button.veyra-interest-chip,.v2-onboarding button.veyra-interest-chip{cursor:pointer;touch-action:manipulation}
+.veyra-interest-chip .vx-interest-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.veyra-interest-chip .veyra-interest-remove{font-size:18px;line-height:1;opacity:.8}
+@media(prefers-reduced-motion:reduce){.veyra-button,.veyra-choice{transition:none!important}.veyra-button-spinner{animation:none}}
+
+/* Minimum accessible hit-area even when the visible pill is compact. */
+.veyra-v2 button.veyra-interest-chip,.v2-onboarding button.veyra-interest-chip{min-height:44px}
+.veyra-v2 .veyra-button:focus-visible,.v2-onboarding .veyra-button:focus-visible,
+.veyra-v2 .veyra-choice:focus-visible,.v2-onboarding .veyra-choice:focus-visible,
+.veyra-v2 button.veyra-interest-chip:focus-visible,.v2-onboarding button.veyra-interest-chip:focus-visible{
+ outline:3px solid var(--vx-color-accent);outline-offset:3px
+}
+
+/* Tactile selected state: one 220ms transform pulse (no layout work). */
+.veyra-v2 .veyra-choice[aria-pressed="true"],.v2-onboarding .veyra-choice[aria-pressed="true"]{animation:veyraChoiceSelect .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes veyraChoiceSelect{0%{transform:scale(.97)}55%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.veyra-v2 .veyra-choice[aria-pressed="true"],.v2-onboarding .veyra-choice[aria-pressed="true"]{animation:none}}

@@ -4,6 +4,11 @@ import {profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionM
 // progress to its actual distance, then hold the compact frame through
 // the remaining content scroll. These keyframes are built ONLY on mount/resize.
 const rounded=n=>Math.round(n*1e5)/1e5;
+// Bottom crop keeps the composited blur inside the sheet's opaque edge.
+export const blurClipBottom=(sheetY,compactHeight)=>Math.max(0,compactHeight-(sheetY+24));
+// The white rim must not appear before the photograph has become circular.
+export const PROFILE_RIM_FADE_START=PROFILE_CIRCLE_AT+.02;
+export const PROFILE_RIM_FADE_END=PROFILE_CIRCLE_AT+.065;
 const fade=(p,a,b)=>{
  const t=Math.max(0,Math.min(1,(p-a)/(b-a)));
  return t*t*(3-2*t);
@@ -32,9 +37,9 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.online.push({offset,opacity:f.compactOnlineOpacity});
   tracks.shade.push({offset,opacity:f.shadeOpacity});
   // Decorative layers only: the approved hero trajectory stays unchanged.
-  tracks.blur.push({offset,opacity:fade(f.progress,.025,.23)});
+  tracks.blur.push({offset,opacity:fade(f.progress,.025,.23),clipPath:'inset(0px 0px '+blurClipBottom(f.sheetY,compactHeight).toFixed(3)+'px 0px)'});
   tracks.ring.push({offset,opacity:0}); // legacy fixed ring replaced by hero-attached rim
-  tracks.rim.push({offset,opacity:fade(f.progress,PROFILE_CIRCLE_AT-.004,PROFILE_CIRCLE_AT+.026)});
+  tracks.rim.push({offset,opacity:fade(f.progress,PROFILE_RIM_FADE_START,PROFILE_RIM_FADE_END)});
   tracks.onlineDot.push({offset,opacity:fade(f.progress,.85,1)});
   tracks.grabber.push({
    offset,
