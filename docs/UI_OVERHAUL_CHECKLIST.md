@@ -22,7 +22,7 @@
 | [x] | 2 | Общий LiquidLogo и плавная смена тона | `LiquidLogo.jsx`, `LiquidLogo.css`, `UI.jsx`, `Member.jsx`, `MemberMotion5.css`, `MemberMotion6.css`, `MemberFinish.css`, `MemberReferencePolish.css`, `MemberStickyPortal.css`, `Registration2026.css`, `Discover.jsx`, `DiscoveryHub.jsx`, `FeedPremium2026.css`, `useVeyraProfileMotion.js`, `tests/approved-work-assets.test.js`, `tests/veyra-brand-consistency.test.js` | CI #38548199719: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; реальный Telegram Android и контрастные фото ещё проверить |
 | [x] | 4.1 | Единые дизайн-токены | `tokens.css`, `App.jsx`, `V2.css`, `Registration2026.css`, `ProfilePreview.css`, `MemberPolish7.css`, `BrandConsistency.css`, `tests/ui-tokens.test.js`, `tests/telegram-swipe-profile-polish.test.js`, `tests/veyra-brand-consistency.test.js` | CI #38549891572: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; перенос оставшихся локальных цветов в общие компоненты (4.2–6.1), Android QA |
 | [x] | 4.2 | Button / Choice / InterestChip | `UI.jsx`, `UiPrimitives.css`, `Registration.jsx`, `OnboardingOptions.jsx`, `Member.jsx`, `ProfilePreview.jsx`, `Discover.jsx`, `tests/ui-components.test.js` | CI #38550831532: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Android visual + touch QA still needed |
-| [ ] | 4.3 | Цветные интересы в регистрации | — | Не начато |
+| [~] | 4.3 | Цветные интересы в регистрации | — | Поиск, популярные, цвета категорий, мягкий минимум и haptic |
 | [ ] | 4.4 | Превью через настоящий Member | — | Не начато |
 | [ ] | 4.5 | Единая система иконок | — | Не начато |
 | [ ] | 4.6 | Клавиатура, локальные ошибки, цели | — | Не начато |
