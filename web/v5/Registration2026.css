@@ -56,8 +56,6 @@
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .registration-step{animation:none!important}.v2-onboarding .veyra-registration-2026 .progress span::after{transition:none!important}}
 
 /* Approved outline icons from VEYRA_DESIGN_MASTER.zip */
-.v2-onboarding .veyra-brand-glyph{display:inline-block;flex:none;vertical-align:middle;mask-position:center;mask-repeat:no-repeat;mask-size:contain;-webkit-mask-position:center;-webkit-mask-repeat:no-repeat;-webkit-mask-size:contain;transition:background-color .2s,transform .2s}
-.v2-onboarding .choice.selected .veyra-brand-glyph{transform:scale(1.05)}
 /* Animated splash uses actual preloaded asset completion, not a fake indefinite bar. */
 .splash{background:radial-gradient(ellipse 100% 65% at 50% 20%,#EEE4FF,#FBF7FF 78%);color:#292033;gap:19px;overflow:hidden}
 .splash .logo{width:min(57vw,220px);height:auto;filter:drop-shadow(0 12px 28px #9165F228);animation:veyraSplash 1s cubic-bezier(.2,.8,.2,1) both}
@@ -96,7 +94,6 @@
 .v2-onboarding .veyra-registration-2026 .veyra-age-feedback{margin:0;justify-self:start;border-radius:99px;background:#EFE7FC;color:#7953C9;font-size:12px;font-weight:700;padding:7px 11px}
 .v2-onboarding .veyra-registration-2026 .veyra-age-feedback.underage{background:#FFF0F2;color:#B4415E}
 .v2-onboarding .veyra-registration-2026 .gender-choice{min-height:82px!important;padding:12px 8px!important;gap:6px!important}
-.v2-onboarding .veyra-registration-2026 .gender-choice .veyra-brand-glyph{height:33px!important;width:33px!important}
 .v2-onboarding .veyra-registration-2026 .location-card{padding:17px 13px 19px!important;border-radius:20px}
 .v2-onboarding .veyra-registration-2026 .location-card h2{margin:7px 0;font-size:25px}
 .v2-onboarding .veyra-registration-2026 .location-card .location-mark{width:68px;height:68px}
