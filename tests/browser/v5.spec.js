@@ -66,6 +66,11 @@ test('VEYRA legal documents accept consent and support a public legal page',asyn
  await page.getByRole('button',{name:'Условия использования'}).click();
  const dialog=page.getByRole('dialog',{name:'Правила и конфиденциальность VEYRA'});
  await expect(dialog).toBeVisible();
+ const stacking=await page.evaluate(()=>({
+  legal:parseInt(getComputedStyle(document.querySelector('.veyra-legal-modal')).zIndex,10),
+  arrows:parseInt(getComputedStyle(document.querySelector('.veyra-glass-navigation')).zIndex,10)
+ }));
+ expect(stacking.legal).toBeGreaterThan(stacking.arrows);
  await expect(dialog.getByRole('heading',{name:'Условия использования'})).toBeVisible();
  await dialog.getByRole('tab',{name:'Конфиденциальность'}).click();
  await expect(dialog.getByRole('heading',{name:'Политика конфиденциальности'})).toBeVisible();
