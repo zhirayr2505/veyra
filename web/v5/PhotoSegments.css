@@ -36,9 +36,6 @@
  position:absolute;top:13px;bottom:auto;left:50%;right:auto;
  z-index:8;transform:translateX(-50%);width:min(65%,245px);
 }
-.veyra-profile-preview.mode-detail .preview-gallery .veyra-photo-segments{
- top:auto;bottom:14px;
-}
 @media(prefers-reduced-motion:reduce){
  .veyra-photo-segments .veyra-photo-segment-fill{transition:none}
 }
