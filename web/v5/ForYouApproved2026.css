@@ -229,9 +229,9 @@
 }
 .veyra-v2 :is(.vx-dating-stage02,.v2-directory) .vx-for_you .vx-for-you-themed-serious .vx-for-you-collection-glass{rotate:7deg}
 .veyra-v2 :is(.vx-dating-stage02,.v2-directory) .vx-for_you .vx-for-you-themed-travel .vx-for-you-collection-glass{rotate:-4deg}
-.veyra-v2 :is(.vx-dating-stage02,.v2-directory) .vx-for_you .vx-for-you-collection-glass .kit-icon{
- width:clamp(31px,9.4vw,45px);height:clamp(31px,9.4vw,45px);
- filter:drop-shadow(0 6px 6px #a361bb55)!important;
+.veyra-v2 :is(.vx-dating-stage02,.v2-directory) .vx-for_you .vx-for-you-collection-glass .vx-for-you-collection-symbol{
+ display:block;width:78%!important;height:78%!important;
+ object-fit:contain;filter:drop-shadow(0 5px 5px #66438555);
 }
 .veyra-v2 :is(.vx-dating-stage02,.v2-directory) .vx-for_you .vx-themed-collection .vx-collection-label{
  position:absolute;z-index:3;left:8px;right:5px;bottom:10px;
