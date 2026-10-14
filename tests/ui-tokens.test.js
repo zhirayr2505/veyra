@@ -23,7 +23,7 @@ test('all seven interest tones have one source and registration/profile share bu
  }
  const registration=read('web/v5/Registration2026.css');
  const preview=read('web/v5/ProfilePreview.css');
- assert.match(registration,/background:var\(--vx-gradient-primary\)!important/);
- assert.match(registration,/border-radius:var\(--vx-radius-button\)!important/);
+ assert.match(registration,/\.veyra-glass-next\{/);
+ assert.match(registration,/border-radius:50%!important/);
  assert.match(preview,/\.vp-primary\{[^}]*background:var\(--vx-gradient-primary\)/);
 });
