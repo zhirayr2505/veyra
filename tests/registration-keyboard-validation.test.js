@@ -8,6 +8,7 @@ test('visualViewport height + offsetTop and scroll position keyboard-safe glass 
  assert.match(css,/bottom:var\(--veyra-nav-keyboard-gap,0px\)/);
  assert.doesNotMatch(css,/registration-actions\[data-keyboard-open="true"\]/);
  assert.doesNotMatch(jsx,/setKeyboardActive/);
+ assert.match(jsx,/\},\[preview\]\);/);
 });
 test('registration local validation and Telegram error haptic remain available',()=>{
  const jsx=read('web/v5/Registration.jsx');
