@@ -12,6 +12,7 @@ import {VeyraPackIcon,interestGlyph} from './VeyraPackIcons.jsx';
 import {useVeyraProfileMotion} from './useVeyraProfileMotion.js';
 import {interestTone,sharedInterestSet,normalizeInterest} from './profilePolishLogic.js';
 import {MemberSwipePages} from './MemberSwipePages.jsx';
+import {PhotoSegments} from './PhotoSegments.jsx';
 import {Pencil,Settings2,Wallet,ShieldCheck,Crown,Medal,ImagePlus,MessageCircleHeart} from 'lucide-react';
 
 const TABS=[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Общее']];
@@ -127,7 +128,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       <Photo id={photos[idx]} alt={data.name} onClick={()=>openGallery()} priority resolution={960}/>
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
-      {photos.length>1&&<div className="vx-profile-photo-bars">{photos.map((p,i)=><button key={p} type="button" className={i===idx?'active':''} onClick={()=>setIdx(i)} aria-label={'Фото '+(i+1)}/>)}</div>}
+      <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
       {photos.length>1&&<div className="vx-profile-photo-nav">
        <button type="button" onClick={()=>photosNext(-1)} aria-label="Предыдущее фото"><ChevronLeft size={26}/></button>
        <button type="button" onClick={()=>photosNext(1)} aria-label="Следующее фото"><ChevronRight size={26}/></button>
@@ -195,6 +196,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    {photos.length>1&&<button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>photosNext(-1)}><ChevronLeft size={28}/></button>}
    <Photo id={photos[idx]} alt={data.name} priority resolution={960}/>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>photosNext(1)}><ChevronRight size={28}/></button>}
+   <PhotoSegments count={photos.length} index={idx} className="vx-profile-gallery-bars"/>
    <small className="vx-profile-gallery-counter" aria-live="polite">{idx+1}/{photos.length}</small>
    {galleryHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
   </div>,document.body)}
