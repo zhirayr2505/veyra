@@ -222,7 +222,7 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
     <Button onClick={limited?onPremium:error?retryLoad:onFilters}>{limited?'Открыть Premium':error?'Повторить':'Настроить поиск'}</Button>
    </div>}
   <InlineAlert>{error&&people.length>0?error:''}</InlineAlert>
-  {previewPerson&&<PersonQuickPreview person={previewPerson} kind={kind} onClose={()=>setPreviewPerson(null)} onOpenProfile={id=>{setPreviewPerson(null);onProfile(id)}}/>}
+  {previewPerson&&<PersonQuickPreview person={previewPerson} kind={kind} onClose={()=>setPreviewPerson(null)} onOpenProfile={id=>{setPreviewPerson(null);onProfile(id,null,previewPerson)}}/>}
  </div>;
 }
 export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,onProfile,onMatch,onPremium,onFilters,onWallet,veysBalance=0,refreshTick=0,demoMode=false,demoStatus='hidden',onDemoModeChange,onDemoRetry,onDemoReset,demoResetBusy=false,demoResetNotice=''}){
