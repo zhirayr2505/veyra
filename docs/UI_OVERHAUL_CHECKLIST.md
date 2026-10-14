@@ -30,7 +30,7 @@
 | [x] | 4.8 | Сжатие и загрузка фотографий | `compressPortrait.js`, `Registration.jsx`, `Registration2026.css`, `tests/photo-compression-client.test.js` | CI #38555242098: npm run check (test/build) ✓, npm run lint ✓; real Android camera files and memory testing pending |
 | [x] | 4.9 | Хаптика и доступность | `haptics.js`, `UI.jsx`, `Registration.jsx`, `OnboardingOptions.jsx`, `UiPrimitives.css`, `Registration2026.css`, `tests/veyra-haptics-a11y.test.js`, `tests/interest-picker-ui.test.js`, `tests/registration-keyboard-validation.test.js` | CI #38556038178: npm run check ✓, npm run lint ✓; manual contrast audit, Telegram haptic and 44px touch-area inspection still required |
 | [x] | 6.1 | Обновить регистрацию и связанные экраны | `ProfileEditor.jsx`, `Legal.jsx`, `CompletionScene.jsx`, `CompletionScene.css`, `OnboardingUnified.css`, `tests/onboarding-unified.test.js` | CI #38556746618: npm run check (test/build) ✓, npm run lint ✓; screenshots and all 8 stages on Telegram Android require device review |
-| [~] | 6.2 | Плавные переходы шагов | — | Native ViewTransition + WAAPI exit snapshot; stagger; focus/CTA/progress |
+| [x] | 6.2 | Плавные переходы шагов | `Registration.jsx`, `RegistrationTransitions.css`, `OnboardingHeader.jsx`, `tests/registration-step-transition.test.js` | CI #38557574487: npm run check (test/build) ✓, npm run lint ✓; Chrome Telegram Android visual/easing/focus verification pending |
 | [ ] | 6.3 | Микроанимации вариантов и успеха | — | Не начато |
 | [ ] | 6.4 | Финальная приёмка и 60 fps | — | Не начато |
 
