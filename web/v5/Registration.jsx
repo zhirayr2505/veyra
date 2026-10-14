@@ -1,7 +1,7 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
-import {Button,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
+import {Button,Choice,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
 import {BioStep} from './BioStep.jsx';
@@ -192,7 +192,7 @@ export function Registration({me,refresh}){
     </div>}
     {step===2&&<div className="fields">
      <div className="veyra-dob"><div className="veyra-dob-label">Дата рождения</div><div className="veyra-dob-fields">{[['day','День','ДД',2],['month','Месяц','ММ',2],['year','Год','ГГГГ',4]].map(([key,title,placeholder,len],index)=><label key={key}>{title}<input ref={node=>{dobRefs.current[index]=node}} aria-label={title+' рождения'} inputMode="numeric" autoComplete="off" maxLength={len} placeholder={placeholder} value={dobParts[key]} onChange={e=>setDobPart(key,e.target.value)}/></label>)}</div>{age(f.birth_date)>0&&<p className={'veyra-age-feedback '+(age(f.birth_date)<18?'underage':'')}>{age(f.birth_date)<18?'Регистрация доступна только с 18 лет':'Вам '+age(f.birth_date)+' лет'}</p>}</div>
-     <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><button type="button" key={k} aria-pressed={f.gender===k} className={'choice gender-choice '+(f.gender===k?'selected':'')} onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><DesignGlyph name={k==='man'?'male':'female'} active={f.gender===k} size={34}/>{v}</button>)}</div>
+     <p className="field-label">Ваш пол</p><div className="choices">{[['man','мужчина'],['woman','женщина']].map(([k,v])=><Choice key={k} selected={f.gender===k} className="gender-choice" onClick={()=>{setF(old=>({...old,gender:k,looking_for:!old.gender?(k==='man'?['woman']:['man']):old.looking_for}))}}><DesignGlyph name={k==='man'?'male':'female'} active={f.gender===k} size={34}/>{v}</Choice>)}</div>
     </div>}
     {step===3&&<div className="fields">
     {selectedCity&&<div className="location-card veyra-city-row"><span className="location-mark"><DesignGlyph name="my-location" active size={27}/></span><div className="veyra-city-info"><small>ТВОЁ МЕСТОПОЛОЖЕНИЕ</small><h2>{f.city}</h2><p><CountryFlag country={f.country}/> {f.country}</p></div><button type="button" className="location-change" onClick={()=>{setCityEdit(v=>!v);setQuery('')}}>{cityEdit?'Закрыть':'Изменить город'}</button></div>}
@@ -208,7 +208,7 @@ export function Registration({me,refresh}){
       <label className="veyra-world-switch"><span>Искать по всему миру</span><input type="checkbox" role="switch" aria-label="Искать по всему миру" checked={f.radius_km===20000} onChange={e=>change('radius_km',e.target.checked?20000:100)}/><span className="veyra-switch-track" aria-hidden="true"><span/></span></label>
      </div>}
    </div>}
-   {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><button key={k} className={'choice looking-choice '+((k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k)?'selected':'')} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><DesignGlyph name={k==='man'?'male':k==='woman'?'female':'everyone'} active={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} size={42}/><span>{v}</span></button>)}</div>
+   {step===4&&<div className="fields"><p className="field-label">Кого ищешь?</p><div className="choices">{[['woman','женщин'],['man','мужчин'],['all','всех']].map(([k,v])=><Choice key={k} className="looking-choice" selected={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} onClick={()=>change('looking_for',k==='all'?['man','woman']:[k])}><DesignGlyph name={k==='man'?'male':k==='woman'?'female':'everyone'} active={k==='all'?f.looking_for.length===2:f.looking_for.length===1&&f.looking_for[0]===k} size={42}/><span>{v}</span></Choice>)}</div>
     <AgeRange min={f.min_age} max={f.max_age} onChange={(min,max)=>setF(old=>({...old,min_age:min,max_age:max}))}/>
    </div>}
    {step===5&&<div className="fields veyra-goal-step"><GoalPicker value={f.goal} onChange={v=>change('goal',v)}/></div>}
