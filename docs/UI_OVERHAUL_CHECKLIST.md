@@ -13,7 +13,7 @@
 | [x] | 1.3 | Перенести индикатор фото вниз обложки | `PhotoSegments.jsx`, `PhotoSegments.css`, `Member.jsx`, `ProfilePreview.jsx`, `MemberMotionV2.css`, `MemberTelegramProfile.css`, `ProfilePreview.css` | CI #38541511154: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Telegram Android — требуется |
 | [x] | 1.4 | Улучшить контраст логотипа и scrim | `MemberMotionV2.css` | CI #38541967543: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; реальные фото Android — требуется |
 | [x] | 5.1 | Мгновенный каркас профиля из данных карточки | `profileSeed.js`, `tests/profile-seed.test.js`, `Member.jsx`, `MemberMotion5.css`, `App.jsx`, `Discover.jsx`, `Likes.jsx`, `Chats.jsx`, `DiscoveryHub.jsx` | CI #38542826974: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; физический Android — требуется |
-| [~] | 5.2 | Кэш фото, LQIP и доминантный цвет | — | Обследование хранения фото, создание миниатюр и устойчивого fallback |
+| [x] | 5.2 | Кэш фото, LQIP и доминантный цвет | `api.js`, `server/photo-placeholder.js`, `server/app.js`, `server/registration.js`, `server/domain.js`, `Member.jsx`, `migrations/023_photo_lqip.sql`, `scripts/backfill-photo-placeholders.js`, `tests/photo-placeholder.test.js` | CI #38543625688: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; заполнение старых фото требует запуска скрипта после деплоя |
 | [ ] | 5.3 | Плавный переход blur → sharp после decode | — | Не начато |
 | [ ] | 5.4 | Приоритетная предзагрузка 960/640 | — | Не начато |
 | [ ] | 5.5 | Единый Photo для всех экранов | — | Не начато |
@@ -61,3 +61,5 @@
 - **1.4:** CI https://github.com/zhirayr2505/veyra/actions/runs/38541967543 — npm test/build/ESLint прошли; верхний градиент проверять на светлом и тёмном фото.
 
 - **5.1:** CI https://github.com/zhirayr2505/veyra/actions/runs/38542826974 — npm test/build/ESLint прошли; показываются seed-данные до ответа сервера.
+
+- **5.2:** CI https://github.com/zhirayr2505/veyra/actions/runs/38543625688 — тесты/сборка/ESLint прошли. Миграция автоматическая при запуске сервера; старые фото обрабатывает отдельный ограниченный batch-скрипт `node --env-file-if-exists=.env scripts/backfill-photo-placeholders.js`, запуск после деплоя нужен отдельно.
