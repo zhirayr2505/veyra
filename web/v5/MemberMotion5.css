@@ -1,36 +1,6 @@
 /* VEYRA Motion 5: exact visual finish with preserved compositor scroll motion.
    Imported LAST. No changes to Telegram native controls or menu placement. */
 
-/* Wordmark: original brand geometry as SVG alpha mask + elegant dimensional
-   gradient. Contrast is sampled ONCE from the actual photo, never during scroll. */
-body>.vx-member-native-header::before,
-body:has(.vx-profile-motion[data-state="compact"])>.vx-member-native-header::before{
- content:none!important;display:none!important;
-}
-@supports ((mask-image:url("/veyra-design/veyra-wordmark-purple.svg")) or (-webkit-mask-image:url("/veyra-design/veyra-wordmark-purple.svg"))){
- body>.vx-member-native-header>.vx-member-floating-logo{
-  opacity:.001!important;
- }
- body>.vx-member-native-header::after{
-  content:"";position:absolute;
-  left:50%;top:50%;transform:translate(-50%,-50%);
-  width:clamp(105px,31vw,131px);height:42px;
-  -webkit-mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
-  mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
-  pointer-events:none;z-index:3;
-  background:linear-gradient(160deg,#e8b4ff 0%,#bd79ff 23%,#8040dc 48%,#6833dd 70%,#a465fa 100%);
-  filter:drop-shadow(0 2px 1px #25132f65) drop-shadow(0 -1px 1px #ffffff50);
- }
- body>.vx-member-native-header[data-logo-tone="light"]::after{
-  background:linear-gradient(160deg,#b869f4 0%,#7c34e3 37%,#5726b5 71%,#9848e9 100%);
-  filter:drop-shadow(0 1px 0 #ffffffc9) drop-shadow(0 2px 2px #3f236b5c);
- }
- body>.vx-member-native-header[data-logo-tone="dark"]::after{
-  background:linear-gradient(155deg,#ffd2ff 0%,#d49aff 30%,#ae60f3 62%,#e4a9ff 100%);
-  filter:drop-shadow(0 2px 2px #160a2eb5) drop-shadow(0 -1px 0 #fff5);
- }
-}
-
 /* Single source for the photo-derived compact backdrop.
    Animated clip follows sheetY+24px; no blurred strip can extend below it. */
 .veyra-v2 .vx-master-profile .vx-profile-blurred-header{
