@@ -1805,6 +1805,9 @@ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and
  const origins=[];
  for(const y of [390,455,520,585])for(const x of [45,190,340])origins.push({x,y});
  const cdp=await page.context().newCDPSession(page);
+ // CDP touch dispatch on the desktop Chromium project is not equivalent to
+ // an Android touch device until touch emulation is enabled.
+ await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
  const drag=async(x,y,dx,dy)=>{
   const touch=(xx,yy)=>({x:Math.round(xx),y:Math.round(yy),radiusX:5,radiusY:5,force:1,id:1});
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch(x,y)]});
@@ -1829,10 +1832,13 @@ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and
   await drag(origin.x,origin.y,0,200);
   const after=await scroller.evaluate(el=>el.scrollTop);
   diagnostic.push({...origin,before,after,hierarchy});
-  expect(hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
-  expect(after,'vertical touch from '+origin.x+','+origin.y).toBeLessThan(before-20);
  }
+ // Attach the *whole* real-hit grid before reporting a failing location.
  await testInfo.attach('stage2-hit-test-grid.json',{body:Buffer.from(JSON.stringify(diagnostic,null,2)),contentType:'application/json'});
+ for(const point of diagnostic){
+  expect(point.hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
+  expect(point.after,'vertical touch from '+point.x+','+point.y+' hit='+JSON.stringify(point.hierarchy.slice(0,3))).toBeLessThan(point.before-20);
+ }
  for(const origin of origins){
   await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
   const rail=page.locator('.vx-profile-tab-rail');
