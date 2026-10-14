@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
 import {get,post,photoUrl} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
-import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
+import {FeedCardVisual} from './FeedCardVisual.jsx';
 import {Button,Icon,InlineAlert,Spinner,InterestIcon,InterestChip,Photo,Logo} from './UI.jsx';
 import {INTEREST_GROUPS} from './OnboardingOptions.jsx';
 import {interestTone} from './profilePolishLogic.js';
@@ -18,13 +18,6 @@ async function decodePhoto(url){if(!url||typeof Image==='undefined')return;
  if(typeof image.decode==='function')await image.decode().catch(()=>{});
 }
 function Interest({name}){return <InterestChip className="feed-interest" label={name} tone={interestTone(name,INTEREST_GROUPS)} icon={<InterestIcon name={name} size={14}/>}/>;}
-function FeedPicture({card,index}){
- const id=card.photos?.[index];
- return <div className="feed-picture">
-  <Photo id={id} className="feed-picture-current" alt={card.name}
-   priority resolution={960} placeholder={card.photo_placeholders?.[String(id)]}/>
- </div>;
-}
 function FeedState({kind,onRetry,onFilters,onPremium}){
  const isLoading=kind==='loading',isError=kind==='error',isLimited=kind==='limit';
  return <div className={'feed-state feed-state-'+kind} role={isLoading?'status':undefined}>
@@ -169,12 +162,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
       onClick={onCardClick} aria-label={'Листать фотографии: '+card.name}>
-      <FeedPicture key={card.id} card={card} index={index}/>
-      <div className="veyra-card-shade" aria-hidden="true"/>
-      <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
-      <CardGoalBadge goal={card.goal} top/>
-      {card.test_profile&&<span className="vx-demo-feed-badge">ДЕМО</span>}
-      <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id,null,card)}/>
+      <FeedCardVisual card={card} index={index} onIndex={setIndex} location={location} onProfile={()=>onProfile(card.id,null,card)}/>
       <button type="button" className="vx-feed-profile-info" onClick={e=>{e.stopPropagation();onProfile(card.id,null,card)}} aria-label={'Открыть полный профиль '+card.name}><Icon name="info" tone="white" size={21}/></button>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}
