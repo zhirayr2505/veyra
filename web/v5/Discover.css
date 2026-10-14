@@ -17,11 +17,8 @@
 @keyframes veyraSuper{0%{opacity:1;transform:scale(1)}40%{opacity:1;transform:scale(1.025)}100%{opacity:0;transform:translateY(-54px) scale(.92)}}
 @keyframes veyraCardEnter{0%{opacity:0;transform:translateY(26px) scale(.94);filter:blur(3px)}65%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 .discover .feed-picture{position:absolute;inset:0;overflow:hidden}
-.discover .feed-picture>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
-.discover .feed-picture-current{animation:veyraImageReveal .24s ease-out both}
-@keyframes veyraImageReveal{from{opacity:0}to{opacity:1}}
-.discover .feed-picture-skeleton{position:absolute;inset:0;background:linear-gradient(110deg,#F0E9FF,#fff0f1,#F0E9FF);background-size:200% 100%;animation:shimmer 1.6s linear infinite}
-.discover .feed-picture-unavailable{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:#6817FF}
+.discover .feed-picture>.photo-progressive{position:absolute;inset:0;width:100%;height:100%}
+.discover .feed-picture>.photo-progressive>img.photo-sharp{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .discover .feed-image-shade{position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(180deg,#0004 0%,transparent 25%,transparent 48%,#08050d40 68%,#050307e3 100%)}
 .discover .photo-bars{position:absolute;top:10px;left:11px;right:11px;bottom:auto;z-index:7;display:flex;gap:5px}
 .discover .photo-bars button{height:3px;min-width:0;flex:1;padding:0;border:0;border-radius:999px;background:#ffffff70;box-shadow:0 0 3px #0004}
@@ -83,7 +80,7 @@
  .discover .feed-interest{font-size:9px;padding:5px 6px}
 }
 @media(prefers-reduced-motion:reduce){
- .discover .feed-photo,.discover .feed-picture-current,.discover .feed-flash,.discover .feed-load-cards img{animation:none!important;transition:none!important}
+ .discover .feed-photo,.discover .feed-flash,.discover .feed-load-cards img{animation:none!important;transition:none!important}
 }
 
 /* DiscoveryHub supplies the shared VEYRA header + segment navigation. */
