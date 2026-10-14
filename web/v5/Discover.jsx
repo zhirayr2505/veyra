@@ -1,9 +1,9 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphones,MapPin,MonitorSmartphone,Music2,Palette,PawPrint,Plane,ShieldCheck,Shirt,Star,UtensilsCrossed} from 'lucide-react';
-import {get,post,photoUrl,cachedPhoto} from './api.js';
+import {get,post,photoUrl} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
 import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
-import {Button,Icon,InlineAlert,Spinner,InterestIcon} from './UI.jsx';
+import {Button,Icon,InlineAlert,Spinner,InterestIcon,Photo} from './UI.jsx';
 import './Discover.css';
 
 const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
@@ -17,51 +17,10 @@ async function decodePhoto(url){if(!url||typeof Image==='undefined')return;
 }
 function Interest({name}){return <span className="feed-interest"><InterestIcon name={name} size={14}/><span>{name}</span></span>;}
 function FeedPicture({card,index}){
- const photos=card.photos||[],id=photos[index],profileId=card.id;
- const [state,setState]=useState(()=>({profileId,src:cachedPhoto(id,{width:960}),previous:'',failed:!id}));
- useEffect(()=>{
-  let alive=true;
-  if(!id){setState({profileId,src:'',previous:'',failed:true});return;}
-  const apply=url=>setState(prev=>{
-   const previous=prev.profileId===profileId?prev.src:'';
-   return {profileId,src:url,previous:previous!==url?previous:'',failed:false};
-  });
-  const cached=cachedPhoto(id,{width:960});
-  if(cached)apply(cached);
-  else {
-   setState(prev=>prev.profileId===profileId?{...prev,failed:false}:{profileId,src:'',previous:'',failed:false});
-   photoUrl(id,{width:960}).then(async url=>{await decodePhoto(url);if(alive)apply(url)})
-    .catch(()=>{if(alive)setState(prev=>({...prev,profileId,failed:true}))});
-  }
-  return()=>{alive=false};
- },[id,profileId]);
- useEffect(()=>{if(!state.previous)return;
-  const timer=setTimeout(()=>setState(prev=>({...prev,previous:''})),250);
-  return()=>clearTimeout(timer);
- },[state.src,state.previous]);
- useEffect(()=>{
-  if(!id)return;
-  let cancelled=false;
-  // The currently visible portrait wins network priority. Preload its
-  // 640px thumbnail next, then the neighboring carousel frames.
-  photoUrl(id,{width:960}).then(async url=>{
-   await decodePhoto(url);
-   if(cancelled)return;
-   await photoUrl(id,{width:640}).catch(()=>{});
-   if(cancelled||photos.length<2)return;
-   for(const p of new Set([photos[(index+1)%photos.length],photos[(index+photos.length-1+photos.length)%photos.length]])){
-    if(cancelled)return;
-    if(p&&p!==id)await photoUrl(p,{width:640}).catch(()=>{});
-   }
-  }).catch(()=>{});
-  return()=>{cancelled=true};
- },[photos,index,id]);
- const same=state.profileId===profileId;
+ const id=card.photos?.[index];
  return <div className="feed-picture">
-  {same&&state.previous&&<img className="feed-picture-previous" src={state.previous} alt="" draggable="false" aria-hidden="true"/>}
-  {same&&state.src?<img key={state.src} className="feed-picture-current" src={state.src} alt={card.name} draggable="false" fetchPriority="high" decoding="async"/>:
-   same&&state.failed?<div className="feed-picture-unavailable"><Icon name="camera" tone="dark" size={27}/><span>Фото недоступно</span></div>:
-   <div className="feed-picture-skeleton" aria-hidden="true"/>}
+  <Photo id={id} className="feed-picture-current" alt={card.name}
+   priority resolution={960} placeholder={card.photo_placeholders?.[String(id)]}/>
  </div>;
 }
 function FeedState({kind,onRetry,onFilters,onPremium}){
