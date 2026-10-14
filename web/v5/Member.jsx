@@ -42,7 +42,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const [reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false);
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState('about');
- const [logoTone,setLogoTone]=useState('light');
+ const [logoTone,setLogoTone]=useState(null);
  const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryTouch=useRef(null),galleryHintSeen=useRef(false);
  const swipeApiRef=useRef(null),tabRailRef=useRef(null);
  const moveTabIndicator=useCallback(position=>{
@@ -89,8 +89,9 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     const bytes=ctx.getImageData(0,0,12,8).data;
     let sum=0;
     for(let i=0;i<bytes.length;i+=4)sum+=.2126*bytes[i]+.7152*bytes[i+1]+.0722*bytes[i+2];
-    setLogoTone(sum/(bytes.length/4)<139?'dark':'light');
-   }catch{setLogoTone('light')}
+    const brightness=sum/(bytes.length/4);
+    setLogoTone(prev=>prev==null?(brightness<140?'dark':'light'):prev==='dark'?(brightness>150?'light':'dark'):(brightness<130?'dark':'light'));
+   }catch{setLogoTone(prev=>prev??'light')}
   };
   const observer=new MutationObserver(sample);
   observer.observe(root,{childList:true,subtree:true});
@@ -137,9 +138,9 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const fullName=(data.name||'Профиль')+(data.age?', '+data.age:'');
  const photosNext=step=>setIdx(n=>(n+step+photos.length)%photos.length);
  return <div className={'member page member-feed-profile vx-telegram-member vx-master-profile'+(isOwn?' vx-own-member own-profile':'')+(loading?' vx-profile-hydrating':'')} aria-busy={loading}>
-  {createPortal(<header className="vx-member-floating-header vx-member-native-header" data-logo-tone={logoTone} aria-label="Навигация профиля VEYRA">
+  {createPortal(<header className="vx-member-floating-header vx-member-native-header" data-logo-tone={logoTone||"pending"} aria-label="Навигация профиля VEYRA">
    {(isOwn||!window.Telegram?.WebApp?.BackButton)&&<button type="button" className="vx-member-fallback-back" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
-   <Logo width={115} className="vx-member-floating-logo"/>
+   <Logo width={131} tone={logoTone||"dark"} ready={logoTone!=null} className="vx-member-floating-logo"/>
   </header>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
