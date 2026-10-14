@@ -62,13 +62,8 @@ export async function applyRegistrationReset(db,env,{backupManifest,expectedDati
   const photoQueue=await q.query('INSERT INTO storage_gc(object_key) SELECT object_key FROM photos ON CONFLICT DO NOTHING');
   const chatQueue=await q.query('INSERT INTO storage_gc(object_key) SELECT DISTINCT object_key FROM message_media ON CONFLICT DO NOTHING');
   for(const table of datingTables)await q.query(`DELETE FROM ${table}`);
-  // Only remove obsolete pending profile-review notifications. Financial outbox
-  // events remain available for reconciliation and refunds.
-  await q.query("DELETE FROM outbox WHERE payload ? 'review_user_id'");
-  // Preserve user IDs and existing Premium/VEYS entitlements, purchases, refunds
-  // and referrals already credited. Reauthentication will refresh Telegram data.
-  await q.query(`UPDATE users SET username=NULL,first_name='',invisible=false,paused=false
-   WHERE status='active'`);
+  // No outbox or users UPDATE/DELETE: checkout events and financial identity
+  // remain untouched; removing profiles/drafts is enough to restart onboarding.
   for(const table of ['profiles','photos','registration_drafts','sessions','matches','messages']){
    if((await one(q,`SELECT count(*)::int AS n FROM ${table}`)).n!==0)
     throw Error('RESET_POSTCONDITION_FAILED_'+table);
