@@ -14,4 +14,5 @@ CREATE TABLE stage0_jobs (
 );
 CREATE INDEX stage0_jobs_pending ON stage0_jobs(requested_at) WHERE state='pending';
 ALTER TABLE stage0_jobs ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON stage0_jobs FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON stage0_jobs FROM PUBLIC;
+-- No policies: anonymous and authenticated sessions cannot read or enqueue jobs.
