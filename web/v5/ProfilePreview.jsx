@@ -1,8 +1,9 @@
 import React,{useRef,useState,useEffect,useLayoutEffect} from 'react';
 import {photoUrl} from './api.js';
-import {Logo,Photo,Icon} from './UI.jsx';
+import {Logo,Photo,Icon,Button,InterestChip} from './UI.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
-import {CatalogueIcon,ProfileHighlights} from './OnboardingOptions.jsx';
+import {CatalogueIcon,ProfileHighlights,INTEREST_GROUPS} from './OnboardingOptions.jsx';
+import {interestTone} from './profilePolishLogic.js';
 import {CountryFlag} from './CountryFlag.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 import {CardCaption,CardGoalBadge} from './DatingCardLayers.jsx';
@@ -49,7 +50,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
     <div className="vp-member-info">
      <ProfileHighlights profile={profile}/>
      <section className="info-block vp-member-card"><h3><Icon name="user" tone="pink" size={20}/> Немного о себе</h3><p>{profile.bio?.trim()||'О себе пока ничего не написано'}</p></section>
-     <section className="info-block vp-member-card"><h3><Icon name="sparkle" tone="pink" size={20}/> Интересы <small>{interests.length}/12</small></h3><div className="vp-interests">{interests.map(x=><span key={x}><CatalogueIcon value={x} size={17}/>{x}</span>)}{!interests.length&&<p>Интересы пока не выбраны</p>}</div></section>
+     <section className="info-block vp-member-card"><h3><Icon name="sparkle" tone="pink" size={20}/> Интересы <small>{interests.length}/12</small></h3><div className="vp-interests">{interests.map(x=><InterestChip key={x} label={x} tone={interestTone(x,INTEREST_GROUPS)} icon={<CatalogueIcon value={x} size={17}/>}/>)}{!interests.length&&<p>Интересы пока не выбраны</p>}</div></section>
      {ids.length>1&&<section className="info-block vp-member-card"><h3><Icon name="image" tone="pink" size={20}/> Фотографии <small>{ids.length}</small></h3><div className="vp-thumbnails">{ids.map((id,i)=><button type="button" key={id} onClick={()=>{setIndex(i);scrollRef.current?.scrollTo({top:0,behavior:'smooth'})}} aria-label={'Посмотреть фотографию '+(i+1)}><Photo id={id} alt={'Фото '+(i+1)} placeholder={photoPlaceholders[String(id)]}/></button>)}</div></section>}
     </div>
    </div>}
