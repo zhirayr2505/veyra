@@ -301,8 +301,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head .vx-feed-wo
  opacity:.55!important;
 }
 .veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo:disabled{
- opacity:.68!important;
+ opacity:1!important;
 }
+.veyra-v2 .vx-dating-stage02 .discover .vx-feed-card-stage .action-undo:disabled .feed-action-circle .kit-icon{opacity:.6}
 /* Bottom sheet floats OVER photo, leaving bottom CTA row visually visible.
    Only the drawer overlay is modal: underlying actions are not clickable. */
 .veyra-interests-overlay.vx-feed-interests-overlay{
