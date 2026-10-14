@@ -3,7 +3,9 @@
  --vx-color-primary-start:#ae60fc;
  --vx-color-primary-end:#7628e5;
  --vx-color-accent:#7628e5;
- --vx-gradient-primary:linear-gradient(110deg,var(--vx-color-primary-start),var(--vx-color-primary-end));
+ --vx-gradient-primary-base:linear-gradient(110deg,var(--vx-color-primary-start),var(--vx-color-primary-end));
+ /* Preserve approved brand stops; uniform 20% ink scrim gives white CTA text >=4.5:1. */
+ --vx-gradient-primary:linear-gradient(0deg,#251b3833,#251b3833),var(--vx-gradient-primary-base);
  --vx-color-ink:#251b38;
  --vx-color-muted:#726780;
  --vx-color-surface:#fcf9ff;
