@@ -1,5 +1,6 @@
 import React,{useEffect,useState,useRef} from 'react';
-import {photoUrl,cachedPhoto} from './api.js';
+import {photoUrl,cachedPhoto,cachedPhotoAny} from './api.js';
+import './PhotoReveal.css';
 // Approved Work asset pack: /VEYRA_ASSET_PACK/ in repo root; browser mirror: /veyra-approved/.
 const approvedBase='/veyra-approved/';
 const base=approvedBase; // only the approved Work asset pack powers branded UI
@@ -30,40 +31,35 @@ export function InterestIcon({name,size=16,selected=false}){
  return slug?<img className="veyra-interest-icon" src={approvedBase+'02_interest_icons/svg/'+(selected?'selected':'normal')+'/'+slug+'.svg'} width={size} height={size} alt="" aria-hidden="true" draggable="false"/>:null;
 }
 export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
-export function Photo({id,className='',onClick,alt='',priority=false,resolution=0}){
+export function Photo({id,className='',onClick,alt='',priority=false,resolution=0,placeholder=null}){
  const element=useRef(null),width=[256,640,960].includes(resolution)?resolution:0;
+ const [retry,setRetry]=useState(0);
  const [state,set]=useState(()=>({id,width,url:cachedPhoto(id,{width}),error:false}));
+ const [ready,setReady]=useState(()=>!!cachedPhoto(id,{width}));
  useEffect(()=>{
-  let live=true;
+  let live=true,observer;
   const cached=cachedPhoto(id,{width});
-  set({id,width,url:cached,error:false});
+  set({id,width,url:cached,error:false});setReady(!!cached);
   if(!id||cached)return;
-  let observer;
-  const load=()=>photoUrl(id,{width}).then(async url=>{
-   // Decode critical hero photograph before it enters a compositor layer.
-   if(priority&&typeof Image!=='undefined'){
-    try{const image=new Image();image.src=url;await image.decode()}catch{}
-   }
-   if(live)set({id,width,url,error:false});
-  }).catch(()=>{if(live)set({id,width,url:'',error:true})});
+  const load=()=>photoUrl(id,{width}).then(url=>{if(live)set({id,width,url,error:false})}).catch(()=>{if(live)set({id,width,url:'',error:true})});
   if(!priority&&element.current&&typeof IntersectionObserver!=='undefined'){
-   observer=new IntersectionObserver(entries=>{
-    if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}
-   },{rootMargin:'180px 0px'});
+   observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load()}},{rootMargin:'180px 0px'});
    observer.observe(element.current);
   }else load();
   return()=>{live=false;observer?.disconnect()};
- },[id,width,priority]);
+ },[id,width,priority,retry]);
  const correct=state.id===id&&state.width===width;
- const url=correct?state.url:'',failed=!id||correct&&state.error;
- return <div ref={element} className={'photo-box '+className}
+ const url=correct?state.url:'',failed=!id||(correct&&state.error);
+ const blurSrc=cachedPhotoAny(id)||(typeof placeholder==='string'?placeholder:placeholder?.lqip)||'';
+ const candidate=typeof placeholder==='object'?placeholder?.dominant:'';
+ const color=/^#[0-9a-fA-F]{6}$/.test(candidate)?candidate:'#ded0ef';
+ const decoded=async e=>{const img=e.currentTarget;try{await img.decode?.()}catch{}if(img.isConnected&&img.src===url)setReady(true)};
+ return <div ref={element} className={'photo-box photo-progressive '+className} style={{'--photo-dominant':color}}
   onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined}
   onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>
-  {url?<img alt={alt} src={url} loading={priority?'eager':'lazy'}
-    fetchPriority={priority?'high':'auto'} decoding="async" draggable="false"/>
-   :failed?<span className="photo-unavailable" role="img" aria-label="Фото недоступно">
-    <Icon name="camera" tone="dark" size={34}/></span>
-   :<span className="photo-skeleton" aria-hidden="true"/>}
+  {url&&<img key={url} className={'photo-sharp'+(ready?' photo-revealed':'')} alt={alt} src={url} loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'auto'} decoding="async" draggable="false" onLoad={decoded}/>}
+  <span className="photo-blur" aria-hidden="true">{blurSrc&&<img src={blurSrc} alt="" draggable="false"/>}</span>
+  {failed&&!url?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><Icon name="camera" tone="dark" size={34}/></span>:null}
  </div>;
 }
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
