@@ -179,6 +179,8 @@ export async function verifyStage0Backup(db,env,{validateRestore=false}={}){
   if(!saved||saved.length!==f.bytes||sha(saved)!==f.sha256)throw Error('STAGE0_FILE_BACKUP_INVALID');
   bytes+=saved.length;
   if(validateRestore){
+   const original=await store.get(f.original_bucket,f.original_key);
+   if(!original||sha(original)!==f.sha256||original.length!==f.bytes)throw Error('STAGE0_SOURCE_FILE_DRIFT');
    const validationKey=BACKUP_PREFIX+'validation/'+f.original_key;
    await store.put(BACKUP_BUCKET,validationKey,saved,f.mime);
    const restored=await store.get(BACKUP_BUCKET,validationKey);
