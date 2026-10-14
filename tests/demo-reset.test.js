@@ -48,7 +48,7 @@ test('owner can repeat photo demo while real matches, chats, photos and users re
 test('upgrading the photo gallery once restores exhausted demo cards without deleting real reactions',async()=>{
  const db=await testDB();
  const bytes=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200"><rect width="900" height="1200" fill="#dab9f1"/></svg>');
- const files=new Map(),storage={put:async(key,data)=>files.set(key,data),remove:async key=>files.delete(key)};
+ const files=new Map(),storage={put:async(key,data)=>files.set(key,data),get:async key=>{if(!files.has(key))throw Error('NOT_FOUND');return files.get(key)},remove:async key=>files.delete(key)};
  const env={APP_URL:'https://veyra-3806.onrender.com',RENDER_EXTERNAL_URL:'https://veyra-3806.onrender.com',OWNER_TELEGRAM_ID:'1'};
  try{
   await user(db,1);await user(db,2);
@@ -62,7 +62,7 @@ test('upgrading the photo gallery once restores exhausted demo cards without del
   await db.query('INSERT INTO matches(id,a,b) VALUES($1,$2,$3)',[realMatch,1,2]);
   // Simulate a previous gallery version becoming outdated.
   await db.query("DELETE FROM audit_log WHERE action='test_profiles.seed' AND subject LIKE 'owner-demo-gallery-four-photos-rich-interests-%'");
-  const refreshed=await seedTestProfiles(db,storage,env,{loadPortrait:async()=>bytes});
+  const refreshed=await seedTestProfiles(db,storage,env,{loadPortrait:async()=>{throw Error('Existing portrait should be reused')}});
   assert.equal(refreshed.auto_reset,true);
   assert.equal(refreshed.reset_matches,1);
   assert.equal(refreshed.reset_reactions,2);
