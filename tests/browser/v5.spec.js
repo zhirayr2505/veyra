@@ -1612,7 +1612,7 @@ test('Premium member polish keeps 44px tabs, semantic colors, gallery counter an
   const firstSize=await interests.first().evaluate(el=>getComputedStyle(el).height);
   expect(firstSize).toBe('44px');
  }
- await buttons.getByRole('tab',{name:'Фото'}).click();
+ await member.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Фото'}).click();
  const galleryTile=member.locator('.vx-profile-photos-grid button').first();
  await expect(galleryTile).toBeVisible();
  await galleryTile.click();
