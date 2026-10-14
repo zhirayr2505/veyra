@@ -48,11 +48,12 @@ export function Choice({children,selected=false,onClick,className='',disabled=fa
  return <button {...rest} type="button" className={'choice veyra-choice'+(selected?' selected is-active':'')+' '+className}
   aria-pressed={selected} disabled={disabled} onClick={onClick}>{children}</button>;
 }
-export function InterestChip({tone='violet',label,common=false,selected=false,removable=false,onRemove,icon,className='',children}){
- const interactive=removable&&typeof onRemove==='function';
- const body=<>{icon||<InterestIcon name={label} size={17} selected={selected}/>}<span className="vx-interest-text">{label}</span>{common&&<span className="vx-profile-common-tag">общее</span>}{interactive&&<span className="veyra-interest-remove" aria-hidden="true">×</span>}{children}</>;
+export function InterestChip({tone='violet',label,common=false,selected=false,removable=false,onRemove,onClick,disabled=false,icon,className='',children}){
+ const clickable=typeof onClick==='function'||(removable&&typeof onRemove==='function');
+ const click=onClick||(removable?onRemove:undefined);
+ const body=<>{icon||<InterestIcon name={label} size={17} selected={selected}/>}<span className="vx-interest-text">{label}</span>{common&&<span className="vx-profile-common-tag">общее</span>}{removable&&<span className="veyra-interest-remove" aria-hidden="true">×</span>}{children}</>;
  const props={className:'vx-member-interest veyra-interest-chip '+className,'data-tone':tone,'data-common':common?'true':undefined,'data-selected':selected?'true':undefined};
- return interactive?<button type="button" {...props} aria-label={'Убрать '+label} onClick={onRemove}>{body}</button>:<span {...props}>{body}</span>;
+ return clickable?<button type="button" {...props} aria-label={removable?'Убрать '+label:label} aria-pressed={removable?undefined:selected} disabled={disabled} onClick={click}>{body}</button>:<span {...props}>{body}</span>;
 }
 export function Photo({id,className='',onClick,alt='',priority=false,resolution=0,placeholder=null}){
  const element=useRef(null),width=[256,640,960].includes(resolution)?resolution:0;
