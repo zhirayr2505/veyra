@@ -3,7 +3,7 @@ import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphon
 import {get,post,photoUrl} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
 import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
-import {Button,Icon,InlineAlert,Spinner,InterestIcon,Photo} from './UI.jsx';
+import {Button,Icon,InlineAlert,Spinner,InterestIcon,Photo,Logo} from './UI.jsx';
 import './Discover.css';
 
 const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
@@ -154,7 +154,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const undoAvailable=!!last.target&&last.can_undo;
  return <section className={'discover screen'+(embedded?' discover-embedded':'')} aria-label="Лента знакомств">
   {!embedded&&<header className="feed-head">
-   <img src="/veyra-approved/00_brand/veyra_logo_primary.svg" alt="VEYRA" className="feed-brand"/>
+   <Logo width={126} className="feed-brand"/>
    <div className="feed-head-right">
     <span className="feed-mode-name">{mode==='nearby'?'рядом':mode==='for_you'?'по интересам':'для вас'}</span>
     <button className="icon-button" type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={23}/></button>
