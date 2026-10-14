@@ -1401,11 +1401,12 @@ test('VEYRA Motion 6 keeps circular rim with the moving hero and exposes four ic
  await expect(page.locator('.vx-member-native-header')).toHaveCount(1);
 });
 
-test('Dragging from photo thumbnails changes the horizontal tab without opening the gallery',async({page})=>{
- // Known issue #67: Android thumbnail drag does not always switch the
- // full-profile tab. Keep executing and reporting it as expected failure;
- // unexpected success turns CI red, so we cannot silently forget the bug.
- test.fail(true,'Deferred full-profile swipe bug: https://github.com/zhirayr2505/veyra/issues/67');
+// Issue #67 is intermittent: some Android/Chromium runs pass and others fail.
+// Keep the real assertion; give this one legacy profile gesture two retries.
+// A repeat failure still blocks CI and a recovered run is reported as flaky.
+test.describe('Known intermittent profile gesture #67',()=>{
+ test.describe.configure({retries:2});
+ test('Dragging from photo thumbnails changes the horizontal tab without opening the gallery',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await telegram(page,10,false,true);await page.goto('/');
  await page.locator('.feed-photo .hero-name').click();
@@ -1432,8 +1433,8 @@ test('Dragging from photo thumbnails changes the horizontal tab without opening 
  await expect.poll(()=>tabs.getByRole('tab',{name:'О себе'}).getAttribute('aria-selected'),
   {timeout:4000}).toBe('true');
  await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
+ });
 });
-
 
 test('VEYRA premium feed morphs violet pill between all three tabs with readable crown and balance',async({page})=>{
  await page.setViewportSize({width:390,height:844});
