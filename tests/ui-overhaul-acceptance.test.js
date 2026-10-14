@@ -49,5 +49,5 @@ test('performance-sensitive 6.4 compositing retains scroll timeline and motion p
  assert.match(scroll,/PROFILE_CIRCLE_AT/);
  assert.match(scroll,/tracks.blur.push/);
  assert.match(steps,/prefers-reduced-motion:reduce/);
- assert.match(steps,/view-transition-new\(veyra-registration-step\)/);
+ assert.doesNotMatch(steps,/view-transition-new\(veyra-registration-step\)/);
 });

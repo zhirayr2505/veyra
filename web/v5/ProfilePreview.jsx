@@ -8,7 +8,7 @@ import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
 export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,submitting=false,error='',submitted=false}){
- const [mode,setMode]=useState('feed'),[index,setIndex]=useState(0),touch=useRef(null),scrollRef=useRef(null);
+ const [mode,setMode]=useState('detail'),[index,setIndex]=useState(0),touch=useRef(null),scrollRef=useRef(null);
  const ids=photos.map(p=>typeof p==='object'?p.id:p).filter(Boolean);
  const photoPlaceholders=Object.fromEntries(photos.filter(x=>typeof x==='object'&&x.id).map(x=>[String(x.id),{lqip:x.lqip||null,dominant:x.dominant||x.dominant_color||null}]));
   const photoKeys=ids.join('|');
@@ -36,7 +36,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
     </div>
    </section>
    </>}
-   {mode==='detail'&&<div className="vx-preview-member-stage veyra-v2"><Member id="registration-preview" readOnly previewData={readOnlyData} onBack={onBack} onEdit={onEdit} viewer={{}}/></div>}
+   {mode==='detail'&&<div className="vx-preview-member-stage veyra-v2"><Member id="registration-preview" readOnly previewData={readOnlyData} onBack={onBack} viewer={{}}/></div>}
   </div>
   {error&&<p className="vp-error" role="alert">{error}</p>}
   <footer className="vp-actions">

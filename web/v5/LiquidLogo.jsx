@@ -13,6 +13,7 @@ export function LiquidLogo({width=131,className='',tone='light',ready=true,pause
   <span className="vx-liquid-logo-letter-mask" aria-hidden="true">
    <span className="vx-liquid-logo-base"/>
    <span className="vx-liquid-logo-flow"/>
+   <span className="vx-liquid-logo-refraction"/>
    <span className="vx-liquid-logo-sheen"/>
   </span>
  </span>;
