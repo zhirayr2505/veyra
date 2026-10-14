@@ -1892,3 +1892,132 @@ test('Stage 2 own profile paints above its background in expanded and compact vi
   if(phase==='expanded')expect(hero?.y).toBeGreaterThan(-40);
  }
 });
+
+
+// Stage 2 safety: twenty complete expand/compact, tab, and gallery cycles using
+// a mocked registered user. Never seeds or mutates production profiles.
+test('Stage 2 survives twenty collapse, photo gallery and swipe-tab cycles',async({page})=>{
+ test.setTimeout(180000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroll=page.locator('.vx-profile-scroller'),motion=page.locator('.vx-profile-motion');
+ await expect(scroll).toBeVisible();
+ const distance=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ const tabs=page.locator('.vx-profile-tab-rail');
+ for(let i=0;i<20;i++){
+  await scroll.evaluate((el,d)=>{el.scrollTop=d},distance);
+  await expect(motion).toHaveAttribute('data-state','compact');
+  await tabs.getByRole('tab',{name:'Фото'}).click();
+  await expect(tabs.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+  await page.locator('.vx-profile-photos-grid button').first().click();
+  const gallery=page.getByRole('dialog',{name:/Галерея/});
+  await expect(gallery).toBeVisible();
+  await gallery.getByRole('button',{name:'Закрыть'}).click();
+  await expect(gallery).toHaveCount(0);
+  await tabs.getByRole('tab',{name:'О себе'}).click();
+  await scroll.evaluate(el=>{el.scrollTop=0});
+  await expect(motion).toHaveAttribute('data-state','expanded');
+ }
+ await expect(page.locator('.vx-profile-motion')).toHaveCount(1);
+ await expect(page.locator('.vx-profile-hero-photo')).toHaveCount(1);
+ await expect(page.locator('.vx-profile-hero-photo .vx-hero-swipe-slide')).toHaveCount(3);
+ expect(errors).toEqual([]);
+});
+
+test('Stage 2 Telegram haptic fires once per deliberate forward circle threshold crossing',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-profile-scroller'),motion=page.locator('.vx-profile-motion');
+ const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await page.evaluate(()=>{
+  window.__stage2Haptics=[];
+  window.Telegram.WebApp.HapticFeedback={impactOccurred:type=>window.__stage2Haptics.push(type)};
+ });
+ // Programmatic jumps must NOT vibrate if no genuine touch or wheel gesture.
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.38},distance);
+ await expect(motion).toHaveAttribute('data-photo-shape','circle');
+ expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual([]);
+ await scroller.evaluate(el=>{el.scrollTop=0});
+ await expect(motion).toHaveAttribute('data-photo-shape','cover');
+ await scroller.evaluate((el,d)=>{
+  el.dispatchEvent(new Event('touchstart',{bubbles:true}));
+  el.scrollTop=d*.37;
+ },distance);
+ await expect(motion).toHaveAttribute('data-photo-shape','circle');
+ expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.32},distance);
+ await expect(motion).toHaveAttribute('data-photo-shape','cover');
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.37},distance);
+ await expect(motion).toHaveAttribute('data-photo-shape','circle');
+ expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
+ await scroller.evaluate(el=>{el.scrollTop=0});
+ await expect(motion).toHaveAttribute('data-photo-shape','cover');
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.37},distance);
+ await expect(motion).toHaveAttribute('data-photo-shape','circle');
+ expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light','light']);
+ await scroller.evaluate(el=>el.dispatchEvent(new Event('touchend',{bubbles:true})));
+});
+
+test('Stage 2 compositor telemetry under Chromium CPU throttling 4x',async({page},testInfo)=>{
+ test.setTimeout(120000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-profile-scroller');
+ const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
+  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ const cdp=await page.context().newCDPSession(page);
+ await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+ let stats;
+ try{
+  stats=await page.evaluate(async d=>{
+   const scroller=document.querySelector('.vx-profile-scroller');
+   const longTasks=[],layoutShifts=[],durations=[];
+   const observers=[];
+   if(typeof PerformanceObserver==='function'){
+    for(const [kind,output] of [['longtask',longTasks],['layout-shift',layoutShifts]]){
+     try{
+      const observer=new PerformanceObserver(list=>{
+       for(const e of list.getEntries()){
+        if(kind==='longtask')output.push(e.duration);
+        else if(!e.hadRecentInput)output.push(e.value);
+       }
+      });
+      observer.observe({type:kind,buffered:false});observers.push(observer);
+     }catch{/* unsupported entry type */}
+    }
+   }
+   let previous=null,index=0;
+   await new Promise(resolve=>{
+    const step=t=>{
+     if(previous!=null)durations.push(t-previous);
+     previous=t;
+     scroller.scrollTop=d*(index/90);
+     if(index++<90)requestAnimationFrame(step);else resolve();
+    };
+    requestAnimationFrame(step);
+   });
+   for(const observer of observers)observer.disconnect();
+   durations.sort((a,b)=>a-b);
+   const sum=durations.reduce((a,b)=>a+b,0);
+   return {frames:durations.length,
+    fpsMean:sum>0?1000*durations.length/sum:0,
+    fpsSlowest:durations.length&&durations.at(-1)>0?1000/durations.at(-1):0,
+    p95FrameMs:durations[Math.floor(durations.length*.95)]||0,
+    longTaskCount:longTasks.length,longTaskTotalMs:longTasks.reduce((a,b)=>a+b,0),
+    layoutShiftTotal:layoutShifts.reduce((a,b)=>a+b,0),
+    expectedVsActualDevice:'Chromium throttling is diagnostic only; Samsung A55 FPS NOT verified'};
+  },distance);
+ }finally{
+  await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});
+  await cdp.detach();
+ }
+ await testInfo.attach('stage2-cpu-4x-performance.json',{body:Buffer.from(JSON.stringify(stats,null,2)),contentType:'application/json'});
+ expect(stats.frames).toBeGreaterThan(60);
+ expect(stats.fpsMean).toBeGreaterThan(0);
+ expect(Number.isFinite(stats.p95FrameMs)).toBe(true);
+ expect(errors).toEqual([]);
+});
