@@ -148,7 +148,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
-      <Photo id={photos[idx]} alt={data.name} onClick={()=>openGallery()} priority resolution={960}/>
+      <Photo id={photos[idx]} alt={data.name} placeholder={data.photo_placeholders?.[String(photos[idx])]} onClick={()=>openGallery()} priority resolution={960}/>
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
