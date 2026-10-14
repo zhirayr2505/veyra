@@ -154,55 +154,44 @@ export function Registration({me,refresh}){
  const locate=()=>{if(locating||busy)return;setError('');setLocating(true);if(!navigator.geolocation){setLocating(false);setCityEdit(true);setError('Геолокация недоступна. Выбери город из списка.');return}
  navigator.geolocation.getCurrentPosition(async pos=>{try{const found=await get('/geo?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude);if(!found.length)throw Error('Не удалось определить город');choosePlace(found[0]);navigator.vibrate?.(15)}catch(e){fail(e);setCityEdit(true)}finally{setLocating(false)}},()=>{setLocating(false);setCityEdit(true);setError('Разрешение на геолокацию не получено. Выбери город вручную.')},{enableHighAccuracy:false,timeout:12000,maximumAge:90000});
  };
+ // Successful server responses alone advance the count; failed jobs persist for retry.
+ const updateJob=(id,patch)=>setJobs(old=>old.map(job=>job.id===id?{...job,...patch}:job));
+ const uploadSingle=async item=>{
+  updateJob(item.id,{status:'processing',progress:0});
+  try{
+   const compressed=await compressPortrait(item.file,{maxSide:2048,quality:.86});
+   updateJob(item.id,{status:'loading',progress:0});
+   const result=await uploadPhoto(compressed,n=>updateJob(item.id,{status:n>=95?'saving':'loading',progress:Math.min(95,n)}));
+   if(!result?.id)throw Error('Сервер не подтвердил фото');
+   setPhotos(old=>[...old,{id:result.id,lqip:result.lqip||null,dominant:result.dominant||null,position:old.length}]);
+   setJobs(old=>old.filter(x=>x.id!==item.id));URL.revokeObjectURL(item.preview);
+   photoUrl(result.id,{width:960}).then(url=>{const image=new Image();image.src=url;return image.decode?.()}).catch(()=>{});
+   return true;
+  }catch(e){updateJob(item.id,{status:'failed',progress:0});setError('Некоторые фото не загрузились. Повтори или удали неудачную карточку.');return false}
+ };
  const upload=async fileList=>{
   if(uploadRunning.current||busy)return;
-  const files=Array.from(fileList||[]),remaining=MAX_PHOTOS-photos.length;
+  const files=Array.from(fileList||[]),remaining=MAX_PHOTOS-photos.length-jobs.length;
   if(!remaining){toast('Можно добавить максимум 6 фото');return}
   if(files.length>remaining)toast('Можно добавить максимум 6 фото — добавляем первые '+remaining);
-  const selected=files.slice(0,remaining);
-  if(!selected.length)return;
+  const selected=files.slice(0,remaining);if(!selected.length)return;
+  const initial=selected.map((file,i)=>({id:'upload-'+Date.now()+'-'+i+'-'+Math.random().toString(36).slice(2),file,preview:URL.createObjectURL(file),status:'waiting',progress:0}));
+  setJobs(old=>[...old,...initial]);uploadRunning.current=true;setUploading(true);setError('');
+  let anySuccess=false;
+  try{for(const job of initial){if(await uploadSingle(job))anySuccess=true}if(anySuccess)await refresh()}
+  finally{uploadRunning.current=false;setUploading(false)}
+ };
+ const retryUpload=async id=>{
+  if(uploadRunning.current||busy)return;
+  const item=jobs.find(job=>job.id===id&&job.status==='failed');if(!item)return;
   uploadRunning.current=true;setUploading(true);setError('');
-  const initial=selected.map((file,i)=>({id:'upload-'+i+'-'+Date.now(),file,preview:URL.createObjectURL(file),status:'waiting',progress:0,serverId:null}));
-  setJobs(initial);
-  let cursor=0;
-  const results=Array(initial.length).fill(null);
-  const update=(id,patch)=>setJobs(old=>old.map(job=>job.id===id?{...job,...patch}:job));
-  const worker=async()=>{
-   while(cursor<initial.length){
-    const index=cursor++,item=initial[index];
-    update(item.id,{status:'processing',progress:0});
-    try{
-     const compressed=await compressPortrait(item.file,{maxSide:2048,quality:.86});
-     update(item.id,{status:'loading',progress:0});
-     let result;
-     for(let attempt=0;attempt<2;attempt++){
-      try{
-       result=await uploadPhoto(compressed,n=>update(item.id,{progress:n}));break;
-      }catch(e){
-       if(attempt||!/fetch|network|HTTP_502|HTTP_503|HTTP_504/i.test(e.message))throw e;
-       await new Promise(resolve=>setTimeout(resolve,500));
-      }
-     }
-     results[index]={id:result.id,lqip:result.lqip||null,dominant:result.dominant||null};
-     update(item.id,{status:'done',progress:100,serverId:result.id});
-    }catch(e){
-     update(item.id,{status:'failed',progress:0});
-     setError('Не удалось загрузить «'+item.file.name+'»: '+e.message);
-    }
-   }
-  };
-  try{
-   // No more than two concurrent photo decodes/uploads on mobile.
-   await Promise.all(Array.from({length:Math.min(2,initial.length)},()=>worker()));
-   const successful=results.filter(Boolean);
-   if(successful.length){
-    setPhotos(old=>[...old,...successful.map((item,i)=>({...item,position:old.length+i}))]);
-    await refresh();
-   }
-  }finally{
-   initial.forEach(item=>URL.revokeObjectURL(item.preview));
-   setJobs([]);uploadRunning.current=false;setUploading(false);
-  }
+  try{if(await uploadSingle(item))await refresh()}
+  finally{uploadRunning.current=false;setUploading(false)}
+ };
+ const removeUpload=id=>{
+  if(uploadRunning.current)return;
+  const item=jobs.find(job=>job.id===id);
+  if(item){URL.revokeObjectURL(item.preview);setJobs(old=>old.filter(job=>job.id!==id));setError('')}
  };
  const reorder=async(from,to)=>{if(uploading||busy||reorderRunning.current||from===to||from<0||to<0||from>=photos.length||to>=photos.length)return;
   reorderRunning.current=true;
@@ -242,14 +231,14 @@ export function Registration({me,refresh}){
    if(dragRef.current!==state)return;
    state.active=true;
    try{state.node.setPointerCapture?.(state.id)}catch{}
-   setDragVisual({index:i,x:state.x,y:state.y,offsetX:state.offsetX,offsetY:state.offsetY,width:state.width,height:state.height});setDragOver(i);
+   setDragVisual({index:i,x:state.x,y:state.y,offsetX:state.offsetX,offsetY:state.offsetY,width:state.width,height:state.height,src:state.node.querySelector('.photo-sharp')?.src||cachedPhotoAny(photos[i]?.id)||state.node.querySelector('.photo-blur img')?.src||''});setDragOver(i);
    haptic('selection');
   },320);
   dragRef.current=state;
  };
  const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
   if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);s.cleanup?.();dragRef.current=null}return}
-  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;const ghost=dragGhostRef.current;if(ghost)ghost.style.transform='translate3d('+(s.x-s.originX)+'px,'+(s.y-s.originY)+'px,0) scale(1.06)'});const target=dragTarget(s.x,s.y,s.slots);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
+  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;const ghost=dragGhostRef.current;if(ghost)ghost.style.setProperty('transform','translate3d('+(s.x-s.originX)+'px,'+(s.y-s.originY)+'px,0)','important')});const target=dragTarget(s.x,s.y,s.slots);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
  };
  const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);s.cleanup?.();dragRef.current=null;
   if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
@@ -262,7 +251,7 @@ export function Registration({me,refresh}){
  const swipeEnd=e=>{if(swipeX.current==null)return;const delta=e.changedTouches[0].clientX-swipeX.current;swipeX.current=null;if(Math.abs(delta)>45)advancePhoto(delta<0?1:-1)};
  const remove=i=>work(async()=>{await request('/photos/'+photos[i].id,{method:'DELETE'});setPhotos(old=>old.filter((_,j)=>j!==i));await refresh()});
  const send=()=>work(async()=>{if(photos.length<MIN_PHOTOS)throw Error('Нужно минимум 3 фотографии');if(!consent)throw Error('Прими правила VEYRA');await post('/profile/submit',{consent:true});haptic('success');localStorage.removeItem(draftKey);await refresh()});
- const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
+ const uploaded=[...photos,...jobs];
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
  const stepValid=step===1?f.name.trim().length>=2&&NAME_PATTERN.test(f.name.trim())&&consent
@@ -328,18 +317,18 @@ export function Registration({me,refresh}){
    {step===7&&<BioStep value={f.bio||''} onChange={v=>change('bio',v)}/>}
    {step===8&&<div className="fields">
      <div className="photo-guidelines"><p><Icon name="camera" tone="pink" size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
-     <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 6':photos.length<MIN_PHOTOS?photos.length+' из 6 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 6 · Можно посмотреть анкету'}</span>
+     <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 6 подтверждено':photos.length<MIN_PHOTOS?photos.length+' из 6 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 6 · Можно посмотреть анкету'}</span>
       <p className={"tip veyra-photo-drag-guide"+(showDragHint?" is-first-visit":"")}><span className="veyra-drag-hand" aria-hidden="true">☝️</span> Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {display.map((item,i)=>{const loading=!!item?.file;
-      return <div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
+      return <div key={item.id} className={'photo-slot '+(i===0&&!loading?'primary ':'')+(loading?'uploading ':'')+(item.status==='failed'?'upload-failed ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
        onContextMenuCapture={e=>e.preventDefault()} onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.target.closest('button')||uploading||busy||loading)return;dragStart(e,i)}}
        
        tabIndex={!loading?0:-1} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown" aria-label={'Фотография '+(i+1)+', перетащи или используй стрелки для смены позиции'}
        onKeyDown={e=>{const moves={ArrowLeft:-1,ArrowRight:1,ArrowUp:-3,ArrowDown:3};if(Object.hasOwn(moves,e.key)){e.preventDefault();reorder(i,Math.max(0,Math.min(photos.length-1,i+moves[e.key])))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id} placeholder={{lqip:item.lqip||null,dominant:item.dominant||item.dominant_color||null}}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
-        {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{transform:'scaleX('+((item.progress||0)/100)+')'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':item.status==='processing'?'обработка':'загрузка'}</small></span></span>}</span></>:
+        {loading?item.status==='failed'?<div className="vx-upload-error" role="group" aria-label="Не удалось загрузить фотографию"><span>Не удалось загрузить</span><div className="vx-upload-error-actions"><button type="button" aria-label={'Повторить загрузку '+(i+1)} disabled={uploading} onClick={()=>retryUpload(item.id)}>Повторить</button><button type="button" aria-label={'Убрать неудачную фотографию '+(i+1)} disabled={uploading} onClick={()=>removeUpload(item.id)}>Удалить</button></div></div>:<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{transform:'scaleX('+((item.progress||0)/100)+')'}}/></div><span className={'upload-state '+item.status}><span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.status==='saving'?'Готовим':(item.progress||0)+'%'}</strong><small>{item.status==='waiting'?'в очереди':item.status==='processing'?'обработка':item.status==='saving'?'на сервере':'загрузка'}</small></span></span></span></></>:
         <><button type="button" className="photo-replace" aria-label={'Заменить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>{replaceIndex.current=i;replaceInput.current?.click()}}><Camera size={18}/></button><button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
        </div>})}
      {uploaded.length<MAX_PHOTOS&&<button type="button" aria-label="Добавить фото" className={'photo-slot photo-slot-add'+(uploaded.length===0?' primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}><Icon name="plus" tone="pink" size={30}/></button>}
@@ -351,7 +340,7 @@ export function Registration({me,refresh}){
    </div>}
   </div>
   </div>
-  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" ref={dragGhostRef} aria-hidden="true" style={{left:dragVisual.x-dragVisual.offsetX,top:dragVisual.y-dragVisual.offsetY,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
+  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" ref={dragGhostRef} aria-hidden="true" style={{left:dragVisual.x-dragVisual.offsetX,top:dragVisual.y-dragVisual.offsetY,width:dragVisual.width,height:dragVisual.height}}><img src={dragVisual.src||cachedPhotoAny(photos[dragVisual.index].id)} draggable="false" alt=""/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
    <nav className="registration-actions veyra-glass-navigation" aria-label="Навигация регистрации">
