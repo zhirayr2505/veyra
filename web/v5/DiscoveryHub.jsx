@@ -54,7 +54,7 @@ function SectionTitle({children,action,onAction}){
 }
 function Portrait({person,onProfile,interest,forYou=false}){
  return <button className="vx-portrait-card" type="button" onClick={()=>onProfile(person.id)} aria-label={'Открыть профиль '+person.name}>
-  <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name}/></span>
+  <span className="vx-portrait-circle"><Photo id={person.photos?.[0]} alt={person.name} placeholder={person.photo_placeholders?.[String(person.photos?.[0])]} resolution={640}/></span>
   {person.test_profile&&<span className="vx-portrait-demo-tag">демо</span>}
   {!forYou&&(interest?<span className="vx-portrait-interest"><InterestIcon name={interest} size={18}/></span>:
    person.online?<span className="vx-portrait-online" aria-label="В сети"/>:null)}
@@ -111,10 +111,19 @@ function BrowseScene({kind,active,profile,filters,refreshTick,demoMode=false,onP
   return()=>{alive=false;if(!done&&loadedKey.current===requestKey)loadedKey.current=null};
  },[active,requestKey,kind,filters,choice,collection,demoMode]);
  useEffect(()=>{
-  if(!people.length)return;
-  people.slice(0,Math.min(8,people.length)).forEach(p=>{
-   const id=p.photos?.[0];if(id)photoUrl(id).catch(()=>{});
-  });
+  let cancelled=false;
+  (async()=>{
+   const ids=people.slice(0,Math.min(5,people.length)).map(p=>p.photos?.[0]).filter(Boolean);
+   if(!ids.length)return;
+   await photoUrl(ids[0],{width:960}).catch(()=>{});
+   if(cancelled)return;
+   await photoUrl(ids[0],{width:640}).catch(()=>{});
+   for(const id of ids.slice(1)){
+    if(cancelled)return;
+    await photoUrl(id,{width:640}).catch(()=>{});
+   }
+  })();
+  return()=>{cancelled=true};
  },[people]);
  const loadMore=async()=>{
   if(moreBusy||!hasMore)return;
