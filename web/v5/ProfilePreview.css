@@ -235,3 +235,15 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-prev
 .veyra-profile-preview.mode-feed .preview-gallery .preview-card-caption .veyra-interest-more{
  flex:none!important;max-width:none!important;min-width:max-content!important;
 }
+
+/* The full preview is the real, read-only Member mounted inside the onboarding shell. */
+.veyra-profile-preview.mode-detail .vp-scroll{overflow:hidden;position:relative;flex:1;min-height:0;padding:0}
+.veyra-profile-preview .vx-preview-member-stage{position:relative;width:100%;height:100%;min-height:0;overflow:hidden;isolation:isolate;border-radius:var(--vx-radius-card)}
+.veyra-profile-preview .vx-preview-member-stage>.vx-profile-read-only{position:relative!important;width:100%;height:100%;min-height:0;max-height:100%;overflow:hidden!important;margin:0;padding:0;background:var(--vx-color-surface)!important}
+.veyra-profile-preview .vx-preview-member-stage .vx-profile-scroller{position:absolute!important;inset:0!important;height:100%!important;overscroll-behavior:contain}
+.veyra-profile-preview .vx-profile-read-only .vx-profile-primary-actions,
+.veyra-profile-preview .vx-profile-read-only .vx-profile-card-more,
+.veyra-profile-preview .vx-profile-read-only .vx-own-section-heading>button,
+.veyra-profile-preview .vx-profile-read-only .vx-profile-section-heading>button,
+.veyra-profile-preview .vx-profile-read-only .vx-own-tools{display:none!important}
+.veyra-profile-preview .vx-preview-member-stage .vx-profile-sticky{max-width:100%}
