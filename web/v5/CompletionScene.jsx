@@ -86,6 +86,7 @@ export function CompletionScreen({kind='pending',reason='',onClose,onRefresh,onP
   <header className="vc-header"><div className="vc-logo-sheen"><Logo width={151}/></div></header>
   <section className="vc-content">
    <CompletionArt kind={kind}/>
+   {pending&&<div className="vc-success-burst" aria-hidden="true">{Array.from({length:8},(_,i)=><span key={i}>♥</span>)}</div>}
    <div className="vc-copy">
     <h1>{deleted?'Нам жаль, что ты уходишь':rejected?'Давайте исправим анкету':'Анкета отправлена'}</h1>
     <p>{deleted?'Твой аккаунт VEYRA удалён. Спасибо, что был частью нашей истории.':rejected?(reason||'Модератор оставил замечания к анкете.') :'Мы проверим её перед публикацией. Обычно это занимает несколько минут. Результат отправим в Telegram.'}</p>
