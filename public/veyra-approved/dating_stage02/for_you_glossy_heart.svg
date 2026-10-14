@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="352" viewBox="0 0 380 352" fill="none" role="img">
+ <defs>
+  <linearGradient id="heart" x1="75" y1="20" x2="293" y2="288" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#DB93FF"/>
+   <stop offset=".26" stop-color="#B95CF1"/>
+   <stop offset=".65" stop-color="#A747E8"/>
+   <stop offset="1" stop-color="#8F3BCB"/>
+  </linearGradient>
+  <linearGradient id="rim" x1="83" y1="28" x2="294" y2="295" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#F3D3FF" stop-opacity=".87"/>
+   <stop offset=".31" stop-color="#E3A0FE" stop-opacity=".08"/>
+   <stop offset="1" stop-color="#7130A6" stop-opacity=".33"/>
+  </linearGradient>
+  <linearGradient id="gloss" x1="133" y1="38" x2="245" y2="160" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#FFF2FF" stop-opacity=".7"/><stop offset="1" stop-color="#FFF" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="shadow" x="-25%" y="-25%" width="150%" height="170%">
+   <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#7130AD" flood-opacity=".43"/>
+   <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#BE5FF4" flood-opacity=".42"/>
+  </filter>
+  <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="18"/></filter>
+ </defs>
+ <ellipse cx="190" cy="285" rx="98" ry="22" fill="#B361E1" opacity=".19" filter="url(#soft)"/>
+ <g filter="url(#shadow)">
+  <path d="M189 310C163 285 92 224 65 189C39 157 25 132 25 104C25 62 58 29 100 29C139 29 165 43 189 72C211 43 240 29 277 29C320 29 353 62 353 104C353 146 327 176 301 203C275 231 225 282 189 310Z" fill="url(#heart)"/>
+  <path d="M189 305C163 278 91 219 68 187C43 155 30 130 30 105C30 65 60 34 101 34C138 34 162 48 189 79C210 48 241 34 277 34C318 34 348 65 348 105C348 144 322 175 298 201C270 230 225 277 189 305Z" stroke="url(#rim)" stroke-width="5"/>
+  <path d="M63 94C71 58 98 45 128 52C153 57 170 77 187 97C213 61 237 50 271 53C294 55 317 73 322 98C293 75 265 73 242 84C220 95 205 116 190 135C173 111 156 91 132 82C111 73 85 76 63 94Z" fill="url(#gloss)" opacity=".57"/>
+ </g>
+</svg>
