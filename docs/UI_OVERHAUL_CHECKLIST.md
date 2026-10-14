@@ -28,7 +28,7 @@
 | [x] | 4.6 | Клавиатура, локальные ошибки, цели | `Registration.jsx`, `Registration2026.css`, `OnboardingOptions.jsx`, `tests/registration-keyboard-validation.test.js` | CI #38554400354: npm run check (test/build) ✓, npm run lint ✓; Telegram keyboard animation/device QA pending |
 | [x] | 4.7 | Имена с дефисом и апострофом | `Registration.jsx`, `server/validation.js`, `server/registration.js`, `tests/international-names.test.js` | CI #38554728663: npm run check (test/build) ✓, npm run lint ✓; backend accepts hyphen and both apostrophes |
 | [x] | 4.8 | Сжатие и загрузка фотографий | `compressPortrait.js`, `Registration.jsx`, `Registration2026.css`, `tests/photo-compression-client.test.js` | CI #38555242098: npm run check (test/build) ✓, npm run lint ✓; real Android camera files and memory testing pending |
-| [~] | 4.9 | Хаптика и доступность | — | Unified haptic helper; choice, next, error, success; ≥44px controls + contrast |
+| [x] | 4.9 | Хаптика и доступность | `haptics.js`, `UI.jsx`, `Registration.jsx`, `OnboardingOptions.jsx`, `UiPrimitives.css`, `Registration2026.css`, `tests/veyra-haptics-a11y.test.js`, `tests/interest-picker-ui.test.js`, `tests/registration-keyboard-validation.test.js` | CI #38556038178: npm run check ✓, npm run lint ✓; manual contrast audit, Telegram haptic and 44px touch-area inspection still required |
 | [ ] | 6.1 | Обновить регистрацию и связанные экраны | — | Не начато |
 | [ ] | 6.2 | Плавные переходы шагов | — | Не начато |
 | [ ] | 6.3 | Микроанимации вариантов и успеха | — | Не начато |
