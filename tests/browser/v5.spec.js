@@ -774,7 +774,7 @@ test('VISUAL_AUDIT registration through approved dating tabs captures reference 
  await page.getByRole('button',{name:'Выбрать интересы'}).click();
  await expect(page.getByRole('heading',{name:'Ваши интересы'})).toBeVisible();
  await capture('06_interests','registration');
- await page.locator('.veyra-interest-options button').first().click();
+ for(let i=0;i<3;i++)await page.locator('.veyra-interest-options button:not([data-selected="true"])').first().click();
  await page.getByRole('button',{name:'Рассказать о себе'}).click();
  await expect(page.getByRole('heading',{name:'Немного о себе'})).toBeVisible();
  await capture('07_bio','registration');
@@ -786,8 +786,8 @@ test('VISUAL_AUDIT registration through approved dating tabs captures reference 
  const photoFiles=[];
  for(let i=0;i<3;i++)photoFiles.push({name:'test-portrait-'+i+'.png',mimeType:'image/png',buffer:await makePhoto(i)});
  await page.locator('input[type=file]').setInputFiles(photoFiles);
- await expect(page.locator('.registration-photo-count')).toContainText('3 из 7',{timeout:45000});
- await page.getByRole('button',{name:'Посмотреть анкету'}).click();
+ await expect(page.locator('.registration-photo-count')).toContainText('3 из 6',{timeout:45000});
+ await page.getByRole('button',{name:'Предпросмотр анкеты'}).click();
  await expect(page.locator('.preview-gallery')).toBeVisible();
  await capture('09_profile_preview','registration');
  await page.getByRole('tab',{name:'Полный профиль'}).click();
