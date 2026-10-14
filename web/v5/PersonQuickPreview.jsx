@@ -28,7 +28,6 @@ export function PersonQuickPreview({person,kind='nearby',onClose,onOpenProfile})
     <div className="vx-quick-image-scrim" aria-hidden="true"/>
     <CardPhotoBars photos={images} index={index} onSelect={setIndex}/>
     <button type="button" className="vx-quick-close" onClick={onClose} aria-label="Закрыть предпросмотр"><Icon name="close" tone="white" size={21}/></button>
-    {person.test_profile&&<span className="vx-quick-demo">ДЕМО</span>}
     {images.length>1&&<div className="vx-quick-tap-zones">
      <button type="button" onClick={()=>switchPhoto(-1)} aria-label="Предыдущее фото"/>
      <button type="button" onClick={()=>switchPhoto(1)} aria-label="Следующее фото"/>
