@@ -142,7 +142,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
      <div className="vx-profile-blurred-header" aria-hidden="true">
-      <Photo id={photos[idx]} resolution={640} alt=""/>
+      <Photo id={photos[idx]} resolution={640} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>
      </div>
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
@@ -202,7 +202,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
       {data.test_profile&&!isOwn&&<p className="vx-profile-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотографии иллюстративные.</p>}
     </>}
-    {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>openGallery(i)} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640}/></button>)}</div>:<Empty art="profile" title="Фотографий пока нет" body="Пока здесь нет снимков."/>}</section></>}
+    {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>openGallery(i)} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640} placeholder={data.photo_placeholders?.[String(p)]}/></button>)}</div>:<Empty art="profile" title="Фотографий пока нет" body="Пока здесь нет снимков."/>}</section></>}
     {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}</section></>}
     {key==='common'&&!isOwn&&<>
      <section className="vx-profile-surface"><h2>Что вас объединяет</h2>{common.length||sameGoal?<><p className="vx-profile-secondary">Уже есть повод начать разговор.</p>{common.length>0&&<div className="vx-member-interests-grid">{common.map(label=><MemberInterest label={label} common key={label}/>)}</div>}{sameGoal&&<div className="vx-profile-goal-detail"><VeyraPackIcon name="heart" size={18}/>У вас совпадают цели знакомства</div>}</>:<p className="vx-profile-secondary">Пока общих интересов не нашлось. Узнайте друг друга в общении.</p>}</section>
@@ -217,7 +217,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   {gallery&&createPortal(<div className="gallery vx-profile-gallery" role="dialog" aria-modal="true" aria-label={"Галерея "+data.name} onTouchStart={e=>{galleryTouch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}}} onTouchEnd={e=>{const start=galleryTouch.current;if(!start)return;const dx=e.changedTouches[0].clientX-start.x,dy=e.changedTouches[0].clientY-start.y;if(dy>90&&Math.abs(dy)>Math.abs(dx))setGallery(false);else if(Math.abs(dx)>40)photosNext(dx<0?1:-1);galleryTouch.current=null}}>
    <button type="button" className="gallery-close" aria-label="Закрыть" onClick={()=>setGallery(false)}><Icon name="close" tone="white" size={21}/></button>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>photosNext(-1)}><ChevronLeft size={28}/></button>}
-   <Photo id={photos[idx]} alt={data.name} priority resolution={960}/>
+   <Photo id={photos[idx]} alt={data.name} priority resolution={960} placeholder={data.photo_placeholders?.[String(photos[idx])]}/>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>photosNext(1)}><ChevronRight size={28}/></button>}
    <PhotoSegments count={photos.length} index={idx} className="vx-profile-gallery-bars"/>
    <small className="vx-profile-gallery-counter" aria-live="polite">{idx+1}/{photos.length}</small>
