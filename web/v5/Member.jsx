@@ -4,7 +4,7 @@ import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera
 import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {get,post} from './api.js';
-import {openInvoice,GiftCollection,OwnerTestTools} from './Extras.jsx';
+import {openInvoice,GiftCollection} from './Extras.jsx';
 import {ProfileHighlights,INTEREST_GROUPS,goalTitle} from './OnboardingOptions.jsx';
 import './MemberFeed.css';
 import './MemberTelegramProfile.css';
@@ -165,14 +165,13 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       <div className="vx-profile-photo-shade" aria-hidden="true"/>
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
       
-      {data.test_profile&&!isOwn&&<span className="vx-profile-demo-badge">ДЕМО</span>}
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
      </div>
      <div className="vx-profile-avatar-ring" aria-hidden="true"/>
      {data.online&&<div className="vx-profile-avatar-online-dot" aria-label="В сети"/>}
 
      <section className="vx-profile-identity" aria-label="Информация об анкете">
-      <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.verified&&!data.test_profile?<Icon name="verified" tone="pink" size={18}/>:null}</div>
+      <div className="vx-profile-name-row"><h1>{fullName}</h1>{data.verified?<Icon name="verified" tone="pink" size={18}/>:null}</div>
       <div className="vx-profile-location"><CountryFlag country={data.country} round/> {data.city}</div>
       {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
@@ -209,7 +208,6 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      {data.online&&<div className="vx-profile-hint"><DetailIcon name="online" size={13}/> Сейчас в сети</div>}
      {match&&courtship?.mine?.status&&<div className="vx-profile-hint">{courtship.mine.status==='active'?'Ты ухаживаешь за этим человеком':courtship.mine.status==='pending'?'Предложение ожидает согласия':courtship.mine.status==='accepted'?'Предложение принято, можно оплатить':'Ухаживание: '+courtship.mine.status}</div>}
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
-      {data.test_profile&&!isOwn&&<p className="vx-profile-demo-disclaimer">Это вымышленный персонаж для проверки дизайна VEYRA. Фотографии иллюстративные.</p>}
     </>}
     {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>openGallery(i)} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640} placeholder={data.photo_placeholders?.[String(p)]}/></button>)}</div>:<Empty art="profile" title="Фотографий пока нет" body="Пока здесь нет снимков."/>}</section></>}
     {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{!isPreview&&tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}{isPreview&&<p className="vx-profile-secondary">Коллекция подарков появится после публикации анкеты.</p>}</section></>}
@@ -217,7 +215,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <section className="vx-profile-surface"><h2>Что вас объединяет</h2>{common.length||sameGoal?<><p className="vx-profile-secondary">Уже есть повод начать разговор.</p>{common.length>0&&<div className="vx-member-interests-grid">{common.map(label=><MemberInterest label={label} common key={label}/>)}</div>}{sameGoal&&<div className="vx-profile-goal-detail"><VeyraPackIcon name="heart" size={18}/>У вас совпадают цели знакомства</div>}</>:<p className="vx-profile-secondary">Пока общих интересов не нашлось. Узнайте друг друга в общении.</p>}</section>
      {(courtship?.suitors||[]).length>0&&<section className="vx-profile-surface"><h2>Ухажёры</h2><p>{courtship.suitors.map(x=>x.sender_name).join(' · ')}</p></section>}
     </>}
-    {key==='common'&&isOwn&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe?.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}{ownMe?.user?.admin_role==='owner'&&<OwnerTestTools/>}</section>}
+    {key==='common'&&isOwn&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe?.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}</section>}
     {key===tab&&<InlineAlert>{error}</InlineAlert>}
     </div>}
    </MemberSwipePages>

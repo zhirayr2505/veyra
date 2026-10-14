@@ -49,7 +49,7 @@ export function experienceRoutes(app,{db,rate,env}){
  });
  app.get('/api/profiles/:id',async(req,res)=>{
   const target=parse(id,req.params.id);
-  if(isTestProfile(target)&&req.user.admin_role!=='owner')fail(404,'PROFILE_NOT_FOUND');
+  if(isTestProfile(target))fail(404,'PROFILE_NOT_FOUND');
   await ensurePair(db,req.user.id,target);
   const allowed=await one(db,`SELECT 1 WHERE EXISTS(SELECT 1 FROM impressions WHERE viewer=$1 AND target=$2)
    OR EXISTS(SELECT 1 FROM reactions WHERE actor=$1 AND target=$2)

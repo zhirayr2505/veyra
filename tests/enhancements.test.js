@@ -11,11 +11,12 @@ import {webhookSecret} from '../server/core.js';
 let db,app;const tokens={};
 before(async()=>{db=await testDB();for(const n of [1,10,11,12,13,...TEST_PROFILE_IDS])await user(db,n,{premium:n===10});await db.query("UPDATE users SET admin_role=CASE WHEN id=12 THEN 'moderator' ELSE 'support' END WHERE id IN(12,13)");app=createApp(deps(db));for(const n of [1,10,11,12,13]){const admin=[1,12,13].includes(n);const r=await request(app).post('/api/auth').send({scope:admin?'admin':'user',initData:initData(n,admin?env.ADMIN_BOT_TOKEN:env.USER_BOT_TOKEN)});assert.equal(r.status,200);tokens[n]=r.body.token;}});
 after(()=>db.close());const auth=(r,n=10)=>r.set('Authorization','Bearer '+tokens[n]);
-test('synthetic likes are reciprocal, labelled, retry safe and not charged twice',async()=>{
- const target=TEST_PROFILE_IDS[0];const first=await db.tx(q=>react(q,'10',target,'like'));const retry=await db.tx(q=>react(q,'10',target,'like'));
- assert.equal(first.matched,true);assert.equal(retry.match_id,first.match_id);
- const row=await one(db,'SELECT count(*)::int AS n,min(body) AS body FROM messages WHERE match_id=$1',[first.match_id]);assert.equal(row.n,1);assert.match(row.body,/автоматическое приветствие/);
- assert.equal((await one(db,'SELECT likes FROM daily_usage WHERE user_id=10')).likes,1);
+test('legacy synthetic profiles never auto-like, match or generate a message',async()=>{
+ const target=TEST_PROFILE_IDS[0];
+ await assert.rejects(()=>db.tx(q=>react(q,'10',target,'like')),/PROFILE_NOT_FOUND/);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM matches')).n,0);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM messages')).n,0);
+ assert.equal((await one(db,'SELECT count(*)::int AS n FROM reactions WHERE actor=10 AND target=$1',[target])).n,0);
  const regular=await db.tx(q=>react(q,'11','10','like'));assert.equal(regular.matched,false);
 });
 test('Undo supports the first daily free reversal and forbids reversing an active match',async()=>{
