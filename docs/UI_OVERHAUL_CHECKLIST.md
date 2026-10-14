@@ -12,7 +12,7 @@
 | [x] | 1.2 | Исключить квадратную рамку при морфинге | `profileScrollTimeline.js`, `useVeyraProfileMotion.js`, `tests/profile-scrolltimeline.test.js` | CI #38540582183: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; устройство — требуется |
 | [x] | 1.3 | Перенести индикатор фото вниз обложки | `PhotoSegments.jsx`, `PhotoSegments.css`, `Member.jsx`, `ProfilePreview.jsx`, `MemberMotionV2.css`, `MemberTelegramProfile.css`, `ProfilePreview.css` | CI #38541511154: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Telegram Android — требуется |
 | [x] | 1.4 | Улучшить контраст логотипа и scrim | `MemberMotionV2.css` | CI #38541967543: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; реальные фото Android — требуется |
-| [ ] | 5.1 | Мгновенный каркас профиля из данных карточки | — | Не начато |
+| [~] | 5.1 | Мгновенный каркас профиля из данных карточки | — | Передача seed из ленты, лайков, чатов; фоновое обогащение |
 | [ ] | 5.2 | Кэш фото, LQIP и доминантный цвет | — | Не начато |
 | [ ] | 5.3 | Плавный переход blur → sharp после decode | — | Не начато |
 | [ ] | 5.4 | Приоритетная предзагрузка 960/640 | — | Не начато |
