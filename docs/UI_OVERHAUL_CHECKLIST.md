@@ -19,7 +19,7 @@
 | [x] | 5.5 | Единый Photo для всех экранов | `Discover.jsx`, `Discover.css`, `Member.jsx`, `Likes.jsx`, `Chats.jsx`, `PersonQuickPreview.jsx`, `ProfilePreview.jsx`, `Registration.jsx` | CI #38545507007: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; ручная UX-проверка ещё требуется |
 | [x] | 5.6 | Красивое состояние ошибки с повтором | `UI.jsx`, `PhotoReveal.css` | CI #38545898706: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; ошибка на Android — требуется |
 | [x] | 3 | Горизонтальный свайп фото за пальцем | `HeroPhotoTrack.jsx`, `HeroPhotoTrack.css`, `photoSwipeMath.js`, `tests/photo-swipe.test.js`, `Member.jsx`, `useVeyraProfileMotion.js`, `MemberMotionV2.css`, `MemberReferencePolish.css`, `MemberTelegramProfile.css`, `PhotoSegments.css` | CI #38547027018: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Playwright и физическое устройство — ещё проверить |
-| [ ] | 2 | Общий LiquidLogo и плавная смена тона | — | Не начато |
+| [~] | 2 | Общий LiquidLogo и плавная смена тона | — | Один SVG-маскированный компонент; убрать псевдо-лого, плавный tone и пауза во время scroll |
 | [ ] | 4.1 | Единые дизайн-токены | — | Не начато |
 | [ ] | 4.2 | Button / Choice / InterestChip | — | Не начато |
 | [ ] | 4.3 | Цветные интересы в регистрации | — | Не начато |
