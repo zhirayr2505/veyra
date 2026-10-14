@@ -3,7 +3,7 @@ import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphon
 import {get,post,photoUrl} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
 import {FeedCardVisual} from './FeedCardVisual.jsx';
-import {Button,Icon,InlineAlert,Spinner,InterestIcon,InterestChip,Photo,Logo} from './UI.jsx';
+import {Button,Icon,InlineAlert,Spinner,InterestIcon,InterestChip,Logo} from './UI.jsx';
 import {INTEREST_GROUPS} from './OnboardingOptions.jsx';
 import {interestTone} from './profilePolishLogic.js';
 import './Discover.css';
