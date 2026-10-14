@@ -1,5 +1,5 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {clamp,profileFrame,profileMaskDiameter,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
+import {clamp,profileFrame,profileCircleGeometry,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
@@ -66,7 +66,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(shape!==s.radiusPhase){
     s.radiusPhase=shape;
     motion.dataset.photoShape=shape;
-    parts.hero.style.clipPath=shape==='cover'?'inset(0)':'circle(var(--vx-profile-mask-radius) at 50% 36%)';
+    parts.hero.style.clipPath=shape==='cover'?'inset(0)':'circle(var(--vx-profile-mask-radius) at 50% var(--vx-profile-mask-center-y))';
    }
    if(s.nativeAnimation){
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
@@ -196,9 +196,11 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.width=Math.max(1,hero.offsetWidth);
   s.height=Math.max(1,hero.offsetHeight);
   s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
-  const diameter=profileMaskDiameter(s.width,s.height);
+  const geometry=profileCircleGeometry(s.width,s.height,s.compactHeight);
+  const diameter=geometry.diameter;
   hero.style.setProperty('--vx-profile-mask-diameter',diameter.toFixed(3)+'px');
   hero.style.setProperty('--vx-profile-mask-radius',(diameter/2).toFixed(3)+'px');
+  hero.style.setProperty('--vx-profile-mask-center-y',geometry.maskCenterY.toFixed(3)+'px');
   s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
   if(s.elastic>0)writeElastic(el,s.elastic,s.width,false);
   s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;

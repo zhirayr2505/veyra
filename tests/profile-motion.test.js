@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {profileFrame,profileMaskDiameter,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from '../web/v5/profileMotionMath.js';
+import {profileFrame,profileMaskDiameter,profileCircleGeometry,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT,PROFILE_VISIBLE_TOP_INSET,PROFILE_CIRCLE_WIDTH_FRACTION,PROFILE_AVATAR_DIAMETER} from '../web/v5/profileMotionMath.js';
 const W=390,H=447,D=profileMaskDiameter(W,H);
 const frame=p=>profileFrame(p,W,H,292);
 const close=(a,b,eps=.1)=>Math.abs(a-b)<=eps;
@@ -13,11 +13,15 @@ test('initial photo is full-size unchanged rectangle; the sheet rises over it',(
  assert.ok(early.sheetY<start.sheetY);
 });
 test('circle starts face-sized at one exact threshold, without intermediate square or oval',()=>{
- assert.ok(D>=140&&D<=180);
+ assert.ok(D>=PROFILE_AVATAR_DIAMETER&&D<=W*PROFILE_CIRCLE_WIDTH_FRACTION);
  const circle=frame(PROFILE_CIRCLE_AT);
  assert.equal(circle.width,D);assert.equal(circle.height,D);assert.equal(circle.radius,50);
  assert.equal(circle.heroScale,1);
  assert.ok(close(circle.heroX,0,.001));assert.ok(close(circle.heroY,frame(PROFILE_CIRCLE_AT-1e-9).heroY,.001));
+ const visible=profileCircleGeometry(W,H,292);
+ assert.equal(visible.visibleTop,PROFILE_VISIBLE_TOP_INSET);
+ assert.ok(close(circle.y+circle.height/2,(visible.visibleTop+visible.visibleBottom)/2,.00001));
+ assert.ok(close(D,Math.min(visible.visibleHeight,PROFILE_CIRCLE_WIDTH_FRACTION*W),.00001));
  for(let i=0;i<=1000;i++){
   const p=i/1000,f=frame(p);
   assert.equal(f.radius,p<PROFILE_CIRCLE_AT?0:50);
@@ -41,7 +45,7 @@ test('the circular mask remains centered on the transformed photo as it moves',(
  for(let i=340;i<=1000;i++){
   const f=frame(i/1000);
   const photoCenterX=f.heroX+W/2*f.heroScale;
-  const photoCenterY=f.heroY+H*.36*f.heroScale;
+  const photoCenterY=f.heroY+f.maskCenterY*f.heroScale;
   assert.ok(close(photoCenterX,f.x+f.width/2,.0001),'x at '+i);
   assert.ok(close(photoCenterY,f.y+f.height/2,.0001),'y at '+i);
  }
@@ -51,7 +55,8 @@ test('no discontinuous transform at the mask boundary; no wide circle',()=>{
  assert.ok(close(a.heroX,b.heroX,.001));
  assert.ok(close(a.heroY,b.heroY,.001));
  assert.ok(close(a.heroScale,b.heroScale,.001));
- assert.ok(b.width<=180);
+ assert.ok(b.width<=W*PROFILE_CIRCLE_WIDTH_FRACTION);
+ assert.ok(b.width<=profileCircleGeometry(W,H).visibleHeight);
 });
 test('identity is temporarily hidden during travel; action/sheet never overlap tabs',()=>{
  assert.equal(frame(0).nameOpacity,1);
@@ -61,5 +66,16 @@ test('identity is temporarily hidden during travel; action/sheet never overlap t
   const p=i/1000,f=frame(p),railTop=H+218-p*(H+218-292);
   assert.ok(f.actionY+51<=railTop-7,'action/rail '+p);
   assert.ok(f.sheetY+284-f.panelClipBottom<=railTop+.001,'panel/rail '+p);
+ }
+});
+
+test('short viewport has the same visible-region-center and maximum width bounds',()=>{
+ for(const [w,h] of [[360,355],[390,447],[430,480]]){
+  const g=profileCircleGeometry(w,h),f=profileFrame(PROFILE_CIRCLE_AT,w,h);
+  assert.ok(g.diameter<=.62*w+1e-8);
+  assert.ok(g.diameter<=g.visibleHeight+1e-8);
+  assert.ok(g.diameter>=PROFILE_AVATAR_DIAMETER);
+  assert.ok(close(f.y+f.height/2,(g.visibleTop+g.visibleBottom)/2,1e-6));
+  assert.ok(close(f.heroY,profileFrame(PROFILE_CIRCLE_AT-1e-9,w,h).heroY,1e-3));
  }
 });

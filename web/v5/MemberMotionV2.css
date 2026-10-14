@@ -89,10 +89,10 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
    The white ring and online indicator are attached to that same canvas. */
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  clip-path:inset(0);border-radius:0;transition:none;
- --vx-profile-mask-diameter:180px;--vx-profile-mask-radius:90px;
+ --vx-profile-mask-diameter:180px;--vx-profile-mask-radius:90px;--vx-profile-mask-center-y:160px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-morph-rim{
- position:absolute;left:50%;top:36%;
+ position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
  width:var(--vx-profile-mask-diameter);height:var(--vx-profile-mask-diameter);
  transform:translate(-50%,-50%);border:7px solid white;border-radius:50%;
  box-sizing:border-box;opacity:0;pointer-events:none;z-index:5;
@@ -100,7 +100,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-photo-morph-rim{opacity:1}
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-hero-photo{pointer-events:none}
 .veyra-v2 .vx-master-profile .vx-profile-avatar-hit{
- position:absolute;left:50%;top:36%;
+ position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
  width:var(--vx-profile-mask-diameter);height:var(--vx-profile-mask-diameter);
  transform:translate(-50%,-50%);
  border:0;border-radius:50%;padding:0;opacity:0;background:transparent;
@@ -110,7 +110,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-online{
  display:block;position:absolute;
  left:calc(50% + var(--vx-profile-mask-radius) - 21px);
- top:calc(36% + var(--vx-profile-mask-radius) - 20px);
+ top:calc(var(--vx-profile-mask-center-y) + var(--vx-profile-mask-radius) - 20px);
  width:22px;height:22px;border:4px solid white;border-radius:50%;
  background:#12c98c;box-sizing:border-box;z-index:6;
  opacity:0;pointer-events:none;
