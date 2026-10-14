@@ -5,3 +5,23 @@
 .photo-progressive>img.photo-sharp.photo-revealed{opacity:1}
 .photo-progressive>.photo-unavailable{position:relative;z-index:2}
 @media(prefers-reduced-motion:reduce){.photo-progressive>img.photo-sharp{transition:none}}
+
+/* Premium, retryable failure UI. No gray placeholder rectangles. */
+.photo-progressive>.photo-retry-state{
+ position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:9px;
+ padding:18px;box-sizing:border-box;text-align:center;
+ border:0;border-radius:inherit;
+ color:#57317d;
+ background:radial-gradient(ellipse at 52% 36%,#faf0ffcc,#dfcef5e0 75%,#d7c0efeb);
+ box-shadow:none;
+}
+.photo-progressive>.photo-retry-state>strong{font-size:13px;font-weight:740;line-height:1.3;color:#54306b}
+.photo-progressive .photo-retry-button{
+ appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:44px;padding:8px 16px;border-radius:999px;
+ border:1px solid #c8a5f1;background:#fffaff;color:#682db6;
+ box-shadow:0 3px 12px #5d31922a;font-size:12px;font-weight:750;cursor:pointer;
+}
+.photo-progressive .photo-retry-button:active{transform:scale(.97)}
+.photo-progressive .photo-retry-button:focus-visible{outline:3px solid #7d42d8;outline-offset:2px}
