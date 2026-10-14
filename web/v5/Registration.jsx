@@ -53,7 +53,7 @@ export function Registration({me,refresh}){
  const [telegramFull,setTelegramFull]=useState(()=>Boolean(window.Telegram?.WebApp?.isFullscreen));
  const [dobParts,setDobParts]=useState(()=>{const b=String(start.birth_date||me?.profile?.birth_date||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(b)?{day:b.slice(8,10),month:b.slice(5,7),year:b.slice(0,4)}:{day:'',month:'',year:''}});
  const dobRefs=useRef([]),scrollRef=useRef(null);
- const photoInput=useRef(null),replaceInput=useRef(null),replaceIndex=useRef(-1),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
+ const photoInput=useRef(null),dragGhostRef=useRef(null),replaceInput=useRef(null),replaceIndex=useRef(-1),dragRef=useRef(null),dragLayoutRects=useRef(null),hintTimer=useRef(null),nameTimer=useRef(null),swipeX=useRef(null),slideBusy=useRef(false),uploadRunning=useRef(false);
  const registrationRootRef=useRef(null),stepTransitionRef=useRef(false),stepTransitionTimerRef=useRef(null),stepAnimationsRef=useRef([]),exitCloneRef=useRef(null),workRunning=useRef(false),reorderRunning=useRef(false);
  const change=(key,val)=>setF(old=>({...old,[key]:val}));
  const toast=message=>{setHint(message);clearTimeout(hintTimer.current);hintTimer.current=setTimeout(()=>setHint(''),3400)};
@@ -242,7 +242,7 @@ export function Registration({me,refresh}){
  };
  const dragMove=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;s.x=e.clientX;s.y=e.clientY;
   if(!s.active){if(Math.hypot(s.x-s.originX,s.y-s.originY)>9){clearTimeout(s.timer);s.cleanup?.();dragRef.current=null}return}
-  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;setDragVisual(v=>v?{...v,x:s.x,y:s.y}:null)});const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
+  e.preventDefault();if(!s.frame)s.frame=requestAnimationFrame(()=>{s.frame=0;const ghost=dragGhostRef.current;if(ghost)ghost.style.transform='translate3d('+(s.x-s.originX)+'px,'+(s.y-s.originY)+'px,0) scale(1.06)'});const target=dragTarget(s.x,s.y);if(target>=0&&target<photos.length&&target!==s.target){dragLayoutRects.current=captureDragLayout();s.target=target;setDragOver(target);haptic('selection')}
  };
  const dragFinish=e=>{const s=dragRef.current;if(!s||s.id!==e.pointerId)return;clearTimeout(s.timer);s.cleanup?.();dragRef.current=null;
   if(!s.active)return;e.preventDefault();const target=s.target;dragLayoutRects.current=null;setDragVisual(null);setDragOver(-1);
@@ -338,7 +338,7 @@ export function Registration({me,refresh}){
     
    </div>}
   </div>
-  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.offsetX,top:dragVisual.y-dragVisual.offsetY,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
+  {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" ref={dragGhostRef} aria-hidden="true" style={{left:dragVisual.x-dragVisual.offsetX,top:dragVisual.y-dragVisual.offsetY,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
    <nav className="registration-actions veyra-glass-navigation" aria-label="Навигация регистрации">
