@@ -39,6 +39,7 @@ export function Registration({me,refresh}){
  const [keyboardActive,setKeyboardActive]=useState(false),[fieldError,setFieldError]=useState(null);
  const [busy,setBusy]=useState(false),[locating,setLocating]=useState(false),[nameNote,setNameNote]=useState(false),[error,setError]=useState(''),[hint,setHint]=useState(''),[consent,setConsent]=useState(!!start.consent_to_terms),[preview,setPreview]=useState(false),[photoIndex,setPhotoIndex]=useState(0),[slideStep,setSlideStep]=useState(0);
  const [dragVisual,setDragVisual]=useState(null),[dragOver,setDragOver]=useState(-1);
+ const [showDragHint,setShowDragHint]=useState(()=>{try{return !sessionStorage.getItem('veyra.photo-drag-hint.v1')}catch{return true}});
  const [ctaPressed,setCtaPressed]=useState(false);
  const [legalOpen,setLegalOpen]=useState(false),[legalTab,setLegalTab]=useState('terms');
 
@@ -85,6 +86,14 @@ export function Registration({me,refresh}){
   }else back.hide?.();
   return()=>{tg.offEvent?.('fullscreenChanged',sync);back.offClick?.(onBack);back.hide?.()};
  },[step,preview,busy,uploading,telegramFull]);
+ useEffect(()=>{
+  if(step!==8||!showDragHint)return;
+  const timer=setTimeout(()=>{
+   setShowDragHint(false);
+   try{sessionStorage.setItem('veyra.photo-drag-hint.v1','1')}catch{}
+  },3600);
+  return()=>clearTimeout(timer);
+ },[step,showDragHint]);
  const setName=value=>{setFieldError(null);const cleaned=cleanName(value);change('name',cleaned);if(cleaned!==value){setNameNote(true);clearTimeout(nameTimer.current);nameTimer.current=setTimeout(()=>setNameNote(false),2600)}};
  useEffect(()=>{try{localStorage.removeItem('veyra.registration.v5');if(!me?.registration)localStorage.removeItem(draftKey)}catch{}return()=>{clearTimeout(hintTimer.current);clearTimeout(nameTimer.current);clearTimeout(ctaTimer.current);if(dragRef.current?.timer)clearTimeout(dragRef.current.timer);dragRef.current?.cleanup?.()}},[draftKey]);
  useEffect(()=>{try{localStorage.setItem(draftKey,JSON.stringify({step,data:f,consent}))}catch{}},[draftKey,step,f,consent]);
@@ -278,7 +287,7 @@ export function Registration({me,refresh}){
    {step===8&&<div className="fields">
      <div className="photo-guidelines"><p><Icon name="camera" tone="pink" size={20}/> Чёткие фото, на которых вас хорошо видно</p><p><Icon name="image" tone="pink" size={20}/> Портрет, прогулка, хобби — покажите себя разным</p><p><Icon name="verified" tone="pink" size={20}/> Только ваши собственные фотографии</p></div>
      <span className={'registration-photo-count '+(photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')} role="status" aria-live="polite">{uploading?'Загружаем фото · '+photos.length+' из 7':photos.length<MIN_PHOTOS?photos.length+' из 7 · Добавь ещё '+(MIN_PHOTOS-photos.length)+' фото, чтобы продолжить':photos.length+' из 7 · Можно посмотреть анкету'}</span>
-      <p className="tip">Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
+      <p className={"tip veyra-photo-drag-guide"+(showDragHint?" is-first-visit":"")}><span className="veyra-drag-hand" aria-hidden="true">☝️</span> Первое фото станет главным. Удерживай фото, чтобы изменить порядок.</p>
     <div className="photo-layout" aria-label="Фотографии профиля">
      {display.map((item,i)=>{const loading=!!item?.file;
       return <div key={item.id} className={'photo-slot '+(i===0?'primary ':'')+(loading?'uploading ':'')+(dragVisual&&photos[dragVisual.index]?.id===item.id?' drag-origin':'')+(dragOver===i&&dragVisual?.index!==i?' drop-target':'')} data-slot-index={i} data-photo-id={item.id} draggable={false}
