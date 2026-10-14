@@ -43,3 +43,38 @@ test('owner can repeat photo demo while real matches, chats, photos and users re
   assert.equal(again.status,200);assert.equal(again.body.reset_matches,0);
  }finally{await db.close();}
 });
+
+
+test('upgrading the photo gallery once restores exhausted demo cards without deleting real reactions',async()=>{
+ const db=await testDB();
+ const bytes=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200"><rect width="900" height="1200" fill="#dab9f1"/></svg>');
+ const files=new Map(),storage={put:async(key,data)=>files.set(key,data),remove:async key=>files.delete(key)};
+ const env={APP_URL:'https://veyra-3806.onrender.com',RENDER_EXTERNAL_URL:'https://veyra-3806.onrender.com',OWNER_TELEGRAM_ID:'1'};
+ try{
+  await user(db,1);await user(db,2);
+  const initial=await seedTestProfiles(db,storage,env,{loadPortrait:async()=>bytes});
+  assert.equal(initial.photos_per_profile,4);
+  assert.equal(files.size,48);
+  const demoId=TEST_PROFILE_IDS[0],demoMatch=randomUUID(),realMatch=randomUUID();
+  await db.query("INSERT INTO reactions(actor,target,kind) VALUES($1,$2,'like'),($2,$1,'like'),($1,2,'like')",[1,demoId]);
+  await db.query('INSERT INTO impressions(viewer,target) VALUES($1,$2)',[1,demoId]);
+  await db.query('INSERT INTO matches(id,a,b) VALUES($1,$2,$3)',[demoMatch,1,demoId]);
+  await db.query('INSERT INTO matches(id,a,b) VALUES($1,$2,$3)',[realMatch,1,2]);
+  // Simulate a previous gallery version becoming outdated.
+  await db.query("DELETE FROM audit_log WHERE action='test_profiles.seed' AND subject LIKE 'owner-demo-gallery-four-photos-rich-interests-%'");
+  const refreshed=await seedTestProfiles(db,storage,env,{loadPortrait:async()=>bytes});
+  assert.equal(refreshed.auto_reset,true);
+  assert.equal(refreshed.reset_matches,1);
+  assert.equal(refreshed.reset_reactions,2);
+  assert.equal(files.size,48);
+  assert.equal((await one(db,'SELECT count(*)::int n FROM reactions WHERE actor=$1 AND target=$2',[1,demoId])).n,0);
+  assert.ok(await one(db,"SELECT 1 FROM reactions WHERE actor=$1 AND target=2 AND kind='like'",[1]));
+  assert.equal(await one(db,'SELECT id FROM matches WHERE id=$1',[demoMatch]),undefined);
+  assert.ok(await one(db,'SELECT id FROM matches WHERE id=$1',[realMatch]));
+  assert.equal((await one(db,'SELECT count(*)::int n FROM photos WHERE user_id=ANY($1::bigint[])',[TEST_PROFILE_IDS])).n,48);
+  assert.deepEqual((await db.query('SELECT position FROM photos WHERE user_id=$1 ORDER BY position',[demoId])).rows.map(row=>row.position),[0,1,2,3]);
+  const repeated=await seedTestProfiles(db,storage,env);
+  assert.equal(repeated.auto_reset,undefined);
+  assert.equal((await one(db,'SELECT count(*)::int n FROM audit_log WHERE action=$1',['owner.demo.auto_reset'])).n,2);
+ }finally{await db.close();}
+});
