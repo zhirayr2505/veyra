@@ -2,6 +2,7 @@ import React,{useEffect,useState,useRef} from 'react';
 import {LiquidLogo} from './LiquidLogo.jsx';
 import {photoUrl,cachedPhoto,cachedPhotoAny} from './api.js';
 import './PhotoReveal.css';
+import './UiPrimitives.css';
 // Approved Work asset pack: /VEYRA_ASSET_PACK/ in repo root; browser mirror: /veyra-approved/.
 const approvedBase='/veyra-approved/';
 const base=approvedBase; // only the approved Work asset pack powers branded UI
@@ -31,7 +32,28 @@ export function InterestIcon({name,size=16,selected=false}){
  const slug=interestSlugs[String(name||'').toLowerCase()];
  return slug?<img className="veyra-interest-icon" src={approvedBase+'02_interest_icons/svg/'+(selected?'selected':'normal')+'/'+slug+'.svg'} width={size} height={size} alt="" aria-hidden="true" draggable="false"/>:null;
 }
-export function Button({children,onClick,kind='primary',disabled=false,type='button',className=''}){return <button type={type} disabled={disabled} className={'btn '+kind+' '+className} onClick={onClick}>{children}</button>;}
+export function Button({children,onClick,kind='primary',variant,size='large',loading=false,disabled=false,type='button',className='',...rest}){
+ const requested=variant||kind;
+ const visual=requested==='outline'?'secondary':requested==='soft'?'ghost':requested;
+ const classKind=requested==='secondary'?'outline':requested==='ghost'?'soft':requested;
+ const inactive=disabled||loading;
+ return <button {...rest} type={type} disabled={inactive} aria-busy={loading||undefined}
+  className={'btn veyra-button '+classKind+' veyra-button-'+visual+' veyra-button-'+size+' '+className}
+  onClick={onClick}>
+  {loading&&<span className="veyra-button-spinner" aria-hidden="true"/>}
+  {children}
+ </button>;
+}
+export function Choice({children,selected=false,onClick,className='',disabled=false,...rest}){
+ return <button {...rest} type="button" className={'choice veyra-choice'+(selected?' selected is-active':'')+' '+className}
+  aria-pressed={selected} disabled={disabled} onClick={onClick}>{children}</button>;
+}
+export function InterestChip({tone='violet',label,common=false,selected=false,removable=false,onRemove,icon,className='',children}){
+ const interactive=removable&&typeof onRemove==='function';
+ const body=<>{icon||<InterestIcon name={label} size={17} selected={selected}/>}<span className="vx-interest-text">{label}</span>{common&&<span className="vx-profile-common-tag">общее</span>}{interactive&&<span className="veyra-interest-remove" aria-hidden="true">×</span>}{children}</>;
+ const props={className:'vx-member-interest veyra-interest-chip '+className,'data-tone':tone,'data-common':common?'true':undefined,'data-selected':selected?'true':undefined};
+ return interactive?<button type="button" {...props} aria-label={'Убрать '+label} onClick={onRemove}>{body}</button>:<span {...props}>{body}</span>;
+}
 export function Photo({id,className='',onClick,alt='',priority=false,resolution=0,placeholder=null}){
  const element=useRef(null),width=[256,640,960].includes(resolution)?resolution:0;
  const [retry,setRetry]=useState(0);
