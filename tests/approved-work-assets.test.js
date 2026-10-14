@@ -55,8 +55,9 @@ test('all five VEYRA navigation icons resolve through Work-approved pack with co
  assert.doesNotMatch(ui,/oldBase|veyra-v2/);
  assert.match(read('web/v5/preload.js'),/veyra-approved\/01_icons\/active/);
  const reg=read('web/v5/Registration.jsx');
- assert.match(reg,/veyra-design\/icons/);
- assert.match(reg,/DesignGlyph name=/);
+ assert.doesNotMatch(reg,/DesignGlyph|veyra-design\\/icons/);
+ assert.match(reg,/<Icon name=\\{k==='man'\\?'man':'woman'\\}/);
+ assert.match(reg,/<Icon name="location" tone="pink"/);
  const filters=read('web/v5/FeedFilters.jsx');
  assert.match(filters,/veyra-approved\/01_icons/);
  assert.ok(existsSync(new URL('public/veyra-approved/01_icons/active/everyone.svg',root)));
