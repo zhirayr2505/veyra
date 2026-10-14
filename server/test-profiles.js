@@ -60,7 +60,18 @@ export async function seedTestProfiles(db,storage,env,{loadPortrait=downloadPort
  if(await one(db,"SELECT 1 FROM audit_log WHERE action='test_profiles.seed' AND subject=$1",[SEED]))
   return {status:'completed',count:TEST_PROFILE_IDS.length,photos_per_profile:4};
  // Fetch outside the DB transaction, so a slow photo CDN does not hold row locks.
- const images=await Promise.all(FIXTURES.map(loadPortrait));
+ // Prefer already licensed and stored original portraits. This keeps the
+ // gallery upgrade fast and avoids unnecessary third-party image downloads.
+ const prior=(await db.query('SELECT user_id::text AS user_id,object_key FROM photos WHERE user_id=ANY($1::bigint[]) ORDER BY user_id,position',[TEST_PROFILE_IDS])).rows;
+ const first=new Map();
+ for(const row of prior)if(!first.has(row.user_id))first.set(row.user_id,row.object_key);
+ const images=await Promise.all(FIXTURES.map(async(item,index)=>{
+  const key=first.get(String(TEST_PROFILE_IDS[index]));
+  if(key&&typeof storage.get==='function'){
+   try{return await storage.get(key)}catch{/* fallback to the licensed source */}
+  }
+  return loadPortrait(item);
+ }));
  const galleries=[];
  for(const image of images)galleries.push(await buildPhotoVariants(image));
  const uploaded=[],retired=[];
