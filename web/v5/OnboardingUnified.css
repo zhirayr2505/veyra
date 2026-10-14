@@ -1,0 +1,36 @@
+/* Final onboarding family unification: tokens/components shared with VEYRA profiles. */
+.veyra-registration-2026,.veyra-profile-preview,.veyra-legal,.vc-screen,.veyra-editor-unified{
+ --registration-purple:var(--vx-color-accent);
+ --registration-ink:var(--vx-color-ink);
+ --registration-soft:var(--vx-color-surface);
+ color:var(--vx-color-ink);
+ font-family:var(--vx-font-sans);
+}
+.veyra-legal .veyra-legal-accept,.vc-screen .vc-preview-btn,
+.vc-screen .vc-close-btn,.veyra-editor-unified .veyra-editor-save{
+ border-radius:var(--vx-radius-button);
+ min-height:var(--vx-height-primary);
+ touch-action:manipulation;
+ transition:transform .16s ease,opacity .16s ease;
+}
+.veyra-legal .veyra-legal-accept,.vc-screen .vc-preview-btn,
+.veyra-editor-unified .veyra-editor-save{
+ background:var(--vx-gradient-primary);
+ color:#fff;
+ box-shadow:var(--vx-shadow-cta);
+}
+.vc-screen .vc-close-btn{background:var(--vx-color-raised);color:var(--vx-color-accent);border:1px solid var(--vx-color-outline)}
+.veyra-legal .veyra-legal-accept:active,.vc-screen .vc-preview-btn:active,
+.vc-screen .vc-close-btn:active,.veyra-editor-unified .veyra-editor-save:active{transform:scale(.97)}
+.veyra-editor-unified .fields>:is(label,section),
+.veyra-legal .veyra-legal-document,
+.vc-screen .vc-status{border-radius:var(--vx-radius-card)}
+.veyra-editor-unified .upload-add{min-width:44px;min-height:44px;border-radius:var(--vx-radius-card)}
+.veyra-editor-unified .thumb-order button,.veyra-editor-unified .thumb-delete{min-width:44px;min-height:44px}
+.veyra-editor-upload-status{display:grid;gap:7px;padding:8px 0}
+.veyra-editor-upload-status>div{display:grid;grid-template-columns:minmax(0,1fr) 90px 42px;align-items:center;gap:8px;color:var(--vx-color-ink);font-size:12px}
+.veyra-editor-upload-status progress{width:100%;accent-color:var(--vx-color-accent)}
+.veyra-editor-upload-status small{color:var(--vx-color-muted)}
+.veyra-editor-upload-status [role=alert]{color:var(--vx-color-danger)}
+:is(.veyra-legal,.vc-screen,.veyra-editor-unified) button:focus-visible{outline:3px solid var(--vx-color-accent);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.veyra-legal .veyra-legal-accept,.vc-screen .vc-preview-btn,.vc-screen .vc-close-btn,.veyra-editor-unified .veyra-editor-save{transition:none}}
