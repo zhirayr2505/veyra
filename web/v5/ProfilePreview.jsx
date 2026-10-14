@@ -57,8 +57,8 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
   </div>
   {error&&<p className="vp-error" role="alert">{error}</p>}
   <footer className="vp-actions">
-   {onSubmit?<><button type="button" className="vp-primary" disabled={submitting||ids.length<3} onClick={onSubmit}>{submitting?'Отправляем…':<><Icon name="check" tone="white" size={22}/> отправить на проверку</>}</button><button type="button" className="vp-secondary" onClick={onEdit||onBack}>редактировать</button></>:
-   <><button type="button" className="vp-primary" disabled={submitting} onClick={onEdit}>{submitting?'Открываем…':'Изменить профиль'}</button><button type="button" className="vp-secondary" onClick={onBack}>Назад</button></>}
+   {onSubmit?<><Button variant="primary" className="vp-primary" disabled={submitting||ids.length<3} loading={submitting} onClick={onSubmit}>{submitting?'Отправляем…':<><Icon name="check" tone="white" size={22}/> отправить на проверку</>}</Button><Button variant="secondary" className="vp-secondary" onClick={onEdit||onBack}>редактировать</Button></>:
+   <><Button variant="primary" className="vp-primary" disabled={submitting} loading={submitting} onClick={onEdit}>{submitting?'Открываем…':'Изменить профиль'}</Button><Button variant="secondary" className="vp-secondary" onClick={onBack}>Назад</Button></>}
   </footer>
  </main>;
 }
