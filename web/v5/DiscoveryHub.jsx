@@ -306,7 +306,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
    </button>
    <Logo width={145} className="vx-logo"/>
-   <span className="vx-feed-wordmark-glint" aria-hidden="true"/>
+   
    <div className="vx-head-actions">
     <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>
      <img alt="" aria-hidden="true" width="21" height="21" src="/veyra-approved/09_veys/veys-diamond.svg"/>
