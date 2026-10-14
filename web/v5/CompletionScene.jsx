@@ -1,7 +1,7 @@
 import React,{useState} from 'react';
 import {Logo,Icon,Button} from './UI.jsx';
-import './OnboardingUnified.css';
 import './CompletionScene.css';
+import './OnboardingUnified.css';
 
 /* Shared, resolution-independent VEYRA crystal scene for the two final screens. */
 export function CompletionArt({kind='pending'}){
