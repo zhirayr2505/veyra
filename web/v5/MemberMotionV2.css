@@ -262,7 +262,10 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
  position:relative;z-index:2;overflow:hidden;width:100%;
  background:#faf6ff;touch-action:pan-y pinch-zoom;
+ /* Embla has overflow:hidden: contain on Y blocks native scroll chaining.
+    Keep X boundary contained while allowing Y to reach .vx-profile-scroller. */
  overscroll-behavior-x:contain;
+ overscroll-behavior-y:auto;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track{
  display:flex;flex-wrap:nowrap;width:100%;min-width:0;

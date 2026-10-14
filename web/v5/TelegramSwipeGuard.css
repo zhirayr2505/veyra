@@ -6,6 +6,6 @@ html,body{
 :where(#root,#app,.app-shell,.view-frame,.view-tab){
  overscroll-behavior-y:contain;
 }
-:where(.vx-hub,.vx-browse,.discover,.likes-v2,.likes-gallery,.chats-v2,.ve-chat-list,.chat-list,.message-stream,.vx-profile-scroller,.vx-profile-swipe-viewport,.vx-profile-photos-grid,.sheet,.overlay,.gallery,.vx-member-menu-backdrop,.vx-member-popup-menu,.veyra-interests-overlay,.veyra-interests-sheet,.vx-feed-interests-overlay){
+:where(.vx-hub,.vx-browse,.discover,.likes-v2,.likes-gallery,.chats-v2,.ve-chat-list,.chat-list,.message-stream,.vx-profile-scroller,.vx-profile-photos-grid,.sheet,.overlay,.gallery,.vx-member-menu-backdrop,.vx-member-popup-menu,.veyra-interests-overlay,.veyra-interests-sheet,.vx-feed-interests-overlay){
  overscroll-behavior:contain;
 }
