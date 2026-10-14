@@ -30,5 +30,26 @@ Scope: Eight existing registration steps + shared LiquidLogo, ProfilePreview rea
 - [ ] 14. PR merged only after green checks, Render LIVE SHA matches main, /healthz and /readyz
 - [ ] 15. Samsung Galaxy A55 Telegram manual confirmation deferred to project owner after deployment
 
-## Test evidence
-Not executed yet. Mark checklist items complete only with code review/test evidence. Do not claim manual Android verification from CI.
+## Implementation evidence (branch only; production not yet deployed)
+- [x] Eight original steps, age, consent and API endpoints unchanged; UI photo cap reduced from 7 to 6.
+- [x] Single WAAPI 290 ms transition; removed View Transition pseudo-elements, competing CSS entrance/stagger and old CTA label animations.
+- [x] Two circular 56 px arrows with realtime step validity, loading state, Telegram haptic and safe-area.
+- [x] VisualViewport height + offsetTop / resize / scroll subscriptions, rAF writes to CSS, reattachment after preview.
+- [x] Shared approved-logo glass renderer and fallback; no geometry changes.
+- [x] 3×2 photo slots, drag capture and pointercancel, stable ghost offsets, keyboard vertical reorder, replace/delete.
+- [x] Preview defaults to read-only Member with actions hidden; registration photos and draft passed in.
+- [x] No schema migrations, seed or stage-0 reset code changed; no payment/admin code changed.
+- [ ] Manual UI review on Samsung Galaxy A55 Telegram WebView, including real Android keyboard.
+- [ ] Final current-head CI and production live verification.
+
+## Automated tests, prior green CI
+GitHub Actions Verify run `38592595857` on commit `4436902b42ebe6e2b1feed3df5a49f6d8fcb50a9`:
+- `npm run typecheck`: PASS
+- `npm run check`: 186/186 Node tests PASS and Vite production build PASS
+- `npm run lint`: PASS
+- `npm run secrets:check`: PASS
+- Chromium: 56 scenarios / 44 pass / 12 existing baseline failures / **0 new regressions**.
+- Subsequent fixes add real pointer drag, mocked keyboard tests and overlay stacking assertions. The latest HEAD requires its own CI before merge.
+- Production verification script additionally checks `/readyz`.
+- Do not treat local/build/CI as real-device visual sign-off.
+
