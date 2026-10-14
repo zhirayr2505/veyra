@@ -35,7 +35,7 @@ test('owner can repeat photo demo while real matches, chats, photos and users re
   assert.equal(await one(db,'SELECT id FROM messages WHERE id=$1',[demoMsg]),undefined);
   assert.ok(await one(db,'SELECT id FROM matches WHERE id=$1',[realMatch]));
   assert.ok(await one(db,'SELECT id FROM messages WHERE id=$1',[realMsg]));
-  assert.equal((await one(db,'SELECT count(*)::int AS n FROM photos WHERE user_id=ANY($1::bigint[])',[TEST_PROFILE_IDS])).n,12);
+  assert.equal((await one(db,'SELECT count(*)::int AS n FROM photos WHERE user_id=ANY($1::bigint[])',[TEST_PROFILE_IDS])).n,48);
   assert.equal((await one(db,'SELECT count(*)::int AS n FROM reactions WHERE actor=$1 AND target=$2',[1,fake])).n,0);
   assert.equal((await one(db,'SELECT count(*)::int AS n FROM impressions WHERE viewer=$1 AND target=$2',[1,fake])).n,0);
   assert.equal((await one(db,"SELECT count(*)::int AS n FROM audit_log WHERE action='owner.demo.reset'")).n,1);
