@@ -91,7 +91,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    }
    // Compensate for portrait-to-square squash on the image itself.
    if(!parts.image?.isConnected){
-    parts.image=parts.hero.querySelector('.photo-box img');
+    parts.image=parts.hero.querySelector('.vx-hero-image-compensation');
    }
    if(parts.image)parts.image.style.transform='scaleY('+(scaleX/scaleY).toFixed(6)+')';
    if(parts.panel){parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));parts.panel.style.clipPath='inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)';}
@@ -226,7 +226,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
   }
   s.refs={
-   hero,image:hero.querySelector('.photo-box img'),
+   hero,image:hero.querySelector('.vx-hero-image-compensation'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
