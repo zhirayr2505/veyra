@@ -3,7 +3,9 @@ import {BookOpen,Camera,Clapperboard,Coffee,Dumbbell,Flower2,Footprints,Headphon
 import {get,post,photoUrl} from './api.js';
 import {InterestReveal} from './InterestReveal.jsx';
 import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
-import {Button,Icon,InlineAlert,Spinner,InterestIcon,Photo,Logo} from './UI.jsx';
+import {Button,Icon,InlineAlert,Spinner,InterestIcon,InterestChip,Photo,Logo} from './UI.jsx';
+import {INTEREST_GROUPS} from './OnboardingOptions.jsx';
+import {interestTone} from './profilePolishLogic.js';
 import './Discover.css';
 
 const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
@@ -15,7 +17,7 @@ async function decodePhoto(url){if(!url||typeof Image==='undefined')return;
  const image=new Image();image.src=url;
  if(typeof image.decode==='function')await image.decode().catch(()=>{});
 }
-function Interest({name}){return <span className="feed-interest"><InterestIcon name={name} size={14}/><span>{name}</span></span>;}
+function Interest({name}){return <InterestChip className="feed-interest" label={name} tone={interestTone(name,INTEREST_GROUPS)} icon={<InterestIcon name={name} size={14}/>}/>;}
 function FeedPicture({card,index}){
  const id=card.photos?.[index];
  return <div className="feed-picture">
