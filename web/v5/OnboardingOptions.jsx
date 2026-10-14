@@ -2,6 +2,7 @@ import React,{useMemo,useState} from 'react';
 import {Music2,Dumbbell,Clapperboard,Plane,UtensilsCrossed,Heart,Film,Bike,Palette,Coffee,PawPrint,Cpu,BookOpen,MapPin,Sparkles,ChevronDown} from 'lucide-react';
 import {Icon,InterestIcon,Choice,InterestChip} from './UI.jsx';
 import {interestTone} from './profilePolishLogic.js';
+import {haptic} from './haptics.js';
 import './OnboardingOptions.css';
 
 export const GOALS=[
@@ -81,7 +82,7 @@ export function InterestPicker({value=[],onChange,max=12}){
   }else if(selected.length<max){
    setLimitMessage(false);onChange([...selected,item]);
   }else{setLimitMessage(true);return;}
-  try{window.Telegram?.WebApp?.HapticFeedback?.selectionChanged?.()}catch{/* Browser fallback */}
+  haptic('selection');
  };
  const renderOption=item=><InterestChip key={item} label={item} tone={interestTone(item,INTEREST_GROUPS)}
   selected={selected.includes(item)} disabled={!selected.includes(item)&&selected.length>=max}
