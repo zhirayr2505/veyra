@@ -1,6 +1,7 @@
 import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
 import {Music2,Plane,Clapperboard,Dumbbell,BookOpen,Coffee,MonitorSmartphone,PawPrint,Camera,Footprints,Palette,UtensilsCrossed,Headphones,Flower2,Shirt,ChevronLeft,ChevronRight,MapPin,Check} from 'lucide-react';
 import {get,put,post,request,photoOrder,uploadPhoto} from './api.js';
+import {compressPortrait} from './compressPortrait.js';
 import {Button,Choice,Logo,Icon,Photo,InlineAlert,Spinner} from './UI.jsx';
 import {GoalPicker,InterestPicker,CatalogueIcon,goalTitle} from './OnboardingOptions.jsx';
 import {InterestReveal} from './InterestReveal.jsx';
@@ -115,25 +116,55 @@ export function Registration({me,refresh}){
  const locate=()=>{if(locating||busy)return;setError('');setLocating(true);if(!navigator.geolocation){setLocating(false);setCityEdit(true);setError('Геолокация недоступна. Выбери город из списка.');return}
  navigator.geolocation.getCurrentPosition(async pos=>{try{const found=await get('/geo?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude);if(!found.length)throw Error('Не удалось определить город');choosePlace(found[0]);navigator.vibrate?.(15)}catch(e){fail(e);setCityEdit(true)}finally{setLocating(false)}},()=>{setLocating(false);setCityEdit(true);setError('Разрешение на геолокацию не получено. Выбери город вручную.')},{enableHighAccuracy:false,timeout:12000,maximumAge:90000});
  };
- const upload=async fileList=>{if(uploadRunning.current||busy)return;const files=Array.from(fileList||[]);const remaining=MAX_PHOTOS-photos.length;
- if(!remaining){toast('Можно добавить максимум 7 фото');return}
- if(files.length>remaining)toast('Можно добавить максимум 7 фото — добавляем первые '+remaining);
- const selected=files.slice(0,remaining),bad=selected.find(file=>!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024);
- if(bad){setError('Каждое фото должно быть JPG, PNG или WEBP, до 5 МБ');return}
- if(!selected.length)return;
- uploadRunning.current=true;setUploading(true);setError('');
- const initial=selected.map((file,i)=>({id:'upload-'+i+'-'+Date.now(),file,preview:URL.createObjectURL(file),status:'waiting',progress:0,serverId:null}));
- setJobs(initial);
- try{for(const item of initial){
-  setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'loading',progress:0}:x));
-  try{const fd=new FormData();fd.append('photo',item.file);let result;for(let attempt=0;attempt<2;attempt++){try{result=await uploadPhoto(item.file,n=>setJobs(old=>old.map(x=>x.id===item.id?{...x,progress:n}:x)));break}catch(e){if(attempt||!(/fetch|network|HTTP_502|HTTP_503|HTTP_504/i.test(e.message)))throw e;await new Promise(resolve=>setTimeout(resolve,850))}}
-   setPhotos(old=>[...old,{id:result.id,position:old.length}]);
-   setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'done',progress:100,serverId:result.id}:x));
-  }catch(e){setJobs(old=>old.map(x=>x.id===item.id?{...x,status:'failed',progress:0}:x));setError('Не удалось загрузить «'+item.file.name+'»: '+e.message)}
- }
- await refresh();
- await new Promise(resolve=>setTimeout(resolve,700));
- }finally{initial.forEach(x=>URL.revokeObjectURL(x.preview));setJobs([]);uploadRunning.current=false;setUploading(false)}
+ const upload=async fileList=>{
+  if(uploadRunning.current||busy)return;
+  const files=Array.from(fileList||[]),remaining=MAX_PHOTOS-photos.length;
+  if(!remaining){toast('Можно добавить максимум 7 фото');return}
+  if(files.length>remaining)toast('Можно добавить максимум 7 фото — добавляем первые '+remaining);
+  const selected=files.slice(0,remaining);
+  if(!selected.length)return;
+  uploadRunning.current=true;setUploading(true);setError('');
+  const initial=selected.map((file,i)=>({id:'upload-'+i+'-'+Date.now(),file,preview:URL.createObjectURL(file),status:'waiting',progress:0,serverId:null}));
+  setJobs(initial);
+  let cursor=0;
+  const results=Array(initial.length).fill(null);
+  const update=(id,patch)=>setJobs(old=>old.map(job=>job.id===id?{...job,...patch}:job));
+  const worker=async()=>{
+   while(cursor<initial.length){
+    const index=cursor++,item=initial[index];
+    update(item.id,{status:'processing',progress:0});
+    try{
+     const compressed=await compressPortrait(item.file,{maxSide:2048,quality:.86});
+     update(item.id,{status:'loading',progress:0});
+     let result;
+     for(let attempt=0;attempt<2;attempt++){
+      try{
+       result=await uploadPhoto(compressed,n=>update(item.id,{progress:n}));break;
+      }catch(e){
+       if(attempt||!/fetch|network|HTTP_502|HTTP_503|HTTP_504/i.test(e.message))throw e;
+       await new Promise(resolve=>setTimeout(resolve,500));
+      }
+     }
+     results[index]={id:result.id,lqip:result.lqip||null,dominant:result.dominant||null};
+     update(item.id,{status:'done',progress:100,serverId:result.id});
+    }catch(e){
+     update(item.id,{status:'failed',progress:0});
+     setError('Не удалось загрузить «'+item.file.name+'»: '+e.message);
+    }
+   }
+  };
+  try{
+   // No more than two concurrent photo decodes/uploads on mobile.
+   await Promise.all(Array.from({length:Math.min(2,initial.length)},()=>worker()));
+   const successful=results.filter(Boolean);
+   if(successful.length){
+    setPhotos(old=>[...old,...successful.map((item,i)=>({...item,position:old.length+i}))]);
+    await refresh();
+   }
+  }finally{
+   initial.forEach(item=>URL.revokeObjectURL(item.preview));
+   setJobs([]);uploadRunning.current=false;setUploading(false);
+  }
  };
  const reorder=async(from,to)=>{if(uploading||busy||from===to||from<0||to<0||from>=photos.length||to>=photos.length)return;
  const before=photos,arr=[...photos],moved=arr.splice(from,1)[0];arr.splice(to,0,moved);setPhotos(arr);
@@ -257,7 +288,7 @@ export function Registration({me,refresh}){
        onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reorder(i,i+(e.key==='ArrowRight'?1:-1))}}}>
         {loading?<img className="upload-preview" alt="" src={item.preview}/>:<div draggable={false} onContextMenu={e=>e.preventDefault()}><Photo id={item.id} placeholder={{lqip:item.lqip||null,dominant:item.dominant||item.dominant_color||null}}/></div>}
         {i===0&&<span className="cover-label">Главное</span>}{!loading&&<span className="photo-order-number">{i+1}</span>}
-        {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':'загрузка'}</small></span></span>}</span></>:
+        {loading?<><div className="veyra-upload-progress" role="progressbar" aria-label={'Загрузка фотографии '+(i+1)} aria-valuenow={item.progress||0} aria-valuemin="0" aria-valuemax="100"><span style={{width:(item.progress||0)+'%'}}/></div><span className={'upload-state '+item.status}>{item.status==='done'?<span className="veyra-photo-upload-tick"><Icon name="check" tone="white" size={24}/></span>:item.status==='failed'?<Icon name="close" tone="white" size={20}/>:<span className="veyra-upload-circle" style={{'--upload-angle':(item.progress||0)+'%'}}><span className="veyra-upload-circle-inner"><strong>{item.progress||0}%</strong><small>{item.status==='waiting'?'в очереди':item.status==='processing'?'обработка':'загрузка'}</small></span></span>}</span></>:
         <><button className="thumb-delete" aria-label={'Удалить фотографию '+(i+1)} disabled={busy||uploading} onPointerDown={e=>e.stopPropagation()} onClick={()=>remove(i)}><Icon name="close" tone="pink" size={16}/></button></>}
        </div>})}
      {uploaded.length<MAX_PHOTOS&&<button type="button" aria-label="Добавить фото" className={'photo-slot photo-slot-add'+(uploaded.length===0?' primary':'')} onClick={()=>photoInput.current?.click()} disabled={busy||uploading}><Icon name="plus" tone="pink" size={30}/></button>}
