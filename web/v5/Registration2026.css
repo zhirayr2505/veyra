@@ -626,3 +626,7 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .veyra-photo-drag-guide.is-first-visit .veyra-drag-hand{animation:veyraDragExplain 1.2s cubic-bezier(.2,.8,.2,1) 2}
 @keyframes veyraDragExplain{0%,100%{transform:translate3d(0,0,0) rotate(-7deg)}45%{transform:translate3d(16px,-5px,0) rotate(8deg)}}
 @media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .veyra-photo-drag-guide.is-first-visit .veyra-drag-hand{animation:none}}
+
+/* Keep icon-only actions reachable by touch and keyboard. */
+.v2-onboarding .veyra-registration-2026 :is(.thumb-delete,.location-change,.registration-photo-delete,.photo-order button,.veyra-bio-emoji-button){min-width:44px;min-height:44px;touch-action:manipulation}
+.v2-onboarding .veyra-registration-2026 :is(button,input,textarea,select):focus-visible{outline:3px solid var(--vx-color-accent);outline-offset:3px}
