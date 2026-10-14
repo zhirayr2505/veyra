@@ -1701,3 +1701,65 @@ test('Stage 2 compact photo stops owning taps below its visible circular avatar'
  }
  await page.screenshot({path:testInfo.outputPath('stage2-gesture-hit-grid.png')});
 });
+
+
+// Stage 2 addendum: the exact same mask/geometry must work with and without
+// ScrollTimeline. Scroll is advanced in physical ~4px increments both ways.
+for(const disableTimeline of [false,true]){
+ test('Stage 2 4px reverse geometry parity '+(disableTimeline?'requestAnimationFrame fallback':'ScrollTimeline'),async({page},testInfo)=>{
+  if(disableTimeline)await page.addInitScript(()=>{Object.defineProperty(window,'ScrollTimeline',{configurable:true,value:undefined})});
+  await telegram(page,10);await page.goto('/');
+  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+  const scroller=page.locator('.vx-profile-scroller');
+  await expect(scroller).toBeVisible();
+  const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+  expect(distance).toBeGreaterThan(60);
+  if(disableTimeline)expect(await page.evaluate(()=>typeof window.ScrollTimeline)).toBe('undefined');
+  const collect=async(y)=>{
+   await scroller.evaluate((el,offset)=>{el.scrollTop=offset},y);
+   await page.waitForTimeout(36);
+   return page.evaluate(()=>{
+    const m=document.querySelector('.vx-profile-motion'),hero=m.querySelector('.vx-profile-hero-photo');
+    const style=getComputedStyle(hero),matrix=new DOMMatrixReadOnly(style.transform);
+    const r=hero.getBoundingClientRect(),root=document.querySelector('.vx-profile-scroller').getBoundingClientRect();
+    const diameter=parseFloat(style.getPropertyValue('--vx-profile-mask-diameter'));
+    const maskY=parseFloat(style.getPropertyValue('--vx-profile-mask-center-y'));
+    const visibleCircle=diameter*matrix.a;
+    return {shape:m.dataset.photoShape,clip:style.clipPath,scroll:document.querySelector('.vx-profile-scroller').scrollTop,
+     rect:{left:r.left,top:r.top,width:r.width,height:r.height},scale:matrix.a,
+     circle:{d:visibleCircle,x:r.left+r.width/2,y:r.top+maskY*matrix.a},
+     viewportWidth:root.width,ring:getComputedStyle(m.querySelector('.vx-profile-photo-morph-rim')).opacity,
+     duplicate:m.querySelectorAll('.vx-profile-photo-shade,.vx-profile-blurred-header,.vx-profile-avatar-ring').length};
+   });
+  };
+  const count=Math.ceil(distance/4),forward=[];
+  for(let i=0;i<=count;i++)forward.push(await collect(Math.min(distance,i*4)));
+  const backwards=[];
+  for(let i=count;i>=0;i--)backwards.push(await collect(Math.min(distance,i*4)));
+  for(let i=0;i<forward.length;i++){
+   const a=forward[i],b=backwards[backwards.length-1-i];
+   const at=Math.min(distance,i*4)/distance;
+   expect(a.duplicate).toBe(0);
+   expect(a.shape).toBe(at<.34?'cover':'circle');
+   expect(a.shape).toBe(b.shape);
+   expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
+   expect(Math.abs(a.rect.top-b.rect.top)).toBeLessThan(2);
+   expect(Math.abs(a.scale-b.scale)).toBeLessThan(.02);
+   if(at>=.34){
+    expect(a.clip).toMatch(/^circle/);
+    expect(a.circle.d).toBeLessThanOrEqual(a.viewportWidth*.62+1);
+    expect(a.circle.d).toBeGreaterThanOrEqual(97);
+    expect(Number(a.ring)).toBe(1);
+   }else{
+    expect(a.clip).toMatch(/^inset/);
+    expect(Number(a.ring)).toBe(0);
+   }
+  }
+  const atCircle=forward.find((_,i)=>Math.min(distance,i*4)/distance>=.34);
+  const beforeCircle=forward.filter((_,i)=>Math.min(distance,i*4)/distance<.34).at(-1);
+  expect(Math.abs(atCircle.rect.left-beforeCircle.rect.left)).toBeLessThan(2);
+  expect(Math.abs(atCircle.rect.top-beforeCircle.rect.top)).toBeLessThan(3);
+  await collect(distance*.34);
+  await page.screenshot({path:testInfo.outputPath(disableTimeline?'stage2-fallback-first-circle.png':'stage2-native-first-circle.png')});
+ });
+}
