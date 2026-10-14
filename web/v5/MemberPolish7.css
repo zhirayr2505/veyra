@@ -312,13 +312,17 @@
 /* Online dot gently breathes in color/shadow only, not in the photo transform. */
 .veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot{
  background:#17c57b!important;border:3px solid white;
- box-shadow:0 0 0 0 #1ecb7b48;
- animation:vxProfileOnlinePulse 3.6s ease-in-out infinite;
+}
+.veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot::after{
+ content:"";position:absolute;inset:-5px;border-radius:50%;
+ border:3px solid #24c98993;pointer-events:none;
+ transform:scale(.75);opacity:0;will-change:transform,opacity;
+ animation:vxProfileOnlinePulse 3.6s ease-out infinite;
 }
 @keyframes vxProfileOnlinePulse{
- 0%,75%,100%{box-shadow:0 0 0 0 #1ecb7b15}
- 84%{box-shadow:0 0 0 5px #1ecb7b38}
- 92%{box-shadow:0 0 0 8px #1ecb7b00}
+ 0%,72%,100%{transform:scale(.75);opacity:0}
+ 80%{transform:scale(1);opacity:.55}
+ 92%{transform:scale(1.9);opacity:0}
 }
 /* Multi-modal accessibility, no forced body scroll lock beyond existing sheets. */
 .veyra-v2 .vx-master-profile .vx-own-section-heading :is(button,.vx-own-pencil),
@@ -330,7 +334,7 @@
  .veyra-v2 .vx-master-profile .vx-profile-common-tag{font-size:8px;padding:4px}
 }
 @media(prefers-reduced-motion:reduce){
- .veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot,
+ .veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot::after,
  .veyra-v2 .vx-master-profile .vx-profile-photos-grid button::before,
  .veyra-v2 .vx-master-profile .vx-profile-photos-grid img,
  .veyra-v2 .vx-master-profile .vx-profile-action.vx-reaction-burst .vx-pack-icon,
