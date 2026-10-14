@@ -102,8 +102,6 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-prev
 html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .step-top>.quiet{visibility:hidden!important;pointer-events:none!important}
 /* One continuous, smooth shade, no dark slab across the picture. */
 .veyra-profile-preview .preview-gallery .veyra-card-shade{z-index:2;inset:0;background:linear-gradient(180deg,#0C07152B 0%,transparent 24%,transparent 54%,#120B2014 67%,#0F0A245B 85%,#0C071CCB 100%)}
-.veyra-profile-preview .preview-gallery .veyra-card-photo-bars{top:12px!important;bottom:auto!important;left:14px!important;right:14px!important;z-index:8!important}
-.veyra-profile-preview .preview-gallery .veyra-card-photo-bars button{height:4px!important;flex:1 1 0!important;max-width:none!important}
 .veyra-profile-preview .preview-gallery .veyra-card-caption{bottom:21px!important;left:15px;right:15px;max-width:calc(100% - 30px);gap:5px!important;z-index:5!important}
 .veyra-profile-preview .veyra-card-name-row h2{font-size:clamp(23px,6.6vw,31px)}
 .veyra-profile-preview .preview-gallery .veyra-card-goal-badge{margin:1px 0}
