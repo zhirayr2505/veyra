@@ -199,8 +199,10 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <FeedPicture key={card.id} card={card} index={index}/>
       <div className="veyra-card-shade" aria-hidden="true"/>
       <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
+      <CardGoalBadge goal={card.goal} top/>
       {card.test_profile&&<span className="vx-demo-feed-badge">ДЕМО</span>}
       <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
+      <button type="button" className="vx-feed-profile-info" onClick={e=>{e.stopPropagation();onProfile(card.id)}} aria-label={'Открыть полный профиль '+card.name}><Icon name="info" tone="white" size={21}/></button>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}
       {motion==='exit-super'&&<div className="feed-flash feed-flash-super" aria-hidden="true"><Star size={76} fill="white"/><b>Суперлайк!</b></div>}
@@ -208,8 +210,8 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
      <div className="feed-actions">
       <button type="button" className="feed-action action-undo" disabled={busy||!undoAvailable} aria-label="Отменить последнее действие" title={last.can_undo&&!last.premium&&last.free_undo_left<=0?'Лимит бесплатных отмен исчерпан':'Отменить последнее действие'} onClick={undo}><span className="feed-action-circle"><Icon name="undo" tone="dark" size={24}/></span></button>
       <button type="button" className="feed-action action-pass" disabled={busy} aria-label="Пропустить" title="Пропустить" onClick={()=>react('pass')}><span className="feed-action-circle"><Icon name="close" tone="pink" size={29}/></span></button>
-      <button type="button" className="feed-action action-super" disabled={busy} aria-label="Суперлайк" title="Суперлайк" onClick={()=>react('super')}><span className="feed-action-circle"><Icon name="star" tone="pink" size={27}/></span></button>
-      <button type="button" className="feed-action action-like" disabled={busy} aria-label="Нравится" title="Нравится" onClick={()=>react('like')}><span className="feed-action-circle"><Icon name="heart_filled" tone="white" size={30}/></span></button>
+      <button type="button" className="feed-action action-like" disabled={busy} aria-label="Нравится" title="Нравится" onClick={()=>react('like')}><span className="feed-action-circle"><Icon name="heart_filled" tone="white" size={35}/></span></button>
+      <button type="button" className="feed-action action-super" disabled={busy} aria-label="Суперлайк" title="Суперлайк" onClick={()=>react('super')}><span className="feed-action-circle"><Icon name="star" tone="pink" size={28}/></span></button>
      </div>
      </div>
     </React.Fragment>:<FeedState kind={error?'error':limited?'limit':'empty'} onRetry={()=>setRefresh(i=>i+1)} onFilters={onFilters} onPremium={onPremium}/>}
