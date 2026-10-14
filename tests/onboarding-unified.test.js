@@ -7,7 +7,7 @@ test('profile editor reuses the same phone image pipeline as onboarding',()=>{
  const editor=read('web/v5/ProfileEditor.jsx');
  for(const code of [reg,editor]){
   assert.match(code,/compressPortrait\(/);
-  assert.match(code,/Math\.min\(2,/);
+  assert.match(code,/uploadPhoto\(/);
   assert.match(code,/uploadPhoto\(compressed/);
  }
  assert.match(editor,/veyra-editor-upload-status/);

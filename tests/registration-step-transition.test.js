@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-test('single 290ms WAAPI transition preserves steps and cancels animations cleanly',()=>{
+test('single 205ms clipped WAAPI transition preserves steps and cancels animations cleanly',()=>{
  const src=read('web/v5/Registration.jsx'),css=read('web/v5/RegistrationTransitions.css');
- for(const token of ['cloneNode(true)','clone.inert=true','scrollRef.current?.animate','clone?.animate','stepTransitionRef.current','Promise.allSettled','prefers-reduced-motion','duration=reduced?0:290','flushSync(()=>setStep(target))'])
+ for(const token of ['cloneNode(true)','clone.inert=true','incoming?.animate','clone?.animate','stepTransitionRef.current','Promise.allSettled','prefers-reduced-motion','duration=reduced?0:205','flushSync(()=>setStep(target))'])
   assert.ok(src.includes(token),token);
+ assert.match(src,/data-transition-ms="205"/);
+ assert.match(read('web/v5/Stage1Bugfix.css'),/registration-step-viewport/);
  assert.doesNotMatch(src,/document\.startViewTransition|setKeyboardActive/);
  assert.doesNotMatch(css,/::view-transition|@keyframes veyraStep|veyraItemReveal/);
  assert.doesNotMatch(read('web/v5/style.css'),/\.registration-step\.forward\{animation:/);

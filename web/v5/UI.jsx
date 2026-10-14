@@ -63,7 +63,7 @@ export function Photo({id,className='',onClick,alt='',priority=false,resolution=
  const [ready,setReady]=useState(()=>!!cachedPhoto(id,{width}));
  useEffect(()=>{
   let live=true,observer;
-  const cached=cachedPhoto(id,{width});
+  const cached=cachedPhoto(id,{width})||(element.current?.closest('.veyra-profile-preview')?cachedPhotoAny(id):'');
   set({id,width,url:cached,error:false});setReady(!!cached);
   if(!id||cached)return;
   const load=()=>photoUrl(id,{width}).then(url=>{if(live)set({id,width,url,error:false})}).catch(()=>{if(live)set({id,width,url:'',error:true})});

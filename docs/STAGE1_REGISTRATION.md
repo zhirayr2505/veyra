@@ -53,3 +53,33 @@ GitHub Actions Verify run `38592595857` on commit `4436902b42ebe6e2b1feed3df5a49
 - Production verification script additionally checks `/readyz`.
 - Do not treat local/build/CI as real-device visual sign-off.
 
+
+
+## Samsung Galaxy A55 Stage 1 bugfix (owner rejected first release)
+- Recorded evidence: **1000068257.mp4**, total 02:26.46, inspected in full (00:00–02:26). Reproduction: overlapping steps ~00:00.8–00:01.4, ~00:09.3–00:10.0 and ~00:38–00:39; photos ~00:48–00:58 and drag ~01:10–01:30; profile preview ~01:40 onwards.
+- Only Stage 1: no data reset, seed fixtures in production, SQL migration, change to wallets, Premium, VEYS, payment, admin, or Member phase-2 motion.
+- Existing authenticated profile belongs to the owner. **Do not delete it**. QA uses isolated CI fixtures.
+- Stage 0 snapshot `veyra-stage0-backups/stage0-backups/registration-clean-2026-10-14-v1/`: read-only storage audit on 2026-10-14 confirms private bucket, **17 objects**, newest object updated `2026-10-14 15:12:40.171469+00` (unchanged from stage 0).
+- Stage 1 rejected until a new real-device owner review; automated tests are not sign-off.
+
+### Bugfix acceptance checklist
+- [x] S1-F01 — Isolate incoming/outgoing in one overflow-hidden, size-stable viewport; one 205ms WAAPI full-distance transform/opacity path. Exit clone inert and removed on finish.
+- [x] S1-F02 — Back/next same exact 56px circular glass surface, depth and icon contrast; disabled still legible, VisualViewport safe-area remains.
+- [x] S1-F03 — Photo jobs `waiting / processing / loading / saving / failed`, server-confirmed successes counted and added immediately; no 99% stall.
+- [x] S1-F04 — Failed upload persists with retry and remove actions; no unfinished job in profile/preview.
+- [x] S1-F05 — Precise fixed-size photo drag ghost uses the visible image URL and pointer-relative offset, pointercancel cleanup, FLIP shifts and stable slots.
+- [x] S1-F06 — Preload/decode high-resolution photo after upload, await image readiness before opening preview, reuse cache for read-only Member and feed.
+- [x] S1-F07 — Both preview tabs source the same confirmed `photos` array/order, opening from main photo; no active profile actions.
+- [x] S1-F08 — Compact interest tabs, one category visible, selected chip tray, instant case-insensitive Russian/synonym search and search clear.
+- [x] S1-F09 — 3–12 selection guard, synced count, selected item deduplication, warning on 13th, persist in existing draft.
+- [x] S1-F10 — Narrow/mobile CSS, 44px chip targets, short 180ms transition, keyboard-safe pinned glass nav, 0 horizontal overflow.
+- [x] S1-F11 — Verify browser intermediate step frames, max 205ms+grace, repeated clicks, arrow geometry, upload failure/retry, drag cross-row and preview mode.
+- [x] S1-F12 — HEAD typecheck, lint, check, secrets:check, Node and browser baseline 0 new regressions.
+- [ ] S1-F13 — Diff review, merge bugfix PR, Render live smoke, main SHA equality, no reset and unchanged private snapshot.
+- [ ] S1-F14 — **Owner manually retests on Samsung Galaxy A55 Telegram and accepts Stage 1. No Stage 2 until then.**
+
+### Bugfix PR #79 CI evidence
+- HEAD before documentation-only status update: `904e6c721036873cb710578443133d7b230963c3`
+- Verify run `38607583890` on 2026-10-14: `npm run typecheck` PASS; `npm run check` PASS (186/186 Node tests, Vite build); `npm run lint` PASS; `npm run secrets:check` PASS.
+- Browser baseline gate: **59 scenarios / 48 passed / 11 known prior baseline failures / 0 new regressions**; Playwright reports actual pass for Stage-1 transition and interests tests. The 11 known unrelated baseline failures are not hidden, and no new failures are accepted.
+- Last checklist items S1-F13 (merged/live/smoke) and S1-F14 (owner device sign-off) deliberately remain open until independently verified.
