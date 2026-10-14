@@ -216,7 +216,9 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  // Stage 1 regression: a physical vertical long-press from row 2 to row 1
  // changes the main photo without scrolling the photo-step container.
  const from=tiles.nth(3),to=tiles.nth(0),fromId=await from.getAttribute('data-photo-id');
- const scroll=page.locator('.registration-step');
+ // The 290ms outgoing step is an inert DOM snapshot; never query both steps.
+ await expect(page.locator('[data-exit-snapshot]')).toHaveCount(0);
+ const scroll=page.locator('.registration-step:not([data-exit-snapshot])');
  const beforeScroll=await scroll.evaluate(el=>el.scrollTop);
  const src=await from.boundingBox(),dst=await to.boundingBox();
  await page.mouse.move(src.x+src.width/2,src.y+src.height/2);
