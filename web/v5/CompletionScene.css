@@ -13,7 +13,6 @@
 .vc-header{min-height:78px;display:flex;justify-content:center;align-items:center;flex:none;}
 .vc-logo-sheen{width:161px;height:69px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:17px;}
 .vc-logo-sheen .logo{width:151px;height:auto;max-height:64px;object-fit:contain;}
-.vc-logo-sheen:after{content:"";position:absolute;inset:-80%;pointer-events:none;background:linear-gradient(111deg,transparent 38%,#FFFFFF05 42%,#FFFFFFCC 49%,#FFFFFF25 53%,transparent 61%);transform:translateX(-140%) skewX(-12deg);mix-blend-mode:screen;animation:vc-logo-shine 6.2s ease-in-out infinite;}
 .vc-content{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:0;}
 .vc-art{width:min(100%,420px);height:clamp(205px,37dvh,400px);max-height:400px;flex:none;position:relative;display:grid;place-items:center;}
 .vc-crystal{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 10px 18px #A866EC25);transform:translateZ(0);animation:vc-crystal-arrive .85s cubic-bezier(.15,.8,.2,1) both;}
