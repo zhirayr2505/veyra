@@ -35,7 +35,7 @@ function FeedState({kind,onRetry,onFilters,onPremium}){
   {!isLoading&&<Button className="full" onClick={isError?onRetry:isLimited?onPremium:onFilters}>{isError?'Попробовать ещё раз':isLimited?'Открыть Premium':'Изменить фильтры'}</Button>}
  </div>;
 }
-export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false,demoMode=false}){
+export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,filters={},embedded=false}){
  const mode=filters.mode||'discover';
  const onlyOnline=!!filters.only_online,commonInterests=!!filters.common_interests;
  const [card,setCard]=useState(null),[loading,setLoading]=useState(true),[limited,setLimited]=useState(false);
@@ -45,7 +45,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const requestToken=useRef(0),pointer=useRef(null),ignoreSwipeClick=useRef(false),entranceTimer=useRef(null);
  const photos=card?.photos||[];
  useEffect(()=>()=>clearTimeout(entranceTimer.current),[]);
- const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests+'&demo='+demoMode;
+ const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests+';
 
  useEffect(()=>{let alive=true;get('/reactions/last').then(r=>{
   if(alive)setLast({...r,target:r.action?.target||null});
@@ -101,7 +101,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
   const current=card;clearTimeout(entranceTimer.current);setBusy(true);setError('');setMotion('exit-'+kind);haptic(kind);
   try{
    const [result]=await Promise.all([
-    post('/reactions',{target:String(current.id),kind,next_mode:mode,only_online:onlyOnline,common_interests:commonInterests,demo:demoMode}),
+    post('/reactions',{target:String(current.id),kind,next_mode:mode,only_online:onlyOnline,common_interests:commonInterests}),
     wait(310)
    ]);
    let next=result.next;
