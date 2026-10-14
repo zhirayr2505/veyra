@@ -1,6 +1,6 @@
 /* VEYRA 2026 registration • seven-step light purple/white journey */
 .v2-onboarding .veyra-registration-2026{
- --registration-purple:#9165F2;--registration-ink:#292033;--registration-soft:#FBF7FF;
+ --registration-purple:var(--vx-color-accent);--registration-ink:var(--vx-color-ink);--registration-soft:var(--vx-color-surface);
  background:radial-gradient(ellipse 90% 42% at 50% -3%,#EEE5FF 0%,#FBF7FF 75%);color:var(--registration-ink);
  max-width:560px;min-height:100dvh;padding:calc(14px + env(safe-area-inset-top)) 19px calc(134px + env(safe-area-inset-bottom));overflow-x:clip;
 }
@@ -34,7 +34,7 @@
 .v2-onboarding .veyra-registration-2026 .location-change{color:#8354E8}
 .v2-onboarding .veyra-registration-2026 .registration-actions{position:fixed;left:50%;transform:translateX(-50%);width:min(100%,560px);background:linear-gradient(0deg,#FBF7FF 76%,#FBF7FFEE 88%,transparent);border-top:0;bottom:0;padding:20px 19px calc(15px + env(safe-area-inset-bottom));box-shadow:none}
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn.primary,
-.v2-onboarding .veyra-registration-2026 .registration-actions .btn:not(.outline){min-height:56px;background:linear-gradient(105deg,#9E78F6,#9165F2)!important;border:0;border-radius:19px;color:#fff!important;font-size:15px;font-weight:790;box-shadow:0 9px 23px #9165F237!important}
+.v2-onboarding .veyra-registration-2026 .registration-actions .btn:not(.outline){min-height:56px;background:var(--vx-gradient-primary)!important;border:0;border-radius:var(--vx-radius-button);color:#fff!important;font-size:15px;font-weight:790;box-shadow:0 9px 23px #9165F237!important}
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn:disabled{opacity:.48;box-shadow:none!important}
 .v2-onboarding .veyra-registration-2026 .photo-layout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;width:100%;align-items:start}
 .v2-onboarding .veyra-registration-2026 .photo-slot,.v2-onboarding .veyra-registration-2026 .photo-slot.primary{grid-column:auto;grid-row:auto;aspect-ratio:3/3.8;border-radius:17px;box-shadow:0 6px 18px #35225110;border:1.5px solid #E5D8F4;background:#F3ECFE}
@@ -290,7 +290,7 @@
  background:linear-gradient(0deg,#FBF7FF 75%,#FBF7FFEE)!important;z-index:80!important;
 }
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn{
- min-height:54px!important;border-radius:20px!important;font-weight:780!important;
+ min-height:var(--vx-height-primary)!important;border-radius:var(--vx-radius-button)!important;font-weight:780!important;
 }
 .v2-onboarding .veyra-registration-2026 .location-card.veyra-city-row{
  box-sizing:border-box!important;display:grid!important;
@@ -526,11 +526,11 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn.veyra-smart-next{
   position:relative!important;isolation:isolate;overflow:hidden!important;
   display:flex!important;align-items:center!important;justify-content:center!important;
-  box-sizing:border-box!important;width:100%!important;min-height:58px!important;
-  padding:12px 24px!important;border:1px solid #9858F3!important;
-  border-radius:20px!important;
+  box-sizing:border-box!important;width:100%!important;min-height:var(--vx-height-primary)!important;
+  padding:12px 24px!important;border:1px solid var(--vx-color-primary-end)!important;
+  border-radius:var(--vx-radius-button)!important;
   color:#fff!important;font-size:16px!important;font-weight:800!important;
-  background:linear-gradient(114deg,#AE88FA 0%,#965DF4 48%,#7B2CEA 100%)!important;
+  background:var(--vx-gradient-primary)!important;
   box-shadow:0 8px 23px #7847D75C,0 3px 8px #9560D935,
              inset 0 1px 0 #FFFFFF75,inset 0 -1px 0 #5B25AF26!important;
   text-shadow:0 1px 2px #42247C55;
