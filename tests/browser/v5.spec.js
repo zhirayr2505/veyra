@@ -1763,3 +1763,64 @@ for(const disableTimeline of [false,true]){
   await page.screenshot({path:testInfo.outputPath(disableTimeline?'stage2-fallback-first-circle.png':'stage2-native-first-circle.png')});
  });
 }
+
+
+// Stage 2 §17.3 — 12-origin real Chromium touch arbitration and hit-target scan.
+// Only Embla implements horizontal capture; native scrolling owns pan-y.
+test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and tappable actions',async({page},testInfo)=>{
+ await telegram(page,10);
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-profile-scroller');
+ await expect(scroller).toBeVisible();
+ const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ const origins=[];
+ for(const y of [390,455,520,585])for(const x of [45,190,340])origins.push({x,y});
+ const cdp=await page.context().newCDPSession(page);
+ const drag=async(x,y,dx,dy)=>{
+  const touch=(xx,yy)=>({x:Math.round(xx),y:Math.round(yy),radiusX:5,radiusY:5,force:1,id:1});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touch(x,y)]});
+  for(let n=1;n<=9;n++){
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[touch(x+dx*n/9,y+dy*n/9)]});
+   await page.waitForTimeout(11);
+  }
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForTimeout(75);
+ };
+ const diagnostic=[];
+ for(const origin of origins){
+  await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
+  await page.waitForTimeout(80);
+  const hierarchy=await page.evaluate(({x,y})=>document.elementsFromPoint(x,y).slice(0,8).map(el=>{
+   const css=getComputedStyle(el),r=el.getBoundingClientRect();
+   return {tag:el.tagName,cls:typeof el.className==='string'?el.className.slice(0,110):'',
+    pointer:css.pointerEvents,touch:css.touchAction,z:css.zIndex,position:css.position,overflow:css.overflow,
+    rect:{x:r.x,y:r.y,w:r.width,h:r.height}};
+  }),origin);
+  const before=await scroller.evaluate(el=>el.scrollTop);
+  await drag(origin.x,origin.y,0,-200);
+  const after=await scroller.evaluate(el=>el.scrollTop);
+  diagnostic.push({...origin,before,after,hierarchy});
+  expect(hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
+  expect(after,'vertical touch from '+origin.x+','+origin.y).toBeGreaterThan(before+20);
+ }
+ await testInfo.attach('stage2-hit-test-grid.json',{body:Buffer.from(JSON.stringify(diagnostic,null,2)),contentType:'application/json'});
+ for(const origin of origins){
+  await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
+  const rail=page.locator('.vx-profile-tab-rail');
+  const fromPhotos=origin.x<90;
+  await rail.getByRole('tab',{name:fromPhotos?'Фото':'О себе'}).click();
+  await page.waitForTimeout(150);
+  await drag(origin.x,origin.y,fromPhotos?135:-135,0);
+  const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
+  await expect(desired,'Embla swipe from '+origin.x+','+origin.y).toHaveAttribute('aria-selected','true',{timeout:2500});
+ }
+ // The action wrapper is transparent, but its real 50px buttons still receive taps.
+ await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'О себе'}).click();
+ const action=page.locator('.vx-own-member .vx-profile-action').first();
+ await action.click();
+ await expect(page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await page.screenshot({path:testInfo.outputPath('stage2-12-origin-gestures.png')});
+ await cdp.detach();
+});
