@@ -1,0 +1,334 @@
+/* VEYRA / FOR YOU — approved light lavender screenshot (14 Oct 2026).
+   Load after Stage02 and FeedPremium; never affects Feed, Nearby or full profiles. */
+.veyra-v2 .vx-dating-stage02.vx-for-you-active{
+ background:radial-gradient(ellipse 80% 360px at 55% 120px,#e6cbfc 0%,transparent 100%),
+ linear-gradient(180deg,#f9efff 0%,#fffaff 40%,#fcf6ff 100%)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you{
+ position:relative;display:flex;flex-direction:column;gap:0;
+ color:#342148;
+ padding-bottom:24px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-approved-hero{
+ display:block!important;position:relative!important;isolation:isolate;
+ width:100%;height:clamp(201px,56vw,235px);min-height:0!important;
+ padding:0!important;gap:0!important;margin:5px 0 0!important;
+ overflow:hidden!important;border:1.5px solid #fff!important;
+ border-radius:clamp(23px,6.5vw,29px)!important;
+ background:radial-gradient(circle at 75% 10%,#fff9 0%,transparent 43%),
+ radial-gradient(circle at 88% 90%,#dbb5fb 0%,transparent 55%),
+ linear-gradient(133deg,#e8d4ff 0%,#faf0ff 51%,#e7c8fa 100%)!important;
+ box-shadow:0 9px 21px #9a62c039,inset 0 2px 3px #ffffffcb!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-approved-hero:before{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:radial-gradient(circle at 11% 86%,#f7e2f9a6,transparent 65%)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello{
+ position:absolute!important;z-index:3!important;display:flex;flex-direction:column;align-items:flex-start;
+ top:18px;left:clamp(15px,4.5vw,23px);bottom:20px;
+ width:58%;max-width:260px;min-width:0;grid-column:auto!important;
+ margin:0!important;padding:0!important;
+ pointer-events:none;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-eyebrow{
+ display:inline-flex;align-items:center;gap:4px;
+ font-size:clamp(10px,2.75vw,12px);font-weight:850;letter-spacing:.4px;
+ text-transform:uppercase;color:#8956ae;margin:0 0 15px;text-shadow:0 1px 2px #fff8;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello h1{
+ margin:0!important;max-width:100%;display:block;color:#48246b!important;
+ font-size:clamp(29px,8vw,41px)!important;line-height:.98!important;
+ letter-spacing:-1.4px!important;font-weight:940!important;
+ text-shadow:none!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello h1 span{
+ display:block;margin-top:4px;width:max-content;max-width:100%;
+ color:transparent!important;
+ background:linear-gradient(118deg,#9b39dc 5%,#c255c0 50%,#e66ca8 100%);
+ -webkit-background-clip:text;background-clip:text;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello p{
+ color:#6a507f!important;line-height:1.48!important;
+ font-size:clamp(11px,3.1vw,14px)!important;font-weight:670!important;
+ max-width:205px;margin:18px 0 0!important;text-shadow:none!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-glossy-heart{
+ position:absolute;right:2%;top:10%;z-index:2;
+ display:block;width:min(47%,205px);height:79%;object-fit:contain;
+ filter:drop-shadow(0 9px 14px #a667d88a);
+ pointer-events:none;user-select:none;
+ animation:vxForYouFloat 6s ease-in-out infinite;
+}
+@keyframes vxForYouFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-sparkle{
+ position:absolute;z-index:3;pointer-events:none;
+ color:#fff;text-shadow:0 0 12px #bd74e8,0 0 3px #fff;
+ font-size:clamp(19px,6vw,31px);
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-sparkle-a{right:6%;top:9%}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-sparkle-b{right:42%;bottom:17%;font-size:21px}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-sparkle-c{right:2%;bottom:11%;font-size:16px}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-dots{
+ position:absolute;z-index:4;left:19px;bottom:13px;display:flex;align-items:center;gap:5px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-dots i{
+ width:6px;height:6px;display:block;border-radius:99px;background:#bea2e2;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-dots i:first-child{
+ width:19px;background:linear-gradient(100deg,#9e4bd5,#ae5fed)
+}
+/* Three equal, pill-shaped benefits. Wrapping text beats clipping at 320px. */
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-benefits{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(4px,1.45vw,8px);margin:12px 0 0;
+ width:100%;min-width:0;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-benefits .vx-benefit-chip{
+ display:flex!important;align-items:center;justify-content:center;
+ gap:4px!important;min-width:0;min-height:42px;max-width:100%;
+ padding:6px clamp(4px,1.4vw,9px)!important;
+ border-radius:999px!important;
+ border:1px solid #e5d0fd!important;
+ background:linear-gradient(155deg,#fffefd,#f6edff)!important;
+ color:#412852!important;box-shadow:0 3px 9px #8e55b519,inset 0 1px 1px white!important;
+ font-size:clamp(8.8px,2.55vw,10.7px)!important;font-weight:800!important;
+ line-height:1.13!important;text-align:center;
+ white-space:normal!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-benefits .vx-benefit-chip .kit-icon{
+ flex:none;width:15px;height:15px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-benefits .vx-benefit-chip span{
+ display:block;min-width:0;overflow-wrap:normal;text-wrap:balance;
+}
+/* Section titles match the reference: weight and lavender trailing link. */
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-section-title{
+ margin:clamp(22px,5.8vw,28px) 0 12px!important;
+ display:flex;align-items:end;gap:6px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-section-title h2{
+ color:#382447!important;letter-spacing:-.7px!important;
+ font-size:clamp(17px,4.65vw,21px)!important;font-weight:900!important;
+ line-height:1.12!important;min-width:0;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-section-title button{
+ flex:none;color:#9750d3!important;font-size:clamp(10px,3vw,12px)!important;
+ font-weight:820!important;white-space:nowrap;padding:0 1px 0 0!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-section-title button .kit-icon{
+ width:12px;height:12px;
+}
+/* The "people like you" horizontal carousel, visible ~five portraits. */
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits{
+ display:flex!important;align-items:start;gap:clamp(8px,2.15vw,12px);
+ overflow-x:auto;overflow-y:hidden;
+ scroll-snap-type:x proximity;overscroll-behavior-x:contain;
+ scrollbar-width:none;padding:3px 2px 9px!important;
+ max-height:none;min-height:0;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits::-webkit-scrollbar{display:none}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits.expanded{
+ flex-wrap:wrap!important;overflow-x:visible;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits .vx-portrait-card{
+ flex:0 0 clamp(58px,16vw,77px)!important;
+ width:clamp(58px,16vw,77px)!important;
+ min-width:0;padding:0;margin:0;gap:0!important;
+ display:flex;flex-direction:column;align-items:center;
+ border:0;background:transparent;color:#503362;
+ font-size:11px;text-align:center;
+ scroll-snap-align:start;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits .vx-portrait-circle{
+ width:100%;aspect-ratio:1;border-radius:50%;
+ padding:3px;border:0!important;
+ background:linear-gradient(145deg,#d481fc,#8d33e2 55%,#ecacfa);
+ box-shadow:0 4px 12px #8743c366,0 0 0 1px #c47cfc55;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits .vx-portrait-circle .photo-box{
+ width:100%;height:100%;overflow:hidden;border-radius:50%;
+ border:2px solid #fff;background:#ead8ef;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits .vx-portrait-circle img{
+ width:100%;height:100%;object-fit:cover;object-position:50% 30%;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits .vx-portrait-name{
+ display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ margin:9px 0 2px!important;color:#563568!important;
+ font-size:clamp(10px,2.8vw,12px)!important;font-weight:850!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-common{
+ display:flex;align-items:center;justify-content:center;gap:2px;width:100%;
+ min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ color:#a24ed4;font-weight:800;font-size:clamp(9px,2.5vw,11px);
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-common .kit-icon{
+ flex:none;width:11px;height:11px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-portraits .vx-portrait-demo-tag{
+ top:44%;left:50%;padding:1px 4px;font-size:8px;
+}
+/* A trio of pastel product-art cards, exactly one row at phone width. */
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collections{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(7px,2vw,12px)!important;
+ overflow:visible!important;
+ padding:1px 1px 7px!important;
+ width:100%;scroll-snap-type:none!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection{
+ position:relative;display:block;min-width:0;
+ width:auto!important;max-width:none;flex-basis:auto!important;
+ height:clamp(168px,47vw,210px)!important;
+ overflow:hidden!important;
+ border:2px solid #fff!important;border-radius:23px!important;
+ box-shadow:0 6px 14px #70419e35!important;
+ text-align:left;background:#dfb5f4;
+ transition:scale .16s ease-out,box-shadow .18s ease-out;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-common{
+ background:linear-gradient(150deg,#d5b2f3,#aa70da)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-serious{
+ background:linear-gradient(150deg,#ffd4ee,#e892d5)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-travel{
+ background:linear-gradient(150deg,#cceaff,#adc0ed)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection:active{scale:.975}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection.chosen{
+ outline:2px solid #8737da!important;outline-offset:2px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection .vx-collection-art{
+ display:block!important;position:absolute!important;inset:0!important;
+ width:100%;height:100%;object-fit:cover!important;
+ object-position:center 30%!important;opacity:.40!important;
+ pointer-events:none;user-select:none;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection .vx-collection-shade{
+ position:absolute;inset:0!important;
+ background:linear-gradient(180deg,#ffffff14 0%,#fff0 34%,#e9c5f04a 56%,#e5b6f1d1 100%)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-serious .vx-collection-shade{
+ background:linear-gradient(180deg,#fff3 0%,transparent 47%,#f0a8d8da 100%)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-travel .vx-collection-shade{
+ background:linear-gradient(180deg,#fff3 0%,transparent 47%,#acc3eece 100%)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-collection-glass{
+ position:absolute;z-index:1;left:50%;top:10%;
+ translate:-50% 0;rotate:-7deg;
+ width:min(84%,104px);height:53%;
+ border-radius:30%;
+ display:grid;place-items:center;
+ background:linear-gradient(145deg,#fffa,#ffffff16);
+ border:1px solid #ffffffb5;
+ box-shadow:0 9px 18px #753c9942,inset 0 1px 3px #ffffffa8;
+ backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-serious .vx-for-you-collection-glass{rotate:7deg}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-themed-travel .vx-for-you-collection-glass{rotate:-4deg}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-collection-glass .kit-icon{
+ width:clamp(31px,9.4vw,45px);height:clamp(31px,9.4vw,45px);
+ filter:drop-shadow(0 6px 6px #a361bb55)!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection .vx-collection-label{
+ position:absolute;z-index:3;left:8px;right:5px;bottom:10px;
+ gap:4px;text-shadow:0 1px 1px #fff9!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection .vx-collection-label b{
+ color:#3c2253!important;font-size:clamp(11px,3.05vw,14px)!important;
+ font-weight:920!important;line-height:1.08!important;
+ text-shadow:none!important;text-transform:none!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection .vx-collection-label small{
+ color:#6b4b80!important;font-size:clamp(9px,2.4vw,11px)!important;
+ font-weight:700!important;line-height:1.15!important;
+ text-shadow:none!important;
+}
+/* Recommended for you: two photo cards per row, real status and metadata. */
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-rec-heading{
+ scroll-margin-top:90px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-recommendations{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:clamp(9px,2.6vw,14px)!important;
+ width:100%;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended{
+ position:relative;min-width:0;width:auto!important;
+ height:auto!important;aspect-ratio:.98!important;
+ border-radius:clamp(17px,5.2vw,23px)!important;
+ border:1px solid #ffffff9e;
+ overflow:hidden;background:#dccce6;
+ box-shadow:0 6px 15px #57378132!important;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-open,
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-open>.photo-box,
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-open>.photo-box img{
+ position:absolute;inset:0;width:100%;height:100%;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-open>.photo-box img{
+ object-fit:cover;object-position:50% 28%;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-gradient{
+ position:absolute;inset:0;
+ background:linear-gradient(180deg,#15102010 20%,transparent 42%,#100a1a45 70%,#120a1ac9 100%)!important;
+ pointer-events:none;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-caption{
+ position:absolute;z-index:3;
+ bottom:10px;left:10px;right:7px;
+ gap:3px!important;color:white!important;
+ text-shadow:0 2px 4px #190a2cbb;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-caption strong{
+ font-size:clamp(14px,4vw,18px)!important;
+ font-weight:900!important;letter-spacing:-.4px;
+ line-height:1.1;max-width:100%;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-caption small{
+ font-size:clamp(9px,2.75vw,11px)!important;
+ line-height:1.2!important;font-weight:750!important;
+ max-width:100%!important;gap:4px!important;
+ color:#f5ecff!important;overflow:hidden;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-person-caption .veyra-country-flag-round{
+ width:17px;height:17px;flex:none;
+ border-radius:50%;overflow:hidden;display:inline-grid;place-items:center;
+ border:1px solid #fff9;
+ font-size:16px;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-person-recommended .vx-for-you-shared{
+ white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-online{
+ display:inline-flex;align-items:center;gap:4px;position:absolute;
+ top:9px;right:9px;z-index:5;padding:5px 8px;
+ border-radius:999px;background:#1c3c2fb8;
+ backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+ font-size:10px;font-weight:770;color:#fff;
+ box-shadow:0 1px 8px #10151b30;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-online span{
+ flex:none;width:8px;height:8px;border-radius:50%;background:#fff;
+ box-shadow:0 0 4px #ffffff8a;
+}
+.veyra-v2 .vx-dating-stage02 .vx-for_you .vx-more{
+ margin:13px auto 2px;
+}
+/* One-column very narrow phones: still keep the triad and 2-up portraits. */
+@media(max-width:345px){
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello{left:12px;top:15px;width:61%}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello h1{font-size:29px!important}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-personal-hello p{font-size:10.5px!important;margin-top:12px!important}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-eyebrow{margin-bottom:12px}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-glossy-heart{width:47%;right:0;top:20%}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-benefits .vx-benefit-chip{padding:5px 3px!important;font-size:8.7px!important}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-collection-glass{border-radius:23%}
+}
+@media(prefers-reduced-motion:reduce){
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-for-you-glossy-heart{animation:none!important}
+ .veyra-v2 .vx-dating-stage02 .vx-for_you .vx-themed-collection{transition:none!important}
+}
