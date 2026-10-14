@@ -198,6 +198,9 @@ export async function requireVerifiedStage0Backup(db,env){
  const marker=await store.get(BACKUP_BUCKET,BACKUP_PREFIX+'validated.json');
  if(!marker)throw Error('STAGE0_VALIDATION_MARKER_MISSING');
  const {manifest,archive,manifest_sha256}=await verifyStage0Backup(db,env,{validateRestore:true});
+ const current=(await db.query("SELECT name FROM storage.objects WHERE bucket_id='veyra-media' ORDER BY name")).rows.map(x=>x.name);
+ const backed=manifest.media.files.map(f=>f.original_key).sort();
+ if(JSON.stringify(current)!==JSON.stringify(backed))throw Error('STAGE0_WORKING_STORAGE_LIST_CHANGED');
  const record=JSON.parse(marker.toString('utf8'));
  if(record.id!==RESET_ID||record.sha256!==manifest_sha256||record.restored_files!==manifest.media.files.length)throw Error('STAGE0_VALIDATION_MARKER_MISMATCH');
  const auditRecord=await one(db,"SELECT 1 FROM audit_log WHERE action='stage0.snapshot.verified' AND subject=$1 AND metadata->>'manifest_sha256'=$2",[RESET_ID,manifest_sha256]);
