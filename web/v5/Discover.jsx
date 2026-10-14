@@ -201,8 +201,8 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
       <CardPhotoBars photos={photos} index={index} onSelect={setIndex}/>
       <CardGoalBadge goal={card.goal} top/>
       {card.test_profile&&<span className="vx-demo-feed-badge">ДЕМО</span>}
-      <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id)}/>
-      <button type="button" className="vx-feed-profile-info" onClick={e=>{e.stopPropagation();onProfile(card.id)}} aria-label={'Открыть полный профиль '+card.name}><Icon name="info" tone="white" size={21}/></button>
+      <CardCaption profile={card} age={card.age} location={location} onProfile={()=>onProfile(card.id,null,card)}/>
+      <button type="button" className="vx-feed-profile-info" onClick={e=>{e.stopPropagation();onProfile(card.id,null,card)}} aria-label={'Открыть полный профиль '+card.name}><Icon name="info" tone="white" size={21}/></button>
       {motion==='exit-like'&&<div className="feed-flash feed-flash-like" aria-hidden="true"><Icon name="heart_filled" tone="white" size={70}/><b>Нравится!</b></div>}
       {motion==='exit-pass'&&<div className="feed-flash feed-flash-pass" aria-hidden="true"><Icon name="close" tone="white" size={64}/><b>Пропустить</b></div>}
       {motion==='exit-super'&&<div className="feed-flash feed-flash-super" aria-hidden="true"><Star size={76} fill="white"/><b>Суперлайк!</b></div>}
