@@ -190,7 +190,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    </MemberSwipePages>
   </div>
 
-  {gallery&&createPortal(<div className="gallery vx-profile-gallery" onTouchStart={e=>{galleryTouch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}}} onTouchEnd={e=>{const start=galleryTouch.current;if(!start)return;const dx=e.changedTouches[0].clientX-start.x,dy=e.changedTouches[0].clientY-start.y;if(dy>90&&Math.abs(dy)>Math.abs(dx))setGallery(false);else if(Math.abs(dx)>40)photosNext(dx<0?1:-1);galleryTouch.current=null}}>
+  {gallery&&createPortal(<div className="gallery vx-profile-gallery" role="dialog" aria-modal="true" aria-label={"Галерея "+data.name} onTouchStart={e=>{galleryTouch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}}} onTouchEnd={e=>{const start=galleryTouch.current;if(!start)return;const dx=e.changedTouches[0].clientX-start.x,dy=e.changedTouches[0].clientY-start.y;if(dy>90&&Math.abs(dy)>Math.abs(dx))setGallery(false);else if(Math.abs(dx)>40)photosNext(dx<0?1:-1);galleryTouch.current=null}}>
    <button type="button" className="gallery-close" aria-label="Закрыть" onClick={()=>setGallery(false)}><Icon name="close" tone="white" size={21}/></button>
    {photos.length>1&&<button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>photosNext(-1)}><ChevronLeft size={28}/></button>}
    <Photo id={photos[idx]} alt={data.name} priority resolution={960}/>
