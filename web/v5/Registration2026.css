@@ -580,3 +580,15 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
  .v2-onboarding .veyra-registration-2026 .veyra-glass-navigation .veyra-glass-arrow{transition:none}
  .v2-onboarding .veyra-registration-2026 .veyra-glass-spinner{animation:none}
 }
+
+/* Stage 1 photo-replace affordance, physically separate from delete and main badge. */
+.v2-onboarding .veyra-registration-2026 .photo-slot .photo-replace{
+ position:absolute!important;right:6px!important;bottom:6px!important;z-index:10!important;
+ width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+ border-radius:13px!important;display:grid;place-items:center;
+ background:#ffffffdc!important;border:1px solid #f1e6ff!important;color:#7449cb!important;
+ box-shadow:0 3px 13px #3c23663a;touch-action:manipulation!important;
+}
+.v2-onboarding .veyra-registration-2026 .photo-slot .photo-replace:active{transform:scale(.94)}
+.v2-onboarding .veyra-registration-2026 .photo-slot.drag-origin .photo-replace{pointer-events:none}
+.v2-onboarding .veyra-registration-2026 .photo-drag-ghost{overflow:hidden;border-radius:17px;box-shadow:0 12px 32px #24183a60}
