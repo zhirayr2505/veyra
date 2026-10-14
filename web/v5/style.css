@@ -65,9 +65,7 @@
 /* VEYRA registration v6: premium milk/coral wizard, balanced photography layout. */
 .registration-v6{overflow-x:clip}.registration-v6 .center-logo{margin:7px auto 19px}
 .registration-v6 .step-top button:disabled{visibility:hidden}
-.registration-step{min-height:230px;will-change:transform,opacity}
-.registration-step.forward{animation:wizardForward .32s cubic-bezier(.2,.8,.25,1) both}
-.registration-step.backward{animation:wizardBackward .32s cubic-bezier(.2,.8,.25,1) both}
+.registration-step{min-height:230px}
 @keyframes wizardForward{from{transform:translateX(36px) scale(.985);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
 @keyframes wizardBackward{from{transform:translateX(-36px) scale(.985);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
 .registration-v6 .progress span{transition:background .25s ease,transform .25s ease}
@@ -129,7 +127,7 @@
 .overlay{animation:veyraDimIn .23s ease-out both}.overlay .sheet{animation:veyraSheetIn .3s cubic-bezier(.16,.82,.32,1) both}
 @keyframes veyraDimIn{from{opacity:0}to{opacity:1}}@keyframes veyraSheetIn{from{opacity:.6;transform:translateY(34px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 .subscreen{animation:veyraSheetIn .25s ease-out both}
-@media(prefers-reduced-motion:reduce){.registration-step.forward,.registration-step.backward,.view-tab:not([hidden]),.overlay,.overlay .sheet,.subscreen,.location-mark,.registration-toast{animation:none!important}.photo-slot{transition:none}}
+@media(prefers-reduced-motion:reduce){.view-tab:not([hidden]),.overlay,.overlay .sheet,.subscreen,.location-mark,.registration-toast{animation:none!important}.photo-slot{transition:none}}
 
 .splash-copy{font-size:12px;letter-spacing:.02em;color:var(--muted);font-weight:600}
 .view-tab:not([hidden])[data-enter="left"]{animation:veyraViewEnter .28s cubic-bezier(.2,.75,.24,1) both}
