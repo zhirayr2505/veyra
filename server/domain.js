@@ -46,12 +46,14 @@ export const blocked=async(q,a,b)=>!!await one(q,'SELECT 1 FROM blocks WHERE (ac
 export async function ensurePair(q,a,b){if(String(a)===String(b))fail(400,'SELF_ACTION');await approved(q,a);await approved(q,b);if(await blocked(q,a,b))fail(403,'BLOCKED');}
 export async function activeMatch(q,id,user,lock=false){const m=await one(q,`SELECT * FROM matches WHERE id=$1 AND (a=$2 OR b=$2) AND active=true ${lock?'FOR UPDATE':''}`,[id,user]);if(!m)fail(404,'MATCH_NOT_FOUND');if((String(m.a)===String(user)?m.a_erased_at:m.b_erased_at))fail(404,'MATCH_NOT_FOUND');const other=String(m.a)===String(user)?m.b:m.a;await ensurePair(q,user,other);return {...m,other};}
 export async function usage(q,id){await q.query('INSERT INTO daily_usage(user_id) VALUES($1) ON CONFLICT DO NOTHING',[id]);return one(q,'SELECT * FROM daily_usage WHERE user_id=$1 AND day=CURRENT_DATE FOR UPDATE',[id]);}
-export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1 AND u.status='active'`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}
+export async function publicProfile(q,id){const p=await one(q,`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,(SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos,
+  (SELECT coalesce(jsonb_object_agg(ph.id::text,jsonb_build_object('lqip',ph.lqip,'dominant',ph.dominant_color)) FILTER (WHERE ph.lqip IS NOT NULL),'{}'::jsonb) FROM photos ph WHERE ph.user_id=p.user_id) AS photo_placeholders FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now() WHERE p.user_id=$1 AND u.status='active'`,[id]);if(!p)return null;p.test_profile=isTestProfile(id);if(p.test_profile){p.online=false;p.last_seen=null;}p.photos=p.photos||[];return p;}
 // Bulk equivalent of publicProfile, for loading full match lists with one DB roundtrip.
 export async function publicProfiles(q,ids){
  if(!ids.length)return new Map();
  const rows=(await q.query(`SELECT p.user_id AS id,p.name,extract(year FROM age(p.birth_date))::int AS age,p.gender,p.bio,p.interests,p.goal,p.languages,p.prompts,p.height_cm,p.smoking,p.leisure,p.city,p.country,u.boost_until,(CASE WHEN u.invisible THEN NULL ELSE u.last_seen END) AS last_seen,(NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,t.activity,t.time_slot,t.expires_at AS today_until,
-  (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos
+  (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[]) FROM photos ph WHERE ph.user_id=p.user_id) AS photos,
+  (SELECT coalesce(jsonb_object_agg(ph.id::text,jsonb_build_object('lqip',ph.lqip,'dominant',ph.dominant_color)) FILTER (WHERE ph.lqip IS NOT NULL),'{}'::jsonb) FROM photos ph WHERE ph.user_id=p.user_id) AS photo_placeholders
   FROM profiles p JOIN users u ON u.id=p.user_id LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
   WHERE p.user_id=ANY($1::bigint[]) AND u.status='active'`,[ids.map(String)])).rows;
  return new Map(rows.map(p=>{p.test_profile=isTestProfile(p.id);if(p.test_profile){p.online=false;p.last_seen=null}p.photos=p.photos||[];return [String(p.id),p]}));
@@ -97,7 +99,8 @@ export async function recommendations(q,user,todayOnly=false,limit=1,mode='disco
   (NOT u.invisible AND u.last_seen>now()-interval '5 minutes') AS online,
   t.activity,t.time_slot,t.expires_at AS today_until,
   (SELECT coalesce(array_agg(ph.id ORDER BY ph.position,ph.created_at),'{}'::uuid[])
-    FROM photos ph WHERE ph.user_id=p.user_id) AS photos
+    FROM photos ph WHERE ph.user_id=p.user_id) AS photos,
+  (SELECT coalesce(jsonb_object_agg(ph.id::text,jsonb_build_object('lqip',ph.lqip,'dominant',ph.dominant_color)) FILTER (WHERE ph.lqip IS NOT NULL),'{}'::jsonb) FROM photos ph WHERE ph.user_id=p.user_id) AS photo_placeholders
   FROM profiles p JOIN users u ON u.id=p.user_id
   LEFT JOIN today t ON t.user_id=p.user_id AND t.expires_at>now()
   WHERE p.user_id=ANY($1::bigint[])`,[candidateIds])).rows;
