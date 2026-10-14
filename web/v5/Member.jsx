@@ -78,7 +78,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   const root=motionRef.current;
   if(!root)return;
   const sample=()=>{
-   const image=root.querySelector('.vx-profile-hero-photo .photo-box img');
+   const image=root.querySelector('.vx-profile-hero-photo .vx-hero-swipe-slide:nth-child(2) .photo-box img.photo-sharp');
    if(!image?.complete||image.naturalWidth<4)return;
    try{
     const c=document.createElement('canvas');c.width=12;c.height=8;
