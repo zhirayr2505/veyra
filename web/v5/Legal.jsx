@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {Logo,Icon,Button} from './UI.jsx';
-import './OnboardingUnified.css';
 import './Legal.css';
+import './OnboardingUnified.css';
 
 /* Clear, user-facing rules; do not expose internal moderation tooling. */
 const TERMS=[
