@@ -1837,3 +1837,38 @@ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and
  await page.screenshot({path:testInfo.outputPath('stage2-12-origin-gestures.png')});
  await cdp.detach();
 });
+
+
+// Stage 2 visibility gate — DOM-visible is NOT enough. An own profile must
+// actually paint in its fixed viewport above the native bottom navigation.
+test('Stage 2 own profile paints above its background in expanded and compact views',async({page},testInfo)=>{
+ await telegram(page,10);await page.setViewportSize({width:390,height:844});
+ await page.goto('/');await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-own-member .vx-profile-scroller');
+ await expect(scroller).toBeVisible();
+ const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ const stages=[['expanded',0],['compact',distance],['reverse',0]];
+ for(const [phase,y] of stages){
+  await scroller.evaluate((el,v)=>el.scrollTop=v,y);
+  await page.waitForTimeout(150);
+  const scan=await page.evaluate(()=>{
+   const names=['.vx-own-profile-host','.vx-own-member','.vx-profile-scroller','.vx-profile-motion','.vx-profile-sticky','.vx-profile-hero-photo','.vx-profile-tab-rail','.vx-profile-swipe-viewport'];
+   const elInfo=Object.fromEntries(names.map(selector=>{
+    const el=document.querySelector(selector);
+    if(!el)return [selector,null];
+    const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
+    return [selector,{rect:{x:r.x,y:r.y,w:r.width,h:r.height},opacity:cs.opacity,visibility:cs.visibility,display:cs.display,position:cs.position,z:cs.zIndex,clip:cs.clipPath,overflow:cs.overflow,transform:cs.transform}];
+   }));
+   const hit=Object.fromEntries([155,300,450,580].map(y=>[y,document.elementsFromPoint(195,y).slice(0,7).map(el=>({tag:el.tagName,cls:typeof el.className==='string'?el.className:'',z:getComputedStyle(el).zIndex,pointer:getComputedStyle(el).pointerEvents}))]));
+   return {elInfo,hit,scrollTop:document.querySelector('.vx-profile-scroller')?.scrollTop};
+  });
+  await testInfo.attach('stage2-own-profile-'+phase+'.json',{body:Buffer.from(JSON.stringify(scan,null,2)),contentType:'application/json'});
+  await page.screenshot({path:testInfo.outputPath('stage2-own-profile-'+phase+'.png')});
+  const rect=scan.elInfo['.vx-profile-scroller']?.rect;
+  expect(rect?.h,'own profile scroller must occupy visible area').toBeGreaterThan(350);
+  expect(rect?.y,'own profile scroller is below header').toBeLessThan(250);
+  const hero=scan.elInfo['.vx-profile-hero-photo']?.rect;
+  expect(hero,'own profile hero must actually paint').toBeTruthy();
+  if(phase==='expanded')expect(hero?.y).toBeGreaterThan(-40);
+ }
+});
