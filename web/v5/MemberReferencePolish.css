@@ -1,21 +1,6 @@
 /* VEYRA reference profile polish — approved expanded + compact screenshots.
    Pure visual refinement; existing scroll timeline geometry, snapping and
    Telegram system navigation remain the only motion/navigation authorities. */
-/* The existing Telegram-safe logo remains untouched and gets a faint
-   contrast halo, not an additional toolbar or a replacement Back button. */
-body>.vx-member-native-header::before{
- content:"";
- position:absolute;
- top:-10px;
- left:50%;
- width:min(238px,66vw);
- height:70px;
- border-radius:50%;
- transform:translateX(-50%);
- pointer-events:none;
- background:radial-gradient(ellipse,#f9f4ffd3 0%,#f7f0ff61 40%,transparent 74%);
- z-index:1;
-}
 .veyra-v2 .vx-master-profile{
  --vx-reference-sheet:#faf7ff;
  --vx-reference-ink:#1f1734;
