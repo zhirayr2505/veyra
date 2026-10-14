@@ -324,6 +324,14 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  border-radius:18px;aspect-ratio:174/224;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid img{object-fit:cover}
+/* The generic .view-tab entrance animation persists transform:translateX(0)
+   through fill-mode:both. It becomes the containing block of fixed Member and
+   collapses the owning host to its 85px padding. Only the profile host opts out;
+   all other tab transition animations remain unchanged. */
+.veyra-v2 .view-tab.vx-own-profile-host{
+ animation:none!important;
+ transform:none!important;
+}
 /* Own profile keeps persistent Android bottom navigation and editing tools. */
 .veyra-v2 .vx-master-profile.vx-own-member{
  bottom:calc(75px + env(safe-area-inset-bottom,0px))!important;
