@@ -521,7 +521,7 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 /* Stage 1: one fixed and viewport-aware glass navigation, not a hidden keyboard CTA. */
 .v2-onboarding .veyra-registration-2026 .registration-actions.veyra-glass-navigation{
  position:fixed!important;left:50%!important;bottom:var(--veyra-nav-keyboard-gap,0px)!important;transform:translateX(-50%)!important;
- width:min(100%,560px)!important;min-height:80px!important;z-index:240!important;
+ width:min(100%,560px)!important;min-height:80px!important;z-index:80!important;
  padding:10px calc(18px + env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) calc(18px + env(safe-area-inset-left,0px))!important;
  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;
  margin:0!important;border:0!important;box-shadow:none!important;
