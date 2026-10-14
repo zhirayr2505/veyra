@@ -1,5 +1,5 @@
 /* Stage 1: WAAPI controls both screens. No CSS step keyframes, pseudo-transitions or stagger. */
-.v2-onboarding .veyra-registration-2026 [data-exit-snapshot]{pointer-events:none!important;contain:paint style!important}
+.v2-onboarding .veyra-registration-2026 [data-exit-snapshot]{position:fixed!important;flex:none!important;pointer-events:none!important;contain:paint style!important}
 .v2-onboarding .veyra-registration-2026 .progress span{position:relative;overflow:hidden}
 .v2-onboarding .veyra-registration-2026 .progress span::after{content:"";position:absolute;inset:0;background:var(--vx-gradient-primary);border-radius:inherit;transform-origin:left center;transform:scaleX(0);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .v2-onboarding .veyra-registration-2026 .progress span.done::after{transform:scaleX(1)}
