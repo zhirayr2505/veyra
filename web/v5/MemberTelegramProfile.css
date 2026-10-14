@@ -48,18 +48,8 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-telegram-member .vx-profile-scrolle
  contain:paint;
  will-change:width,height,left,top,border-radius;
 }
-.veyra-v2 .vx-telegram-member .vx-profile-photo-nav{
- position:absolute;inset:18% 0 18%;z-index:2;display:flex;justify-content:space-between;
- opacity:calc(1 - var(--vx-collapse) * 2);pointer-events:none;
-}
-.veyra-v2 .vx-telegram-member .vx-profile-photo-nav button{
- pointer-events:auto;flex:none;width:22%;border:0;background:transparent;
- color:#fff9;display:grid;place-items:center;
-}
-.veyra-v2 .vx-telegram-member .vx-profile-photo-bars,
-.veyra-v2 .vx-telegram-member .vx-profile-photo-nav{visibility:visible}
-.veyra-v2 .vx-telegram-member .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars,
-.veyra-v2 .vx-telegram-member .vx-profile-motion[data-state="compact"] .vx-profile-photo-nav{
+.veyra-v2 .vx-telegram-member .vx-profile-photo-bars{visibility:visible}
+.veyra-v2 .vx-telegram-member .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars{
  visibility:hidden;pointer-events:none;
 }
 .veyra-v2 .vx-telegram-member .vx-profile-demo-badge{
