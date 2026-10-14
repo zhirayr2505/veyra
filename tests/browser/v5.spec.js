@@ -208,6 +208,19 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  const before=await tiles.evaluateAll(nodes=>nodes.map(n=>n.dataset.photoId));
  await tiles.nth(4).focus();await page.keyboard.press('ArrowUp');
  await expect.poll(async()=>tiles.nth(1).getAttribute('data-photo-id')).toBe(before[4]);
+ // Stage 1 regression: a physical vertical long-press from row 2 to row 1
+ // changes the main photo without scrolling the photo-step container.
+ const from=tiles.nth(3),to=tiles.nth(0),fromId=await from.getAttribute('data-photo-id');
+ const scroll=page.locator('.registration-step');
+ const beforeScroll=await scroll.evaluate(el=>el.scrollTop);
+ const src=await from.boundingBox(),dst=await to.boundingBox();
+ await page.mouse.move(src.x+src.width/2,src.y+src.height/2);
+ await page.mouse.down();await page.waitForTimeout(375);
+ await expect(page.locator('.photo-drag-ghost')).toBeVisible();
+ await page.mouse.move(dst.x+dst.width/2,dst.y+dst.height/2,{steps:8});
+ await page.mouse.up();
+ await expect.poll(async()=>tiles.first().getAttribute('data-photo-id')).toBe(fromId);
+ expect(Math.abs((await scroll.evaluate(el=>el.scrollTop))-beforeScroll)).toBeLessThan(2);
  await expect(page.getByRole('button',{name:'Предпросмотр анкеты'})).toBeEnabled();
  await page.getByRole('button',{name:'Предпросмотр анкеты'}).click();
  await expect(page.locator('.mode-detail .vx-preview-member-stage .vx-profile-read-only')).toBeVisible();
@@ -245,6 +258,35 @@ test('Stage 1 keyboard-safe glass navigation and eight-step consistency',async({
  await expect(next).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+test('Stage 1 Android keyboard viewport resize/scroll returns circular navigation to bottom',async({page})=>{
+ await telegram(page,27);
+ await page.addInitScript(()=>{
+  const vv=new EventTarget();
+  vv.height=window.innerHeight;vv.offsetTop=0;
+  Object.defineProperty(window,'visualViewport',{configurable:true,value:vv});
+  window.__testVisualViewport=vv;
+ });
+ await page.goto('/');
+ await expect(page.locator('.veyra-glass-navigation')).toBeVisible();
+ const field=page.getByRole('textbox',{name:'Ваше имя'});
+ await field.focus();
+ await page.evaluate(()=>{
+  const vv=window.__testVisualViewport;
+  vv.height=window.innerHeight-296;vv.offsetTop=0;
+  vv.dispatchEvent(new Event('resize'));
+ });
+ await expect.poll(()=>page.locator('.veyra-glass-navigation').evaluate(el=>getComputedStyle(el).bottom)).toBe('296px');
+ await expect(page.getByRole('button',{name:'Следующий шаг'})).toBeVisible();
+ await page.keyboard.press('Escape');
+ await field.blur();
+ await page.evaluate(()=>{
+  const vv=window.__testVisualViewport;
+  vv.height=window.innerHeight;vv.dispatchEvent(new Event('scroll'));
+ });
+ await expect.poll(()=>page.locator('.veyra-glass-navigation').evaluate(el=>getComputedStyle(el).bottom)).toBe('0px');
+ await expect(page.getByRole('button',{name:'Следующий шаг'})).toBeVisible();
+});
+
 test('City set manually can be corrected via device location without a navigation',async({page,context})=>{
  await context.grantPermissions(['geolocation'],{origin:'http://127.0.0.1:3100'});
  await context.setGeolocation({latitude:45.035,longitude:38.975});
