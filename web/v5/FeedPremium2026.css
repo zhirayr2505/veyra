@@ -20,21 +20,6 @@
 .veyra-v2 .vx-dating-stage02 .vx-head .vx-logo{
  filter:drop-shadow(0 1px 0 #fff) drop-shadow(0 2px 3px #53227878) drop-shadow(0 0 7px #e0b0fa8c);
 }
-.veyra-v2 .vx-dating-stage02 .vx-feed-wordmark-glint{
- position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
- width:clamp(113px,34vw,146px);height:44px;z-index:2;pointer-events:none;
- -webkit-mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
- mask:url("/veyra-design/veyra-wordmark-purple.svg") center / contain no-repeat;
- background:linear-gradient(115deg,transparent 35%,#fff0fa00 42%,#ffffffd9 49%,#f4d2ff66 54%,transparent 61%) -180% 0/250% 100% no-repeat;
- animation:vxFeedLogoGlint 7s ease-in-out infinite;
-}
-@keyframes vxFeedLogoGlint{
- 0%,13%{background-position:-180% 0}32%,100%{background-position:180% 0}
-}
-html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head .vx-feed-wordmark-glint{
- position:fixed;top:max(39px,calc(var(--veyra-telegram-status-top,0px) + 13px));
- left:50vw;width:clamp(108px,32vw,135px);height:31px;transform:translateX(-50%);
-}
 .veyra-v2 .vx-dating-stage02 .vx-head-actions{gap:8px}
 .veyra-v2 .vx-dating-stage02 .vx-head-actions>button{
  border:1px solid #e6d4f8!important;
@@ -373,7 +358,6 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-head .vx-feed-wo
  .veyra-interests-overlay.vx-feed-interests-overlay{padding-bottom:120px}
 }
 @media(prefers-reduced-motion:reduce){
- .veyra-v2 .vx-dating-stage02 .vx-feed-wordmark-glint{animation:none!important;opacity:0}
  .veyra-v2 .vx-dating-stage02 .vx-liquid-indicator{transition:none!important;animation:none!important}
  .vx-feed-interests-overlay .veyra-interests-sheet{animation:none!important;transition:none!important}
 }
