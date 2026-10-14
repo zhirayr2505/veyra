@@ -74,8 +74,6 @@
 .v2-onboarding .veyra-registration-2026 .step-top .quiet{width:37px;height:37px;border-radius:13px}
 .v2-onboarding .veyra-registration-2026 .center-logo.veyra-shine-logo{position:relative;isolation:isolate;width:max-content;margin:-27px auto 16px;overflow:hidden;height:48px;border-radius:15px}
 .v2-onboarding .veyra-registration-2026 .center-logo.veyra-shine-logo .logo{display:block;height:44px;width:140px;object-fit:contain}
-.v2-onboarding .veyra-registration-2026 .center-logo.veyra-shine-logo:after{content:"";position:absolute;inset:-50% -40%;pointer-events:none;z-index:1;mix-blend-mode:screen;background:linear-gradient(105deg,transparent 37%,#FFFFFF08 45%,#FFFFFFC9 50%,#FFFFFF10 55%,transparent 65%);transform:translateX(-130%) skewX(-18deg);animation:veyraLogoSweep 5.8s ease-in-out infinite}
-@keyframes veyraLogoSweep{0%,18%{transform:translateX(-130%) skewX(-18deg)}42%,100%{transform:translateX(130%) skewX(-18deg)}}
 .v2-onboarding .veyra-registration-2026 .progress{margin:0 0 22px}
 .v2-onboarding .veyra-registration-2026 .registration-step>.subheading:empty{display:none}
 .v2-onboarding .veyra-registration-2026 .registration-name-field{gap:9px}
@@ -124,7 +122,7 @@
 .v2-onboarding .veyra-registration-2026 .photo-slot .photo-order-number,.v2-onboarding .veyra-registration-2026 .photo-slot.primary .photo-order-number{bottom:7px!important;left:7px!important;top:auto!important}
 .v2-onboarding .veyra-registration-2026 .registration-actions .btn{outline-color:#9165F2}
 @media(max-width:370px){.v2-onboarding .veyra-registration-2026 .veyra-dob-fields{gap:7px}.v2-onboarding .veyra-registration-2026 .age-range{padding-inline:13px!important}}
-@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .center-logo.veyra-shine-logo:after,.v2-onboarding .veyra-registration-2026 .veyra-goal-header-sparkle{animation:none}}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .veyra-goal-header-sparkle{animation:none}}
 
 /* VEYRA onboarding goals and interest multi-category polish */
 .v2-onboarding .veyra-registration-2026 .veyra-goal-choice{border-color:#E7DCF4;background:#fff;min-height:83px;padding:13px 16px;border-radius:21px;box-shadow:0 5px 19px #38233B0B;transition:transform .22s,border-color .22s,background .22s,box-shadow .22s}
