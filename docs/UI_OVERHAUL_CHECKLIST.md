@@ -11,7 +11,7 @@
 | [x] | 1.1 | Убрать серую размытую полосу под вкладками | `MemberReferencePolish.css`, `MemberFinish.css`, `MemberMotion5.css`, `profileScrollTimeline.js`, `useVeyraProfileMotion.js`, `tests/profile-scrolltimeline.test.js` | GitHub Actions #38540092434: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓, `secrets:check` ✓; Android — требуется |
 | [x] | 1.2 | Исключить квадратную рамку при морфинге | `profileScrollTimeline.js`, `useVeyraProfileMotion.js`, `tests/profile-scrolltimeline.test.js` | CI #38540582183: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; устройство — требуется |
 | [x] | 1.3 | Перенести индикатор фото вниз обложки | `PhotoSegments.jsx`, `PhotoSegments.css`, `Member.jsx`, `ProfilePreview.jsx`, `MemberMotionV2.css`, `MemberTelegramProfile.css`, `ProfilePreview.css` | CI #38541511154: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Telegram Android — требуется |
-| [~] | 1.4 | Улучшить контраст логотипа и scrim | — | 140px адаптивный градиент верхней зоны |
+| [x] | 1.4 | Улучшить контраст логотипа и scrim | `MemberMotionV2.css` | CI #38541967543: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; реальные фото Android — требуется |
 | [ ] | 5.1 | Мгновенный каркас профиля из данных карточки | — | Не начато |
 | [ ] | 5.2 | Кэш фото, LQIP и доминантный цвет | — | Не начато |
 | [ ] | 5.3 | Плавный переход blur → sharp после decode | — | Не начато |
@@ -57,3 +57,5 @@
 - **1.2:** CI https://github.com/zhirayr2505/veyra/actions/runs/38540582183 — npm test, build и ESLint прошли.
 
 - **1.3:** CI https://github.com/zhirayr2505/veyra/actions/runs/38541511154 — npm test, build и ESLint прошли; индикатор требует устройства для оценки в динамике.
+
+- **1.4:** CI https://github.com/zhirayr2505/veyra/actions/runs/38541967543 — npm test/build/ESLint прошли; верхний градиент проверять на светлом и тёмном фото.
