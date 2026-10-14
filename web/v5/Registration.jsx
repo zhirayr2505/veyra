@@ -256,27 +256,17 @@ export function Registration({me,refresh}){
  const uploaded=[...photos.filter(p=>!jobs.some(job=>job.serverId===p.id)),...jobs];
  const display=dragVisual&&dragOver>=0&&!uploading?(()=>{const ordered=[...uploaded];ordered.splice(dragOver,0,ordered.splice(dragVisual.index,1)[0]);return ordered})():uploaded;
  const selectedCity=!!f.city&&!!f.country&&f.lat!=null&&f.lon!=null;
- const nextLabel=step===8?(photos.length<MIN_PHOTOS?'Добавить ещё '+(MIN_PHOTOS-photos.length)+' фото':'Посмотреть анкету'):step===7?(String(f.bio||'').trim()?'Добавить фото':'Пропустить'):NEXT_STEP_LABELS[step-1];
- useEffect(()=>{
-  const previous=prevLabelRef.current;
-  if(previous&&previous!==nextLabel){
-   setExitLabel(previous);
-   clearTimeout(labelTimerRef.current);
-   labelTimerRef.current=setTimeout(()=>setExitLabel(''),195);
-  }
-  prevLabelRef.current=nextLabel;
-  return()=>clearTimeout(labelTimerRef.current);
- },[nextLabel]);
- useLayoutEffect(()=>{scrollRef.current?.querySelector('[data-step-heading]')?.focus({preventScroll:true})},[step]);
- useEffect(()=>()=>{clearTimeout(stepTransitionTimerRef.current);clearTimeout(labelTimerRef.current)},[]);
-
+ const stepValid=step===1?f.name.trim().length>=2&&NAME_PATTERN.test(f.name.trim())&&consent
+  :step===2?!!f.gender&&age(f.birth_date)>=18&&age(f.birth_date)<=110
+  :step===3?selectedCity&&(!cityEdit||!query.trim())
+  :step===4?f.looking_for.length>0&&+f.min_age>=18&&+f.max_age>=+f.min_age&&+f.max_age<=90
+  :step===8?photos.length>=MIN_PHOTOS:true;
+ useEffect(()=>()=>{clearTimeout(stepTransitionTimerRef.current);stepAnimationsRef.current.forEach(a=>a.cancel());exitCloneRef.current?.remove()},[]);
  const primaryAction=()=>{
   if(busy||uploading||stepTransitionRef.current)return;
-  setCtaPressed(true);clearTimeout(ctaTimer.current);
-  ctaTimer.current=setTimeout(()=>setCtaPressed(false),480);
   if(step===8){
    haptic('light');
-   if(photos.length<MIN_PHOTOS){photoInput.current?.click();return}
+   if(photos.length<MIN_PHOTOS)return;
    setPhotoIndex(0);setSlideStep(0);slideBusy.current=false;setError('');setPreview(true);return;
   }
   next();
@@ -348,14 +338,12 @@ export function Registration({me,refresh}){
   {dragVisual&&photos[dragVisual.index]&&<div className="photo-drag-ghost" aria-hidden="true" style={{left:dragVisual.x-dragVisual.width/2,top:dragVisual.y-dragVisual.height/2,width:dragVisual.width,height:dragVisual.height}}><Photo id={photos[dragVisual.index].id}/></div>}
   {hint&&<div className="registration-toast" role="status">{hint}</div>}
   <InlineAlert>{error}</InlineAlert>
-   <div data-keyboard-open={keyboardActive?'true':'false'} aria-hidden={keyboardActive?'true':undefined} className={'registration-actions '+(step===8&&photos.length>=MIN_PHOTOS&&!uploading?'is-ready':'')}>
-    <Button className={'full veyra-smart-next'+(busy?' is-loading':'')+(ctaPressed?' was-pressed':'')} disabled={busy||uploading||transitioning} onClick={primaryAction}>
-     <span className="veyra-smart-next-content">
-      {exitLabel&&<span className="veyra-smart-next-old-label" aria-hidden="true">{exitLabel}</span>}<span className="veyra-smart-next-label" key={nextLabel}>{nextLabel}</span>
-      {busy?<span className="veyra-smart-next-spinner" role="status" aria-label="Сохраняем данные"/>:<Icon name="arrow-right" tone="white" size={21} className="veyra-smart-next-arrow"/>}
-     </span>
-    </Button>
-   </div>
+   <nav className="registration-actions veyra-glass-navigation" aria-label="Навигация регистрации">
+    {step>1&&<button type="button" className="veyra-glass-arrow veyra-glass-back" aria-label="Предыдущий шаг" disabled={busy||uploading||transitioning} onClick={()=>{haptic('light');go(step-1,'backward')}}><ChevronLeft size={27} strokeWidth={2.4}/></button>}
+    <button type="button" className="veyra-glass-arrow veyra-glass-next" aria-label={step===8?'Предпросмотр анкеты':'Следующий шаг'} title={step===8?'Предпросмотр анкеты':'Следующий шаг'} disabled={!stepValid||busy||uploading||transitioning} aria-busy={busy||undefined} onClick={primaryAction}>
+     {busy?<span className="veyra-glass-spinner" role="status" aria-label="Сохраняем"/>:step===8?<Check size={26} strokeWidth={2.5}/>:<ChevronRight size={27} strokeWidth={2.4}/>}
+    </button>
+   </nav>
  {legalOpen&&<LegalScreen asModal initialTab={legalTab} onClose={()=>setLegalOpen(false)} onAccept={()=>{setConsent(true);setLegalOpen(false)}}/>}
  </div>;
 }
