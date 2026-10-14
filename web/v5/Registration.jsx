@@ -68,7 +68,7 @@ export function Registration({me,refresh}){
   window.addEventListener('resize',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);
   tg?.onEvent?.('viewportChanged',schedule);
   return()=>{if(frame)cancelAnimationFrame(frame);vv?.removeEventListener('resize',schedule);vv?.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);tg?.offEvent?.('viewportChanged',schedule);root?.style.removeProperty('--veyra-nav-keyboard-gap')};
- },[]);
+ },[preview]);
  const setDobPart=(key,raw)=>{const max=key==='year'?4:2,val=String(raw).replace(/\D/g,'').slice(0,max),parts={...dobParts,[key]:val};setDobParts(parts);const {day,month,year}=parts;change('birth_date',day.length===2&&month.length===2&&year.length===4?year+'-'+month+'-'+day:'');if(val.length===max){
   if(key!=='year')dobRefs.current[key==='day'?1:2]?.focus();
   else if(day.length===2&&month.length===2){
