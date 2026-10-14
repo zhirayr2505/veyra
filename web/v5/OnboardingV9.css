@@ -47,7 +47,7 @@
 .v2-onboarding .veyra-registration-2026 .veyra-interests-selected header small{color:#8259C7;font-size:11px;font-weight:770}
 .v2-onboarding .veyra-registration-2026 .veyra-interests-selected p{color:#9680A7;font-size:12px;margin:0}
 .v2-onboarding .veyra-registration-2026 .veyra-interests-selected-grid{display:flex;flex-wrap:wrap;gap:8px;max-width:100%}
-.v2-onboarding .veyra-registration-2026 .veyra-interests-selected-grid button{display:inline-flex;align-items:center;gap:7px;min-height:34px;max-width:100%;border-radius:99px;border:1px solid #DAC6F7;background:#fff;color:#7843C9;padding:7px 9px;font-size:11px;font-weight:730}
+.v2-onboarding .veyra-registration-2026 .veyra-interests-selected-grid button{display:inline-flex;align-items:center;gap:7px;min-height:var(--vx-height-chip);max-width:100%;border-radius:var(--vx-radius-chip);border:1px solid var(--vx-chip-border);background:var(--vx-chip-bg);color:var(--vx-chip-fg);padding:7px 10px;font-size:12px;font-weight:730}
 .v2-onboarding .veyra-registration-2026 .veyra-interests-selected-grid button span:not(.veyra-chip-remove){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .v2-onboarding .veyra-registration-2026 .veyra-interests-selected-grid svg{flex:none}
 .v2-onboarding .veyra-registration-2026 .veyra-chip-remove{font-size:17px!important;line-height:1;color:#9B77C8}
@@ -59,7 +59,7 @@
 .v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-item{overflow:hidden;background:#fff;border:1px solid #E9DDF4;border-radius:20px;box-shadow:0 4px 11px #522C7008}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-item.expanded{border-color:#BA97F3;background:#FCFAFF;box-shadow:0 8px 19px #8554DB15}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-trigger{border:0;width:100%;min-height:61px;padding:10px 13px;display:flex;align-items:center;gap:11px;text-align:left;background:transparent;color:#392748}
-.v2-onboarding .veyra-registration-2026 .veyra-interest-group-glyph{width:41px;height:41px;display:grid;place-items:center;border-radius:14px;background:#F2EAFE;color:#8955E7;flex:none}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-group-glyph{width:41px;height:41px;display:grid;place-items:center;border-radius:14px;background:var(--vx-chip-bg);color:var(--vx-chip-fg);flex:none}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-trigger>strong{font-size:13px;font-weight:800;flex:1;min-width:0}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-trigger small{font-size:11px;color:#8050D9;font-weight:800}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-chevron{flex:none;color:#8D60C5;font-size:25px;line-height:1;transition:transform .2s}
@@ -68,7 +68,7 @@
 @keyframes veyraInterestExpand{from{opacity:.4;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options{display:flex;flex-wrap:wrap;gap:8px;padding-top:10px}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options button{min-height:39px;display:inline-flex;gap:7px;align-items:center;padding:8px 10px;font-size:12px}
-.v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options button.selected{color:#7641CE;background:#EDE1FF;border:1px solid #AB7AF1}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options button.selected{color:var(--vx-chip-fg);background:var(--vx-chip-bg);border:1px solid var(--vx-chip-border)}
 .v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options button svg{flex:none}
 .v2-onboarding .veyra-registration-2026 .photo-slot .photo-make-main{display:none!important}
 .v2-onboarding .veyra-registration-2026 .photo-slot .thumb-delete{position:absolute!important;right:7px!important;top:7px!important;z-index:10!important;display:grid!important;place-items:center!important;width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;padding:6px!important;border-radius:50%!important;background:#FFFFFFEC!important;border:1px solid #FFFFFFD6!important;box-shadow:0 3px 11px #28183B30!important;backdrop-filter:blur(5px)}
@@ -139,3 +139,12 @@
 }
 .v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-picker-head{justify-content:flex-start!important}
 @media(prefers-reduced-transparency:reduce){.v2-onboarding .veyra-registration-2026 .veyra-interest-final .veyra-interests-selected{background:#F5EDFF!important;backdrop-filter:none!important}}
+
+/* All category indicators share the exact palette used by member profile chips. */
+.v2-onboarding .veyra-registration-2026 .veyra-interest-accordion-trigger[data-tone] .veyra-interest-category-count.has-items{background:var(--vx-chip-bg);color:var(--vx-chip-fg);border:1px solid var(--vx-chip-border)}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-popular .veyra-interest-options{display:flex;flex-wrap:wrap;gap:8px}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-min-hint{display:block;margin-top:2px;font-weight:700;color:var(--vx-color-muted);font-size:12px}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-empty{font-size:13px;padding:15px;text-align:center;color:var(--vx-color-muted)}
+.v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options button.veyra-interest-chip[data-selected="true"]{animation:veyraChipSelect .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes veyraChipSelect{0%{transform:scale(.94)}48%{transform:scale(1.04)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .veyra-interest-v9 .veyra-interest-options button.veyra-interest-chip[data-selected="true"]{animation:none}}
