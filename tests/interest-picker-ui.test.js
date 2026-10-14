@@ -8,7 +8,8 @@ test('onboarding interest picker has search, popular, a soft three-interest hint
  assert.match(code,/aria-label="Поиск по интересам"/);
  assert.match(code,/Популярное/);
  assert.match(code,/selected\.length<3/);
- assert.match(code,/selectionChanged\?\.\(\)/);
+ assert.match(code,/haptic\('selection'\)/);
+ assert.match(read('web/v5/haptics.js'),/selectionChanged/);
  assert.match(code,/selected\.length>=max/);
 });
 test('interest groups and selected chips use semantic tone variables, never category nth-child colors',()=>{
