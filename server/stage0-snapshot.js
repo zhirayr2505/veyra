@@ -104,6 +104,8 @@ async function validationRestore(db,archive){
   for(const name of datingTables){
    if(!archive.schema[name]||!Array.isArray(archive.data[name]))throw Error('BACKUP_TABLE_SCHEMA_MISMATCH');
    const temporary='"stage0_validation_'+name+'"';
+   // Pooled PostgreSQL connections retain TEMP tables between job validations.
+   await q.query('DROP TABLE IF EXISTS pg_temp.'+temporary);
    await q.query('CREATE TEMP TABLE '+temporary+' AS SELECT * FROM '+safeTable(name)+' WHERE false');
    const raw='['+archive.data[name].join(',')+']';
    await q.query('INSERT INTO '+temporary+' SELECT * FROM jsonb_populate_recordset(NULL::'+safeTable(name)+',$1::jsonb)',[raw]);
