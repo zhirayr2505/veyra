@@ -5,7 +5,8 @@ import {InterestReveal} from './InterestReveal.jsx';
 import {CatalogueIcon,ProfileHighlights} from './OnboardingOptions.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
-import {CardCaption,CardPhotoBars,CardGoalBadge} from './DatingCardLayers.jsx';
+import {CardCaption,CardGoalBadge} from './DatingCardLayers.jsx';
+import {PhotoSegments} from './PhotoSegments.jsx';
 import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
@@ -35,7 +36,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
      {mode==='feed'&&<><div className="veyra-card-shade" aria-hidden="true"/><span className="preview-card-flag">{submitted?'твоя анкета':'твоя карточка'}</span><CardGoalBadge goal={profile.goal} compact top/></>}
      {ids.length>1&&<><button type="button" className="preview-photo-tap left" aria-label="Предыдущее фото" onClick={()=>slide(-1)}/><button type="button" className="preview-photo-tap right" aria-label="Следующее фото" onClick={()=>slide(1)}/></>}
      {mode==='feed'&&<CardCaption profile={profile} age={years} location={profile.city} preview/>}
-     <CardPhotoBars photos={ids} index={index} onSelect={setIndex} preview/>
+     <PhotoSegments count={ids.length} index={index} className="preview-photo-segments"/>
      {mode==='detail'&&ids.length>1&&<div className="preview-member-thumbnails" aria-label="Выбор фотографии">{ids.map((id,i)=><button type="button" key={id} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={'Показать фото '+(i+1)}><Photo id={id} alt=""/></button>)}</div>}
     </div>
    </section>
