@@ -1401,7 +1401,12 @@ test('VEYRA Motion 6 keeps circular rim with the moving hero and exposes four ic
  await expect(page.locator('.vx-member-native-header')).toHaveCount(1);
 });
 
-test('Dragging from photo thumbnails changes the horizontal tab without opening the gallery',async({page})=>{
+// Issue #67 is intermittent: some Android/Chromium runs pass and others fail.
+// Keep the real assertion; give this one legacy profile gesture two retries.
+// A repeat failure still blocks CI and a recovered run is reported as flaky.
+test.describe('Known intermittent profile gesture #67',()=>{
+ test.describe.configure({retries:2});
+ test('Dragging from photo thumbnails changes the horizontal tab without opening the gallery',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await telegram(page,10,false,true);await page.goto('/');
  await page.locator('.feed-photo .hero-name').click();
@@ -1428,8 +1433,8 @@ test('Dragging from photo thumbnails changes the horizontal tab without opening 
  await expect.poll(()=>tabs.getByRole('tab',{name:'О себе'}).getAttribute('aria-selected'),
   {timeout:4000}).toBe('true');
  await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
+ });
 });
-
 
 test('VEYRA premium feed morphs violet pill between all three tabs with readable crown and balance',async({page})=>{
  await page.setViewportSize({width:390,height:844});
@@ -1498,7 +1503,7 @@ test('VEYRA feed uses a single top-right goal, round country flag and draggable 
 });
 
 
-test('Approved VEYRA For You matches the light lavender reference and stays within a narrow phone',async({page})=>{
+test('Approved VEYRA For You matches the light lavender reference and stays within a narrow phone',async({page},testInfo)=>{
  await page.setViewportSize({width:390,height:844});
  await telegram(page,10,false,true);
  await page.goto('/');
@@ -1520,6 +1525,8 @@ test('Approved VEYRA For You matches the light lavender reference and stays with
  });
  expect(geom.columns).toBe(2);
  expect(geom.visible).toBeLessThanOrEqual(2);
+ // A real full-page 390 px render is retained as a review artifact.
+ await page.screenshot({path:testInfo.outputPath('VEYRA_FOR_YOU_APPROVED_390.png'),fullPage:true,animations:'disabled'});
  for(let i=0;i<geom.visible;i++){
   expect(geom.cardWidths[i]).toBeGreaterThan(140);
   expect(geom.cardHeights[i]).toBeGreaterThan(130);

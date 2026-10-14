@@ -1,0 +1,26 @@
+name: Verify production VEYRA
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: veyra-production-smoke
+  cancel-in-progress: true
+jobs:
+  live:
+    name: Production revision and assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify Render revision and approved For You artwork
+        run: node scripts/verify-live.mjs
+        env:
+          VEYRA_PRODUCTION_URL: https://veyra-3806.onrender.com
+          VEYRA_EXPECTED_SHA: ${{ github.sha }}
+          VEYRA_PROBE_ATTEMPTS: "20"
