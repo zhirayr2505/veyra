@@ -26,7 +26,7 @@
 | [x] | 4.4 | Превью через настоящий Member | `Member.jsx`, `ProfilePreview.jsx`, `ProfilePreview.css`, `FeedCardVisual.jsx`, `Discover.jsx`, `tests/member-readonly-preview.test.js`, `tests/ui-components.test.js` | CI #38553212186: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Telegram device visual/scroll QA required |
 | [x] | 4.5 | Единая система иконок | `Registration.jsx`, `Registration2026.css`, `tests/approved-work-assets.test.js`, `tests/registration-icons.test.js` | CI #38553931608: npm test/build ✓, npm run lint ✓; icon appearance in Telegram Android needs visual check |
 | [x] | 4.6 | Клавиатура, локальные ошибки, цели | `Registration.jsx`, `Registration2026.css`, `OnboardingOptions.jsx`, `tests/registration-keyboard-validation.test.js` | CI #38554400354: npm run check (test/build) ✓, npm run lint ✓; Telegram keyboard animation/device QA pending |
-| [~] | 4.7 | Имена с дефисом и апострофом | — | Keep punctuation during input; validate between Unicode letters on client/server |
+| [x] | 4.7 | Имена с дефисом и апострофом | `Registration.jsx`, `server/validation.js`, `server/registration.js`, `tests/international-names.test.js` | CI #38554728663: npm run check (test/build) ✓, npm run lint ✓; backend accepts hyphen and both apostrophes |
 | [ ] | 4.8 | Сжатие и загрузка фотографий | — | Не начато |
 | [ ] | 4.9 | Хаптика и доступность | — | Не начато |
 | [ ] | 6.1 | Обновить регистрацию и связанные экраны | — | Не начато |
