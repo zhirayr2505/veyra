@@ -71,3 +71,49 @@ Status: IN PROGRESS / NOT ACCEPTED
 ## Manual acceptance
 - Samsung Galaxy A55 Telegram Android WebView: **NOT TESTED**.
 - Owner must explicitly say «Этап 2 принят». Do not begin Stage 3.
+
+
+## Owner addendum (2026-10-14) — supersedes conflicting earlier spec
+### Visible-region circle geometry — implemented, automated checks pending
+- `PROFILE_CIRCLE_AT = .34`: exactly one forward/backwards shape boundary, no interpolated border-radius.
+- `PROFILE_CENTER_AT = .46`: finish initial inward movement before docking.
+- `PROFILE_VISIBLE_TOP_INSET = 64` px: native profile header visible-area start in scroller coordinates.
+- `PROFILE_CIRCLE_WIDTH_FRACTION = .62`: circle diameter may NEVER exceed 62% of viewport width at morph.
+- `PROFILE_AVATAR_DIAMETER = 98` px: existing compact avatar endpoint; initial circle never smaller than this.
+- `PROFILE_PRE_DOCK_RATIO = .94`: small uniform initial shrink before docking.
+- `profileCircleGeometry()`: computes `visibleBottom = min(heroHeight + coverYOffset, sheetY)`; `visibleHeight = max(avatarDiameter, visibleBottom - visibleTop)`, initial diameter `max(avatarDiameter, min(visibleHeight, 0.62 * viewportWidth))`; circle center Y exactly `(visibleTop + visibleBottom) / 2`. Source canvas mask center compensates the cover's preceding vertical translation.
+- `useVeyraProfileMotion.js` sets one center/radius pair at calibration and switches CSS `clip-path` discretely at the same offset in BOTH WAAPI and JS fallback. Uniform image transform is keyed to the same `profileFrame()` for native and fallback.
+- In nondegenerate supported mobile sizes (360×740, 390×844), the visible-height bound is valid. Narrower/abnormally short viewports must still preserve the 98px endpoint, taking precedence over an impossible smaller visible span.
+
+### Gesture arbitration — Embla is the only horizontal owner
+- Existing `MemberSwipePages` uses Embla `axis:'x'` and `dragThreshold:10`, native `touch-action:pan-y pinch-zoom` at the swipe viewport. There is **no custom tab drag recognizer**. User requested any custom lock only after failing Playwright gesture evidence.
+- Existing Telegram `disableVerticalSwipes()` has a 7.7+ compatibility guard and is left unchanged.
+
+### Photo count and API discrepancy — preserve, do not normalize in this stage
+- **Registration.jsx:** `MIN_PHOTOS=3`, `MAX_PHOTOS=6` (confirmed from line 20 of baseline Stage 1 code).
+- **server/app.js:** `POST /api/photos` permits uploads when existing count is below 7 (`if(c.n>=7) fail('PHOTO_LIMIT')`); `POST /api/profile/submit` requires at least 3. This existing server/client discrepancy is NOT changed in Stage 2.
+- Stored photo order is preserved; the frontend does not widen Stage 1 upload limits.
+
+### ScrollTimeline absent — explicit acceptance gate
+- New Playwright `Stage 2 4px reverse geometry parity` tests are implemented for BOTH native `window.ScrollTimeline` and forced `window.ScrollTimeline=undefined`.
+- Each test walks the collapse distance forward/backward in ~4px increments, checks the same shape threshold, computed uniform transform, a hard 0.62 width cap, ring, and near-equal positions in both directions.
+- **Result: NOT YET VERIFIED** until CI browser run finishes. Do not claim fallback passed from source inspection alone.
+
+### Rollback requirement — BEFORE merge
+- Last known working `main` SHA: `8a87fbbc1b72cc6bb572c0da114ad429a8283456`.
+- Merge PR **using GitHub merge-commit strategy** (not squash/rebase); do not merge red CI. At immediate post-merge `main` head, with the merge as HEAD, execute:
+  ```bash
+  git switch main
+  git pull --ff-only origin main
+  test "$(git rev-parse HEAD^1)" = "8a87fbbc1b72cc6bb572c0da114ad429a8283456"
+  git revert --no-edit -m 1 HEAD
+  git push origin main
+  ```
+- The `test` parent-SHA guard prevents reverting an unrelated deployment; if it fails, halt and inspect, never force push.
+- On failed Render `/healthz`, `/readyz`, SHA mismatch, new boot errors or required CI: **do not patch blindly**; revert the merge promptly and report.
+- The actual Stage 2 merge commit SHA, production deploy ID, and endpoint results must be recorded after they exist; currently NONE.
+
+### Remaining prerequisites before release
+- Stage 2 17.3 actual gestures from 12 lower-region origins; tap verification; preview parity; cycle/leak checks.
+- Chromium 4× perf/FPS and real-device manual validation (do not equate laboratory FPS with Samsung FPS).
+- New CI for latest addendum geometry + native/fallback Playwright; current published statements about status remain preliminary.
