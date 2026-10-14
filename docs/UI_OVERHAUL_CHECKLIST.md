@@ -21,7 +21,7 @@
 | [x] | 3 | Горизонтальный свайп фото за пальцем | `HeroPhotoTrack.jsx`, `HeroPhotoTrack.css`, `photoSwipeMath.js`, `tests/photo-swipe.test.js`, `Member.jsx`, `useVeyraProfileMotion.js`, `MemberMotionV2.css`, `MemberReferencePolish.css`, `MemberTelegramProfile.css`, `PhotoSegments.css` | CI #38547027018: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Playwright и физическое устройство — ещё проверить |
 | [x] | 2 | Общий LiquidLogo и плавная смена тона | `LiquidLogo.jsx`, `LiquidLogo.css`, `UI.jsx`, `Member.jsx`, `MemberMotion5.css`, `MemberMotion6.css`, `MemberFinish.css`, `MemberReferencePolish.css`, `MemberStickyPortal.css`, `Registration2026.css`, `Discover.jsx`, `DiscoveryHub.jsx`, `FeedPremium2026.css`, `useVeyraProfileMotion.js`, `tests/approved-work-assets.test.js`, `tests/veyra-brand-consistency.test.js` | CI #38548199719: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; реальный Telegram Android и контрастные фото ещё проверить |
 | [x] | 4.1 | Единые дизайн-токены | `tokens.css`, `App.jsx`, `V2.css`, `Registration2026.css`, `ProfilePreview.css`, `MemberPolish7.css`, `BrandConsistency.css`, `tests/ui-tokens.test.js`, `tests/telegram-swipe-profile-polish.test.js`, `tests/veyra-brand-consistency.test.js` | CI #38549891572: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; перенос оставшихся локальных цветов в общие компоненты (4.2–6.1), Android QA |
-| [ ] | 4.2 | Button / Choice / InterestChip | — | Не начато |
+| [~] | 4.2 | Button / Choice / InterestChip | — | Компоненты, обратная совместимость и перенос экранов на общие элементы |
 | [ ] | 4.3 | Цветные интересы в регистрации | — | Не начато |
 | [ ] | 4.4 | Превью через настоящий Member | — | Не начато |
 | [ ] | 4.5 | Единая система иконок | — | Не начато |
