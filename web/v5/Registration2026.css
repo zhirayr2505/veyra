@@ -567,7 +567,7 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
 .v2-onboarding .veyra-registration-2026 .photo-slot:not(.photo-slot-add),
 .v2-onboarding .veyra-registration-2026 .photo-slot:not(.photo-slot-add) img{touch-action:none!important}
 .v2-onboarding .veyra-registration-2026 .photo-slot-add{touch-action:manipulation}
-.v2-onboarding .veyra-registration-2026 .photo-drag-ghost{pointer-events:none!important;z-index:500;transform:scale(1.06);filter:drop-shadow(0 8px 15px #3826535a)}
+.v2-onboarding .veyra-registration-2026 .photo-drag-ghost{pointer-events:none!important;z-index:500;transform:translate3d(0,0,0) scale(1.06);will-change:transform!important;animation:none!important;transition:none!important;filter:drop-shadow(0 8px 15px #3826535a)}
 @media(prefers-color-scheme:dark){
  .v2-onboarding .veyra-registration-2026{background:radial-gradient(ellipse at 50% 0%,#38204d,#181123 80%)!important;color:#f5ecff}
  .v2-onboarding .veyra-registration-2026 .veyra-onboarding-fixed-header{background:#20162bd9!important;box-shadow:none}
