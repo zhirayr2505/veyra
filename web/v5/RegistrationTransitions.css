@@ -1,45 +1,6 @@
-/* VEYRA eight-step onboarding navigation. Only compositor-friendly motion. */
-.v2-onboarding .veyra-registration-2026 .registration-step{view-transition-name:veyra-registration-step;}
-.v2-onboarding .veyra-registration-2026[data-native-transition="true"] .registration-step,
-.v2-onboarding .veyra-registration-2026[data-waapi-transition="true"] .registration-step{animation:none!important}
-.v2-onboarding .veyra-registration-2026 [data-exit-snapshot]{overflow:hidden!important;contain:layout paint style!important;touch-action:none!important}
-/* Native ViewTransition: the persistent header and CTA are never snapshotted as step content. */
-::view-transition-old(veyra-registration-step){animation:veyraStepExitLeft .18s ease-in both}
-::view-transition-new(veyra-registration-step){animation:veyraStepEnterRight .32s cubic-bezier(.2,.8,.2,1) both}
-:root[data-veyra-step-direction="backward"]::view-transition-old(veyra-registration-step){animation-name:veyraStepExitRight}
-:root[data-veyra-step-direction="backward"]::view-transition-new(veyra-registration-step){animation-name:veyraStepEnterLeft}
-@keyframes veyraStepExitLeft{to{transform:translate3d(-24px,0,0);opacity:0}}
-@keyframes veyraStepExitRight{to{transform:translate3d(24px,0,0);opacity:0}}
-@keyframes veyraStepEnterRight{from{transform:translate3d(40px,0,0);opacity:0}to{transform:translate3d(0,0,0);opacity:1}}
-@keyframes veyraStepEnterLeft{from{transform:translate3d(-40px,0,0);opacity:0}to{transform:translate3d(0,0,0);opacity:1}}
-/* Fine-grained stagger for the CSS/WAAPI fallback; header lives outside this block. */
-.v2-onboarding .veyra-registration-2026:not([data-native-transition="true"]) .registration-step>h1{animation:veyraItemReveal .3s cubic-bezier(.2,.8,.2,1) both}
-.v2-onboarding .veyra-registration-2026:not([data-native-transition="true"]) .registration-step>.subheading{animation:veyraItemReveal .32s cubic-bezier(.2,.8,.2,1) .05s both}
-.v2-onboarding .veyra-registration-2026:not([data-native-transition="true"]) .registration-step>.fields,
-.v2-onboarding .veyra-registration-2026:not([data-native-transition="true"]) .registration-step>.veyra-bio-step{animation:veyraItemReveal .32s cubic-bezier(.2,.8,.2,1) .1s both}
-@keyframes veyraItemReveal{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-/* The outer progress rail stays fixed; only scaleX of each completed segment moves. */
+/* Stage 1: WAAPI controls both screens. No CSS step keyframes, pseudo-transitions or stagger. */
+.v2-onboarding .veyra-registration-2026 [data-exit-snapshot]{pointer-events:none!important;contain:paint style!important}
 .v2-onboarding .veyra-registration-2026 .progress span{position:relative;overflow:hidden}
 .v2-onboarding .veyra-registration-2026 .progress span::after{content:"";position:absolute;inset:0;background:var(--vx-gradient-primary);border-radius:inherit;transform-origin:left center;transform:scaleX(0);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .v2-onboarding .veyra-registration-2026 .progress span.done::after{transform:scaleX(1)}
-.v2-onboarding .veyra-registration-2026 .progress span.current{animation:veyraProgressBreath 1.5s ease-in-out infinite alternate}
-@keyframes veyraProgressBreath{from{transform:scaleX(.985);opacity:.85}to{transform:scaleX(1);opacity:1}}
-/* Main CTA label: old moves up, new rises in without moving the button box. */
-.v2-onboarding .veyra-registration-2026 .veyra-smart-next-content{position:relative;isolation:isolate}
-.v2-onboarding .veyra-registration-2026 .veyra-smart-next-old-label{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;animation:veyraLabelOut .18s ease-in both;pointer-events:none}
-.v2-onboarding .veyra-registration-2026 .veyra-smart-next-label{animation:veyraLabelIn .27s cubic-bezier(.2,.8,.2,1) both}
-@keyframes veyraLabelOut{to{transform:translate3d(0,-8px,0);opacity:0}}
-@keyframes veyraLabelIn{from{transform:translate3d(0,8px,0);opacity:0}to{transform:translate3d(0,0,0);opacity:1}}
-.v2-onboarding .veyra-registration-2026 .veyra-smart-next.was-pressed .veyra-smart-next-arrow{transform:translate3d(5px,0,0)}
-.v2-onboarding .veyra-registration-2026 .veyra-smart-next-arrow{transition:transform .18s ease-out}
-@media(prefers-reduced-motion:reduce){
- ::view-transition-old(veyra-registration-step){animation:veyraReducedOut .12s ease-out both!important}
- ::view-transition-new(veyra-registration-step){animation:veyraReducedIn .12s ease-out both!important}
- .v2-onboarding .veyra-registration-2026 .registration-step>:is(h1,.subheading,.fields,.veyra-bio-step),
- .v2-onboarding .veyra-registration-2026 .veyra-smart-next-label,
- .v2-onboarding .veyra-registration-2026 .veyra-smart-next-old-label,
- .v2-onboarding .veyra-registration-2026 .progress span.current{animation:none!important}
- .v2-onboarding .veyra-registration-2026 .progress span::after{transition:none}
-}
-@keyframes veyraReducedOut{to{opacity:0}}
-@keyframes veyraReducedIn{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.v2-onboarding .veyra-registration-2026 .progress span::after{transition:none}}
