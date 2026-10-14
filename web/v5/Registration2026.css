@@ -612,3 +612,10 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-registration-2026 .veyra-on
  .veyra-smart-next-content{gap:8px}
  .veyra-smart-next-label{font-size:13px}
 }
+
+/* Keyboard safety: hiding fixed CTA while the user edits prevents Android
+   visualViewport overlap without changing its measured height or position. */
+.v2-onboarding .veyra-registration-2026 .registration-actions{transition:opacity .12s ease}
+.v2-onboarding .veyra-registration-2026 .registration-actions[data-keyboard-open="true"]{opacity:0;pointer-events:none;visibility:hidden}
+.v2-onboarding .veyra-registration-2026 .veyra-field-error{margin:5px 0 9px;padding:9px 12px;border-radius:12px;border:1px solid #e4adc1;background:#fff2f7;color:#8f234e;font-size:13px;font-weight:700;line-height:1.4}
+.v2-onboarding .veyra-registration-2026 .registration-name-field:has(+.veyra-field-error) input{border-color:#c04670}
