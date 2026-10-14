@@ -32,14 +32,16 @@ test('the Work-approved wordmark and all empty-state illustrations are served an
   assert.equal(read('VEYRA_ASSET_PACK/'+rel),read('public/veyra-approved/'+rel));
  }
  const ui=read('web/v5/UI.jsx');
- assert.ok(ui.includes('/veyra-design/veyra-wordmark-purple.svg'));
+ const liquid=read('web/v5/LiquidLogo.jsx');
+ assert.ok(liquid.includes('/veyra-design/veyra-wordmark-purple.svg'));
+ assert.ok(ui.includes("import {LiquidLogo} from './LiquidLogo.jsx'"));
  assert.ok(ui.includes("base+'04_empty_states/svg/'"));
- // Discover retains the approved fallback mark for standalone rendering;
- // DiscoveryHub deliberately uses the shared, rounded Logo component.
- assert.ok(read('web/v5/Discover.jsx').includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
+ // Both Discover and DiscoveryHub render the shared approved LiquidLogo;
+ // ErrorBoundary retains its static approved fallback.
+ assert.ok(read('web/v5/Discover.jsx').includes('<Logo width={126} className="feed-brand"/>'));
  assert.ok(read('web/v5/DiscoveryHub.jsx').includes('<Logo width={145}'));
  assert.ok(read('web/v5/ErrorBoundary.jsx').includes('/veyra-approved/00_brand/veyra_logo_primary.svg'));
- assert.ok(ui.includes('veyra-wordmark-purple.svg'));
+ assert.ok(read('web/v5/LiquidLogo.css').includes('veyra-wordmark-purple.svg'));
 });
 test('all five VEYRA navigation icons resolve through Work-approved pack with consistent inactive / active paths',()=>{
  const ui=read('web/v5/UI.jsx');
