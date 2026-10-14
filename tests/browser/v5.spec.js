@@ -1642,3 +1642,62 @@ test('Stage 1 interests: compact category tabs, search, stable selection and lim
  await expect(page.locator('.vx-interest-counter')).toHaveText('11/12');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+
+// Stage 2 — fixture-only profile geometry/hit testing. This does not touch production.
+test('Stage 2 portrait uses the same undimmed image, discrete mask, attached ring and reversible motion',async({page},testInfo)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-profile-scroller');
+ await expect(scroller).toBeVisible();
+ const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ expect(distance).toBeGreaterThan(40);
+ const samples=[];
+ const sample=async(p)=>{
+  await scroller.evaluate((el,y)=>{el.scrollTop=y},distance*p);
+  await page.waitForTimeout(30);
+  return await page.evaluate(()=>{
+   const root=document.querySelector('.vx-profile-motion');
+   const hero=root.querySelector('.vx-profile-hero-photo');
+   const style=getComputedStyle(hero);
+   const ring=getComputedStyle(hero.querySelector('.vx-profile-photo-morph-rim'));
+   return {phase:root.dataset.photoShape,clip:style.clipPath,transition:style.transitionProperty,ring:ring.opacity,
+    shade:root.querySelectorAll('.vx-profile-photo-shade,.vx-profile-blurred-header,.vx-profile-avatar-ring').length,
+    transform:style.transform,heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight};
+  });
+ };
+ for(const p of [0,.15,.3,.33,.339,.34,.36,.46,.7,1,.7,.46,.36,.34,.339,0]){
+  const v=await sample(p);samples.push({p,...v});
+  expect(v.shade).toBe(0);
+  expect(v.transition).not.toContain('border-radius');
+  if(p<.34){expect(v.phase).toBe('cover');expect(v.clip).toMatch(/inset/);expect(Number(v.ring)).toBe(0)}
+  else{expect(v.phase).toBe('circle');expect(v.clip).toMatch(/circle/);expect(Number(v.ring)).toBe(1)}
+ }
+ expect(samples[0].transform).toBe(samples.at(-1).transform);
+ await page.screenshot({path:testInfo.outputPath('stage2-profile-expanded.png')});
+ await sample(1);
+ await page.screenshot({path:testInfo.outputPath('stage2-profile-compact.png')});
+ expect(errors).toEqual([]);
+});
+test('Stage 2 compact photo stops owning taps below its visible circular avatar',async({page},testInfo)=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-profile-scroller');
+ const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await scroller.evaluate((el,y)=>{el.scrollTop=y},distance);
+ await page.waitForTimeout(80);
+ const hitGrid=await page.evaluate(()=>{
+  const points=[];for(const y of [385,445,505,565])for(const x of [40,190,335]){
+   const top=document.elementsFromPoint(x,y).slice(0,6);
+   points.push({x,y,top:top.map(el=>({className:typeof el.className==='string'?el.className.slice(0,110):el.tagName,
+     pointer:getComputedStyle(el).pointerEvents,touch:getComputedStyle(el).touchAction}))});
+  }
+  return points;
+ });
+ for(const point of hitGrid){
+  const head=point.top.find(x=>x.pointer!=='none');
+  expect(head?.className||'').not.toContain('vx-profile-hero-photo');
+ }
+ await page.screenshot({path:testInfo.outputPath('stage2-gesture-hit-grid.png')});
+});

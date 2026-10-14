@@ -20,12 +20,6 @@
  top:calc(var(--vx-profile-hero-height) - 18px)!important;
  background:#d6cce4;
 }
-/* Border-radius changes just twice, never on every ScrollTimeline frame.
-   Reach a circle early in the center phase; the motion path is unchanged. */
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
- transition:border-radius .17s cubic-bezier(.2,.72,.25,1);
-}
-
 /* Dating goal gets its own line beneath the city in both endpoints. */
 .veyra-v2 .vx-master-profile .vx-profile-goal{
  top:68px!important;
@@ -151,7 +145,7 @@
  translate:0 var(--vx-elastic-pull);
 }
 .veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release .vx-profile-hero-photo{
- transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1),border-radius .17s ease-out;
+ transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1);
 }
 .veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release :is(
  .vx-profile-card-backdrop,

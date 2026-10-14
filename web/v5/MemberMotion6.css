@@ -1,10 +1,7 @@
 /* VEYRA Motion 6 — last cascade layer: direct circle, clean name crossfade,
    clipped sheet, adaptive logo silhouette. Legacy motion stays untouched. */
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
- transition:border-radius 0s!important;
-}
 .veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release .vx-profile-hero-photo{
- transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1),border-radius 0s!important;
+ transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1);
 }
 /* The sheet covers the last ~30% of the full portrait BEFORE the circle.
    At the conversion threshold it goes under the now circular photograph. */

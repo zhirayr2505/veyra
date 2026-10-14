@@ -1,31 +1,17 @@
 import {profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
-
-// ScrollTimeline spans the full scrollable range. Scale the 0..1 collapse
-// progress to its actual distance, then hold the compact frame through
-// the remaining content scroll. These keyframes are built ONLY on mount/resize.
+// ScrollTimeline uses one uniform portrait transform. The JS boundary switch
+// owns the discrete clip-path; no radius interpolation runs on the compositor.
 const rounded=n=>Math.round(n*1e5)/1e5;
-// Bottom crop keeps the composited blur inside the sheet's opaque edge.
-export const blurClipBottom=(sheetY,compactHeight)=>Math.max(0,compactHeight-(sheetY+24));
-// The white rim must not appear before the photograph has become circular.
-export const PROFILE_RIM_FADE_START=PROFILE_CIRCLE_AT+.02;
-export const PROFILE_RIM_FADE_END=PROFILE_CIRCLE_AT+.065;
-const fade=(p,a,b)=>{
- const t=Math.max(0,Math.min(1,(p-a)/(b-a)));
- return t*t*(3-2*t);
-};
+const fade=(p,a,b)=>{const t=Math.max(0,Math.min(1,(p-a)/(b-a)));return t*t*(3-2*t)};
 export const profileTranslate=(x,y)=>'translate3d('+x.toFixed(3)+'px,'+y.toFixed(3)+'px,0)';
 export function buildProfileScrollKeyframes(width,height,distance,maxScroll,compactHeight=292){
  const full=Math.max(1,maxScroll),limit=Math.min(1,Math.max(1,distance)/full);
  const points=[0,PROFILE_CIRCLE_AT-.002,PROFILE_CIRCLE_AT,PROFILE_CIRCLE_AT+.012,.365,.39,PROFILE_CENTER_AT,.78,.85,.9,.94,1];
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
- const tracks={hero:[],image:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],
-  bars:[],nav:[],online:[],shade:[],blur:[],ring:[],rim:[],onlineDot:[],grabber:[]};
- const append=(offset,frame)=>{
-  const f=frame,scaleX=f.width/width,scaleY=f.height/height;
-  const transform=profileTranslate(f.x,f.y)+' scale('+scaleX.toFixed(7)+','+scaleY.toFixed(7)+')';
-  tracks.hero.push({offset,transform});
-  tracks.image.push({offset,transform:'scaleY('+(scaleX/scaleY).toFixed(7)+')'});
+ const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[]};
+ const append=(offset,f)=>{
+  tracks.hero.push({offset,transform:profileTranslate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(7)+')'});
   tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30)),clipPath:'inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)'});
   tracks.lip.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
   tracks.identity.push({offset,transform:profileTranslate(f.nameX,f.nameY-(height+9)),opacity:f.nameOpacity});
@@ -34,18 +20,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.goal.push({offset,transform:profileTranslate(f.goalX,f.goalY)});
   tracks.bars.push({offset,opacity:f.photoExtrasOpacity});
   tracks.nav.push({offset,opacity:f.photoExtrasOpacity});
-  tracks.online.push({offset,opacity:f.compactOnlineOpacity});
-  tracks.shade.push({offset,opacity:f.shadeOpacity});
-  // Decorative layers only: the approved hero trajectory stays unchanged.
-  tracks.blur.push({offset,opacity:fade(f.progress,.025,.23),clipPath:'inset(0px 0px '+blurClipBottom(f.sheetY,compactHeight).toFixed(3)+'px 0px)'});
-  tracks.ring.push({offset,opacity:0}); // legacy fixed ring replaced by hero-attached rim
-  tracks.rim.push({offset,opacity:fade(f.progress,PROFILE_RIM_FADE_START,PROFILE_RIM_FADE_END)});
-  tracks.onlineDot.push({offset,opacity:fade(f.progress,.85,1)});
-  tracks.grabber.push({
-   offset,
-   opacity:1-fade(f.progress,.03,.24),
-   transform:profileTranslate(0,f.sheetY-(height-30)),
-  });
+  tracks.grabber.push({offset,opacity:1-fade(f.progress,.03,.24),transform:profileTranslate(0,f.sheetY-(height-30))});
  };
  for(const p of unique)append(rounded(p*limit),profileFrame(p,width,height,compactHeight));
  if(limit<1)append(1,profileFrame(1,width,height,compactHeight));
@@ -65,15 +40,10 @@ export function createProfileScrollAnimations(scrollElement,parts,{width,height,
  try{
   const timeline=new win.ScrollTimeline({source:scrollElement,axis:'block'});
   for(const [key,frames] of Object.entries(keyframes)){
-   const element=parts[key];
-   if(!element)continue;
-   const animation=element.animate(frames,{timeline,fill:'both'});
-   entries.push(animation);
+   const element=parts[key];if(!element)continue;
+   const animation=element.animate(frames,{timeline,fill:'both'});entries.push(animation);
   }
   if(!entries.length)throw Error('No scroll linked layers');
   return {animations:entries,cancel:()=>entries.forEach(a=>a.cancel())};
- }catch{
-  entries.forEach(a=>a.cancel());
-  return null;
- }
+ }catch{entries.forEach(a=>a.cancel());return null}
 }

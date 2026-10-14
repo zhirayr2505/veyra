@@ -1,49 +1,10 @@
 /* VEYRA Motion 5: exact visual finish with preserved compositor scroll motion.
    Imported LAST. No changes to Telegram native controls or menu placement. */
 
-/* Single source for the photo-derived compact backdrop.
-   Animated clip follows sheetY+24px; no blurred strip can extend below it. */
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header{
- position:absolute;
- inset:0 0 auto;
- height:var(--vx-profile-compact-height,292px);
- z-index:3;
- overflow:hidden;
- pointer-events:none;
- opacity:0;
- background:#ded4e7;
- contain:paint;
- -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 100%);
- mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 100%);
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box{
- position:absolute;
- inset:-31px -27px;
- height:calc(100% + 62px);
- width:calc(100% + 54px);
- overflow:hidden;
- background:#e9e3f3;
- pointer-events:none;
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header>.photo-box img{
- display:block;
- width:100%;height:100%;
- object-fit:cover;object-position:50% 31%;
- filter:blur(22px) saturate(1.1);
- transform:translateZ(0);
- pointer-events:none;
-}
-.veyra-v2 .vx-master-profile .vx-profile-blurred-header::after{
- content:"";
- position:absolute;
- inset:0;
- pointer-events:none;
- background:linear-gradient(180deg,#ffffff18 0%,#f6efff1d 43%,#f7f2ff4c 79%,#faf7ffbb 100%);
-}
 .veyra-v2 .vx-master-profile :is(
  .vx-profile-card-backdrop,.vx-profile-sheet-lip,
  .vx-profile-sheet-grabber,.vx-profile-photo-morph-rim,
- .vx-profile-photo-shade,.vx-profile-compact-backdrop
+ .vx-profile-compact-backdrop
 ){pointer-events:none}
 
 /* Above the opaque curved sheet, the name must ALWAYS be visible. */
@@ -56,22 +17,6 @@
 .veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
  border-radius:36px 36px 0 0!important;
 }
-.veyra-v2 .vx-master-profile .vx-profile-hero-photo{
- z-index:9;
- border-radius:0;
- transition:border-radius .16s cubic-bezier(.16,.75,.2,1)!important;
-}
-.veyra-v2 .vx-master-profile .vx-profile-photo-morph-rim{
- position:absolute;inset:0;
- z-index:5;pointer-events:none;
- border:12px solid rgba(255,255,255,.97);
- border-radius:inherit;
- opacity:0;
- box-sizing:border-box;
- box-shadow:inset 0 0 10px #2813331b;
-}
-.veyra-v2 .vx-master-profile .vx-profile-avatar-ring{display:none!important}
-.veyra-v2 .vx-master-profile .vx-profile-avatar-online-dot{z-index:16!important}
 
 /* Clean circular flag derived from the country code. No external tracking URL. */
 .veyra-v2 .vx-master-profile .vx-profile-location .veyra-country-flag-round{

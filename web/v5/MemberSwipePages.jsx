@@ -1,12 +1,13 @@
 import React,{useCallback,useEffect,useRef} from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 
+// Embla locks horizontal intent after ~10px; the browser owns vertical pan-y.
 // Keep all four panels mounted. Embla owns the track transform and preserves
 // finger-following motion; no React renders are required during a drag.
 export function MemberSwipePages({tabs,active,onChange,onProgress,carouselApiRef,children}){
  const [viewportRef,embla]=useEmblaCarousel({
   axis:'x',loop:false,align:'start',containScroll:false,
-  dragFree:false,duration:22,dragThreshold:4,
+  dragFree:false,duration:22,dragThreshold:10,
   watchDrag:(_api,event)=>{
    // The photo grid is interactive but horizontal drags must reach Embla.
    if(event.target?.closest?.('.vx-profile-photos-grid'))return true;
