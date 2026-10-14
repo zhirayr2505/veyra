@@ -1,7 +1,7 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
 import {clamp,profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
-import {createProfileScrollAnimations,blurClipBottom} from './profileScrollTimeline.js';
+import {createProfileScrollAnimations,blurClipBottom,PROFILE_RIM_FADE_START,PROFILE_RIM_FADE_END} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
 
 // Additive CSS translate/scale properties never replace WAAPI transform tracks.
@@ -119,8 +119,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.onlineDot)parts.onlineDot.style.opacity=(f.progress<=.85?0:f.progress>=1?1:(()=>{
     const t=(f.progress-.85)/.15;return t*t*(3-2*t);
    })()).toFixed(3);
-   if(parts.rim)parts.rim.style.opacity=(p<=PROFILE_CIRCLE_AT-.004?0:p>=PROFILE_CIRCLE_AT+.026?1:(()=>{
-     const t=(p-(PROFILE_CIRCLE_AT-.004))/.03;return t*t*(3-2*t);
+   if(parts.rim)parts.rim.style.opacity=(p<=PROFILE_RIM_FADE_START?0:p>=PROFILE_RIM_FADE_END?1:(()=>{
+     const t=(p-PROFILE_RIM_FADE_START)/(PROFILE_RIM_FADE_END-PROFILE_RIM_FADE_START);return t*t*(3-2*t);
     })()).toFixed(3);
     if(parts.grabber){
     parts.grabber.style.transform=translate(0,f.sheetY-(s.height-30));
