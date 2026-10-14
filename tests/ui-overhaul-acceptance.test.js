@@ -18,7 +18,7 @@ test('approved brand gradient with its 20% dark text scrim passes WCAG AA white 
  const tokens=read('web/v5/tokens.css');
  const start=color('--vx-color-primary-start',tokens),end=color('--vx-color-primary-end',tokens);
  assert.equal(start.toLowerCase(),'#ae60fc');assert.equal(end.toLowerCase(),'#7628e5');
- assert.match(tokens,/--vx-gradient-primary:linear-gradient\\(0deg,#251b3833,#251b3833\\),var\\(--vx-gradient-primary-base\\)/);
+ assert.match(tokens,/--vx-gradient-primary:linear-gradient\(0deg,#251b3833,#251b3833\),var\(--vx-gradient-primary-base\)/);
  const ink=rgb('#251b38');
  for(const stop of [start,end]){
   const result=rgb(stop).map((v,i)=>Math.round(v*0.8+ink[i]*0.2));
@@ -37,7 +37,7 @@ test('all seven interest chips meet 4.5:1 normal-text contrast',()=>{
 
 test('approved profile motion mathematics is frozen exactly at main revision',()=>{
  const content=Buffer.from(read('web/v5/profileMotionMath.js'),'utf8');
- const gitBlob=createHash('sha1').update('blob '+content.length+'\\0').update(content).digest('hex');
+ const gitBlob=createHash('sha1').update('blob '+content.length+'\0').update(content).digest('hex');
  assert.equal(gitBlob,'1546f7ff65deb1daec733209ffb0094c3745ceb1');
 });
 
@@ -49,5 +49,5 @@ test('performance-sensitive 6.4 compositing retains scroll timeline and motion p
  assert.match(scroll,/PROFILE_CIRCLE_AT/);
  assert.match(scroll,/tracks.blur.push/);
  assert.match(steps,/prefers-reduced-motion:reduce/);
- assert.match(steps,/view-transition-new\\(veyra-registration-step\\)/);
+ assert.match(steps,/view-transition-new\(veyra-registration-step\)/);
 });
