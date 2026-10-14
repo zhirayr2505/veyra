@@ -15,7 +15,7 @@
 | [x] | 5.1 | Мгновенный каркас профиля из данных карточки | `profileSeed.js`, `tests/profile-seed.test.js`, `Member.jsx`, `MemberMotion5.css`, `App.jsx`, `Discover.jsx`, `Likes.jsx`, `Chats.jsx`, `DiscoveryHub.jsx` | CI #38542826974: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; физический Android — требуется |
 | [x] | 5.2 | Кэш фото, LQIP и доминантный цвет | `api.js`, `server/photo-placeholder.js`, `server/app.js`, `server/registration.js`, `server/domain.js`, `Member.jsx`, `migrations/023_photo_lqip.sql`, `scripts/backfill-photo-placeholders.js`, `tests/photo-placeholder.test.js` | CI #38543625688: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; заполнение старых фото требует запуска скрипта после деплоя |
 | [x] | 5.3 | Плавный переход blur → sharp после decode | `UI.jsx`, `PhotoReveal.css`, `Member.jsx` | CI #38544310002: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Android визуально проверить |
-| [~] | 5.4 | Приоритетная предзагрузка 960/640 | — | Сначала текущая карточка 960, затем миниатюры 640 и соседи |
+| [x] | 5.4 | Приоритетная предзагрузка 960/640 | `Discover.jsx`, `DiscoveryHub.jsx` | CI #38544872878: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; скорость сети на Android — требуется |
 | [ ] | 5.5 | Единый Photo для всех экранов | — | Не начато |
 | [ ] | 5.6 | Красивое состояние ошибки с повтором | — | Не начато |
 | [ ] | 3 | Горизонтальный свайп фото за пальцем | — | Не начато |
