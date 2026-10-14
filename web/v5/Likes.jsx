@@ -8,7 +8,7 @@ const label=p=>[p?.name,p?.age].filter(v=>v!==null&&v!==undefined&&v!=='').join(
 
 function PersonCard({person,match,onProfile,onChat,onLike,onSeen,processing}){
  const p=person,mutual=!!match;
- const open=()=>{haptic();if(mutual)onSeen(match);onProfile(p.id,mutual?match.id:null)};
+ const open=()=>{haptic();if(mutual)onSeen(match);onProfile(p.id,mutual?match.id:null,p)};
  const action=()=>{haptic('medium');if(mutual){onSeen(match);onChat(match.id,p)}else onLike(p)};
  return <article className="likes-person">
   <Photo className="likes-person-photo" id={p.photos?.[0]} alt={'Фото '+label(p)} onClick={open}/>
