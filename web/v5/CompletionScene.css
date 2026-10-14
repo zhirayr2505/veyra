@@ -161,3 +161,18 @@
 @keyframes veyraShieldGlow{0%,100%{opacity:1}50%{opacity:.92}}
 @keyframes veyraShieldTwinkle{0%,100%{opacity:.7}50%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.vc-art--pending .vc-review-vector,.vc-art--pending .vc-sphere,.vc-art--pending .vc-crystal-twinkles{animation:none!important}}
+
+/* One-shot 1.4s success burst; animated transform and opacity only. */
+.vc-screen--pending .vc-content{position:relative}
+.vc-success-burst{position:absolute;z-index:5;left:50%;top:34%;width:0;height:0;pointer-events:none}
+.vc-success-burst span{position:absolute;left:0;top:0;font-size:17px;color:var(--vx-color-accent);opacity:0;animation:vcOneShotHeart 1.4s cubic-bezier(.2,.8,.2,1) both}
+.vc-success-burst span:nth-child(1){--vx-burst-x:-112px;--vx-burst-y:-95px;animation-delay:0s}
+.vc-success-burst span:nth-child(2){--vx-burst-x:-85px;--vx-burst-y:-133px;animation-delay:.05s}
+.vc-success-burst span:nth-child(3){--vx-burst-x:10px;--vx-burst-y:-145px;animation-delay:.1s}
+.vc-success-burst span:nth-child(4){--vx-burst-x:94px;--vx-burst-y:-106px;animation-delay:.02s}
+.vc-success-burst span:nth-child(5){--vx-burst-x:118px;--vx-burst-y:-43px;animation-delay:.09s}
+.vc-success-burst span:nth-child(6){--vx-burst-x:-100px;--vx-burst-y:32px;animation-delay:.04s}
+.vc-success-burst span:nth-child(7){--vx-burst-x:90px;--vx-burst-y:51px;animation-delay:.12s}
+.vc-success-burst span:nth-child(8){--vx-burst-x:0px;--vx-burst-y:-94px;animation-delay:.14s}
+@keyframes vcOneShotHeart{0%{opacity:0;transform:translate3d(0,8px,0) scale(.55)}19%{opacity:.8}100%{opacity:0;transform:translate3d(var(--vx-burst-x),var(--vx-burst-y),0) scale(.92)}}
+@media(prefers-reduced-motion:reduce){.vc-success-burst span{animation:none;opacity:0}}
