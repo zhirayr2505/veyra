@@ -1,6 +1,6 @@
 import React,{useRef,useState,useEffect,useLayoutEffect,useMemo} from 'react';
 import {Member} from './Member.jsx';
-import {photoUrl} from './api.js';
+import {photoUrl,cachedPhotoAny} from './api.js';
 import {Icon,Button} from './UI.jsx';
 import {FeedCardVisual} from './FeedCardVisual.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
@@ -14,7 +14,7 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
   const photoKeys=ids.join('|');
   // Preload every approved photo before the person taps the next frame.
   // photoUrl de-duplicates network requests and caches blob URLs per session.
-  useEffect(()=>{if(!photoKeys)return;for(const id of photoKeys.split('|'))photoUrl(id).catch(()=>{});},[photoKeys]);
+  useEffect(()=>{if(!photoKeys)return;for(const id of photoKeys.split('|'))if(!cachedPhotoAny(id))photoUrl(id,{width:960}).catch(()=>{});},[photoKeys]);
   // Different preview tabs have different scroll modes: always start at the top.
   useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[mode]);
  const slide=dir=>setIndex(i=>(i+dir+ids.length)%ids.length);
