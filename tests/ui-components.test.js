@@ -14,10 +14,11 @@ test('shared controls support every button variant and accessible choices',()=>{
 test('one InterestChip powers profile, preview, registration picker and feed',()=>{
  const code=read('web/v5/UI.jsx');
  assert.match(code,/export function InterestChip\(/);
- for(const file of ['Member.jsx','ProfilePreview.jsx','OnboardingOptions.jsx','Discover.jsx']){
+ for(const file of ['Member.jsx','OnboardingOptions.jsx','Discover.jsx']){
   assert.ok(read('web/v5/'+file).includes('<InterestChip'),file);
  }
  assert.match(read('web/v5/OnboardingOptions.jsx'),/<Choice/);
  assert.match(read('web/v5/Registration.jsx'),/<Choice/);
  assert.match(read('web/v5/ProfilePreview.jsx'),/<Button variant="primary"/);
+ assert.match(read('web/v5/ProfilePreview.jsx'),/<Member id="registration-preview" readOnly/);
 });
