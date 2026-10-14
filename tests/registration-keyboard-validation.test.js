@@ -16,7 +16,8 @@ test('registration local validation and Telegram error haptic are available',()=
  assert.match(jsx,/const invalid=\(field,message\)/);
  assert.match(jsx,/fieldError\?\.step===1/);
  assert.match(jsx,/fieldError\?\.step===3/);
- assert.match(jsx,/notificationOccurred\?\.\('error'\)/);
+ assert.match(jsx,/haptic\('error'\)/);
+ assert.match(read('web/v5/haptics.js'),/notificationOccurred/);
 });
 test('onboarding shows exactly six unambiguous goals with legacy labels',()=>{
  const jsx=read('web/v5/OnboardingOptions.jsx');
