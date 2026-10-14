@@ -48,14 +48,6 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-telegram-member .vx-profile-scrolle
  contain:paint;
  will-change:width,height,left,top,border-radius;
 }
-.veyra-v2 .vx-telegram-member .vx-profile-hero-photo>.photo-box{
- position:absolute;inset:0;width:100%!important;height:100%!important;
- overflow:hidden;border-radius:inherit!important;display:block!important;
-}
-.veyra-v2 .vx-telegram-member .vx-profile-hero-photo>.photo-box img{
- width:100%;height:100%;display:block;object-fit:cover!important;object-position:center 36%;
- border-radius:inherit;
-}
 .veyra-v2 .vx-telegram-member .vx-profile-photo-nav{
  position:absolute;inset:18% 0 18%;z-index:2;display:flex;justify-content:space-between;
  opacity:calc(1 - var(--vx-collapse) * 2);pointer-events:none;
