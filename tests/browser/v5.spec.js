@@ -1830,22 +1830,64 @@ test.describe('Stage 2 Android-like touch context',()=>{
     pointer:css.pointerEvents,touch:css.touchAction,z:css.zIndex,position:css.position,overflow:css.overflow,
     rect:{x:r.x,y:r.y,w:r.width,h:r.height}};
   }),origin);
-  const before=await scroller.evaluate(el=>el.scrollTop);
-  // CDP GestureScroll exercises Chromium's native touch pan/scroll pipeline.
-  // Bare dispatchTouchEvent packets can deliver events without a scroll gesture.
-  await cdp.send('Input.synthesizeScrollGesture',{
-   x:origin.x,y:origin.y,xDistance:0,yDistance:200,
-   gestureSourceType:'touch',speed:650
+  const initial=await scroller.evaluate(el=>({
+   scrollTop:el.scrollTop,maxScroll:el.scrollHeight-el.clientHeight,
+   scrollHeight:el.scrollHeight,clientHeight:el.clientHeight
+  }));
+  await page.evaluate(()=>{
+   window.__stage2ScrollTrace=[];
+   window.__stage2TrackScroll=e=>window.__stage2ScrollTrace.push({
+    y:e.currentTarget.scrollTop,at:performance.now()
+   });
+   document.querySelector('.vx-profile-scroller').addEventListener('scroll',window.__stage2TrackScroll,{passive:true});
   });
-  await page.waitForTimeout(110);
-  const after=await scroller.evaluate(el=>el.scrollTop);
-  diagnostic.push({...origin,before,after,hierarchy});
+  // The browser may be at a scroll boundary. Probe BOTH directions, then
+  // compare a physical wheel control without changing application state.
+  const trials=[];
+  for(const delta of [200,-200]){
+   await scroller.evaluate((el,y)=>{el.scrollTop=y},initial.scrollTop);
+   await page.waitForTimeout(50);
+   const start=await scroller.evaluate(el=>el.scrollTop);
+   await cdp.send('Input.synthesizeScrollGesture',{
+    x:origin.x,y:origin.y,xDistance:0,yDistance:delta,
+    gestureSourceType:'touch',speed:650,preventFling:true
+   });
+   await page.waitForTimeout(110);
+   trials.push({delta,start,end:await scroller.evaluate(el=>el.scrollTop)});
+  }
+  await scroller.evaluate((el,y)=>{el.scrollTop=y},initial.scrollTop);
+  await page.waitForTimeout(45);
+  await page.mouse.move(origin.x,origin.y);
+  await page.mouse.wheel(0,-160);
+  await page.waitForTimeout(90);
+  const wheelAfter=await scroller.evaluate(el=>el.scrollTop);
+  const trace=await page.evaluate(()=>{
+   const el=document.querySelector('.vx-profile-scroller');
+   el.removeEventListener('scroll',window.__stage2TrackScroll);
+   return window.__stage2ScrollTrace;
+  });
+  const ancestors=await page.evaluate(({x,y})=>{
+   const stack=[];let el=document.elementFromPoint(x,y);
+   while(el&&stack.length<18){
+    const cs=getComputedStyle(el);
+    stack.push({tag:el.tagName,cls:typeof el.className==='string'?el.className.slice(0,100):'',
+     scrollTop:el.scrollTop,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,
+     overflowX:cs.overflowX,overflowY:cs.overflowY,overscrollY:cs.overscrollBehaviorY,
+     touchAction:cs.touchAction,position:cs.position,pointer:cs.pointerEvents});
+    el=el.parentElement;
+   }
+   return stack;
+  },origin);
+  diagnostic.push({...origin,initial,trials,wheelAfter,trace,ancestors,hierarchy});
  }
  // Attach the *whole* real-hit grid before reporting a failing location.
  await testInfo.attach('stage2-hit-test-grid.json',{body:Buffer.from(JSON.stringify(diagnostic,null,2)),contentType:'application/json'});
  for(const point of diagnostic){
   expect(point.hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
-  expect(Math.abs(point.after-point.before),'vertical native pan from '+point.x+','+point.y+' hit='+JSON.stringify(point.hierarchy.slice(0,3))).toBeGreaterThan(20);
+  expect(Math.max(...point.trials.map(x=>Math.abs(x.end-x.start))),
+   'native touch never changed scrollTop at '+point.x+','+point.y+
+   ' state='+JSON.stringify({initial:point.initial,trials:point.trials,wheelAfter:point.wheelAfter,
+    trace:point.trace,ancestors:point.ancestors.slice(0,11)})).toBeGreaterThan(20);
  }
  for(const origin of origins){
   await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
