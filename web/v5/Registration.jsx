@@ -119,66 +119,28 @@ export function Registration({me,refresh}){
   if(step===4&&(!f.looking_for.length||Number(f.min_age)<18||Number(f.max_age)<Number(f.min_age)||Number(f.max_age)>90))invalid('looking_for','Проверь предпочтения поиска');
  };
 
+ // Use WAAPI alone; header/CTA are outside the animated step.
  const go=(n,dir)=>{
-  const target=Math.min(8,Math.max(1,n));
-  if(target===step||stepTransitionRef.current)return;
-  const change=()=>{
-   setFieldError(null);setKeyboardActive(false);setDirection(dir);setStep(target);
-   scrollRef.current?.scrollTo({top:0,behavior:'instant'});
-   window.scrollTo({top:0,behavior:'instant'});
-  };
-  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||false;
-  const duration=reduced?120:320;
+  const target=Math.min(8,Math.max(1,n));if(target===step||stepTransitionRef.current)return;
   stepTransitionRef.current=true;setTransitioning(true);
-  const done=()=>{
-   clearTimeout(stepTransitionTimerRef.current);
-   stepTransitionRef.current=false;setTransitioning(false);
-   registrationRootRef.current?.removeAttribute('data-native-transition');
-   registrationRootRef.current?.removeAttribute('data-waapi-transition');
-  };
-  const oldStep=scrollRef.current;
-  // Native View Transitions capture both mounted step states without affecting the header.
-  if(!reduced&&typeof document.startViewTransition==='function'&&oldStep){
-   registrationRootRef.current?.setAttribute('data-native-transition','true');
-   document.documentElement.dataset.veyraStepDirection=dir;
-   try{
-    const transition=document.startViewTransition(()=>flushSync(change));
-    transition.finished.then(done,done);
-    stepTransitionTimerRef.current=setTimeout(done,650);
-    return;
-   }catch{/* Older Telegram clients use the WAAPI fallback below. */}
-   registrationRootRef.current?.removeAttribute('data-native-transition');
+  stepAnimationsRef.current.forEach(a=>a.cancel());stepAnimationsRef.current=[];exitCloneRef.current?.remove();
+  const node=scrollRef.current,rect=node?.getBoundingClientRect(),clone=node?.cloneNode(true);
+  if(clone&&rect){
+   clone.inert=true;clone.setAttribute('aria-hidden','true');clone.dataset.exitSnapshot='true';
+   clone.querySelectorAll('[id],[name]').forEach(el=>{el.removeAttribute('id');el.removeAttribute('name')});
+   Object.assign(clone.style,{position:'fixed',top:rect.top+'px',left:rect.left+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',overflow:'hidden',pointerEvents:'none',zIndex:'250',animation:'none'});
+   registrationRootRef.current?.appendChild(clone);exitCloneRef.current=clone;
   }
-  // WAAPI fallback: a non-interactive snapshot of the outgoing step persists
-  // while React mounts the incoming step; no top/left/height animations.
-  let clone;
-  if(oldStep){
-   const rect=oldStep.getBoundingClientRect();
-   clone=oldStep.cloneNode(true);
-   clone.setAttribute('aria-hidden','true');clone.inert=true;
-   clone.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
-   clone.setAttribute('data-exit-snapshot','true');
-   for(const [key,value] of Object.entries({position:'fixed',top:rect.top+'px',left:rect.left+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',zIndex:'250',pointerEvents:'none',animation:'none',overflow:'hidden',background:'var(--vx-color-surface)'})){
-    clone.style.setProperty(key.replace(/[A-Z]/g,x=>'-'+x.toLowerCase()),value,'important');
-   }
-   registrationRootRef.current?.appendChild(clone);
-  }
-  registrationRootRef.current?.setAttribute('data-waapi-transition','true');
-  flushSync(change);
-  const sign=dir==='backward'?-1:1;
-  const incoming=scrollRef.current;
-  if(incoming?.animate)incoming.animate([
-   {transform:reduced?'none':'translate3d('+(sign*40)+'px,0,0)',opacity:0},
-   {transform:'translate3d(0,0,0)',opacity:1}
-  ],{duration,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'});
-  if(clone?.animate){
-   const outgoing=clone.animate([
-    {transform:'translate3d(0,0,0)',opacity:1},
-    {transform:reduced?'none':'translate3d('+(-sign*24)+'px,0,0)',opacity:0}
-   ],{duration:reduced?120:180,easing:'ease-in',fill:'forwards'});
-   outgoing.finished.then(()=>clone.remove(),()=>clone.remove());
-  }else clone?.remove();
-  stepTransitionTimerRef.current=setTimeout(()=>{clone?.remove();done()},duration);
+  setFieldError(null);setDirection(dir);
+  flushSync(()=>setStep(target));scrollRef.current?.scrollTo({top:0,behavior:'instant'});
+  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,duration=reduced?0:290,sign=dir==='backward'?-1:1;
+  const options={duration,easing:'cubic-bezier(.22,.78,.22,1)',fill:'both'},animations=[];
+  if(duration&&scrollRef.current?.animate)animations.push(scrollRef.current.animate([{transform:'translate3d('+(sign*12)+'%,0,0)',opacity:.78},{transform:'translate3d(0,0,0)',opacity:1}],options));
+  if(duration&&clone?.animate)animations.push(clone.animate([{transform:'translate3d(0,0,0)',opacity:1},{transform:'translate3d('+(-sign*12)+'%,0,0)',opacity:.72}],options));
+  stepAnimationsRef.current=animations;
+  const done=()=>{if(!stepTransitionRef.current)return;clearTimeout(stepTransitionTimerRef.current);animations.forEach(a=>a.cancel());stepAnimationsRef.current=[];exitCloneRef.current?.remove();exitCloneRef.current=null;stepTransitionRef.current=false;setTransitioning(false)};
+  if(animations.length)Promise.allSettled(animations.map(a=>a.finished)).then(done);else done();
+  stepTransitionTimerRef.current=setTimeout(done,duration+120);
  };
  const next=()=>work(async()=>{valid();haptic('light');const data={...f,bio:truncateBio(f.bio),min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km};
   if(step===7){await put('/registration/profile',{...data,registration_ui_version:3});await refresh()}else await put('/registration',{step:step+1,data:{...data,registration_ui_version:3,consent_to_terms:consent}});
