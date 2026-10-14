@@ -1787,6 +1787,20 @@ test('Stage 2 12-point touch diagnostics: vertical pan, Embla horizontal pan and
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  const scroller=page.locator('.vx-profile-scroller');
  await expect(scroller).toBeVisible();
+ const fixedGeometry=await page.evaluate(()=>{
+  const root=document.querySelector('.vx-own-member'),scroller=root?.querySelector('.vx-profile-scroller');
+  const host=root?.closest('.vx-own-profile-host');
+  const rect=node=>{const r=node?.getBoundingClientRect();return r?{x:r.x,y:r.y,width:r.width,height:r.height}:null};
+  return {root:rect(root),scroller:rect(scroller),
+   hostTransform:host?getComputedStyle(host).transform:null,
+   hostAnimation:host?getComputedStyle(host).animationName:null,
+   hit:document.elementFromPoint(190,500)?.closest('.vx-own-member')===root,
+   vw:window.innerWidth,vh:window.innerHeight};
+ });
+ expect(fixedGeometry.hostTransform,JSON.stringify(fixedGeometry)).toBe('none');
+ expect(fixedGeometry.root?.height,JSON.stringify(fixedGeometry)).toBeGreaterThan(650);
+ expect(fixedGeometry.scroller?.height,JSON.stringify(fixedGeometry)).toBeGreaterThan(650);
+ expect(fixedGeometry.hit,JSON.stringify(fixedGeometry)).toBe(true);
  const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  const origins=[];
  for(const y of [390,455,520,585])for(const x of [45,190,340])origins.push({x,y});
