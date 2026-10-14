@@ -25,7 +25,7 @@
 | [x] | 4.3 | Цветные интересы в регистрации | `OnboardingOptions.jsx`, `OnboardingV9.css`, `tests/interest-picker-ui.test.js` | CI #38551424163: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; визуально и haptic Telegram Android — требуется |
 | [x] | 4.4 | Превью через настоящий Member | `Member.jsx`, `ProfilePreview.jsx`, `ProfilePreview.css`, `FeedCardVisual.jsx`, `Discover.jsx`, `tests/member-readonly-preview.test.js`, `tests/ui-components.test.js` | CI #38553212186: `npm run check` (`npm test` + build) ✓, `npm run lint` ✓; Telegram device visual/scroll QA required |
 | [x] | 4.5 | Единая система иконок | `Registration.jsx`, `Registration2026.css`, `tests/approved-work-assets.test.js`, `tests/registration-icons.test.js` | CI #38553931608: npm test/build ✓, npm run lint ✓; icon appearance in Telegram Android needs visual check |
-| [~] | 4.6 | Клавиатура, локальные ошибки, цели | — | Hide CTA while focused, local field errors/haptics, reduce goals to six |
+| [x] | 4.6 | Клавиатура, локальные ошибки, цели | `Registration.jsx`, `Registration2026.css`, `OnboardingOptions.jsx`, `tests/registration-keyboard-validation.test.js` | CI #38554400354: npm run check (test/build) ✓, npm run lint ✓; Telegram keyboard animation/device QA pending |
 | [ ] | 4.7 | Имена с дефисом и апострофом | — | Не начато |
 | [ ] | 4.8 | Сжатие и загрузка фотографий | — | Не начато |
 | [ ] | 4.9 | Хаптика и доступность | — | Не начато |
