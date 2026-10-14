@@ -1,6 +1,7 @@
 import React,{useMemo,useState} from 'react';
 import {Music2,Dumbbell,Clapperboard,Plane,UtensilsCrossed,Heart,Film,Bike,Palette,Coffee,PawPrint,Cpu,BookOpen,MapPin,Sparkles,ChevronDown} from 'lucide-react';
-import {Icon,InterestIcon} from './UI.jsx';
+import {Icon,InterestIcon,Choice,InterestChip} from './UI.jsx';
+import {interestTone} from './profilePolishLogic.js';
 import './OnboardingOptions.css';
 
 export const GOALS=[
@@ -68,7 +69,7 @@ export const profileCompletion=(p,photoCount=0)=>{
  const checks=[!!p?.name,!!p?.city,photoCount>=3,!!p?.goal,(p?.interests||[]).length>=3,(p?.languages||[]).length>0,!!p?.bio?.trim(),(p?.prompts||[]).some(x=>x.answer?.trim())];
  return Math.round(checks.filter(Boolean).length/checks.length*100);
 };
-export function GoalPicker({value,onChange}){return <div className="veyra-goal-list veyra-goal-list-v9" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><button type="button" key={goal.value} className={'veyra-goal-choice '+(value===goal.value?'is-active':'')} aria-pressed={value===goal.value} onClick={()=>onChange(goal.value)}><span key={value===goal.value?goal.value+'-on':goal.value+'-off'} className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={26}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></button>)}</div>;}
+export function GoalPicker({value,onChange}){return <div className="veyra-goal-list veyra-goal-list-v9" role="group" aria-label="Цель знакомства">{GOALS.map(goal=><Choice key={goal.value} className="veyra-goal-choice" selected={value===goal.value} onClick={()=>onChange(goal.value)}><span key={value===goal.value?goal.value+'-on':goal.value+'-off'} className="veyra-goal-icon"><Icon name={goal.icon} tone="pink" size={26}/></span><span className="veyra-goal-copy"><strong>{goal.title}</strong><small>{goal.subtitle}</small></span><span className="veyra-goal-radio">{value===goal.value&&<Icon name="check" size={14} tone="white"/>}</span></Choice>)}</div>;}
 export function InterestPicker({value=[],onChange,max=12}){
  const [expanded,setExpanded]=useState(INTEREST_GROUPS[0].title),[limitMessage,setLimitMessage]=useState(false);
  const selected=Array.isArray(value)?value:[];
@@ -77,7 +78,7 @@ export function InterestPicker({value=[],onChange,max=12}){
   else if(selected.length<max){setLimitMessage(false);onChange([...selected,item])}
   else setLimitMessage(true);
  };
- const options=items=>items.map(item=><button type="button" key={item} aria-pressed={selected.includes(item)} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={18}/><span>{item}</span>{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</button>);
+ const options=items=>items.map(item=><InterestChip key={item} label={item} tone={interestTone(item,INTEREST_GROUPS)} selected={selected.includes(item)} disabled={!selected.includes(item)&&selected.length>=max} className={selected.includes(item)?'selected':selected.length>=max?'at-limit':''} onClick={()=>toggle(item)} icon={<CatalogueIcon value={item} size={18}/>}>{selected.includes(item)&&<Icon name="check" tone="pink" size={14}/>}</InterestChip>);
  return <div className="veyra-interest-picker veyra-interest-v9 veyra-interest-final">
   <div className="veyra-picker-head"><strong>Выбери свои увлечения</strong></div>
   <p className="veyra-picker-caption">До 12 интересов. Мы поможем найти людей, с которыми есть о чём поговорить.</p>
@@ -85,7 +86,7 @@ export function InterestPicker({value=[],onChange,max=12}){
    <header><strong>Выбрано</strong><small>{selected.length} из {max}</small></header>
    {selected.length?
     <div className="veyra-interests-selected-grid" role="region" tabIndex={0} aria-label="Прокрутка выбранных интересов вправо и влево">
-     {selected.map(item=><button key={item} type="button" aria-label={'Убрать '+item} onClick={()=>toggle(item)}><CatalogueIcon value={item} size={15}/><span>{item}</span><span className="veyra-chip-remove" aria-hidden="true">×</span></button>)}
+     {selected.map(item=><InterestChip key={item} label={item} tone={interestTone(item,INTEREST_GROUPS)} selected removable onRemove={()=>toggle(item)} icon={<CatalogueIcon value={item} size={15}/>}/>)}
     </div>:
     <p>Выбранные увлечения появятся здесь. Выбери подходящие ниже.</p>}
   </section>
