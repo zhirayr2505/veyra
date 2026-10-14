@@ -1789,6 +1789,8 @@ test.describe('Stage 2 Android-like touch context',()=>{
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  const scroller=page.locator('.vx-profile-scroller');
  await expect(scroller).toBeVisible();
+ const viewportOverflow=await page.locator('.vx-profile-swipe-viewport').evaluate(el=>getComputedStyle(el).overflow);
+ expect(viewportOverflow).toBe('clip');
  const fixedGeometry=await page.evaluate(()=>{
   const root=document.querySelector('.vx-own-member'),scroller=root?.querySelector('.vx-profile-scroller');
   const host=root?.closest('.vx-own-profile-host');
@@ -1841,22 +1843,14 @@ test.describe('Stage 2 Android-like touch context',()=>{
    });
    document.querySelector('.vx-profile-scroller').addEventListener('scroll',window.__stage2TrackScroll,{passive:true});
   });
-  // The browser may be at a scroll boundary. Probe BOTH directions, then
-  // compare a physical wheel control without changing application state.
-  const trials=[];
-  for(const delta of [200,-200]){
-   await scroller.evaluate((el,y)=>{el.scrollTop=y},initial.scrollTop);
-   await page.waitForTimeout(50);
-   const start=await scroller.evaluate(el=>el.scrollTop);
-   await cdp.send('Input.synthesizeScrollGesture',{
-    x:origin.x,y:origin.y,xDistance:0,yDistance:delta,
-    gestureSourceType:'touch',speed:650,preventFling:true
-   });
-   await page.waitForTimeout(110);
-   trials.push({delta,start,end:await scroller.evaluate(el=>el.scrollTop)});
-  }
+  // Headless CDP synthesizeScrollGesture does not scroll even on a minimal
+  // known-good overflow:clip fixture; dispatchTouchEvent DOES exercise pan-y.
+  // Record during motion as release snapping may change the final offset.
+  await drag(origin.x,origin.y,0,200);
+  const after=await scroller.evaluate(el=>el.scrollTop);
+  const touchTrace=await page.evaluate(()=>window.__stage2ScrollTrace.slice());
   await scroller.evaluate((el,y)=>{el.scrollTop=y},initial.scrollTop);
-  await page.waitForTimeout(45);
+  await page.waitForTimeout(70);
   await page.mouse.move(origin.x,origin.y);
   await page.mouse.wheel(0,-160);
   await page.waitForTimeout(90);
@@ -1878,16 +1872,17 @@ test.describe('Stage 2 Android-like touch context',()=>{
    }
    return stack;
   },origin);
-  diagnostic.push({...origin,initial,trials,wheelAfter,trace,ancestors,hierarchy});
+  diagnostic.push({...origin,initial,after,touchTrace,wheelAfter,trace,ancestors,hierarchy});
  }
  // Attach the *whole* real-hit grid before reporting a failing location.
  await testInfo.attach('stage2-hit-test-grid.json',{body:Buffer.from(JSON.stringify(diagnostic,null,2)),contentType:'application/json'});
  for(const point of diagnostic){
   expect(point.hierarchy[0]?.cls||'').not.toContain('vx-profile-hero-photo');
-  expect(Math.max(...point.trials.map(x=>Math.abs(x.end-x.start))),
-   'native touch never changed scrollTop at '+point.x+','+point.y+
-   ' state='+JSON.stringify({initial:point.initial,trials:point.trials,wheelAfter:point.wheelAfter,
-    trace:point.trace,ancestors:point.ancestors.slice(0,11)})).toBeGreaterThan(20);
+  const moved=Math.max(Math.abs(point.after-point.initial.scrollTop),
+   ...point.touchTrace.map(x=>Math.abs(x.y-point.initial.scrollTop)));
+  expect(moved,'touch pan did not move scrollTop at '+point.x+','+point.y+
+   ' state='+JSON.stringify({initial:point.initial,after:point.after,touchTrace:point.touchTrace,
+    wheelAfter:point.wheelAfter,ancestors:point.ancestors.slice(0,11)})).toBeGreaterThan(20);
  }
  for(const origin of origins){
   await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
