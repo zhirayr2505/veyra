@@ -45,7 +45,7 @@ export function Discover({onProfile,onMatch,onPremium,onFilters,refreshTick=0,fi
  const requestToken=useRef(0),pointer=useRef(null),ignoreSwipeClick=useRef(false),entranceTimer=useRef(null);
  const photos=card?.photos||[];
  useEffect(()=>()=>clearTimeout(entranceTimer.current),[]);
- const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests+';
+ const filtersQuery='mode='+encodeURIComponent(mode)+'&only_online='+onlyOnline+'&common_interests='+commonInterests;
 
  useEffect(()=>{let alive=true;get('/reactions/last').then(r=>{
   if(alive)setLast({...r,target:r.action?.target||null});
