@@ -39,6 +39,7 @@ import './MemberFinish.css'; // Opaque sheet, contextual photo backdrop, elastic
 import './MemberMotion5.css'; // Motion 5 brand, flags, attached avatar border, actions, accessible icon tabs
 import './MemberMotion6.css'; // Direct circle + spring/haptic, safe text and adaptive wordmark
 import './FeedPremium2026.css'; // Approved feed reference, liquid tabs, interest drawer & CTA geometry
+import './ForYouApproved2026.css'; // Approved light lavender For You design
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
