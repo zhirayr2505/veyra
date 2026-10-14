@@ -57,9 +57,13 @@ export function Photo({id,className='',onClick,alt='',priority=false,resolution=
  return <div ref={element} className={'photo-box photo-progressive '+className} style={{'--photo-dominant':color}}
   onClick={onClick} role={onClick?'button':undefined} tabIndex={onClick?0:undefined}
   onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick()}}:undefined}>
-  {url&&<img key={url} className={'photo-sharp'+(ready?' photo-revealed':'')} alt={alt} src={url} loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'auto'} decoding="async" draggable="false" onLoad={decoded}/>}
+  {url&&<img key={url} className={'photo-sharp'+(ready?' photo-revealed':'')} alt={alt} src={url} loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'auto'} decoding="async" draggable="false" onLoad={decoded} onError={()=>set(old=>old.id===id?{...old,url:'',error:true}:old)}/>}
   <span className="photo-blur" aria-hidden="true">{blurSrc&&<img src={blurSrc} alt="" draggable="false"/>}</span>
-  {failed&&!url?<span className="photo-unavailable" role="img" aria-label="Фото недоступно"><Icon name="camera" tone="dark" size={34}/></span>:null}
+  {failed&&!url?<span className="photo-unavailable photo-retry-state" role="group" aria-label={id?'Ошибка загрузки фотографии':'Фото пока нет'}>
+   <Icon name="camera" tone="pink" size={32}/>
+   <strong>{id?'Не удалось загрузить':'Фото пока нет'}</strong>
+   {id&&<button type="button" className="photo-retry-button" onClick={event=>{event.stopPropagation();setReady(false);setRetry(n=>n+1)}} onKeyDown={event=>event.stopPropagation()}><Icon name="refresh" tone="pink" size={18}/> Повторить</button>}
+  </span>:null}
  </div>;
 }
 export function InlineAlert({children}){return children?<div role="alert" className="alert">{children}</div>:null;}
