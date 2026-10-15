@@ -54,3 +54,25 @@
 - **CSS competing rules remain:** `MemberMotionV2.css`, `MemberMotion5.css`, `MemberMotion6.css`, `MemberFinish.css`, `MemberReferencePolish.css` and `MemberTelegramProfile.css` contain overlapping selectors and legacy `!important`. No new override CSS should be created; once the video confirms the visual glitch, fix the original rule(s), remove obsolete counterparts, and verify CSS load order.
 
 **Code changes deliberately withheld until `1000068278.mp4` is uploaded and inspected.** No merge, deploy or production action has occurred.
+
+## Video inspection — completed 2026-10-15
+
+- Source: user-uploaded `1000068278.mp4`, 74.59s, 590 × 1280, variable frame cadence (~39.86 decoded frames/s). 75 timestamped 1-second reference frames reviewed, focused transitions also reviewed as a coherent sequence.
+- 00:00–00:05: profile starts in an intermediate, photo and text change visual location during expanding/collapsing; frame 00:03 shows a large circular headshot before it finishes docking; 00:04 returns to compact.
+- 00:09–00:15: finger-controlled scroll exhibits intermittent large portrait/morph frame before returning to compact; 00:11 shows an intermediate cropped rounded rectangle rather than completed circle; 00:12–00:14 cover, sheet and circle move at different stages.
+- 00:16–00:29: the first About/Interests content passes beneath the header and is visually cropped/hidden; 00:22–00:23 user annotates the empty clipping band just under tab rail; 00:27–00:28 bottom shows huge blank lavender region after short content.
+- 00:30–00:36: Photos grid shows differing rows; gallery/photo transitions as user swipes reveal content discontinuity and odd clipping around hero.
+- 00:37–00:53: tab Gifts rendered with a nearly blank full-height lavender panel; user scrolls through empty content and tabs retain unexpected empty offset; 00:40–00:52 repeated long static blank area.
+- 00:54–00:70: repeated collapse/expand with gallery and Gifts demonstrates different visual stops (55–56 large circle, 57 compact, 58 cover, 59 large circle, 60+ compact); bottom of photo area sometimes vanishes.
+- 00:71–00:74: feed/profile selector is shown and the issue context returns to the app; no evidence that the user requests changing the approved brand visual style.
+- The video does **not** show reliable finger-event telemetry, JS frame timing, or proof of physical 120Hz; code tests are needed to distinguish native inertial scroll from lost snap callbacks.
+
+Code-to-video mapping:
+- Halfway stuck: `useVeyraProfileMotion.js` only recovers scrollend if `s.released`; delayed settle and unreconciled momentum.
+- Morph mismatch: separate 180ms WAAPI clip clock vs scroll progress transform.
+- Cropped About content: sticky `vx-profile-motion` overlay / sticky rail and Embla viewport `overflow:clip`; no active-height scroll clamp on tab change.
+- Blank Gifts: GiftCollection has an Empty UI, but inactive/active Embla height and current scroll offset can prevent it being visible; intentionally not insert fake gifts.
+- Gallery: not a full zoom viewer; portal has only swipe-based switch and vertical-close and no BackButton interception.
+- Badging: `nowrap;text-overflow:ellipsis` on goal text.
+
+Proceed to surgical fixes. Keep current visual concept; no production-side intervention until CI green.
