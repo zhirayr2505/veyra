@@ -1901,7 +1901,8 @@ test.describe('Stage 2 Android-like touch context',()=>{
   const rail=page.locator('.vx-profile-tab-rail');
   const fromPhotos=origin.x<90;
   await rail.getByRole('tab',{name:fromPhotos?'Фото':'О себе'}).click();
-  await page.waitForTimeout(150);
+  // Allow the selected Embla page to finish its button-triggered slide before initiating another drag.
+  await page.waitForTimeout(450);
   await drag(origin.x,origin.y,fromPhotos?135:-135,0);
   const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
   await expect(desired,'Embla swipe from '+origin.x+','+origin.y).toHaveAttribute('aria-selected','true',{timeout:2500});
@@ -2003,18 +2004,18 @@ test('Stage 2 Telegram haptic fires once per deliberate forward circle threshold
  await expect(motion).toHaveAttribute('data-photo-shape','cover');
  await scroller.evaluate((el,d)=>{
   el.dispatchEvent(new Event('touchstart',{bubbles:true}));
-  el.scrollTop=d*.37;
+  el.scrollTop=d*.39;
  },distance);
  await expect(motion).toHaveAttribute('data-photo-shape','circle');
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
  await scroller.evaluate((el,d)=>{el.scrollTop=d*.32},distance);
  await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.37},distance);
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
  await expect(motion).toHaveAttribute('data-photo-shape','circle');
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
  await scroller.evaluate(el=>{el.scrollTop=0});
  await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.37},distance);
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
  await expect(motion).toHaveAttribute('data-photo-shape','circle');
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light','light']);
  await scroller.evaluate(el=>el.dispatchEvent(new Event('touchend',{bubbles:true})));
