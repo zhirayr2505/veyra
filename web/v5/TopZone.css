@@ -11,3 +11,12 @@
 .vx-top-zone__right .vx-head-actions,.vx-top-zone__right .likes-head-controls{display:flex;align-items:center;gap:6px}
 .vx-top-zone__right button{flex:none;touch-action:manipulation}
 .vx-top-zone--editor{position:sticky;z-index:4;background:var(--vx-color-surface,#fff)}
+
+/* The dating screen already reserves its own chrome row; preserve its old
+   coordinate system while sharing the safe-area and center constraints. */
+.veyra-v2 .vx-dating-stage02 .vx-top-zone.vx-head,
+.veyra-v2 .v2-directory .vx-top-zone.vx-head{position:relative;min-height:calc(var(--vx-top,0px) + 44px);margin-bottom:9px;}
+.veyra-v2 .vx-dating-stage02 .vx-top-zone__center{overflow:visible;}
+.veyra-v2 .vx-top-zone--floating .vx-top-zone__center{pointer-events:auto;}
+.veyra-v2 .vx-top-zone--floating .vx-member-floating-logo{pointer-events:auto;cursor:pointer;}
+.veyra-v2 .vx-dating-stage02 .vx-top-zone.vx-head .vx-logo{max-height:40px;}

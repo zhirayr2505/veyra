@@ -65,6 +65,16 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    const shape=p>=PROFILE_CIRCLE_AT?'circle':'cover';
    if(motion.dataset.photoShape!==shape)motion.dataset.photoShape=shape;
    if(s.nativeAnimation){
+    // Some Telegram Chromium builds expose ScrollTimeline yet do not advance
+    // animations attached to a nested WebView scroll source. Treat a stale
+    // timeline as unsupported and use the exact same profileFrame fallback.
+    const timed=s.nativeAnimation.animations?.[0]?.effect?.getComputedTiming()?.progress;
+    const expected=scrollY/Math.max(1,scroller.scrollHeight-scroller.clientHeight);
+    if(p>.03&&(typeof timed!=='number'||Math.abs(timed-expected)>.08)){
+     s.nativeAnimation.cancel();s.nativeAnimation=null;s.engine='JS fallback';
+    }
+   }
+   if(s.nativeAnimation){
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
     const motionStage=p<PROFILE_CIRCLE_AT?'sheet':p<PROFILE_CENTER_AT?'center':'avatar';
@@ -117,7 +127,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   target=Math.max(0,Math.min(max,target));
   const from=el.scrollTop,dist=target-from;
   if(Math.abs(dist)<.5){el.scrollTop=target;s.snapping=false;s.released=false;paint();return}
-  const duration=Math.min(420,Math.max(260,260+Math.abs(dist)*.35));
+  const duration=Math.min(330,Math.max(260,260+Math.abs(dist)*.20));
   // Cubic Hermite starts with the finger's projected speed and ends at rest.
   const slope=initialVelocity*dist>0?clamp(Math.abs(initialVelocity)*duration/Math.abs(dist),.4,2.8):2.8;
   s.snapping=true;s.released=false;

@@ -269,7 +269,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
   scrollTimeout.current=requestAnimationFrame(()=>window.scrollTo({top:scroll.current[next]||0,behavior:'instant'}));
  };
  if(directory)return <section className="vx-hub v2-directory" aria-label="Поиск людей VEYRA">
-  <TopZone title="Поиск" center={<Logo width={138} className="vx-logo"/>} right={<div className="vx-head-actions">
+  <TopZone className="vx-head" title="Поиск" center={<Logo width={138} className="vx-logo"/>} right={<div className="vx-head-actions">
    <button type="button" className="veys-header-button" onClick={onWallet} aria-label="Открыть VEYS кошелёк"><img src="/veyra-approved/09_veys/veys-diamond.svg" alt="" width="20" height="20"/>{new Intl.NumberFormat('ru-RU').format(veysBalance)}</button>
    <button type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={22}/></button></div>}/>
   <h1 className="v2-directory-title">Поиск людей</h1><p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
@@ -282,7 +282,7 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
    refreshTick={refreshTick+reactionRefresh}/>
  </section>;
  return <section ref={hubRef} className={"vx-hub vx-dating-stage02"+(freezeFeed&&tab==="feed"?" vx-feed-locked":"")+(tab==='for_you'?" vx-for-you-active":"")} aria-label="Раздел знакомств VEYRA">
-  <TopZone center={<Logo width={145} className="vx-logo"/>} left={<button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
+  <TopZone className="vx-head" center={<Logo width={145} className="vx-logo"/>} left={<button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
    </button>} right={<div className="vx-head-actions">
     <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>
