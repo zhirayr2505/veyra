@@ -34,9 +34,9 @@ test('all seven interest chips meet 4.5:1 normal-text contrast',()=>{
  }
 });
 
-test('Stage 2 profile motion preserves the common 34% mask switch and uniform scaling',()=>{
+test('Stage 2 profile motion preserves the common 38% fully circular mask and uniform scaling',()=>{
  const math=read('web/v5/profileMotionMath.js');
- assert.match(math,/PROFILE_CIRCLE_AT=\.34/);
+ assert.match(math,/PROFILE_CIRCLE_AT=\.38/);
  assert.match(math,/heroScale/);
  assert.match(math,/maskDiameter/);
  assert.doesNotMatch(math,/scaleX|scaleY/);

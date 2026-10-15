@@ -23,7 +23,7 @@
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row{
  display:flex;align-items:center;justify-content:flex-start;
- width:max-content;max-width:100%;min-width:0;overflow:hidden;
+ width:max-content;max-width:100%;min-width:0;overflow:visible;
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row h1{
  min-width:0!important;max-width:100%!important;flex:0 1 auto;

@@ -1674,7 +1674,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
  const samples=[];
  const sample=async(p)=>{
   await scroller.evaluate((el,y)=>{el.scrollTop=y},distance*p);
-  await page.waitForTimeout(30);
+  await page.waitForTimeout(65);
   return await page.evaluate(()=>{
    const root=document.querySelector('.vx-profile-motion');
    const hero=root.querySelector('.vx-profile-hero-photo');
@@ -1685,14 +1685,13 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
     transform:style.transform,heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight};
   });
  };
- let expectedShape='cover';
  for(const p of [0,.15,.3,.33,.339,.34,.36,.46,.7,1,.7,.46,.36,.34,.339,0]){
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  expectedShape=expectedShape==='circle'?(p>=.32?'circle':'cover'):(p>=.34?'circle':'cover');
+  const expectedShape=p>=.38?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
-  // A 180ms WAAPI morph interpolates inset dimensions; radius is never switched abruptly.
+  // Mask is deterministically interpolated from the same scroll progress as transform.
   expect(v.clip).toMatch(/^inset/);
   expect(Number(v.ring)).toBeGreaterThanOrEqual(0);
   expect(Number(v.ring)).toBeLessThanOrEqual(1);
@@ -1740,7 +1739,7 @@ for(const disableTimeline of [false,true]){
   if(disableTimeline)expect(await page.evaluate(()=>typeof window.ScrollTimeline)).toBe('undefined');
   const collect=async(y)=>{
    await scroller.evaluate((el,offset)=>{el.scrollTop=offset},y);
-   await page.waitForTimeout(36);
+   await page.waitForTimeout(65);
    return page.evaluate(()=>{
     const m=document.querySelector('.vx-profile-motion'),hero=m.querySelector('.vx-profile-hero-photo');
     const style=getComputedStyle(hero),matrix=new DOMMatrixReadOnly(style.transform);
@@ -1765,27 +1764,27 @@ for(const disableTimeline of [false,true]){
    const a=forward[i],b=backwards[backwards.length-1-i];
    const at=Math.min(distance,i*4)/distance;
    expect(a.duplicate).toBe(0);
-   expect(a.shape).toBe(at<.34?'cover':'circle');
-   // Hysteresis intentionally keeps the shape circular in reverse until p < .32.
-   if(at<.32||at>=.34)expect(a.shape).toBe(b.shape);
+   expect(a.shape).toBe(at<.38?'cover':'circle');
+   // Mask is tied to exactly the same progress in both directions.
+   expect(a.shape).toBe(b.shape);
    expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
    expect(Math.abs(a.rect.top-b.rect.top)).toBeLessThan(2);
    expect(Math.abs(a.scale-b.scale)).toBeLessThan(.02);
-   // Time-based morph always uses the same interpolable inset() keyframe shape.
+   // The single scroll-synced morph always uses the same inset() mask.
    expect(a.clip).toMatch(/^inset/);
    expect(b.clip).toMatch(/^inset/);
-   if(at>=.34){
+   if(at>=.38){
     expect(a.circle.d).toBeLessThanOrEqual(a.viewportWidth*.62+1);
     expect(a.circle.d).toBeGreaterThanOrEqual(97);
    }
    expect(Number(a.ring)).toBeGreaterThanOrEqual(0);
    expect(Number(a.ring)).toBeLessThanOrEqual(1);
   }
-  const atCircle=forward.find((_,i)=>Math.min(distance,i*4)/distance>=.34);
-  const beforeCircle=forward.filter((_,i)=>Math.min(distance,i*4)/distance<.34).at(-1);
+  const atCircle=forward.find((_,i)=>Math.min(distance,i*4)/distance>=.38);
+  const beforeCircle=forward.filter((_,i)=>Math.min(distance,i*4)/distance<.38).at(-1);
   expect(Math.abs(atCircle.rect.left-beforeCircle.rect.left)).toBeLessThan(2);
   expect(Math.abs(atCircle.rect.top-beforeCircle.rect.top)).toBeLessThan(3);
-  await collect(distance*.34);
+  await collect(distance*.38);
   await page.screenshot({path:testInfo.outputPath(disableTimeline?'stage2-fallback-first-circle.png':'stage2-native-first-circle.png')});
  });
 }
@@ -1902,16 +1901,41 @@ test.describe('Stage 2 Android-like touch context',()=>{
   const rail=page.locator('.vx-profile-tab-rail');
   const fromPhotos=origin.x<90;
   await rail.getByRole('tab',{name:fromPhotos?'Фото':'О себе'}).click();
-  await page.waitForTimeout(150);
-  await drag(origin.x,origin.y,fromPhotos?135:-135,0);
+  // Allow the selected Embla page to finish its button-triggered slide before initiating another drag.
+  await page.waitForTimeout(450);
+  // Horizontal Embla intent starts INSIDE the selected tab's real visible
+  // viewport. The 12-point vertical hit grid above still probes the entire
+  // lower panel. y=390 can be in the hero/scroller ABOVE the rail (observed
+  // in CI: rail top=506, viewport top=558), where Embla must not intercept.
+  const gestureStart=await page.evaluate(({x})=>{
+   const rail=document.querySelector('.vx-profile-tab-rail');
+   const viewport=document.querySelector('.vx-profile-swipe-viewport');
+   const scroll=document.querySelector('.vx-profile-scroller');
+   const vr=viewport.getBoundingClientRect(),sr=scroll.getBoundingClientRect();
+   const bottom=Math.min(vr.bottom,sr.bottom)-14;
+   const candidates=[40,72,104,136,168].map(d=>Math.round(Math.min(vr.top+d,bottom)));
+   const info=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {name:typeof el.className==='string'?el.className:el.tagName,rect:{x:r.x,y:r.y,w:r.width,h:r.height},pointer:getComputedStyle(el).pointerEvents,touch:getComputedStyle(el).touchAction}};
+   for(const y of candidates){
+    if(y<=vr.top+8||y>=bottom+3)continue;
+    const hit=document.elementFromPoint(x,y),inPage=hit?.closest('.vx-profile-swipe-page');
+    if(!hit?.closest('.vx-profile-swipe-viewport')||!inPage)continue;
+    const interactive=hit.closest('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
+    if(interactive&&!hit.closest('.vx-profile-photos-grid'))continue;
+    return {x,y,hit:info(hit),page:info(inPage),rail:info(rail),viewport:info(viewport),scrollY:scroll.scrollTop};
+   }
+   return {x,y:null,viewport:info(viewport),rail:info(rail),scrollY:scroll.scrollTop,
+    sample:candidates.map(y=>({y,hit:info(document.elementFromPoint(x,y))}))};
+  },origin);
+  expect(gestureStart.y,'No non-interactive visible Embla swipe target: '+JSON.stringify(gestureStart)).not.toBeNull();
+  await drag(gestureStart.x,gestureStart.y,fromPhotos?135:-135,0);
   const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
-  await expect(desired,'Embla swipe from '+origin.x+','+origin.y).toHaveAttribute('aria-selected','true',{timeout:2500});
+  await expect(desired,'Embla swipe from '+origin.x+','+origin.y+' initial='+JSON.stringify(gestureStart)).toHaveAttribute('aria-selected','true',{timeout:2500});
  }
  // The action wrapper is transparent, but its real 50px buttons still receive taps.
  await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'О себе'}).click();
  const action=page.locator('.vx-own-member .vx-profile-action').first();
  await action.click();
- await expect(page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await expect(page.locator('.veyra-editor-unified')).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('stage2-12-origin-gestures.png')});
  await cdp.detach();
 });
@@ -2004,18 +2028,18 @@ test('Stage 2 Telegram haptic fires once per deliberate forward circle threshold
  await expect(motion).toHaveAttribute('data-photo-shape','cover');
  await scroller.evaluate((el,d)=>{
   el.dispatchEvent(new Event('touchstart',{bubbles:true}));
-  el.scrollTop=d*.37;
+  el.scrollTop=d*.39;
  },distance);
  await expect(motion).toHaveAttribute('data-photo-shape','circle');
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
  await scroller.evaluate((el,d)=>{el.scrollTop=d*.32},distance);
  await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.37},distance);
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
  await expect(motion).toHaveAttribute('data-photo-shape','circle');
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
  await scroller.evaluate(el=>{el.scrollTop=0});
  await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.37},distance);
+ await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
  await expect(motion).toHaveAttribute('data-photo-shape','circle');
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light','light']);
  await scroller.evaluate(el=>el.dispatchEvent(new Event('touchend',{bubbles:true})));
@@ -2092,7 +2116,10 @@ test('STAGE2_1 own profile action buttons open real tabs, edit and settings',asy
  await expect(actions.locator('button')).toHaveCount(3);
  await expect(own.locator('.vx-profile-card-more')).toHaveCount(0);
  await actions.getByRole('button',{name:'Мои фото'}).click();
- await expect(own.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await expect(page.locator('.veyra-editor-unified')).toBeVisible();
+ await expect(page.locator('.upload-grid .upload-thumb').first()).toBeVisible();
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  await actions.getByRole('button',{name:'Изменить'}).click();
  await expect(own).toHaveCount(0);
  await page.goto('/');
@@ -2157,4 +2184,90 @@ test('STAGE2_1 blurred original photo and morph endpoints, compositor telemetry 
  await testInfo.attach('stage2-1-cpu4x.json',{body:JSON.stringify(metrics,null,2),contentType:'application/json'});
  expect(metrics.memberRendersDuringScroll).toBe(0);
  expect(metrics.longTasks).toBe(0);
+});
+
+test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
+ test.use({hasTouch:true});
+ for(const width of [360,390]){
+  test('hotfix snap endpoints, short tab and goal badge '+width+'px',async({page})=>{
+   await page.setViewportSize({width,height:width===360?740:844});
+   await telegram(page,10);await page.goto('/');
+   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+   const scroll=page.locator('.vx-profile-scroller');
+   await expect(scroll).toBeVisible();
+   const distance=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+   for(const p of [.2,.4,.6,.8]){
+    await scroll.evaluate((el,y)=>{
+     const point=new Touch({identifier:1,target:el,clientX:170,clientY:480});
+     el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[point],targetTouches:[point],changedTouches:[point]}));
+     el.scrollTop=y;
+     el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],targetTouches:[],changedTouches:[point]}));
+     el.dispatchEvent(new Event('scrollend'));
+    },distance*p);
+    await expect.poll(()=>scroll.evaluate((el,d)=>Math.min(Math.abs(el.scrollTop),Math.abs(el.scrollTop-d)),distance),{timeout:6000}).toBeLessThan(1.5);
+   }
+   await scroll.evaluate((el,d)=>el.scrollTop=d,distance);
+   await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Подарки'}).click();
+   await expect(page.getByText('Подарков пока нет').first()).toBeVisible();
+   const y=await scroll.evaluate(el=>el.scrollTop);
+   expect(y).toBeLessThanOrEqual(distance+2);
+   const badge=await page.locator('.vx-profile-goal').evaluate(el=>{const a=el.getBoundingClientRect();return {h:a.height,w:a.width,text:el.textContent,scroll:el.scrollHeight}});
+   expect(badge.h).toBeGreaterThan(20);expect(badge.w).toBeGreaterThan(80);
+  });
+  test('hotfix gallery pinch and zoom reset '+width+'px',async({page})=>{
+   await page.setViewportSize({width,height:width===360?740:844});
+   await telegram(page,10);await page.goto('/');
+   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+   await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Фото'}).click();
+   await page.locator('.vx-profile-photos-grid button').first().click();
+   const stage=page.locator('.vx-gallery-stage');
+   await expect(stage).toBeVisible();
+   await stage.evaluate(el=>{
+    const emit=(type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',clientX:x,clientY:y}));
+    emit('pointerdown',1,110,280);emit('pointerdown',2,210,280);
+    emit('pointermove',1,70,280);emit('pointermove',2,250,280);
+    emit('pointerup',1,70,280);emit('pointerup',2,250,280);
+   });
+   await expect(stage).toHaveAttribute('data-zoomed','true');
+   await page.getByRole('dialog',{name:/Галерея/}).getByRole('button',{name:'Следующее фото'}).click();
+   await expect.poll(()=>stage.getAttribute('data-zoomed')).toBe('false');
+   await page.evaluate(()=>document.dispatchEvent(new Event('veyra:close-profile-gallery')));
+   await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
+  });
+ }
+});
+
+test.describe('Stage 2 hotfix identical own/other motion architecture',()=>{
+ for(const width of [360,390]){
+  test('own and other use one hero pipeline and four tabs at '+width,async({page})=>{
+   await page.setViewportSize({width,height:width===360?740:844});
+   await telegram(page,10);await page.goto('/');
+   const capture=async(root)=>{
+    const motion=root.locator('.vx-profile-motion'),hero=root.locator('.vx-profile-hero-photo'),scroller=root.locator('.vx-profile-scroller');
+    await expect(motion).toHaveCount(1);
+    await expect(hero).toHaveCount(1);
+    await expect(root.locator('.vx-profile-tab-rail [role=tab]')).toHaveCount(4);
+    await expect(root.locator('.vx-profile-compact-backdrop .photo-box')).toHaveCount(1);
+    const d=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+    await scroller.evaluate((el,n)=>el.scrollTop=n,d);
+    await expect(motion).toHaveAttribute('data-state','compact');
+    const shape=await hero.evaluate(el=>({clip:getComputedStyle(el).clipPath,transform:getComputedStyle(el).transform}));
+    expect(shape.clip).toMatch(/^inset/);
+    await scroller.evaluate(el=>el.scrollTop=0);
+    await expect(motion).toHaveAttribute('data-state','expanded');
+    return {tabs:await root.locator('.vx-profile-tab-rail [role=tab]').count(),shape:shape.clip.split(' round ')[0].startsWith('inset(')};
+   };
+   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+   const own=page.locator('.vx-own-member');
+   await expect(own.locator('.vx-own-profile-actions button')).toHaveCount(3);
+   const a=await capture(own);
+   await page.goto('/');
+   await page.locator('.feed-photo .hero-name').first().click();
+   const other=page.locator('.member-feed-profile:not(.vx-own-member)');
+   await expect(other.locator('.vx-own-profile-actions')).toHaveCount(0);
+   await expect(other.locator('.vx-profile-primary-actions button').first()).toBeVisible();
+   const b=await capture(other);
+   expect(a).toEqual(b);
+  });
+ }
 });

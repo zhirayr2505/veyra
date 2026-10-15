@@ -1,5 +1,5 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {clamp,profileFrame,profileCircleGeometry,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
+import {clamp,profileFrame,profileCircleGeometry,profileMorphInset,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
@@ -15,16 +15,6 @@ function writeElastic(el,pull,width,settling=false){
  el.style.setProperty('--vx-elastic-x',(-width*(scale-1)/2).toFixed(2)+'px');
 }
 
-const MORPH_MS=180,MORPH_EASE='cubic-bezier(.2,.8,.2,1)';
-function runMorph(s,hero,shape,instant){
- if(!s.morph){
-  s.morph=hero.animate([{clipPath:s.clipCover},{clipPath:s.clipCircle}],{duration:MORPH_MS,easing:MORPH_EASE,fill:'both'});
-  s.morph.pause();s.morph.currentTime=shape==='circle'?MORPH_MS:0;
- }
- if(instant){s.morph.pause();s.morph.currentTime=shape==='circle'?MORPH_MS:0;return}
- s.morph.playbackRate=shape==='circle'?1:-1;
- s.morph.play();
-}
 function writeBottomElastic(el,pull,settling=false){
  if(!el)return;
  el.classList.toggle('vx-bottom-elastic-release',settling);
@@ -35,16 +25,16 @@ function writeBottomElastic(el,pull,settling=false){
 // Native WebView owns touch momentum; we read scrollTop once per frame.
 export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  const state=useRef({
-  frame:0,timer:0,snapRaf:0,settleRaf:0,settleElement:null,prevScrollBehavior:null,observed:null,
+  frame:0,snapRaf:0,settleRaf:0,settleElement:null,prevScrollBehavior:null,observed:null,
   distance:1,width:1,height:1,lastProgress:-1,
   touching:false,released:false,snapping:false,axis:null,
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
-  refs:null,resizeObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,morph:null,clipCover:'inset(0px 0px 0px 0px round 0px)',clipCircle:null,elastic:0,bottomElastic:0,startScrollY:0,startAtBottom:false,
+  refs:null,resizeObserver:null,nativeAnimation:null,engine:'JS fallback',elastic:0,bottomElastic:0,startScrollY:0,startAtBottom:false,
  });
  const stop=useCallback(()=>{
   const s=state.current;
-  clearTimeout(s.timer);cancelAnimationFrame(s.snapRaf);cancelAnimationFrame(s.settleRaf);
+  cancelAnimationFrame(s.snapRaf);cancelAnimationFrame(s.settleRaf);
   if(s.settleElement&&s.prevScrollBehavior!==null)s.settleElement.style.scrollBehavior=s.prevScrollBehavior;
   s.settleElement=null;s.prevScrollBehavior=null;s.snapping=false;s.released=false;
  },[]);
@@ -78,14 +68,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // In Chromium, the scroll position drives visual transforms without JS.
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
-   const circleNow=s.radiusPhase==='circle'?p>=PROFILE_CIRCLE_AT-.02:p>=PROFILE_CIRCLE_AT;
-   const shape=circleNow?'circle':'cover';
-   if(shape!==s.radiusPhase){
-    const first=s.radiusPhase===null;
-    s.radiusPhase=shape;
-    motion.dataset.photoShape=shape;
-    runMorph(s,parts.hero,shape,first);
-   }
+   const shape=p>=PROFILE_CIRCLE_AT?'circle':'cover';
+   if(motion.dataset.photoShape!==shape)motion.dataset.photoShape=shape;
    if(s.nativeAnimation){
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
@@ -99,6 +83,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    const f=profileFrame(p,s.width,s.height,s.compactHeight);
    const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
    parts.hero.style.transform=translate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(6)+')';
+    parts.hero.style.clipPath=profileMorphInset(p,s.width,s.height,s.diameter,s.maskCenterY);
    if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
@@ -111,6 +96,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.backdropPhoto){const t=clamp((p-.30)/.55);parts.backdropPhoto.style.opacity=(t*t*(3-2*t)).toFixed(3)}
+   if(parts.rim)parts.rim.style.opacity=clamp((p-.30)/.08).toFixed(3);
+   if(parts.online)parts.online.style.opacity=clamp((p-.30)/.08).toFixed(3);
 
 
     if(parts.grabber){
@@ -131,45 +118,55 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  const settleTo=useCallback((el,target)=>{
   const s=state.current;
   cancelAnimationFrame(s.settleRaf);
+  const max=Math.max(0,el.scrollHeight-el.clientHeight);
+  target=Math.max(0,Math.min(max,target));
   const from=el.scrollTop,dist=target-from;
-  if(Math.abs(dist)<.5){s.snapping=false;s.released=false;return}
-  const dur=Math.min(380,Math.max(240,180+Math.abs(dist)*.7));
-  let t0=0;s.snapping=true;
+  if(Math.abs(dist)<.5){el.scrollTop=target;s.snapping=false;s.released=false;paint();return}
+  const duration=Math.min(320,Math.max(220,210+Math.abs(dist)*.38));
+  s.snapping=true;s.released=false;
   const prev=el.style.scrollBehavior;s.prevScrollBehavior=prev;s.settleElement=el;el.style.scrollBehavior='auto';
+  let began=null;
   const step=ts=>{
-   if(!s.snapping)return;
-   if(!t0)t0=ts;
-   const k=Math.min(1,(ts-t0)/dur);
+   if(!s.snapping||s.touching||scrollRef.current!==el)return;
+   if(began===null)began=ts;
+   const k=Math.min(1,(ts-began)/duration);
    el.scrollTop=from+dist*easeOutCubic(k);
-   if(k<1)s.settleRaf=requestAnimationFrame(step);
-   else{s.snapping=false;s.released=false;el.style.scrollBehavior=prev;s.prevScrollBehavior=null;s.settleElement=null;paint()}
+   if(k<1){s.settleRaf=requestAnimationFrame(step);return}
+   el.scrollTop=target;
+   s.snapping=false;s.prevScrollBehavior=null;s.settleElement=null;el.style.scrollBehavior=prev;
+   paint();
   };
   s.settleRaf=requestAnimationFrame(step);
- },[paint]);
+ },[scrollRef,paint]);
  const snap=useCallback(()=>{
   const s=state.current,el=scrollRef.current;
-  if(!el||s.touching||!s.released||s.snapping)return;
+  if(!el||s.touching||s.snapping)return;
   const y=el.scrollTop,d=s.distance;
-  if(y<1||y>=d-1){s.released=false;return}
-  if(performance.now()-s.lastScrollAt<105&&performance.now()-s.releaseAt<680){
-   s.snapRaf=requestAnimationFrame(snap);return;
-  }
-  const projected=y+Math.max(-1.4,Math.min(1.4,s.releaseVelocity))*83;
-  const target=projected>d*.5?d:0;
-  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
-   el.scrollTop=target;s.snapping=false;s.released=false;paint();return;
+  if(y<=.5||y>=d-.5){s.released=false;return}
+  const v=s.releaseVelocity||0;
+  // Velocity wins for deliberate upward/downward flicks; slow drags choose nearest.
+  const target=v>.45?d:v<-.45?0:(y+Math.max(-.6,Math.min(.6,v))*55>d*.5?d:0);
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
+   el.scrollTop=target;s.released=false;paint();return;
   }
   settleTo(el,target);
  },[scrollRef,paint,settleTo]);
  const queueSnap=useCallback(()=>{
-  const s=state.current;cancelAnimationFrame(s.snapRaf);
-  const tick=ts=>{
-   if(!s.released||s.touching||s.snapping)return;
-   if(ts-s.releaseAt<110){s.snapRaf=requestAnimationFrame(tick);return}
-   snap();
+  const s=state.current;
+  cancelAnimationFrame(s.snapRaf);
+  const el=scrollRef.current;if(!el||s.touching||s.snapping||!s.released)return;
+  let last=el.scrollTop,still=0;
+  const tick=()=>{
+   if(s.touching||s.snapping||!s.released||scrollRef.current!==el)return;
+   const y=el.scrollTop;
+   if(y<=.5||y>=s.distance-.5){s.released=false;return}
+   if(Math.abs(y-last)<.4)still++;else still=0;
+   last=y;
+   if(still>=3){snap();return}
+   s.snapRaf=requestAnimationFrame(tick);
   };
-  if(s.released&&!s.touching&&!s.snapping)s.snapRaf=requestAnimationFrame(tick);
- },[snap]);
+  s.snapRaf=requestAnimationFrame(tick);
+ },[snap,scrollRef]);
  const onScroll=useCallback(()=>{
   const s=state.current,el=scrollRef.current;
   if(s.elastic>0&&el?.scrollTop>1){
@@ -179,7 +176,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  },[paint,scrollRef]);
  const onTouchStart=useCallback(e=>{
   const s=state.current;stop();
-  s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
+  s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;s.gestureVelocity=0;s.touchLastY=null;s.touchLastAt=0;
   s.elastic=0;s.bottomElastic=0;s.startScrollY=scrollRef.current?.scrollTop??0;
   const startEl=scrollRef.current;
   s.maxScrollAtTouchStart=startEl?startEl.scrollHeight-startEl.clientHeight:0;
@@ -187,6 +184,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   writeElastic(startEl,0,s.width,false);writeBottomElastic(startEl,0,false);
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
+   s.touchLastY=s.startY;s.touchLastAt=performance.now();
   // Cancelling our settle rAF leaves scrollTop exactly under the taking-over finger.
  },[stop,scrollRef]);
  const onTouchMove=useCallback(e=>{
@@ -197,6 +195,12 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(!s.axis&&Math.max(Math.abs(dx),Math.abs(dy))>9)
    s.axis=Math.abs(dx)>Math.abs(dy)*1.13?'x':'y';
   if(!el)return;
+  const timestamp=performance.now(),finger=e.touches[0].clientY;
+  if(s.touchLastY!==null&&s.axis==='y'){
+   const dt=timestamp-s.touchLastAt;
+   if(dt>0&&dt<150)s.gestureVelocity=s.gestureVelocity*.4+((s.touchLastY-finger)/dt)*.6;
+  }
+  s.touchLastY=finger;s.touchLastAt=timestamp;
   const canPull=s.axis==='y'&&s.startScrollY<=1&&el.scrollTop<=1&&dy>0;
   const pull=canPull?elasticPullDistance(dy):0;
   if(Math.abs(pull-s.elastic)>.08){
@@ -217,8 +221,12 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    return;
   }
   if(s.bottomElastic>0){s.bottomElastic=0;writeBottomElastic(scrollRef.current,0,true);s.released=false;return}
-  if(s.axis==='x'){s.released=false;return}
-  s.released=true;s.releaseVelocity=s.velocity;s.releaseAt=performance.now();
+  if(s.axis==='x'){
+   const el=scrollRef.current;
+   if(!el||el.scrollTop<=.5||el.scrollTop>=s.distance-.5){s.released=false;return}
+   s.released=true;s.releaseVelocity=0;queueSnap();return;
+  }
+  s.released=true;s.releaseVelocity=s.axis==='y'?s.gestureVelocity:s.velocity;s.releaseAt=performance.now();
   queueSnap();
  },[queueSnap,scrollRef]);
  const onWheel=useCallback(()=>{
@@ -243,18 +251,17 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   hero.style.setProperty('--vx-profile-mask-radius',(diameter/2).toFixed(3)+'px');
   hero.style.setProperty('--vx-profile-mask-center-y',geometry.maskCenterY.toFixed(3)+'px');
   s.distance=distance;
-  const D=diameter,cy=geometry.maskCenterY,w=s.width,h=s.height;
-  s.clipCover='inset(0px 0px 0px 0px round 0px)';
-  s.clipCircle='inset('+(cy-D/2).toFixed(2)+'px '+((w-D)/2).toFixed(2)+'px '+(h-cy-D/2).toFixed(2)+'px '+((w-D)/2).toFixed(2)+'px round '+(D/2).toFixed(2)+'px)';
+  s.diameter=diameter;s.maskCenterY=geometry.maskCenterY;
   if(s.elastic>0)writeElastic(el,s.elastic,s.width,false);
-  s.morph?.cancel();s.morph=null;
-  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;s.lastCalibrated=true;
+  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.lastCalibrated=true;
   // Previous JS fallback transforms must not override WAAPI motion.
   if(s.refs)for(const part of Object.values(s.refs)){
    if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
   }
   s.refs={
    hero,
+   rim:motion.querySelector('.vx-profile-photo-morph-rim'),
+   online:motion.querySelector('.vx-profile-online'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
@@ -287,9 +294,9 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(hero)s.resizeObserver?.observe(hero);
   const onScrollEnd=()=>{
    if(s.snapping||s.touching)return;
-   const y=el?.scrollTop||0;
-   if(s.released&&y>1&&y<s.distance-1){s.releaseAt=performance.now()-700;snap()}
-   else{s.released=false;cancelAnimationFrame(s.snapRaf)}
+   const y=el?.scrollTop??0;
+   if(s.released&&y>.5&&y<s.distance-.5){queueSnap()}
+   else if(y<=.5||y>=s.distance-.5){s.released=false;cancelAnimationFrame(s.snapRaf)}
   };
   el?.addEventListener('scroll',onScroll,{passive:true});
   el?.addEventListener('touchmove',onTouchMove,{passive:true});
@@ -300,7 +307,6 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   return()=>{
    stop();cancelAnimationFrame(s.frame);s.frame=0;
    s.elastic=0;s.bottomElastic=0;writeElastic(el,0,s.width,false);writeBottomElastic(el,0,false);
-   s.morph?.cancel();s.morph=null;
    s.nativeAnimation?.cancel();s.nativeAnimation=null;
    s.resizeObserver?.disconnect();
    el?.removeEventListener('scroll',onScroll);
@@ -310,6 +316,6 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    window.removeEventListener('resize',resize);
    window.visualViewport?.removeEventListener('resize',resize);
   };
- },[ready,calibrate,paint,scrollRef,stageRef,snap,stop,onScroll,onTouchMove,onTouchEnd]);
+ },[ready,calibrate,paint,scrollRef,stageRef,snap,queueSnap,stop,onScroll,onTouchMove,onTouchEnd]);
  return {onTouchStart,onTouchEnd,onWheel,calibrate};
 }
