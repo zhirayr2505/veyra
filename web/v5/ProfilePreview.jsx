@@ -7,8 +7,8 @@ import {OnboardingHeader} from './OnboardingHeader.jsx';
 import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
-export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,submitting=false,error='',submitted=false}){
- const [mode,setMode]=useState('detail'),[index,setIndex]=useState(0),touch=useRef(null),scrollRef=useRef(null);
+export function ProfilePreview({profile={},photos=[],onBack,onEdit,onJump,onSubmit,submitting=false,error='',submitted=false}){
+ const [mode,setMode]=useState('detail'),[index,setIndex]=useState(0),touch=useRef(null),scrollRef=useRef(null),stageRef=useRef(null),actionsRef=useRef(null);
  const ids=photos.map(p=>typeof p==='object'?p.id:p).filter(Boolean);
  const photoPlaceholders=Object.fromEntries(photos.filter(x=>typeof x==='object'&&x.id).map(x=>[String(x.id),{lqip:x.lqip||null,dominant:x.dominant||x.dominant_color||null}]));
   const photoKeys=ids.join('|');
@@ -22,6 +22,14 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
  const swipeEnd=e=>{if(touch.current==null)return;const x=e.changedTouches[0].clientX-touch.current;touch.current=null;if(Math.abs(x)>40&&ids.length>1){e.preventDefault();slide(x<0?1:-1)}};
  const years=profile.age||ageOf(profile.birth_date);
  const readOnlyData=useMemo(()=>({...profile,id:'registration-preview',age:years,photos:ids,photo_placeholders:photoPlaceholders}),[profile,photos]);
+ useLayoutEffect(()=>{
+  if(mode!=='detail')return;
+  const stage=stageRef.current,footer=actionsRef.current;
+  if(!stage||!footer)return;
+  const measure=()=>stage.style.setProperty('--vx-profile-bottom-clear',Math.ceil(footer.getBoundingClientRect().height+16)+'px');
+  const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
+  ro?.observe(footer);measure();return()=>{ro?.disconnect();stage.style.removeProperty('--vx-profile-bottom-clear')};
+ },[mode]);
  useEffect(()=>{if(!submitted)return;const back=window.Telegram?.WebApp?.BackButton;if(!back)return;back.show?.();back.onClick?.(onBack);return()=>{back.offClick?.(onBack);back.hide?.()};},[submitted,onBack]);
  return <main className={'veyra-profile-preview mode-'+mode}>
   <OnboardingHeader preview onBack={onBack}/>
@@ -37,10 +45,10 @@ export function ProfilePreview({profile={},photos=[],onBack,onEdit,onSubmit,subm
     </div>
    </section>
    </>}
-   {mode==='detail'&&<div className="vx-preview-member-stage veyra-v2"><Member id="registration-preview" readOnly previewData={readOnlyData} onBack={onBack} viewer={{}}/></div>}
+   {mode==='detail'&&<div className="vx-preview-member-stage veyra-v2" ref={stageRef}><Member id="registration-preview" readOnly previewData={readOnlyData} onBack={onBack} onPreviewAction={onJump} viewer={{}}/></div>}
   </div>
   {error&&<p className="vp-error" role="alert">{error}</p>}
-  <footer className="vp-actions">
+  <footer className="vp-actions" ref={actionsRef}>
    {onSubmit?<><Button variant="primary" className="vp-primary" disabled={submitting||ids.length<3} loading={submitting} onClick={onSubmit}>{submitting?'Отправляем…':<><Icon name="check" tone="white" size={22}/> отправить на проверку</>}</Button><Button variant="secondary" className="vp-secondary" onClick={onEdit||onBack}>редактировать</Button></>:
    <><Button variant="primary" className="vp-primary" disabled={submitting} loading={submitting} onClick={onEdit}>{submitting?'Открываем…':'Изменить профиль'}</Button><Button variant="secondary" className="vp-secondary" onClick={onBack}>Назад</Button></>}
   </footer>

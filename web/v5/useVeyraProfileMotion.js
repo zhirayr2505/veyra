@@ -15,22 +15,38 @@ function writeElastic(el,pull,width,settling=false){
  el.style.setProperty('--vx-elastic-x',(-width*(scale-1)/2).toFixed(2)+'px');
 }
 
+const MORPH_MS=180,MORPH_EASE='cubic-bezier(.2,.8,.2,1)';
+function runMorph(s,hero,shape,instant){
+ if(!s.morph){
+  s.morph=hero.animate([{clipPath:s.clipCover},{clipPath:s.clipCircle}],{duration:MORPH_MS,easing:MORPH_EASE,fill:'both'});
+  s.morph.pause();s.morph.currentTime=shape==='circle'?MORPH_MS:0;
+ }
+ if(instant){s.morph.pause();s.morph.currentTime=shape==='circle'?MORPH_MS:0;return}
+ s.morph.playbackRate=shape==='circle'?1:-1;
+ s.morph.play();
+}
+function writeBottomElastic(el,pull,settling=false){
+ if(!el)return;
+ el.classList.toggle('vx-bottom-elastic-release',settling);
+ el.style.setProperty('--vx-elastic-bottom',(-pull).toFixed(2)+'px');
+}
 // All moving elements are compositor-friendly layers with fixed geometry.
 // Layout is measured ONCE on mount/resize, never inside a scroll frame.
 // Native WebView owns touch momentum; we read scrollTop once per frame.
 export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  const state=useRef({
-  frame:0,timer:0,settleTimer:0,observed:null,
+  frame:0,timer:0,snapRaf:0,settleRaf:0,settleElement:null,prevScrollBehavior:null,observed:null,
   distance:1,width:1,height:1,lastProgress:-1,
   touching:false,released:false,snapping:false,axis:null,
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
-  refs:null,resizeObserver:null,mutationObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,elastic:0,startScrollY:0,
+  refs:null,resizeObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,morph:null,clipCover:'inset(0px 0px 0px 0px round 0px)',clipCircle:null,elastic:0,bottomElastic:0,startScrollY:0,startAtBottom:false,
  });
  const stop=useCallback(()=>{
   const s=state.current;
-  clearTimeout(s.timer);clearTimeout(s.settleTimer);
-  s.snapping=false;s.released=false;
+  clearTimeout(s.timer);cancelAnimationFrame(s.snapRaf);cancelAnimationFrame(s.settleRaf);
+  if(s.settleElement&&s.prevScrollBehavior!==null)s.settleElement.style.scrollBehavior=s.prevScrollBehavior;
+  s.settleElement=null;s.prevScrollBehavior=null;s.snapping=false;s.released=false;
  },[]);
  const paint=useCallback(()=>{
   const s=state.current;
@@ -62,11 +78,13 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // In Chromium, the scroll position drives visual transforms without JS.
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
-   const shape=p<PROFILE_CIRCLE_AT?'cover':'circle';
+   const circleNow=s.radiusPhase==='circle'?p>=PROFILE_CIRCLE_AT-.02:p>=PROFILE_CIRCLE_AT;
+   const shape=circleNow?'circle':'cover';
    if(shape!==s.radiusPhase){
+    const first=s.radiusPhase===null;
     s.radiusPhase=shape;
     motion.dataset.photoShape=shape;
-    parts.hero.style.clipPath=shape==='cover'?'inset(0)':'circle(var(--vx-profile-mask-radius) at 50% var(--vx-profile-mask-center-y))';
+    runMorph(s,parts.hero,shape,first);
    }
    if(s.nativeAnimation){
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
@@ -81,7 +99,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    const f=profileFrame(p,s.width,s.height,s.compactHeight);
    const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
    parts.hero.style.transform=translate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(6)+')';
-   if(parts.panel){parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));parts.panel.style.clipPath='inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)';}
+   if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));
@@ -92,6 +110,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
+   if(parts.backdropPhoto){const t=clamp((p-.30)/.55);parts.backdropPhoto.style.opacity=(t*t*(3-2*t)).toFixed(3)}
 
 
     if(parts.grabber){
@@ -108,53 +127,67 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(sampled)recordProfileFrame(performance.now()-frameStart,p,scrollY,s.distance,motionStage);
   });
  },[scrollRef,motionRef]);
+ const easeOutCubic=t=>1-Math.pow(1-t,3);
+ const settleTo=useCallback((el,target)=>{
+  const s=state.current;
+  cancelAnimationFrame(s.settleRaf);
+  const from=el.scrollTop,dist=target-from;
+  if(Math.abs(dist)<.5){s.snapping=false;s.released=false;return}
+  const dur=Math.min(380,Math.max(240,180+Math.abs(dist)*.7));
+  let t0=0;s.snapping=true;
+  const prev=el.style.scrollBehavior;s.prevScrollBehavior=prev;s.settleElement=el;el.style.scrollBehavior='auto';
+  const step=ts=>{
+   if(!s.snapping)return;
+   if(!t0)t0=ts;
+   const k=Math.min(1,(ts-t0)/dur);
+   el.scrollTop=from+dist*easeOutCubic(k);
+   if(k<1)s.settleRaf=requestAnimationFrame(step);
+   else{s.snapping=false;s.released=false;el.style.scrollBehavior=prev;s.prevScrollBehavior=null;s.settleElement=null;paint()}
+  };
+  s.settleRaf=requestAnimationFrame(step);
+ },[paint]);
  const snap=useCallback(()=>{
   const s=state.current,el=scrollRef.current;
   if(!el||s.touching||!s.released||s.snapping)return;
   const y=el.scrollTop,d=s.distance;
   if(y<1||y>=d-1){s.released=false;return}
-  // Do not fight native momentum: scrollend, or >=110ms without movement.
   if(performance.now()-s.lastScrollAt<105&&performance.now()-s.releaseAt<680){
-   s.timer=setTimeout(snap,68);return;
+   s.snapRaf=requestAnimationFrame(snap);return;
   }
-  s.released=false;
   const projected=y+Math.max(-1.4,Math.min(1.4,s.releaseVelocity))*83;
   const target=projected>d*.5?d:0;
-  s.snapping=true;
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
-   el.scrollTop=target;s.snapping=false;paint();return;
+   el.scrollTop=target;s.snapping=false;s.released=false;paint();return;
   }
-  // WebView-native smooth scroll, not a JS loop writing scrollTop.
-  el.scrollTo({top:target,behavior:'smooth'});
-  s.settleTimer=setTimeout(()=>{s.snapping=false;paint()},470);
- },[scrollRef,paint]);
+  settleTo(el,target);
+ },[scrollRef,paint,settleTo]);
  const queueSnap=useCallback(()=>{
-  const s=state.current;clearTimeout(s.timer);
-  if(s.released&&!s.touching&&!s.snapping)s.timer=setTimeout(snap,110);
+  const s=state.current;cancelAnimationFrame(s.snapRaf);
+  const tick=ts=>{
+   if(!s.released||s.touching||s.snapping)return;
+   if(ts-s.releaseAt<110){s.snapRaf=requestAnimationFrame(tick);return}
+   snap();
+  };
+  if(s.released&&!s.touching&&!s.snapping)s.snapRaf=requestAnimationFrame(tick);
  },[snap]);
  const onScroll=useCallback(()=>{
   const s=state.current,el=scrollRef.current;
-  const motion=motionRef.current;
-  if(motion){
-   motion.dataset.scrolling='true';
-   clearTimeout(s.scrollIdleTimer);
-   s.scrollIdleTimer=setTimeout(()=>{if(motion.isConnected)motion.dataset.scrolling='false'},160);
-  }
   if(s.elastic>0&&el?.scrollTop>1){
    s.elastic=0;writeElastic(el,0,s.width,true);
   }
   s.lastScrollAt=performance.now();paint();
- },[paint,scrollRef,motionRef]);
+ },[paint,scrollRef]);
  const onTouchStart=useCallback(e=>{
-  const s=state.current,wasSnapping=s.snapping;stop();
+  const s=state.current;stop();
   s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
-  s.elastic=0;s.startScrollY=scrollRef.current?.scrollTop??0;
-  writeElastic(scrollRef.current,0,s.width,false);
+  s.elastic=0;s.bottomElastic=0;s.startScrollY=scrollRef.current?.scrollTop??0;
+  const startEl=scrollRef.current;
+  s.maxScrollAtTouchStart=startEl?startEl.scrollHeight-startEl.clientHeight:0;
+  s.startAtBottom=!!startEl&&s.startScrollY>=s.maxScrollAtTouchStart-1;
+  writeElastic(startEl,0,s.width,false);writeBottomElastic(startEl,0,false);
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
-  // Stops any native finishing scroll when a fresh finger takes over.
-  const el=scrollRef.current;
-  if(el&&wasSnapping)el.scrollTo({top:el.scrollTop,behavior:'instant'});
+  // Cancelling our settle rAF leaves scrollTop exactly under the taking-over finger.
  },[stop,scrollRef]);
  const onTouchMove=useCallback(e=>{
   const s=state.current,el=scrollRef.current;
@@ -170,6 +203,9 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    s.elastic=pull;
    writeElastic(el,pull,s.width,false);
   }
+  const canBottom=s.axis==='y'&&s.startAtBottom&&el.scrollTop>=s.maxScrollAtTouchStart-1&&dy<0;
+  const bottom=canBottom?Math.min(48,elasticPullDistance(-dy)*.5):0;
+  if(Math.abs(bottom-s.bottomElastic)>.08){s.bottomElastic=bottom;writeBottomElastic(el,bottom,false)}
  },[scrollRef]);
  const onTouchEnd=useCallback(()=>{
   const s=state.current;
@@ -180,6 +216,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    s.released=false;
    return;
   }
+  if(s.bottomElastic>0){s.bottomElastic=0;writeBottomElastic(scrollRef.current,0,true);s.released=false;return}
   if(s.axis==='x'){s.released=false;return}
   s.released=true;s.releaseVelocity=s.velocity;s.releaseAt=performance.now();
   queueSnap();
@@ -193,17 +230,25 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(!el||!motion||!stage)return;
   const hero=motion.querySelector('.vx-profile-hero-photo');
   if(!hero)return;
-  s.width=Math.max(1,hero.offsetWidth);
-  s.height=Math.max(1,hero.offsetHeight);
-  s.compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
+  const width=Math.max(1,hero.offsetWidth),height=Math.max(1,hero.offsetHeight);
+  const compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
+  const distance=Math.max(1,stage.offsetHeight-compactHeight);
+  const viewportHeight=el.clientHeight;
+  if(s.lastCalibrated&&s.width===width&&s.height===height&&s.compactHeight===compactHeight&&s.distance===distance&&s.viewportHeight===viewportHeight)return;
+  s.width=width;s.height=height;s.compactHeight=compactHeight;s.viewportHeight=viewportHeight;
+  el.style.setProperty('--vx-profile-page-min',Math.max(0,viewportHeight-compactHeight-52)+'px');
   const geometry=profileCircleGeometry(s.width,s.height,s.compactHeight);
   const diameter=geometry.diameter;
   hero.style.setProperty('--vx-profile-mask-diameter',diameter.toFixed(3)+'px');
   hero.style.setProperty('--vx-profile-mask-radius',(diameter/2).toFixed(3)+'px');
   hero.style.setProperty('--vx-profile-mask-center-y',geometry.maskCenterY.toFixed(3)+'px');
-  s.distance=Math.max(1,stage.offsetHeight-s.compactHeight);
+  s.distance=distance;
+  const D=diameter,cy=geometry.maskCenterY,w=s.width,h=s.height;
+  s.clipCover='inset(0px 0px 0px 0px round 0px)';
+  s.clipCircle='inset('+(cy-D/2).toFixed(2)+'px '+((w-D)/2).toFixed(2)+'px '+(h-cy-D/2).toFixed(2)+'px '+((w-D)/2).toFixed(2)+'px round '+(D/2).toFixed(2)+'px)';
   if(s.elastic>0)writeElastic(el,s.elastic,s.width,false);
-  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;
+  s.morph?.cancel();s.morph=null;
+  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;s.lastCalibrated=true;
   // Previous JS fallback transforms must not override WAAPI motion.
   if(s.refs)for(const part of Object.values(s.refs)){
    if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
@@ -213,6 +258,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
+   backdropPhoto:motion.querySelector('.vx-profile-compact-backdrop .photo-box'),
    identity:motion.querySelector('.vx-profile-identity'),
    actions:motion.querySelector('.vx-profile-primary-actions'),
    more:motion.querySelector('.vx-profile-card-more'),
@@ -238,13 +284,12 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(stageRef.current)s.resizeObserver?.observe(stageRef.current);
   if(el)s.resizeObserver?.observe(el);
   const hero=s.refs?.hero;
-  s.mutationObserver=hero&&typeof MutationObserver!=='undefined'?new MutationObserver(()=>{
-   if(s.refs){calibrate()}
-  }):null;
-  s.mutationObserver?.observe(hero,{childList:true,subtree:true});
+  if(hero)s.resizeObserver?.observe(hero);
   const onScrollEnd=()=>{
-   if(s.snapping){s.snapping=false;s.released=false;clearTimeout(s.settleTimer)}
-   else if(s.released&&!s.touching){clearTimeout(s.timer);snap()}
+   if(s.snapping||s.touching)return;
+   const y=el?.scrollTop||0;
+   if(s.released&&y>1&&y<s.distance-1){s.releaseAt=performance.now()-700;snap()}
+   else{s.released=false;cancelAnimationFrame(s.snapRaf)}
   };
   el?.addEventListener('scroll',onScroll,{passive:true});
   el?.addEventListener('touchmove',onTouchMove,{passive:true});
@@ -253,10 +298,11 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   window.addEventListener('resize',resize,{passive:true});
   window.visualViewport?.addEventListener('resize',resize,{passive:true});
   return()=>{
-   stop();clearTimeout(s.scrollIdleTimer);cancelAnimationFrame(s.frame);s.frame=0;
-   s.elastic=0;writeElastic(el,0,s.width,false);
+   stop();cancelAnimationFrame(s.frame);s.frame=0;
+   s.elastic=0;s.bottomElastic=0;writeElastic(el,0,s.width,false);writeBottomElastic(el,0,false);
+   s.morph?.cancel();s.morph=null;
    s.nativeAnimation?.cancel();s.nativeAnimation=null;
-   s.resizeObserver?.disconnect();s.mutationObserver?.disconnect();
+   s.resizeObserver?.disconnect();
    el?.removeEventListener('scroll',onScroll);
    el?.removeEventListener('touchmove',onTouchMove);
    el?.removeEventListener('touchcancel',onTouchEnd);

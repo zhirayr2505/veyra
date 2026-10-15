@@ -274,7 +274,7 @@ export function Registration({me,refresh}){
   next();
  };
  const galleryPhotos=photos.length?[photos[(photoIndex-1+photos.length)%photos.length],photos[photoIndex],photos[(photoIndex+1)%photos.length]]:[];
- if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
+ if(preview)return <ProfilePreview profile={f} photos={photos} onBack={()=>{setPreview(false);go(8,'backward')}} onEdit={()=>{setPreview(false);go(8,'backward')}} onJump={t=>{setPreview(false);go(t==='photos'?8:1,'backward')}} onSubmit={send} submitting={busy||uploading} error={error}/>;
  return <div ref={registrationRootRef} className="page registration registration-v6 registration-v7 veyra-registration-2026" >
   <OnboardingHeader step={step} onBack={()=>!busy&&!uploading&&!transitioning&&go(step-1,'backward')} disabled={step===1||busy||uploading||transitioning}/>
   <div className="registration-step-viewport" ref={stepViewportRef} data-transition-ms="205">

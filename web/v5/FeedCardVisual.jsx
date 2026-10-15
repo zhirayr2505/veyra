@@ -11,7 +11,6 @@ export function FeedCardVisual({card,index=0,onIndex,location,preview=false,onPr
    <Photo id={id} className="feed-picture-current" alt={card?.name||''} priority resolution={960}
     placeholder={card?.photo_placeholders?.[String(id)]}/>
   </div>
-  <div className="veyra-card-shade" aria-hidden="true"/>
   <CardPhotoBars photos={ids} index={index} onSelect={onIndex||(()=>{})}/>
   <CardGoalBadge goal={card?.goal} top/>
   <CardCaption profile={card} age={card?.age} location={location||card?.city} preview={preview} onProfile={onProfile}/>

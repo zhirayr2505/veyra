@@ -101,7 +101,6 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview{padding-top
 html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header{height:calc(65px + var(--veyra-telegram-status-top,0px));padding-top:calc(5px + var(--veyra-telegram-status-top,0px))!important}
 html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-preview-onboarding-header .step-top>.quiet{visibility:hidden!important;pointer-events:none!important}
 /* One continuous, smooth shade, no dark slab across the picture. */
-.veyra-profile-preview .preview-gallery .veyra-card-shade{z-index:2;inset:0;background:linear-gradient(180deg,#0C07152B 0%,transparent 24%,transparent 54%,#120B2014 67%,#0F0A245B 85%,#0C071CCB 100%)}
 .veyra-profile-preview .preview-gallery .veyra-card-caption{bottom:21px!important;left:15px;right:15px;max-width:calc(100% - 30px);gap:5px!important;z-index:5!important}
 .veyra-profile-preview .veyra-card-name-row h2{font-size:clamp(23px,6.6vw,31px)}
 .veyra-profile-preview .preview-gallery .veyra-card-goal-badge{margin:1px 0}
@@ -207,10 +206,6 @@ html.veyra-telegram-fullscreen .v2-onboarding .veyra-profile-preview .veyra-prev
  display:block;width:100%;height:100%;object-fit:cover;
 }
 .veyra-profile-preview .preview-gallery .veyra-card-caption{bottom:20px!important}
-.veyra-profile-preview.mode-feed .preview-gallery .veyra-card-shade{
- background:linear-gradient(180deg,#0C071540 0%,transparent 20%,
- transparent 34%,#0C082010 47%,#0B071C8A 71%,#090617EE 100%)!important;
-}
 .veyra-profile-preview.mode-feed .preview-gallery .veyra-card-bio{
  display:-webkit-box!important;-webkit-line-clamp:2;font-size:12px!important;
 }

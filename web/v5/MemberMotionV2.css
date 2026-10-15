@@ -5,7 +5,7 @@
  */
 .veyra-v2 .vx-master-profile{
  --vx-profile-compact-height:292px;
- --vx-deep:#6420d9;--vx-ink:#302043;
+ --vx-deep:#6420d9;--vx-ink:#302043;--vx-sheet-bg:#faf6ff;
  background:#faf6ff!important;color:var(--vx-ink);
  font-family:Nunito,'Arial Rounded MT Bold',Inter,system-ui,sans-serif;
 }
@@ -18,7 +18,7 @@
  overflow-y:auto;overflow-x:hidden;scroll-behavior:auto!important;
  overscroll-behavior-y:contain;overflow-anchor:none;
  -webkit-overflow-scrolling:touch;touch-action:pan-y;
- scrollbar-width:none;background:#faf6ff;
+ scrollbar-width:none;background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-scroller::-webkit-scrollbar{display:none}
 html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller{
@@ -40,16 +40,27 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{
  position:absolute;top:0;left:0;right:0;z-index:1;
- height:var(--vx-profile-compact-height);opacity:1;pointer-events:none;
- background:linear-gradient(155deg,#f0e7fe,#faf6ff 80%);
- box-shadow:0 3px 8px #6b4f8210;
+ height:var(--vx-profile-compact-height);pointer-events:none;overflow:hidden;
+ background:linear-gradient(155deg,#e9dcfc,#f6f0ff 80%);contain:layout paint;
+ -webkit-mask-image:linear-gradient(180deg,#000 0,#000 60%,transparent 100%);
+ mask-image:linear-gradient(180deg,#000 0,#000 60%,transparent 100%);
 }
+.veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-box{
+ position:absolute;inset:-14%;width:128%;height:128%;opacity:0;will-change:opacity;
+}
+.veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-box img.photo-sharp{
+ width:100%;height:100%;object-fit:cover;filter:blur(24px) saturate(1.15);
+ animation:vxCompactPhotoEnter .2s ease-out both;
+}
+.veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-blur,
+.veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-unavailable{display:none}
+@keyframes vxCompactPhotoEnter{from{opacity:0}to{opacity:1}}
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  position:absolute;left:0;right:0;
  top:calc(var(--vx-profile-hero-height) - 30px);
  height:284px;z-index:5;pointer-events:none;
  border-radius:32px 32px 0 0;
- background:linear-gradient(160deg,#fffdff,#f7f1ff);
+ background:var(--vx-sheet-bg);
  box-shadow:0 -2px 7px #5b399011;
  border-top:1px solid #ffffffbf;
  transform:translate3d(0,0,0);
@@ -67,7 +78,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  top:calc(var(--vx-profile-hero-height) - 30px);
  left:0;right:0;height:76px;
  border-radius:32px 32px 0 0;
- background:linear-gradient(160deg,#fffdff,#f7f1ff);
+ background:var(--vx-sheet-bg);
  border-top:1px solid #ffffffc7;
  transform:translate3d(0,0,0);
  opacity:1;will-change:transform;
@@ -88,16 +99,17 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 /* Stage 2: one original-color portrait; discrete mask + uniform scaling.
    The white ring and online indicator are attached to that same canvas. */
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
- clip-path:inset(0);border-radius:0;transition:none;
+ clip-path:inset(0px 0px 0px 0px round 0px);border-radius:0;transition:none;
  --vx-profile-mask-diameter:180px;--vx-profile-mask-radius:90px;--vx-profile-mask-center-y:160px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photo-morph-rim{
  position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
  width:var(--vx-profile-mask-diameter);height:var(--vx-profile-mask-diameter);
- transform:translate(-50%,-50%);border:7px solid white;border-radius:50%;
+ transform:translate(-50%,-50%) scale(.96);border:7px solid white;border-radius:50%;
+ transition:opacity 120ms ease-out,transform 120ms ease-out;
  box-sizing:border-box;opacity:0;pointer-events:none;z-index:5;
 }
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-photo-morph-rim{opacity:1}
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-photo-morph-rim{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-hero-photo{pointer-events:none}
 .veyra-v2 .vx-master-profile .vx-profile-avatar-hit{
  position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
@@ -113,9 +125,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  top:calc(var(--vx-profile-mask-center-y) + var(--vx-profile-mask-radius) - 20px);
  width:22px;height:22px;border:4px solid white;border-radius:50%;
  background:#12c98c;box-sizing:border-box;z-index:6;
- opacity:0;pointer-events:none;
+ opacity:0;transform:scale(.96);transition:opacity 120ms ease-out,transform 120ms ease-out;pointer-events:none;
 }
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-online{opacity:1}
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-photo-shape="circle"] .vx-profile-online{opacity:1;transform:scale(1)}
 .veyra-v2 .vx-master-profile.vx-profile-read-only .vx-profile-action:disabled,
 .veyra-v2 .vx-master-profile.vx-profile-read-only .vx-profile-card-more:disabled{
  opacity:1;cursor:default;
@@ -180,18 +192,19 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  color:#7a45c0;background:#ebddfe;border:0;
  padding:4px 9px;font-weight:740;font-size:11px;
  line-height:1.1;border-radius:999px;white-space:nowrap;
- overflow:hidden;text-overflow:ellipsis;
+ text-overflow:ellipsis;
  transform:translate3d(0,0,0);
 }
 .veyra-v2 .vx-master-profile .vx-profile-primary-actions{
  position:absolute;z-index:15;
  top:calc(var(--vx-profile-hero-height) + 123px)!important;
  left:12px!important;right:12px!important;
- display:grid!important;grid-template-columns:104fr 138fr 104fr!important;
+ display:grid!important;grid-template-columns:104fr 138fr 104fr;
  gap:7px!important;width:auto;max-width:none;margin:0;
- transform:translate3d(0,0,0);will-change:transform;
+ will-change:transform;
  pointer-events:none;
 }
+.veyra-v2 .vx-master-profile.vx-profile-read-only .vx-own-profile-actions{grid-template-columns:1fr 1.3fr}
 .veyra-v2 .vx-master-profile .vx-profile-action{
  pointer-events:auto;position:relative;display:flex;flex-direction:row;
  align-items:center;justify-content:center;gap:5px;
@@ -211,7 +224,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-action:active{filter:brightness(.96)}
 .veyra-v2 .vx-master-profile .vx-profile-action span{
- white-space:nowrap;text-overflow:ellipsis;overflow:hidden;color:inherit;
+ white-space:nowrap;color:inherit;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action .vx-pack-icon{
  width:20px!important;height:20px!important;flex:none;
@@ -261,7 +274,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
  position:relative;z-index:2;overflow:clip;width:100%;
- background:#faf6ff;touch-action:pan-y pinch-zoom;
+ background:var(--vx-sheet-bg);touch-action:pan-y pinch-zoom;
  /* Embla has overflow:hidden: contain on Y blocks native scroll chaining.
     Keep X boundary contained while allowing Y to reach .vx-profile-scroller. */
  overscroll-behavior-x:contain;
@@ -274,13 +287,13 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 /* Avoid any translucent paint / flashes above the tab content. */
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport,
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track{
- background:#faf6ff!important;
+ background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
  width:100%;flex:0 0 100%;min-width:0;box-sizing:border-box;
- overflow:visible;padding:13px 12px calc(112px + env(safe-area-inset-bottom));
- min-height:calc(100dvh - var(--vx-profile-compact-height) - 52px + 260px);
- background:#faf6ff;
+ overflow:visible;padding:13px 12px calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
+ min-height:var(--vx-profile-page-min,0px);
+ background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page[aria-hidden="true"]{
  pointer-events:none;user-select:none;
@@ -374,7 +387,7 @@ body>.vx-member-native-header .vx-member-more{display:none!important}
   --vx-profile-hero-height:clamp(322px,51dvh,510px);
   --vx-profile-compact-height:278px;
  }
- .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{height:278px}
+ .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{height:var(--vx-profile-compact-height)}
  .veyra-v2 .vx-master-profile .vx-profile-name-row h1{font-size:22px!important}
  .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
 }
