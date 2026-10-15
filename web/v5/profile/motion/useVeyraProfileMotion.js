@@ -135,7 +135,6 @@ export function useVeyraProfileMotion({
           }
         }
         if (Math.abs(p - s.lastProgress) < 0.0001) return;
-        const previous = s.lastProgress;
         s.lastProgress = p;
         motion.dataset.state =
           p <= 0.002 ? "expanded" : p >= 0.998 ? "compact" : "transition";
