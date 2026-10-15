@@ -2,6 +2,20 @@
 // All sizes are pixels in the profile scroll viewport; no animated border-radius.
 export const clamp=(v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 export const mix=(a,b,t)=>a+(b-a)*t;
+/** Pure release choice: late finger direction wins over the midpoint of the header. */
+export function profileReleaseDirection({samples=[],startY=0,y=0,at=0}){
+ const recent=samples.filter(point=>at-point.at<=120);
+ if(recent.length>1){
+  const first=recent[0],last=recent[recent.length-1];
+  const dt=last.at-first.at;
+  const velocity=dt>0?(first.finger-last.finger)/dt:0;
+  if(Math.abs(velocity)>=.12)return {direction:Math.sign(velocity),velocity};
+ }
+ const displacement=y-startY;
+ if(Math.abs(displacement)>=6)return {direction:Math.sign(displacement),velocity:0};
+ return {direction:0,velocity:0};
+}
+export const releaseTarget=(direction,y,d,startY)=>direction>0?d:direction<0?0:startY>=d-.5?d:startY<=.5?0:y>=d/2?d:0;
 export const smooth=(t)=>{const x=clamp(t);return x*x*(3-2*x)};
 export const segment=(p,a,b)=>smooth((p-a)/(b-a));
 export const PROFILE_MORPH_START=.30;

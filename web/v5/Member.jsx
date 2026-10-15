@@ -217,7 +217,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
-      {idx!==0&&photos[0]&&<div className="vx-profile-main-crossfade" aria-hidden="true"><Photo id={photos[0]} priority resolution={960} alt=""/></div>}
+      {<div className="vx-profile-main-crossfade" aria-hidden="true"><Photo id={photos[0]} priority resolution={960} alt=""/></div>}
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
 
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>

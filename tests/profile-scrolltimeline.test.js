@@ -11,7 +11,7 @@ test('ScrollTimeline keyframes stay ordered through the collapse and hold compac
   for(let i=1;i<frames.length;i++)assert.ok(frames[i].offset>frames[i-1].offset,name+' duplicate '+i);
   assert.deepEqual(Object.keys(frames[0]).sort(),Object.keys(frames.at(-1)).sort());
  }
- assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto','rim','online'].sort());
+ assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto','rim','online','mainPhoto'].sort());
  assert.equal(tracks.actions.at(-1).transform,tracks.actions.at(-2).transform);
 });
 test('hero uses uniform scale, not an independent scaleX/scaleY or compensation layer',()=>{

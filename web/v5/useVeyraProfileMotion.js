@@ -1,5 +1,5 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {clamp,profileFrame,profileCircleGeometry,profileMorphInset,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
+import {clamp,profileFrame,profileCircleGeometry,profileMorphInset,profileReleaseDirection,releaseTarget,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
@@ -31,6 +31,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
   refs:null,resizeObserver:null,nativeAnimation:null,engine:'JS fallback',elastic:0,bottomElastic:0,startScrollY:0,startAtBottom:false,
+  samples:[],releaseDirection:0,hapticFired:false,gestureRelease:false,
  });
  const stop=useCallback(()=>{
   const s=state.current;
@@ -58,13 +59,6 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(Math.abs(p-s.lastProgress)<.00015)return;
    const previous=s.lastProgress;
    s.lastProgress=p;
-   // Haptic is edge-triggered once for a deliberate finger-driven circle.
-   // Never pulse on reverse scroll or when opening an already compact profile.
-   if(p<.22)s.circleHapticFired=false;
-   if((s.touching||s.released)&&previous>=0&&previous<PROFILE_CIRCLE_AT&&p>=PROFILE_CIRCLE_AT&&!s.circleHapticFired){
-    s.circleHapticFired=true;
-    try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light')}catch{}
-   }
    // In Chromium, the scroll position drives visual transforms without JS.
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
@@ -116,14 +110,16 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   });
  },[scrollRef,motionRef]);
  const easeOutCubic=t=>1-Math.pow(1-t,3);
- const settleTo=useCallback((el,target)=>{
+ const settleTo=useCallback((el,target,initialVelocity=0)=>{
   const s=state.current;
   cancelAnimationFrame(s.settleRaf);
   const max=Math.max(0,el.scrollHeight-el.clientHeight);
   target=Math.max(0,Math.min(max,target));
   const from=el.scrollTop,dist=target-from;
   if(Math.abs(dist)<.5){el.scrollTop=target;s.snapping=false;s.released=false;paint();return}
-  const duration=Math.min(320,Math.max(220,210+Math.abs(dist)*.38));
+  const duration=Math.min(420,Math.max(260,260+Math.abs(dist)*.35));
+  // Cubic Hermite starts with the finger's projected speed and ends at rest.
+  const slope=initialVelocity*dist>0?clamp(Math.abs(initialVelocity)*duration/Math.abs(dist),.4,2.8):2.8;
   s.snapping=true;s.released=false;
   const prev=el.style.scrollBehavior;s.prevScrollBehavior=prev;s.settleElement=el;el.style.scrollBehavior='auto';
   let began=null;
@@ -131,11 +127,16 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(!s.snapping||s.touching||scrollRef.current!==el)return;
    if(began===null)began=ts;
    const k=Math.min(1,(ts-began)/duration);
-   el.scrollTop=from+dist*easeOutCubic(k);
+   const progress=slope*k+(3-2*slope)*k*k+(slope-2)*k*k*k;
+   el.scrollTop=from+dist*progress;
    if(k<1){s.settleRaf=requestAnimationFrame(step);return}
    el.scrollTop=target;
    s.snapping=false;s.prevScrollBehavior=null;s.settleElement=null;el.style.scrollBehavior=prev;
-   paint();
+   if(s.gestureRelease&&!s.hapticFired){
+    s.hapticFired=true;
+    try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{}
+   }
+   s.gestureRelease=false;paint();
   };
   s.settleRaf=requestAnimationFrame(step);
  },[scrollRef,paint]);
@@ -144,26 +145,21 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(!el||s.touching||s.snapping)return;
   const y=el.scrollTop,d=s.distance;
   if(y<=.5||y>=d-.5){s.released=false;return}
-  const v=s.releaseVelocity||0;
-  // Velocity wins for deliberate upward/downward flicks; slow drags choose nearest.
-  const target=v>.45?d:v<-.45?0:(y+Math.max(-.6,Math.min(.6,v))*55>d*.5?d:0);
+  const target=releaseTarget(s.releaseDirection,y,d,s.startScrollY);
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
    el.scrollTop=target;s.released=false;paint();return;
   }
-  settleTo(el,target);
+  settleTo(el,target,s.releaseVelocity);
  },[scrollRef,paint,settleTo]);
  const queueSnap=useCallback(()=>{
   const s=state.current;
   cancelAnimationFrame(s.snapRaf);
   const el=scrollRef.current;if(!el||s.touching||s.snapping||!s.released)return;
-  let last=el.scrollTop,still=0;
   const tick=()=>{
    if(s.touching||s.snapping||!s.released||scrollRef.current!==el)return;
    const y=el.scrollTop;
    if(y<=.5||y>=s.distance-.5){s.released=false;return}
-   if(Math.abs(y-last)<.4)still++;else still=0;
-   last=y;
-   if(still>=3){snap();return}
+   if(performance.now()-s.lastScrollAt>=90){snap();return}
    s.snapRaf=requestAnimationFrame(tick);
   };
   s.snapRaf=requestAnimationFrame(tick);
@@ -173,11 +169,18 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(s.elastic>0&&el?.scrollTop>1){
    s.elastic=0;writeElastic(el,0,s.width,true);
   }
-  s.lastScrollAt=performance.now();paint();
- },[paint,scrollRef]);
+  const now=performance.now();
+  if(el&&!s.touching&&!s.snapping){
+   const delta=el.scrollTop-s.lastY;
+   if(Math.abs(delta)>1)s.releaseDirection=Math.sign(delta);
+   if(el.scrollTop>.5&&el.scrollTop<s.distance-.5){s.released=true;queueSnap()}
+  }
+  s.lastScrollAt=now;paint();
+ },[paint,scrollRef,queueSnap]);
  const onTouchStart=useCallback(e=>{
   const s=state.current;stop();
   s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;s.gestureVelocity=0;s.touchLastY=null;s.touchLastAt=0;
+  s.samples=[];s.releaseDirection=0;s.releaseVelocity=0;s.gestureRelease=false;s.hapticFired=false;
   s.elastic=0;s.bottomElastic=0;s.startScrollY=scrollRef.current?.scrollTop??0;
   const startEl=scrollRef.current;
   s.maxScrollAtTouchStart=startEl?startEl.scrollHeight-startEl.clientHeight:0;
@@ -186,6 +189,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
    s.touchLastY=s.startY;s.touchLastAt=performance.now();
+   s.samples=[{at:s.touchLastAt,finger:s.startY}];
   // Cancelling our settle rAF leaves scrollTop exactly under the taking-over finger.
  },[stop,scrollRef]);
  const onTouchMove=useCallback(e=>{
@@ -193,10 +197,14 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(!e.touches?.length)return;
   const dx=e.touches[0].clientX-s.startX;
   const dy=e.touches[0].clientY-s.startY;
-  if(!s.axis&&Math.max(Math.abs(dx),Math.abs(dy))>9)
-   s.axis=Math.abs(dx)>Math.abs(dy)*1.13?'x':'y';
+  if(!s.axis&&Math.max(Math.abs(dx),Math.abs(dy))>=12){
+   if(Math.abs(dx)>=Math.abs(dy)*1.6)s.axis='x';
+   else if(Math.abs(dy)>=Math.abs(dx)*1.1)s.axis='y';
+  }
   if(!el)return;
   const timestamp=performance.now(),finger=e.touches[0].clientY;
+  s.samples.push({at:timestamp,finger});
+  while(s.samples.length>2&&(timestamp-s.samples[0].at>120||s.samples.length>24))s.samples.shift();
   if(s.touchLastY!==null&&s.axis==='y'){
    const dt=timestamp-s.touchLastAt;
    if(dt>0&&dt<150)s.gestureVelocity=s.gestureVelocity*.4+((s.touchLastY-finger)/dt)*.6;
@@ -213,26 +221,24 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(Math.abs(bottom-s.bottomElastic)>.08){s.bottomElastic=bottom;writeBottomElastic(el,bottom,false)}
  },[scrollRef]);
  const onTouchEnd=useCallback(()=>{
-  const s=state.current;
+  const s=state.current,el=scrollRef.current;
   s.touching=false;
-  if(s.elastic>0){
-   s.elastic=0;
-   writeElastic(scrollRef.current,0,s.width,true);
-   s.released=false;
-   return;
-  }
-  if(s.bottomElastic>0){s.bottomElastic=0;writeBottomElastic(scrollRef.current,0,true);s.released=false;return}
-  if(s.axis==='x'){
-   const el=scrollRef.current;
-   if(!el||el.scrollTop<=.5||el.scrollTop>=s.distance-.5){s.released=false;return}
-   s.released=true;s.releaseVelocity=0;queueSnap();return;
-  }
-  s.released=true;s.releaseVelocity=s.axis==='y'?s.gestureVelocity:s.velocity;s.releaseAt=performance.now();
+  if(s.elastic>0){s.elastic=0;writeElastic(el,0,s.width,true)}
+  if(s.bottomElastic>0){s.bottomElastic=0;writeBottomElastic(el,0,true)}
+  if(!el)return;
+  const y=el.scrollTop,d=s.distance;
+  if((y<=.5||y>=d-.5)&&s.axis==='x')return;
+  const release=profileReleaseDirection({samples:s.samples,startY:s.startScrollY,y,at:performance.now()});
+  s.releaseDirection=release.direction;
+  s.releaseVelocity=release.velocity;
+  s.gestureRelease=true;s.released=true;s.releaseAt=performance.now();
+  s.lastScrollAt=s.releaseAt;
   queueSnap();
  },[queueSnap,scrollRef]);
- const onWheel=useCallback(()=>{
-  const s=state.current;s.released=true;
-  s.releaseVelocity=s.velocity;s.releaseAt=performance.now();queueSnap();
+ const onWheel=useCallback(e=>{
+  const s=state.current;s.released=true;s.gestureRelease=false;
+  if(Math.abs(e.deltaY)>0)s.releaseDirection=Math.sign(e.deltaY);
+  s.releaseVelocity=0;s.releaseAt=performance.now();queueSnap();
  },[queueSnap]);
  const calibrate=useCallback(()=>{
   const s=state.current,el=scrollRef.current,motion=motionRef.current,stage=stageRef.current;
@@ -297,7 +303,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   const onScrollEnd=()=>{
    if(s.snapping||s.touching)return;
    const y=el?.scrollTop??0;
-   if(s.released&&y>.5&&y<s.distance-.5){queueSnap()}
+   if(y>.5&&y<s.distance-.5){s.released=true;queueSnap()}
    else if(y<=.5||y>=s.distance-.5){s.released=false;cancelAnimationFrame(s.snapRaf)}
   };
   el?.addEventListener('scroll',onScroll,{passive:true});
