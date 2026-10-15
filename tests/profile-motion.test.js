@@ -89,7 +89,7 @@ test('morph mask is monotonic, symmetric and perfectly circular at .38 without a
  assert.equal(frameAt(p),'inset(0.00px 0.00px 0.00px 0.00px round 0.00px)');
  const end=frameAt(finish);
  assert.ok(end.includes('round '+(g.diameter/2).toFixed(2)+'px'));
- const numbers=s=>[...s.matchAll(/-?\\d+(?:\\.\\d+)?/g)].map(x=>Number(x[0]));
+ const numbers=s=>[...s.matchAll(/-?\d+(?:\.\d+)?/g)].map(x=>Number(x[0]));
  let previous=numbers(frameAt(p));
  for(let i=1;i<=80;i++){
   const now=numbers(frameAt(p+(finish-p)*i/80));
