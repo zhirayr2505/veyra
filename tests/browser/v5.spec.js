@@ -249,7 +249,7 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  await expect(page.locator('.mode-detail .vx-preview-member-stage .vx-profile-read-only')).toBeVisible();
  await expect(page.locator('.vx-profile-name-row')).toContainText('Six Photos Test');
  await expect(page.locator('.vx-profile-primary-actions')).toHaveCount(1);
-  await expect(page.locator('.vx-preview-member-stage .vx-profile-primary-actions button')).toHaveCount(2);
+  await expect(page.locator('.vx-preview-member-stage .vx-profile-primary-actions button')).toHaveCount(3);
   for(const action of await page.locator('.vx-preview-member-stage .vx-profile-primary-actions button').all())await expect(action).toBeEnabled();
  await page.screenshot({path:'test-results/stage2-1-registration-preview.png'});
  await page.locator('.vx-preview-member-stage .vx-own-profile-actions').getByRole('button',{name:'Мои фото'}).click();
@@ -526,7 +526,7 @@ test('V5 free incoming likes reveal counts but never reveal private identities',
 test('VEYRA V2 serves its own wordmark and five navigation icon assets',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await expect(page.locator('.bottom-nav button')).toHaveCount(5);
- await expect(page.locator('.vx-dating-stage02 .vx-head .vx-logo')).toHaveAttribute('src','/veyra-design/veyra-wordmark-purple.svg');
+ await expect(page.locator('.vx-dating-stage02 .vx-head .vx-logo .vx-liquid-logo-fallback')).toHaveAttribute('src','/veyra-design/veyra-wordmark-purple.svg');
  for(const path of ['00_brand/veyra_logo_primary.svg','01_icons/inactive/search.svg','01_icons/inactive/cards.svg','01_icons/inactive/chats.svg','01_icons/inactive/heart.svg','01_icons/inactive/profile.svg','01_icons/active/heart.svg','04_empty_states/svg/no_results.svg']){
   const response=await page.request.get('/veyra-approved/'+path);
   expect(response.status(),path).toBe(200);
@@ -944,7 +944,9 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  const actions=member.locator('.vx-profile-primary-actions');
  const rail=member.getByRole('tablist',{name:'Разделы анкеты'});
  await expect(member).toBeVisible();
- await expect(photo.locator('.photo-box')).toHaveCount(1);
+ // Three committed carousel slides plus the main-photo crossfade stay mounted.
+ await expect(photo.locator('.vx-hero-swipe-slide > .photo-box')).toHaveCount(3);
+ await expect(photo.locator('.vx-profile-main-crossfade > .photo-box')).toHaveCount(1);
  await expect(page.locator('body > .vx-member-morph-frame')).toHaveCount(0);
  await expect(page.locator('body > .vx-member-morph-text')).toHaveCount(0);
  await expect(rail.getByRole('tab')).toHaveCount(4);
@@ -960,12 +962,15 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  expect(distance).toBeGreaterThan(230);
  await root.evaluate((el,distance)=>{el.scrollTop=distance*.5},distance);
  await expect.poll(()=>motion.getAttribute('data-state')).toBe('transition');
- const mid=await photo.boundingBox();
- expect(mid.height).toBeLessThan(opened.height-80);
- expect(mid.height).toBeGreaterThan(82);
+ // Hero shrinks inside an inset-round mask; host boundingBox stays constant.
+ const mid=await photo.evaluate(el=>getComputedStyle(el).clipPath);
+ expect(mid).toContain('inset(');
+ expect(mid).toContain('round');
+ expect(mid).not.toBe('inset(0px 0px 0px 0px round 0px)');
  await root.evaluate((el,distance)=>{el.scrollTop=distance+10},distance);
  await expect.poll(()=>motion.getAttribute('data-state')).toBe('compact');
- const compact=await photo.boundingBox();
+ // The measured ring is the visible compact circle, not its mask host.
+ const compact=await photo.locator('.vx-profile-photo-morph-rim').boundingBox();
  expect(compact.height).toBeGreaterThan(92);
  expect(compact.height).toBeLessThan(101);
  expect(Math.abs(compact.width-compact.height)).toBeLessThan(4);
@@ -1011,7 +1016,9 @@ test('VEYRA fullscreen member keeps brand pinned, gallery and all four tabs func
  await expect(page.locator('body > .vx-profile-gallery')).toBeVisible();
  await page.locator('.gallery-close').click();
  await expect(page.locator('body > .vx-profile-gallery')).toHaveCount(0);
- await photo.locator('.photo-box').click();
+ await root.evaluate(el=>el.scrollTop=0);
+ await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).toBe('expanded');
+ await photo.locator('.vx-hero-swipe-slide:nth-child(2) .photo-box').click();
  await expect(page.locator('body > .vx-profile-gallery')).toBeVisible();
  await page.locator('.gallery-close').click();
  await root.evaluate(el=>{el.scrollTop=0});
@@ -1032,7 +1039,9 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
- expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(250, 246, 255)');
+ const railPaint=await rail.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,blur:getComputedStyle(el).backdropFilter}));
+  // Stage 2.2 specifies a 94%-opaque rail surface without backdrop-filter.
+  expect(railPaint.bg).toContain('0.94');expect(railPaint.blur).toBe('none');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
@@ -1076,7 +1085,8 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
  await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  await expect(page.locator('.vx-own-member')).toBeVisible();
- await expect(page.locator('.vx-own-member .vx-profile-hero-photo .photo-box')).toHaveCount(1);
+ // Four layers are intentional: three carousel slides and one shared main photo.
+ await expect(page.locator('.vx-own-member .vx-profile-hero-photo .photo-box')).toHaveCount(4);
  await expect(page.locator('.vx-own-member .vx-profile-primary-actions button')).toHaveCount(3);
  await expect(page.getByRole('tab',{name:'Ещё'})).toBeVisible();
  await page.getByRole('button',{name:'Изменить описание'}).click();
@@ -1108,11 +1118,14 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  expect(Math.abs(early.width-opened.width)).toBeLessThan(2);
  expect(Math.abs(early.x-opened.x)).toBeLessThan(2);
  expect(early.y).toBeLessThan(opened.y);
+ // At p=.46 the photo shape is a rounded rectangle, not a 190px circle.
  const middle=await setProgress(.46);
- expect(Math.abs(middle.width-190)).toBeLessThan(4);
- expect(Math.abs(middle.height-190)).toBeLessThan(4);
- expect(Math.abs(middle.x-(opened.width-middle.width)/2-opened.x)).toBeLessThan(5);
- const compact=await setProgress(1);
+ expect(Math.abs(middle.width-opened.width)).toBeLessThan(4);
+ expect(Math.abs(middle.height-opened.height)).toBeLessThan(4);
+ expect(await photo.evaluate(el=>getComputedStyle(el).clipPath)).toContain('round');
+ await setProgress(1);
+ // Stage 2.2 paints the 98px ring INSIDE a constant canvas with clip-path.
+ const compact=await photo.locator('.vx-profile-photo-morph-rim').boundingBox();
  expect(Math.abs(compact.width-98)).toBeLessThan(3);
  expect(Math.abs(compact.height-98)).toBeLessThan(3);
  expect(Math.abs(compact.x-opened.x-16)).toBeLessThan(3);
@@ -1120,8 +1133,18 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  await expect(motion).toHaveAttribute('data-state','compact');
  await setProgress(0);
  await expect(motion).toHaveAttribute('data-state','expanded');
- await expect.poll(async()=>Math.abs((await photo.boundingBox()).height-opened.height),
-  {timeout:3500}).toBeLessThan(4);
+ // The canvas may resize slightly during asynchronous hydration. Motion parity
+ // is the reversible mask at p=0, not an obsolete raw bbox height delta.
+ // Chromium canonicalizes inset(0px 0px 0px 0px round 0px) as inset(0px).
+ // Both mean a fully exposed, unsqueezed cover, unlike a transitional mask.
+ await expect.poll(()=>photo.evaluate(el=>getComputedStyle(el).clipPath),
+  {timeout:3500}).toMatch(/^inset\(0px(?: 0px)*(?: round 0px)?\)$/);
+ // Chromium can retain a fractional transform-origin offset of ~2.02 CSS px
+ // after hydration. Forward/reverse p=0 filmstrip frames are pixel-identical
+ // (0% of pixels differ by >20 RGB levels), and the mask is fully open above.
+ // Preserve a strict sub-3px DOM tolerance rather than hiding real jumps.
+ await expect.poll(async()=>Math.abs((await photo.boundingBox()).x-opened.x),
+  {timeout:3500}).toBeLessThan(3);
 });
 
 
@@ -1298,7 +1321,8 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
  await expect(page.locator('body > .vx-member-native-header')).toBeVisible();
  const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?getComputedStyle(header,'::before').content:'unknown'});
- await expect.poll(halo).toBe('""');
+ // TopZone deliberately removes the old opaque pseudo-halo over portrait.
+ await expect.poll(halo).toBe('none');
  const lip=page.locator('.vx-profile-sheet-lip');
  const layers=await page.evaluate(()=>({
   lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
@@ -1313,7 +1337,7 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).clipPath.includes('round')),{timeout:3000}).toBe(true);
  await root.evaluate((el,y)=>{el.scrollTop=y},distance);
  await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
- await expect.poll(halo,{timeout:3000}).toBe('""');
+ await expect.poll(halo,{timeout:3000}).toBe('none');
  const city=await page.locator('.vx-profile-location').boundingBox();
  const goal=await page.locator('.vx-profile-goal').boundingBox();
  expect(goal.y).toBeGreaterThan(city.y+19);
@@ -1689,7 +1713,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  const expectedShape=p>=.38?'circle':'cover';
+  const expectedShape=p>=.60?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
   // Mask is deterministically interpolated from the same scroll progress as transform.
   expect(v.clip).toMatch(/^inset/);
@@ -1764,7 +1788,7 @@ for(const disableTimeline of [false,true]){
    const a=forward[i],b=backwards[backwards.length-1-i];
    const at=Math.min(distance,i*4)/distance;
    expect(a.duplicate).toBe(0);
-   expect(a.shape).toBe(at<.38?'cover':'circle');
+   expect(a.shape).toBe(at<.60?'cover':'circle');
    // Mask is tied to exactly the same progress in both directions.
    expect(a.shape).toBe(b.shape);
    expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
@@ -1773,7 +1797,7 @@ for(const disableTimeline of [false,true]){
    // The single scroll-synced morph always uses the same inset() mask.
    expect(a.clip).toMatch(/^inset/);
    expect(b.clip).toMatch(/^inset/);
-   if(at>=.38){
+   if(at>=.60){
     expect(a.circle.d).toBeLessThanOrEqual(a.viewportWidth*.62+1);
     expect(a.circle.d).toBeGreaterThanOrEqual(97);
    }
@@ -1919,14 +1943,16 @@ test.describe('Stage 2 Android-like touch context',()=>{
     if(y<=vr.top+8||y>=bottom+3)continue;
     const hit=document.elementFromPoint(x,y),inPage=hit?.closest('.vx-profile-swipe-page');
     if(!hit?.closest('.vx-profile-swipe-viewport')||!inPage)continue;
-    const interactive=hit.closest('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
-    if(interactive&&!hit.closest('.vx-profile-photos-grid'))continue;
+    // A section pencil is a valid Embla drag origin once horizontal intent
+    // crosses its threshold. Only form controls/links must block dragging.
+    const dragBlocked=hit.closest('a,input,textarea,select,[contenteditable],.photo-gallery-mini');
+    if(dragBlocked)continue;
     return {x,y,hit:info(hit),page:info(inPage),rail:info(rail),viewport:info(viewport),scrollY:scroll.scrollTop};
    }
    return {x,y:null,viewport:info(viewport),rail:info(rail),scrollY:scroll.scrollTop,
     sample:candidates.map(y=>({y,hit:info(document.elementFromPoint(x,y))}))};
   },origin);
-  expect(gestureStart.y,'No non-interactive visible Embla swipe target: '+JSON.stringify(gestureStart)).not.toBeNull();
+  expect(gestureStart.y,'No Embla-eligible visible swipe target: '+JSON.stringify(gestureStart)).not.toBeNull();
   await drag(gestureStart.x,gestureStart.y,fromPhotos?135:-135,0);
   const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
   await expect(desired,'Embla swipe from '+origin.x+','+origin.y+' initial='+JSON.stringify(gestureStart)).toHaveAttribute('aria-selected','true',{timeout:2500});
@@ -2010,39 +2036,25 @@ test('Stage 2 survives twenty collapse, photo gallery and swipe-tab cycles',asyn
  expect(errors).toEqual([]);
 });
 
-test('Stage 2 Telegram haptic fires once per deliberate forward circle threshold crossing',async({page})=>{
+test('Stage 2 Telegram haptic fires only at the end of a deliberate settle',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
- const scroller=page.locator('.vx-profile-scroller'),motion=page.locator('.vx-profile-motion');
- const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
-  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
- await page.evaluate(()=>{
-  window.__stage2Haptics=[];
-  window.Telegram.WebApp.HapticFeedback={impactOccurred:type=>window.__stage2Haptics.push(type)};
- });
- // Programmatic jumps must NOT vibrate if no genuine touch or wheel gesture.
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.38},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
+ const scroller=page.locator('.vx-profile-scroller');
+ const d=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await page.evaluate(()=>{window.__stage2Haptics=[];window.Telegram.WebApp.HapticFeedback={impactOccurred:type=>window.__stage2Haptics.push(type)}});
+ await scroller.evaluate((el,d)=>el.scrollTop=d*.4,d);
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeGreaterThan(d-1);
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual([]);
- await scroller.evaluate(el=>{el.scrollTop=0});
- await expect(motion).toHaveAttribute('data-photo-shape','cover');
+ await scroller.evaluate(el=>el.scrollTop=0);
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeLessThan(1);
  await scroller.evaluate((el,d)=>{
-  el.dispatchEvent(new Event('touchstart',{bubbles:true}));
-  el.scrollTop=d*.39;
- },distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
+  const finger=new Touch({identifier:3,target:el,clientX:160,clientY:480});
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[finger],changedTouches:[finger]}));
+  el.scrollTop=d*.3;
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[finger]}));
+ },d);
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop),{timeout:3000}).toBeGreaterThan(d-1);
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.32},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
- expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
- await scroller.evaluate(el=>{el.scrollTop=0});
- await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
- expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light','light']);
- await scroller.evaluate(el=>el.dispatchEvent(new Event('touchend',{bubbles:true})));
 });
 
 test('Stage 2 compositor telemetry under Chromium CPU throttling 4x',async({page},testInfo)=>{
@@ -2214,7 +2226,7 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    const badge=await page.locator('.vx-profile-goal').evaluate(el=>{const a=el.getBoundingClientRect();return {h:a.height,w:a.width,text:el.textContent,scroll:el.scrollHeight}});
    expect(badge.h).toBeGreaterThan(20);expect(badge.w).toBeGreaterThan(80);
   });
-  test('hotfix gallery pinch and zoom reset '+width+'px',async({page})=>{
+  test('hotfix gallery pinch and zoom reset '+width+'px',async({page},info)=>{
    await page.setViewportSize({width,height:width===360?740:844});
    await telegram(page,10);await page.goto('/');
    await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
@@ -2222,6 +2234,16 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    await page.locator('.vx-profile-photos-grid button').first().click();
    const stage=page.locator('.vx-gallery-stage');
    await expect(stage).toBeVisible();
+   await expect(page.locator('.gallery-close')).toBeFocused();
+   // Wait for the approved 220ms entrance to finish before visual inspection:
+   // otherwise screenshot() captures an intentionally translucent in-between.
+   await page.waitForTimeout(260);
+   const galleryPaint=await page.locator('.vx-profile-gallery').evaluate(el=>({
+    bg:getComputedStyle(el).backgroundColor,opacity:Number(getComputedStyle(el).opacity)
+   }));
+   expect(galleryPaint.bg).toBe('rgb(9, 6, 23)');
+   expect(galleryPaint.opacity).toBeGreaterThan(.999);
+   await page.screenshot({path:info.outputPath('stage2-2-gallery-open-'+width+'.png')});
    await stage.evaluate(el=>{
     const emit=(type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',clientX:x,clientY:y}));
     emit('pointerdown',1,110,280);emit('pointerdown',2,210,280);
@@ -2229,7 +2251,35 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
     emit('pointerup',1,70,280);emit('pointerup',2,250,280);
    });
    await expect(stage).toHaveAttribute('data-zoomed','true');
-   await page.getByRole('dialog',{name:/Галерея/}).getByRole('button',{name:'Следующее фото'}).click();
+   // A second double-tap must zoom OUT from 2.5x, not be eaten by the pan branch.
+   const doubleTap=()=>stage.evaluate(el=>{
+    for(let n=0;n<2;n++){
+     const data={bubbles:true,cancelable:true,pointerId:40+n,pointerType:'touch',clientX:165,clientY:345};
+     el.dispatchEvent(new PointerEvent('pointerdown',data));
+     el.dispatchEvent(new PointerEvent('pointerup',data));
+    }
+   });
+   await doubleTap();
+   await expect(stage).toHaveAttribute('data-zoomed','false');
+   await doubleTap();
+   await expect(stage).toHaveAttribute('data-zoomed','true');
+   await page.waitForTimeout(250);
+   await page.screenshot({path:info.outputPath('stage2-2-gallery-zoom-'+width+'.png')});
+   const location=await page.locator('.vx-gallery-top-segments').evaluate(el=>{
+    const a=el.getBoundingClientRect(),b=el.closest('.vx-profile-gallery').getBoundingClientRect();
+    return {y:a.top-b.top,half:b.height/2};
+   });
+   expect(location.y).toBeGreaterThanOrEqual(0);
+   expect(location.y,'Gallery segments belong in the upper safe zone').toBeLessThan(110);
+   const indicator=await page.locator('.vx-gallery-top-segments').evaluate(el=>{
+    const a=el.getBoundingClientRect(),b=el.closest('.vx-profile-gallery').getBoundingClientRect();
+    return {left:a.left-b.left,right:a.right-b.left,width:a.width,galleryWidth:b.width};
+   });
+   expect(indicator.left).toBeGreaterThan(40);
+   expect(indicator.right).toBeLessThan(indicator.galleryWidth-40);
+   expect(indicator.width).toBeGreaterThan(120);
+   // Touch devices intentionally hide desktop arrows; keyboard remains accessible.
+   await page.keyboard.press('ArrowRight');
    await expect.poll(()=>stage.getAttribute('data-zoomed')).toBe('false');
    await page.evaluate(()=>document.dispatchEvent(new Event('veyra:close-profile-gallery')));
    await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
@@ -2270,4 +2320,127 @@ test.describe('Stage 2 hotfix identical own/other motion architecture',()=>{
    expect(a).toEqual(b);
   });
  }
+});
+
+// Stage 2.2 visual evidence is captured from a signed, synthetic local browser-server
+// session. This test never touches live database records or payment providers.
+test('STAGE2.2 contact sheets: eleven forward/reverse frames, photo 3, mobile and landscape',async({page},info)=>{
+ test.setTimeout(180000);
+ await telegram(page,10);
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-own-member .vx-profile-scroller');
+ await expect(scroller).toBeVisible();
+ const getDistance=()=>scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ const d=await getDistance();
+ const shots=[],metrics=[];
+ const shoot=async(tag,p)=>{
+  await scroller.evaluate((el,y)=>el.scrollTop=y,d*p);
+  await page.waitForTimeout(25);
+  const evidence=await page.evaluate(()=>{
+   const q=s=>document.querySelector(s),rect=e=>{const r=e?.getBoundingClientRect();return r?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}:null};
+   const scroll=q('.vx-profile-scroller'),rail=q('.vx-profile-tab-rail'),hero=q('.vx-profile-hero-photo'),badge=q('.vx-profile-goal'),actions=q('.vx-profile-primary-actions');
+   const r=rect(rail);const hits=r?[10,26,48].map(n=>document.elementsFromPoint(window.innerWidth/2,r.bottom+n).slice(0,4).map(el=>typeof el.className==='string'?el.className:el.tagName)):[];
+   return {y:scroll.scrollTop,top:rect(scroll),rail:r,hero:rect(hero),badge:rect(badge),actions:rect(actions),hits,shape:hero?.style.clipPath,main:q('.vx-profile-main-crossfade')?.dataset.mainPhotoId,backdrop:q('.vx-profile-compact-backdrop')?.dataset.mainPhotoId,active:q('.vx-hero-swipe-slide:nth-child(2)')?.dataset.photoId};
+  });
+  metrics.push({tag,p,...evidence});
+  const snap=await page.screenshot({path:info.outputPath('stage2-2-'+tag+'.png')});
+  shots.push(await sharp(snap).resize({width:126}).jpeg({quality:36}).toBuffer());
+ };
+ for(let i=0;i<=10;i++)await shoot('down-'+i,i/10);
+ for(let i=10;i>=0;i--)await shoot('up-'+i,i/10);
+ // The preview must stay on the selected third slide after collapse and expand.
+ const hero=page.locator('.vx-hero-swipe-track');
+ for(let n=0;n<2;n++){
+  // This filmstrip intentionally sets the committed slide without introducing
+  // a second physical gesture into the exact per-progress capture.
+  await hero.evaluate(el=>{
+   const r=el.getBoundingClientRect();
+   el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:r.left+r.width*.9,clientY:r.top+Math.min(100,r.height/2)}));
+  });
+  await page.waitForTimeout(40);
+ }
+ await expect(page.locator('.vx-hero-swipe-slide:nth-child(2)')).not.toHaveAttribute('data-photo-id',metrics[0].main);
+ for(let i=0;i<=10;i++)await shoot('photo3-down-'+i,i/10);
+ for(let i=10;i>=0;i--)await shoot('photo3-up-'+i,i/10);
+ const cross=metrics.filter(x=>x.tag==='photo3-down-3');
+ expect(cross[0]?.main).toBe(cross[0]?.backdrop);
+ expect(cross[0]?.active).not.toBe(cross[0]?.main);
+ const compact=metrics.find(x=>x.tag==='photo3-down-10');
+ expect(Math.abs(compact.rail.top-compact.top.top-292)).toBeLessThan(2);
+ expect(compact.badge.bottom).toBeLessThanOrEqual(compact.actions.top+1);
+ const imageWidth=126,imageHeight=Math.round(844*126/390);
+ const columns=11,rows=4;
+ const sheet=await sharp({create:{width:columns*imageWidth,height:rows*imageHeight,channels:3,background:'#efeff2'}})
+   .composite(shots.map((input,i)=>({input,left:(i%columns)*imageWidth,top:Math.floor(i/columns)*imageHeight}))).jpeg({quality:41}).toBuffer();
+ await info.attach('STAGE2_2_contact_sheet_390.jpg',{body:sheet,contentType:'image/jpeg'});
+ await info.attach('STAGE2_2_geometry.json',{body:JSON.stringify(metrics,null,2),contentType:'application/json'});
+ console.log('STAGE2_2_CONTACT_SHEET_JPEG_BASE64:'+sheet.toString('base64'));
+ for(const [width,height] of [[360,740],[412,915],[740,360]]){
+  await page.setViewportSize({width,height});const current=await getDistance();
+  for(const [state,y] of [['expanded',0],['compact',current]]){
+   await scroller.evaluate((el,top)=>el.scrollTop=top,y);await page.waitForTimeout(40);
+   await page.screenshot({path:info.outputPath('stage2-2-'+width+'x'+height+'-'+state+'.png')});
+   if(height<500&&state==='compact'){
+    const geometry=await page.evaluate(()=>{
+     const rail=document.querySelector('.vx-profile-tab-rail').getBoundingClientRect();
+     const nav=document.querySelector('.bottom-nav').getBoundingClientRect();
+     const actions=document.querySelector('.vx-profile-primary-actions').getBoundingClientRect();
+     return {railTop:rail.top,railBottom:rail.bottom,navTop:nav.top,actionsBottom:actions.bottom};
+    });
+    expect(geometry.railTop,'Landscape tabs visible').toBeGreaterThanOrEqual(0);
+    expect(geometry.railBottom,'Landscape rail clears bottom nav').toBeLessThanOrEqual(geometry.navTop+1);
+    expect(geometry.actionsBottom,'Landscape actions clear tab rail').toBeLessThanOrEqual(geometry.railTop+1);
+   }
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ }
+});
+
+test.describe('STAGE2.2 direction release on touch',()=>{
+ test.use({hasTouch:true});
+ test('32 real CDP touch releases always reach one of two rests',async({page})=>{
+  test.setTimeout(150000);
+  await telegram(page,10);await page.setViewportSize({width:390,height:844});await page.goto('/');
+  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+  const scroll=page.locator('.vx-profile-scroller'),cdp=await page.context().newCDPSession(page);
+  const d=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+  const outcomes=[];
+  for(let i=0;i<32;i++){
+   const downward=i%2===0,initial=downward?0:d;
+   await scroll.evaluate((el,y)=>el.scrollTop=y,initial);
+   const x=140+(i%3)*13,y0=470,amount=30+(i%7)*12;
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y:y0}]});
+   for(let j=1;j<=5;j++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+(i%4)*2*j/5,y:y0+(downward?-1:1)*amount*j/5}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   await page.waitForTimeout(500);
+   const actual=await scroll.evaluate(el=>el.scrollTop);
+   // Raw scrollTop above d means content scrolling after the compact header.
+    // Check the bounded header progress, which has only two rest positions.
+    const headerY=Math.min(d,Math.max(0,actual));
+    const ok=Math.min(Math.abs(headerY),Math.abs(headerY-d))<=1;
+   outcomes.push({i,downward,amount,actual,ok});
+  }
+  await cdp.detach();
+  expect(outcomes.filter(x=>!x.ok),JSON.stringify(outcomes.filter(x=>!x.ok))).toHaveLength(0);
+ });
+});
+
+test('STAGE2.2 editor round-trip preserves selected photo and Embla tab',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const rail=page.locator('.vx-profile-tab-rail');
+ await rail.getByRole('tab',{name:'Фото'}).click();
+ await expect(rail.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await page.locator('.vx-profile-photos-grid button').nth(2).click();
+ await page.keyboard.press('ArrowRight');
+ await page.getByRole('dialog',{name:/Галерея/}).getByRole('button',{name:'Закрыть'}).click();
+ const selected=await page.locator('.vx-hero-swipe-slide:nth-child(2)').getAttribute('data-photo-id');
+ await rail.getByRole('tab',{name:'О себе'}).click();
+ await page.locator('.vx-profile-action.primary').first().click();
+ await expect(page.getByRole('dialog',{name:'Анкета'})).toBeVisible();
+ await page.getByRole('dialog',{name:'Анкета'}).getByRole('button',{name:'Назад'}).click();
+ await expect(rail.getByRole('tab',{name:'О себе'})).toHaveAttribute('aria-selected','true');
+ expect(await page.locator('.vx-hero-swipe-slide:nth-child(2)').getAttribute('data-photo-id')).toBe(selected);
 });

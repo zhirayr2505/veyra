@@ -1,0 +1,47 @@
+name: Stage 2.2 legacy Playwright audit
+on:
+  pull_request:
+    paths:
+      - 'web/v5/**'
+      - 'tests/**'
+      - '.github/workflows/stage22-playwright-audit.yml'
+permissions:
+  contents: read
+jobs:
+  legacy-configs:
+    if: startsWith(github.head_ref, 'feat/stage2-2')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [profile, chat, design]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Execute requested legacy config and preserve its actual outcome
+        shell: bash
+        run: |
+          # Playwright clears its outputDir at startup; write stdout OUTSIDE
+          # test-results first and copy evidence back after tests finish.
+          set +e
+          npx playwright test --config=tests/${{ matrix.config }}.playwright.config.js --reporter=json > "$RUNNER_TEMP/${{ matrix.config }}.json" 2> "$RUNNER_TEMP/${{ matrix.config }}.stderr"
+          outcome=$?
+          mkdir -p test-results/stage22-legacy
+          cp "$RUNNER_TEMP/${{ matrix.config }}.json" "test-results/stage22-legacy/${{ matrix.config }}.json"
+          cp "$RUNNER_TEMP/${{ matrix.config }}.stderr" "test-results/stage22-legacy/${{ matrix.config }}.stderr"
+          echo "${{ matrix.config }} exit code: ${outcome}"
+          echo "${outcome}" > "test-results/stage22-legacy/${{ matrix.config }}.exit"
+          # These configs target older V4 screens; record failures separately.
+          # They do not supersede the strict Stage 2.2 V5 release gate.
+          exit 0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage22-legacy-${{ matrix.config }}
+          path: test-results/stage22-legacy/
+          retention-days: 7

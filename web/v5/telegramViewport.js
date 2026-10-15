@@ -18,7 +18,9 @@ export function enableTelegramFullscreen(tg){
  const update=()=>{
   const safe=tg.safeAreaInset||{};
   const content=tg.contentSafeAreaInset||{};
-  root.style.setProperty('--veyra-telegram-status-top',Math.max(0,Number(safe.top)||0)+'px');
+  root.style.setProperty('--tg-safe-area-inset-top',Math.max(0,Number(safe.top)||0)+'px');
+   root.style.setProperty('--tg-content-safe-area-inset-top',Math.max(0,Number(content.top)||0)+'px');
+   root.style.setProperty('--veyra-telegram-status-top',Math.max(0,Number(safe.top)||0)+'px');
   const top=Math.max(0,Number(safe.top)||0,Number(content.top)||0);
   const bottom=Math.max(0,Number(safe.bottom)||0,Number(content.bottom)||0);
   root.style.setProperty('--veyra-telegram-top',top+'px');

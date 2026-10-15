@@ -9,9 +9,10 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
   axis:'x',loop:false,align:'start',containScroll:false,
   dragFree:false,duration:22,dragThreshold:10,
   watchDrag:(_api,event)=>{
-   // The photo grid is interactive but horizontal drags must reach Embla.
-   if(event.target?.closest?.('.vx-profile-photos-grid'))return true;
-   return !event.target?.closest?.('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
+   // Allow a swipe to begin on a profile-section edit button. Embla only
+   // takes over after 10px horizontal intent; a tap still activates editing.
+   // Text-entry widgets, links and the gallery are separate gesture domains.
+   return !event.target?.closest?.('a,input,textarea,select,[contenteditable],.photo-gallery-mini');
   }
  });
  const viewportElement=useRef(null);
@@ -23,22 +24,14 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
   if(!viewport)return;
   const panel=Array.from(viewport.querySelectorAll('.vx-profile-swipe-page')).find(x=>x.getAttribute('aria-label')===tabs.find(([key])=>key===active)?.[1]);
   if(!panel)return;
-  let firstMeasurement=true;
   const measure=()=>{
    if(!viewport.isConnected)return;
    const nextHeight=Math.ceil(panel.getBoundingClientRect().height);
    if(Math.abs(viewport.offsetHeight-nextHeight)>.5)viewport.style.height=nextHeight+'px';
-   const scroller=viewport.closest('.vx-profile-scroller'),spacer=scroller?.querySelector('.vx-profile-open-spacer');
-   if(scroller&&spacer){
-    const compact=parseFloat(getComputedStyle(scroller).getPropertyValue('--vx-profile-compact-height'))||292;
-    const collapseEnd=Math.max(0,spacer.offsetHeight-compact);
-    const maxScroll=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-    // Only tab selection returns a deeply scrolled page to the compact header.
-    // Subsequent active-content ResizeObserver events must allow reading below it.
-    const limit=firstMeasurement?Math.min(collapseEnd,maxScroll):maxScroll;
-    if(scroller.scrollTop>limit+.5)scroller.scrollTop=limit;
-   }
-   firstMeasurement=false;
+   // Keep vertical position independent of Embla tab selection. Forcing a
+   // scrollTop write during a ResizeObserver measurement makes gallery tiles
+   // move under the finger/Playwright click while their images decode.
+   // The browser itself clamps scrollTop when content becomes shorter.
   };
   const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
   ro?.observe(panel);measure();

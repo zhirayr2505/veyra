@@ -7,7 +7,7 @@ test('single 205ms clipped WAAPI transition preserves steps and cancels animatio
  for(const token of ['cloneNode(true)','clone.inert=true','incoming?.animate','clone?.animate','stepTransitionRef.current','Promise.allSettled','prefers-reduced-motion','duration=reduced?0:205','flushSync(()=>setStep(target))'])
   assert.ok(src.includes(token),token);
  assert.match(src,/data-transition-ms="205"/);
- assert.match(read('web/v5/Stage1Bugfix.css'),/registration-step-viewport/);
+ assert.match(read('web/v5/Registration2026.css'),/registration-step-viewport/);
  assert.doesNotMatch(src,/document\.startViewTransition|setKeyboardActive/);
  assert.doesNotMatch(css,/::view-transition|@keyframes veyraStep|veyraItemReveal/);
  assert.doesNotMatch(read('web/v5/style.css'),/\.registration-step\.forward\{animation:/);

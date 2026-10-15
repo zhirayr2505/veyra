@@ -11,14 +11,14 @@ test('ScrollTimeline keyframes stay ordered through the collapse and hold compac
   for(let i=1;i<frames.length;i++)assert.ok(frames[i].offset>frames[i-1].offset,name+' duplicate '+i);
   assert.deepEqual(Object.keys(frames[0]).sort(),Object.keys(frames.at(-1)).sort());
  }
- assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto','rim','online'].sort());
+ assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto','rim','online','mainPhoto'].sort());
  assert.equal(tracks.actions.at(-1).transform,tracks.actions.at(-2).transform);
 });
 test('hero uses uniform scale, not an independent scaleX/scaleY or compensation layer',()=>{
  const width=390,height=447,distance=373,total=1200;
  const tracks=buildProfileScrollKeyframes(width,height,distance,total,292);
- const f=profileFrame(.38,width,height,292);
- const at=tracks.hero.find(v=>Math.abs(v.offset-.38*distance/total)<.00002);
+ const f=profileFrame(.60,width,height,292);
+ const at=tracks.hero.find(v=>Math.abs(v.offset-.60*distance/total)<.00002);
  assert.ok(at);
  assert.equal(at.transform,`translate3d(${f.heroX.toFixed(3)}px,${f.heroY.toFixed(3)}px,0) scale(${f.heroScale.toFixed(7)})`);
  assert.equal(tracks.hero[0].transform,'translate3d(0.000px,0.000px,0) scale(1.0000000)');

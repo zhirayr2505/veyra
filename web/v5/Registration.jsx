@@ -13,7 +13,7 @@ import {ProfilePreview} from './ProfilePreview.jsx';
 import {BrandedSlider,BrandedDualSlider} from './RangeControls.jsx';
 import './Registration2026.css';
 import './RegistrationTransitions.css';
-import './Stage1Bugfix.css';
+
 import {LegalScreen} from './Legal.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
 

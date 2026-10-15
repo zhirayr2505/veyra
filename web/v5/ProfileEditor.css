@@ -1,0 +1,17 @@
+/* Profile editor shares registration interest components and VEYRA palette. */
+.vx-editor-sheet{position:relative;padding-top:0;background:var(--vx-color-surface,#fff);max-height:100dvh}
+.vx-editor-sheet>.vx-top-zone{margin:0 -18px 16px;width:calc(100% + 36px)}
+.veyra-editor-unified .vx-interest-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;color:var(--vx-color-ink,#2f203e);font-size:15px;font-weight:800}
+.veyra-editor-unified .vx-interest-counter{flex:none;display:grid;place-items:center;min-width:58px;height:32px;border-radius:99px;background:var(--vx-color-raised,#efe4ff);color:var(--vx-color-accent,#6f39c9);font-size:13px;border:1px solid var(--vx-color-outline,#ded2ed)}
+.veyra-editor-unified .vx-interest-search{display:flex;align-items:center;position:relative;gap:10px;min-height:48px;padding:0 12px;color:var(--vx-color-accent,#7440bd);border:1px solid var(--vx-color-outline,#ded2ed);background:var(--vx-color-surface,#fff);border-radius:16px}
+.veyra-editor-unified .vx-interest-search>.kit-icon{flex:none;width:20px;height:20px}
+.veyra-editor-unified .vx-interest-search input{flex:1;min-width:0;min-height:46px;border:0;background:transparent;outline:none;box-shadow:none;padding:0;font-size:14px;color:var(--vx-color-ink,#2f203e)}
+.veyra-editor-unified .vx-interest-category-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;max-width:100%;padding:3px 1px 8px;touch-action:pan-x}
+.veyra-editor-unified .vx-interest-category-tabs button,.veyra-editor-unified .vx-selected-more{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;min-height:36px;padding:7px 12px;border:1px solid var(--vx-color-outline,#ded2ed);border-radius:13px;background:var(--vx-color-raised,#f8f4ff);color:var(--vx-color-ink,#49375b);font-size:12px;font-weight:750;box-shadow:none;appearance:none}
+.veyra-editor-unified .vx-interest-category-tabs button.active{background:var(--vx-gradient-primary,linear-gradient(110deg,#d772c3,#7751d5));color:white;border-color:transparent}
+.veyra-editor-unified .vx-selected-wrap{display:flex;gap:6px;align-items:flex-start;min-width:0}
+.veyra-editor-unified .vx-selected-chips{display:flex;flex:1;flex-wrap:wrap;gap:6px;min-width:0}
+.veyra-editor-unified .vx-interest-chip-grid{display:flex;flex-wrap:wrap;gap:7px}
+.veyra-editor-unified .vx-interest-chip-grid button{display:inline-flex;align-items:center;gap:6px;min-height:44px;border-radius:14px;padding:8px 11px;background:var(--vx-color-raised,#fff);border:1px solid var(--vx-color-outline,#ded2ed);color:var(--vx-color-ink,#49375b);font-size:12px}
+.veyra-editor-unified .vx-interest-chip-grid button[data-selected="true"]{background:var(--vx-gradient-primary,linear-gradient(110deg,#d772c3,#7751d5));border-color:transparent;color:white}
+.veyra-editor-unified .veyra-picker-head span{border-radius:99px;padding:5px 11px;background:var(--vx-color-raised,#f8f4ff);color:var(--vx-color-accent,#6e3cae)}
