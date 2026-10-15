@@ -23,6 +23,7 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
   if(!viewport)return;
   const panel=Array.from(viewport.querySelectorAll('.vx-profile-swipe-page')).find(x=>x.getAttribute('aria-label')===tabs.find(([key])=>key===active)?.[1]);
   if(!panel)return;
+  let firstMeasurement=true;
   const measure=()=>{
    if(!viewport.isConnected)return;
    const nextHeight=Math.ceil(panel.getBoundingClientRect().height);
@@ -30,9 +31,14 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
    const scroller=viewport.closest('.vx-profile-scroller'),spacer=scroller?.querySelector('.vx-profile-open-spacer');
    if(scroller&&spacer){
     const compact=parseFloat(getComputedStyle(scroller).getPropertyValue('--vx-profile-compact-height'))||292;
-    const end=Math.max(0,spacer.offsetHeight-compact);
-    if(scroller.scrollTop>end+.5)scroller.scrollTop=end;
+    const collapseEnd=Math.max(0,spacer.offsetHeight-compact);
+    const maxScroll=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    // Only tab selection returns a deeply scrolled page to the compact header.
+    // Subsequent active-content ResizeObserver events must allow reading below it.
+    const limit=firstMeasurement?Math.min(collapseEnd,maxScroll):maxScroll;
+    if(scroller.scrollTop>limit+.5)scroller.scrollTop=limit;
    }
+   firstMeasurement=false;
   };
   const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
   ro?.observe(panel);measure();
