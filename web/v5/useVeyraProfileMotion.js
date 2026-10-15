@@ -1,5 +1,5 @@
 import {useCallback,useLayoutEffect,useRef} from 'react';
-import {clamp,profileFrame,profileCircleGeometry,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
+import {clamp,profileFrame,profileCircleGeometry,profileMorphInset,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 import {profileProbeEnabled,recordProfileCalibration,recordProfileFrame} from './profilePerfProbe.js';
 import {createProfileScrollAnimations} from './profileScrollTimeline.js';
 import {elasticPullDistance,elasticPhotoScale} from './profileElasticMath.js';
@@ -15,16 +15,6 @@ function writeElastic(el,pull,width,settling=false){
  el.style.setProperty('--vx-elastic-x',(-width*(scale-1)/2).toFixed(2)+'px');
 }
 
-const MORPH_MS=180,MORPH_EASE='cubic-bezier(.2,.8,.2,1)';
-function runMorph(s,hero,shape,instant){
- if(!s.morph){
-  s.morph=hero.animate([{clipPath:s.clipCover},{clipPath:s.clipCircle}],{duration:MORPH_MS,easing:MORPH_EASE,fill:'both'});
-  s.morph.pause();s.morph.currentTime=shape==='circle'?MORPH_MS:0;
- }
- if(instant){s.morph.pause();s.morph.currentTime=shape==='circle'?MORPH_MS:0;return}
- s.morph.playbackRate=shape==='circle'?1:-1;
- s.morph.play();
-}
 function writeBottomElastic(el,pull,settling=false){
  if(!el)return;
  el.classList.toggle('vx-bottom-elastic-release',settling);
@@ -35,16 +25,16 @@ function writeBottomElastic(el,pull,settling=false){
 // Native WebView owns touch momentum; we read scrollTop once per frame.
 export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  const state=useRef({
-  frame:0,timer:0,snapRaf:0,settleRaf:0,settleElement:null,prevScrollBehavior:null,observed:null,
+  frame:0,snapRaf:0,settleRaf:0,settleElement:null,prevScrollBehavior:null,observed:null,
   distance:1,width:1,height:1,lastProgress:-1,
   touching:false,released:false,snapping:false,axis:null,
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
-  refs:null,resizeObserver:null,nativeAnimation:null,engine:'JS fallback',radiusPhase:null,morph:null,clipCover:'inset(0px 0px 0px 0px round 0px)',clipCircle:null,elastic:0,bottomElastic:0,startScrollY:0,startAtBottom:false,
+  refs:null,resizeObserver:null,nativeAnimation:null,engine:'JS fallback',elastic:0,bottomElastic:0,startScrollY:0,startAtBottom:false,
  });
  const stop=useCallback(()=>{
   const s=state.current;
-  clearTimeout(s.timer);cancelAnimationFrame(s.snapRaf);cancelAnimationFrame(s.settleRaf);
+  cancelAnimationFrame(s.snapRaf);cancelAnimationFrame(s.settleRaf);
   if(s.settleElement&&s.prevScrollBehavior!==null)s.settleElement.style.scrollBehavior=s.prevScrollBehavior;
   s.settleElement=null;s.prevScrollBehavior=null;s.snapping=false;s.released=false;
  },[]);
@@ -78,14 +68,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    // In Chromium, the scroll position drives visual transforms without JS.
    // JS now only samples momentum/snap, reports opt-in timings, and changes
    // the shape clip at two phase boundaries (never per frame).
-   const circleNow=s.radiusPhase==='circle'?p>=PROFILE_CIRCLE_AT-.02:p>=PROFILE_CIRCLE_AT;
-   const shape=circleNow?'circle':'cover';
-   if(shape!==s.radiusPhase){
-    const first=s.radiusPhase===null;
-    s.radiusPhase=shape;
-    motion.dataset.photoShape=shape;
-    runMorph(s,parts.hero,shape,first);
-   }
+   const shape=p>=PROFILE_CIRCLE_AT?'circle':'cover';
+   if(motion.dataset.photoShape!==shape)motion.dataset.photoShape=shape;
    if(s.nativeAnimation){
     const phase=p<=.002?'expanded':p>=.998?'compact':'transition';
     if(motion.dataset.state!==phase)motion.dataset.state=phase;
@@ -99,6 +83,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    const f=profileFrame(p,s.width,s.height,s.compactHeight);
    const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
    parts.hero.style.transform=translate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(6)+')';
+    parts.hero.style.clipPath=profileMorphInset(p,s.width,s.height,s.diameter,s.maskCenterY);
    if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
@@ -111,6 +96,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.backdropPhoto){const t=clamp((p-.30)/.55);parts.backdropPhoto.style.opacity=(t*t*(3-2*t)).toFixed(3)}
+   if(parts.rim)parts.rim.style.opacity=clamp((p-.30)/.08).toFixed(3);
+   if(parts.online)parts.online.style.opacity=clamp((p-.30)/.08).toFixed(3);
 
 
     if(parts.grabber){
@@ -243,18 +230,17 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   hero.style.setProperty('--vx-profile-mask-radius',(diameter/2).toFixed(3)+'px');
   hero.style.setProperty('--vx-profile-mask-center-y',geometry.maskCenterY.toFixed(3)+'px');
   s.distance=distance;
-  const D=diameter,cy=geometry.maskCenterY,w=s.width,h=s.height;
-  s.clipCover='inset(0px 0px 0px 0px round 0px)';
-  s.clipCircle='inset('+(cy-D/2).toFixed(2)+'px '+((w-D)/2).toFixed(2)+'px '+(h-cy-D/2).toFixed(2)+'px '+((w-D)/2).toFixed(2)+'px round '+(D/2).toFixed(2)+'px)';
+  s.diameter=diameter;s.maskCenterY=geometry.maskCenterY;
   if(s.elastic>0)writeElastic(el,s.elastic,s.width,false);
-  s.morph?.cancel();s.morph=null;
-  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.radiusPhase=null;s.lastCalibrated=true;
+  s.nativeAnimation?.cancel();s.nativeAnimation=null;s.lastCalibrated=true;
   // Previous JS fallback transforms must not override WAAPI motion.
   if(s.refs)for(const part of Object.values(s.refs)){
    if(part?.style){part.style.removeProperty('transform');part.style.removeProperty('opacity');part.style.removeProperty('clip-path')}
   }
   s.refs={
    hero,
+   rim:motion.querySelector('.vx-profile-photo-morph-rim'),
+   online:motion.querySelector('.vx-profile-online'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),
    backdrop:motion.querySelector('.vx-profile-compact-backdrop'),
@@ -300,7 +286,6 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   return()=>{
    stop();cancelAnimationFrame(s.frame);s.frame=0;
    s.elastic=0;s.bottomElastic=0;writeElastic(el,0,s.width,false);writeBottomElastic(el,0,false);
-   s.morph?.cancel();s.morph=null;
    s.nativeAnimation?.cancel();s.nativeAnimation=null;
    s.resizeObserver?.disconnect();
    el?.removeEventListener('scroll',onScroll);
