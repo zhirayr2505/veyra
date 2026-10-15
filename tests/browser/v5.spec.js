@@ -2010,39 +2010,25 @@ test('Stage 2 survives twenty collapse, photo gallery and swipe-tab cycles',asyn
  expect(errors).toEqual([]);
 });
 
-test('Stage 2 Telegram haptic fires once per deliberate forward circle threshold crossing',async({page})=>{
+test('Stage 2 Telegram haptic fires only at the end of a deliberate settle',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
- const scroller=page.locator('.vx-profile-scroller'),motion=page.locator('.vx-profile-motion');
- const distance=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
-  parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
- await page.evaluate(()=>{
-  window.__stage2Haptics=[];
-  window.Telegram.WebApp.HapticFeedback={impactOccurred:type=>window.__stage2Haptics.push(type)};
- });
- // Programmatic jumps must NOT vibrate if no genuine touch or wheel gesture.
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.38},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
+ const scroller=page.locator('.vx-profile-scroller');
+ const d=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await page.evaluate(()=>{window.__stage2Haptics=[];window.Telegram.WebApp.HapticFeedback={impactOccurred:type=>window.__stage2Haptics.push(type)}});
+ await scroller.evaluate((el,d)=>el.scrollTop=d*.4,d);
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeGreaterThan(d-1);
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual([]);
- await scroller.evaluate(el=>{el.scrollTop=0});
- await expect(motion).toHaveAttribute('data-photo-shape','cover');
+ await scroller.evaluate(el=>el.scrollTop=0);
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeLessThan(1);
  await scroller.evaluate((el,d)=>{
-  el.dispatchEvent(new Event('touchstart',{bubbles:true}));
-  el.scrollTop=d*.39;
- },distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
+  const finger=new Touch({identifier:3,target:el,clientX:160,clientY:480});
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[finger],changedTouches:[finger]}));
+  el.scrollTop=d*.3;
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[finger]}));
+ },d);
+ await expect.poll(()=>scroller.evaluate(el=>el.scrollTop),{timeout:3000}).toBeGreaterThan(d-1);
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.32},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
- expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
- await scroller.evaluate(el=>{el.scrollTop=0});
- await expect(motion).toHaveAttribute('data-photo-shape','cover');
- await scroller.evaluate((el,d)=>{el.scrollTop=d*.39},distance);
- await expect(motion).toHaveAttribute('data-photo-shape','circle');
- expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light','light']);
- await scroller.evaluate(el=>el.dispatchEvent(new Event('touchend',{bubbles:true})));
 });
 
 test('Stage 2 compositor telemetry under Chromium CPU throttling 4x',async({page},testInfo)=>{
@@ -2229,7 +2215,8 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
     emit('pointerup',1,70,280);emit('pointerup',2,250,280);
    });
    await expect(stage).toHaveAttribute('data-zoomed','true');
-   await page.getByRole('dialog',{name:/Галерея/}).getByRole('button',{name:'Следующее фото'}).click();
+   // Touch devices intentionally hide desktop arrows; keyboard remains accessible.
+   await page.keyboard.press('ArrowRight');
    await expect.poll(()=>stage.getAttribute('data-zoomed')).toBe('false');
    await page.evaluate(()=>document.dispatchEvent(new Event('veyra:close-profile-gallery')));
    await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);

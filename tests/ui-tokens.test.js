@@ -15,7 +15,7 @@ test('v5 imports one shared palette after screen overrides',()=>{
 
 test('all seven interest tones have one source and registration/profile share button tokens',()=>{
  const tokens=read('web/v5/tokens.css');
- const profile=read('web/v5/MemberPolish7.css');
+ const profile=read('web/v5/member/profile.css');
  for(const tone of ['violet','rose','sky','mint','amber','iris','teal']){
   assert.ok(tokens.includes('--vx-tone-'+tone+'-bg:'));
   assert.ok(tokens.includes('[data-tone="'+tone+'"]'));
