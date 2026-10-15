@@ -1685,12 +1685,11 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
     transform:style.transform,heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight};
   });
  };
- let expectedShape='cover';
  for(const p of [0,.15,.3,.33,.339,.34,.36,.46,.7,1,.7,.46,.36,.34,.339,0]){
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  expectedShape=p>=.38?'circle':'cover';
+  const expectedShape=p>=.38?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
   // A 180ms WAAPI morph interpolates inset dimensions; radius is never switched abruptly.
   expect(v.clip).toMatch(/^inset/);
