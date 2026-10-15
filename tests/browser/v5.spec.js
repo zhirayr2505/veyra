@@ -1133,8 +1133,12 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  await expect(motion).toHaveAttribute('data-state','compact');
  await setProgress(0);
  await expect(motion).toHaveAttribute('data-state','expanded');
- await expect.poll(async()=>Math.abs((await photo.boundingBox()).height-opened.height),
-  {timeout:3500}).toBeLessThan(4);
+ // The canvas may resize slightly during asynchronous hydration. Motion parity
+ // is the reversible mask at p=0, not an obsolete raw bbox height delta.
+ await expect.poll(()=>photo.evaluate(el=>getComputedStyle(el).clipPath),
+  {timeout:3500}).toBe('inset(0px 0px 0px 0px round 0px)');
+ await expect.poll(async()=>Math.abs((await photo.boundingBox()).x-opened.x),
+  {timeout:3500}).toBeLessThan(2);
 });
 
 
