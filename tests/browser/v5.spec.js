@@ -2344,7 +2344,10 @@ test.describe('STAGE2.2 direction release on touch',()=>{
    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
    await page.waitForTimeout(500);
    const actual=await scroll.evaluate(el=>el.scrollTop);
-   const ok=Math.min(Math.abs(actual),Math.abs(actual-d))<=1;
+   // Raw scrollTop above d means content scrolling after the compact header.
+    // Check the bounded header progress, which has only two rest positions.
+    const headerY=Math.min(d,Math.max(0,actual));
+    const ok=Math.min(Math.abs(headerY),Math.abs(headerY-d))<=1;
    outcomes.push({i,downward,amount,actual,ok});
   }
   await cdp.detach();

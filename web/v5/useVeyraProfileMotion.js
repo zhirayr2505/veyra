@@ -244,8 +244,15 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.releaseVelocity=release.velocity;
   s.gestureRelease=true;s.released=true;s.releaseAt=performance.now();
   s.lastScrollAt=s.releaseAt;
-  queueSnap();
- },[queueSnap,scrollRef]);
+  // Finger release starts a spring right now, before WebView momentum can
+  // drag the intermediate header beyond the user's 500ms release deadline.
+  // The 90ms quiet-time path is for wheel and scrollend without touch.
+  const target=releaseTarget(release.direction,y,d,s.startScrollY);
+  if(Math.abs(target-y)>.5){
+   if(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){el.scrollTop=target;paint()}
+   else settleTo(el,target,release.velocity);
+  }else{s.released=false;paint()}
+ },[scrollRef,paint,settleTo]);
  const onWheel=useCallback(e=>{
   const s=state.current;s.released=true;s.gestureRelease=false;
   if(Math.abs(e.deltaY)>0)s.releaseDirection=Math.sign(e.deltaY);

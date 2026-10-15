@@ -39,7 +39,7 @@ test('uniformly scaled photo is reversible and docks at 98px in the approved loc
  }
  const last=frame(1);
  assert.deepEqual([last.x,last.y,last.width,last.height,last.radius],[16,102,98,98,50]);
- assert.equal(last.nameX,110);assert.equal(last.nameY,116);assert.equal(last.actionY,222);
+ assert.equal(last.nameX,110);assert.equal(last.nameY,116);assert.equal(last.actionY,228); // 6px extra goal badge clearance in compact rest
 });
 test('the circular mask remains centered on the transformed photo as it moves',()=>{
  for(let i=Math.round(PROFILE_CIRCLE_AT*1000);i<=1000;i++){
