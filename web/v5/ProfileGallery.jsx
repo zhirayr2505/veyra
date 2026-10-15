@@ -121,8 +121,9 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   if(s.pointers.size){
    // Rebase the remaining finger at the current transform, not at pinch start.
    const v=[...s.pointers.values()][0];
-   s.from={x:v.x,y:v.y,baseX:s.x,baseY:s.y,at:performance.now()};
-   s.pinch=null;return;
+   s.scale=clamp(s.scale,1,4);
+   s.from={x:v.x,y:v.y,baseX:s.x,baseY:s.y,at:performance.now(),lastX:v.x,lastY:v.y,lastAt:performance.now(),vx:0,vy:0,axis:null};
+   s.pinch=null;apply(true);return;
   }
   stageRef.current?.removeAttribute('data-dragging');
   if(isPinching){s.pinch=null;s.from=null;s.scale=clamp(s.scale,1,4);apply(true);return}
@@ -157,7 +158,7 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   <div className="vx-gallery-footer"><PhotoSegments count={photos.length} index={index} className="vx-profile-gallery-bars"/><small className="vx-profile-gallery-counter" aria-live="polite">{index+1}/{photos.length}</small></div>
   {showHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
   <div className="vx-gallery-prefetch" aria-hidden="true">
-   {photos.length>1&&[photos[(index+1)%photos.length],photos[(index-1+photos.length)%photos.length]].filter((v,i,a)=>a.indexOf(v)===i).map(id=><Photo key={id} id={id} resolution={640} priority alt="" />)}
+   {photos.length>1&&[photos[(index+1)%photos.length],photos[(index-1+photos.length)%photos.length]].filter((v,i,a)=>a.indexOf(v)===i).map(id=><Photo key={id} id={id} resolution={960} priority alt="" />)}
   </div>
  </div>;
 }
