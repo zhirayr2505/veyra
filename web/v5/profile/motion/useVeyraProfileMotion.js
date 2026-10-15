@@ -134,7 +134,15 @@ export function useVeyraProfileMotion({
             s.lastProgress = -1;
           }
         }
-        if (Math.abs(p - s.lastProgress) < 0.0001) return;
+        // A fast gesture may cross the circle threshold between two paints.
+        // Haptic must not depend on the previously painted value having changed.
+        const hapticDue =
+          s.gesture &&
+          s.axis === "y" &&
+          !s.haptic &&
+          s.startScroll / s.distance < PROFILE_CIRCLE_AT &&
+          p >= PROFILE_CIRCLE_AT;
+        if (Math.abs(p - s.lastProgress) < 0.0001 && !hapticDue) return;
         s.lastProgress = p;
         motion.dataset.state =
           p <= 0.002 ? "expanded" : p >= 0.998 ? "compact" : "transition";
@@ -156,13 +164,7 @@ export function useVeyraProfileMotion({
                 parts[key].style[property] = String(value);
           }
         }
-        if (
-          s.gesture &&
-          !s.haptic &&
-          s.axis === "y" &&
-          s.startScroll / s.distance < PROFILE_CIRCLE_AT &&
-          p >= PROFILE_CIRCLE_AT
-        ) {
+        if (hapticDue) {
           s.haptic = true;
           try {
             window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.("light");
