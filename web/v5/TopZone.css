@@ -24,3 +24,9 @@
 /* Telegram Close owns the first 76px; keep feed tools below it. */
 html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__left,
 html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__right{top:max(81px,var(--vx-top,0px))}
+
+/* Profile's portalled wordmark must stay above the fixed canvas, while
+   dialog/gallery overlays own their visible controls and focus. */
+body>.vx-member-native-header.vx-top-zone{z-index:2200}
+body:has(.vx-profile-gallery)>.vx-member-native-header.vx-top-zone,
+body:has(.overlay)>.vx-member-native-header.vx-top-zone{visibility:hidden;pointer-events:none}

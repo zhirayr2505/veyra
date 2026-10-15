@@ -526,7 +526,7 @@ test('V5 free incoming likes reveal counts but never reveal private identities',
 test('VEYRA V2 serves its own wordmark and five navigation icon assets',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await expect(page.locator('.bottom-nav button')).toHaveCount(5);
- await expect(page.locator('.vx-dating-stage02 .vx-head .vx-logo')).toHaveAttribute('src','/veyra-design/veyra-wordmark-purple.svg');
+ await expect(page.locator('.vx-dating-stage02 .vx-head .vx-logo .vx-liquid-logo-fallback')).toHaveAttribute('src','/veyra-design/veyra-wordmark-purple.svg');
  for(const path of ['00_brand/veyra_logo_primary.svg','01_icons/inactive/search.svg','01_icons/inactive/cards.svg','01_icons/inactive/chats.svg','01_icons/inactive/heart.svg','01_icons/inactive/profile.svg','01_icons/active/heart.svg','04_empty_states/svg/no_results.svg']){
   const response=await page.request.get('/veyra-approved/'+path);
   expect(response.status(),path).toBe(200);
@@ -944,7 +944,9 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  const actions=member.locator('.vx-profile-primary-actions');
  const rail=member.getByRole('tablist',{name:'Разделы анкеты'});
  await expect(member).toBeVisible();
- await expect(photo.locator('.photo-box')).toHaveCount(1);
+ // Three committed carousel slides plus the main-photo crossfade stay mounted.
+ await expect(photo.locator('.vx-hero-swipe-slide > .photo-box')).toHaveCount(3);
+ await expect(photo.locator('.vx-profile-main-crossfade > .photo-box')).toHaveCount(1);
  await expect(page.locator('body > .vx-member-morph-frame')).toHaveCount(0);
  await expect(page.locator('body > .vx-member-morph-text')).toHaveCount(0);
  await expect(rail.getByRole('tab')).toHaveCount(4);
@@ -1011,7 +1013,9 @@ test('VEYRA fullscreen member keeps brand pinned, gallery and all four tabs func
  await expect(page.locator('body > .vx-profile-gallery')).toBeVisible();
  await page.locator('.gallery-close').click();
  await expect(page.locator('body > .vx-profile-gallery')).toHaveCount(0);
- await photo.locator('.photo-box').click();
+ await root.evaluate(el=>el.scrollTop=0);
+ await expect.poll(()=>page.locator('.vx-profile-motion').getAttribute('data-state')).toBe('expanded');
+ await photo.locator('.vx-hero-swipe-slide:nth-child(2) .photo-box').click();
  await expect(page.locator('body > .vx-profile-gallery')).toBeVisible();
  await page.locator('.gallery-close').click();
  await root.evaluate(el=>{el.scrollTop=0});
@@ -1078,7 +1082,8 @@ test('VEYRA swipe track follows finger and own profile uses the editable hero',a
  await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  await expect(page.locator('.vx-own-member')).toBeVisible();
- await expect(page.locator('.vx-own-member .vx-profile-hero-photo .photo-box')).toHaveCount(1);
+ // Four layers are intentional: three carousel slides and one shared main photo.
+ await expect(page.locator('.vx-own-member .vx-profile-hero-photo .photo-box')).toHaveCount(4);
  await expect(page.locator('.vx-own-member .vx-profile-primary-actions button')).toHaveCount(3);
  await expect(page.getByRole('tab',{name:'Ещё'})).toBeVisible();
  await page.getByRole('button',{name:'Изменить описание'}).click();
@@ -1110,10 +1115,11 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  expect(Math.abs(early.width-opened.width)).toBeLessThan(2);
  expect(Math.abs(early.x-opened.x)).toBeLessThan(2);
  expect(early.y).toBeLessThan(opened.y);
+ // At p=.46 the photo shape is a rounded rectangle, not a 190px circle.
  const middle=await setProgress(.46);
- expect(Math.abs(middle.width-190)).toBeLessThan(4);
- expect(Math.abs(middle.height-190)).toBeLessThan(4);
- expect(Math.abs(middle.x-(opened.width-middle.width)/2-opened.x)).toBeLessThan(5);
+ expect(Math.abs(middle.width-opened.width)).toBeLessThan(4);
+ expect(Math.abs(middle.height-opened.height)).toBeLessThan(4);
+ expect(await photo.evaluate(el=>getComputedStyle(el).clipPath)).toContain('round');
  const compact=await setProgress(1);
  expect(Math.abs(compact.width-98)).toBeLessThan(3);
  expect(Math.abs(compact.height-98)).toBeLessThan(3);
@@ -1300,7 +1306,8 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  const root=page.locator('.vx-profile-scroller'),hero=page.locator('.vx-profile-hero-photo');
  await expect(page.locator('body > .vx-member-native-header')).toBeVisible();
  const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?getComputedStyle(header,'::before').content:'unknown'});
- await expect.poll(halo).toBe('""');
+ // TopZone deliberately removes the old opaque pseudo-halo over portrait.
+ await expect.poll(halo).toBe('none');
  const lip=page.locator('.vx-profile-sheet-lip');
  const layers=await page.evaluate(()=>({
   lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
@@ -1315,7 +1322,7 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).clipPath.includes('round')),{timeout:3000}).toBe(true);
  await root.evaluate((el,y)=>{el.scrollTop=y},distance);
  await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
- await expect.poll(halo,{timeout:3000}).toBe('""');
+ await expect.poll(halo,{timeout:3000}).toBe('none');
  const city=await page.locator('.vx-profile-location').boundingBox();
  const goal=await page.locator('.vx-profile-goal').boundingBox();
  expect(goal.y).toBeGreaterThan(city.y+19);
