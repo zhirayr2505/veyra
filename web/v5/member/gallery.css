@@ -57,9 +57,12 @@
 }
 @keyframes vxProfileHintAppear{from{opacity:0}to{opacity:1}}
 
-@media(pointer:coarse){
+/* Desktop arrows are never touch overlays. */
+.vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-prev,
+.vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-next{display:none}
+@media(pointer:fine){
  .vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-prev,
- .vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-next{display:none}
+ .vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-next{display:grid}
 }
 @media(prefers-reduced-motion:reduce){.vx-profile-gallery .vx-profile-gallery-hint{animation:none}}
 

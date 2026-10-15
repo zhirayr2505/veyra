@@ -249,7 +249,7 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  await expect(page.locator('.mode-detail .vx-preview-member-stage .vx-profile-read-only')).toBeVisible();
  await expect(page.locator('.vx-profile-name-row')).toContainText('Six Photos Test');
  await expect(page.locator('.vx-profile-primary-actions')).toHaveCount(1);
-  await expect(page.locator('.vx-preview-member-stage .vx-profile-primary-actions button')).toHaveCount(2);
+  await expect(page.locator('.vx-preview-member-stage .vx-profile-primary-actions button')).toHaveCount(3);
   for(const action of await page.locator('.vx-preview-member-stage .vx-profile-primary-actions button').all())await expect(action).toBeEnabled();
  await page.screenshot({path:'test-results/stage2-1-registration-preview.png'});
  await page.locator('.vx-preview-member-stage .vx-own-profile-actions').getByRole('button',{name:'Мои фото'}).click();
@@ -1032,7 +1032,9 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].x-sizes[1].x)).toBeLessThan(2);
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
- expect(await rail.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(250, 246, 255)');
+ const railPaint=await rail.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,blur:getComputedStyle(el).backdropFilter}));
+  // Stage 2.2 specifies a 94%-opaque rail surface without backdrop-filter.
+  expect(railPaint.bg).toContain('0.94');expect(railPaint.blur).toBe('none');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
@@ -1689,7 +1691,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  const expectedShape=p>=.38?'circle':'cover';
+  const expectedShape=p>=.60?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
   // Mask is deterministically interpolated from the same scroll progress as transform.
   expect(v.clip).toMatch(/^inset/);
@@ -1764,7 +1766,7 @@ for(const disableTimeline of [false,true]){
    const a=forward[i],b=backwards[backwards.length-1-i];
    const at=Math.min(distance,i*4)/distance;
    expect(a.duplicate).toBe(0);
-   expect(a.shape).toBe(at<.38?'cover':'circle');
+   expect(a.shape).toBe(at<.60?'cover':'circle');
    // Mask is tied to exactly the same progress in both directions.
    expect(a.shape).toBe(b.shape);
    expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
@@ -1773,7 +1775,7 @@ for(const disableTimeline of [false,true]){
    // The single scroll-synced morph always uses the same inset() mask.
    expect(a.clip).toMatch(/^inset/);
    expect(b.clip).toMatch(/^inset/);
-   if(at>=.38){
+   if(at>=.60){
     expect(a.circle.d).toBeLessThanOrEqual(a.viewportWidth*.62+1);
     expect(a.circle.d).toBeGreaterThanOrEqual(97);
    }
@@ -2282,7 +2284,7 @@ test('STAGE2.2 contact sheets: eleven forward/reverse frames, photo 3, mobile an
    return {y:scroll.scrollTop,top:rect(scroll),rail:r,hero:rect(hero),badge:rect(badge),actions:rect(actions),hits,shape:hero?.style.clipPath,main:q('.vx-profile-main-crossfade')?.dataset.mainPhotoId,backdrop:q('.vx-profile-compact-backdrop')?.dataset.mainPhotoId,active:q('.vx-hero-swipe-slide:nth-child(2)')?.dataset.photoId};
   });
   metrics.push({tag,p,...evidence});
-  const snap=await page.screenshot({path:info.outputPath('stage2-2-'+tag+'.png'),animations:'disabled'});
+  const snap=await page.screenshot({path:info.outputPath('stage2-2-'+tag+'.png')});
   shots.push(await sharp(snap).resize({width:126}).jpeg({quality:36}).toBuffer());
  };
  for(let i=0;i<=10;i++)await shoot('down-'+i,i/10);

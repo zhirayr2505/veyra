@@ -20,3 +20,7 @@
 .veyra-v2 .vx-top-zone--floating .vx-top-zone__center{pointer-events:auto;}
 .veyra-v2 .vx-top-zone--floating .vx-member-floating-logo{pointer-events:auto;cursor:pointer;}
 .veyra-v2 .vx-dating-stage02 .vx-top-zone.vx-head .vx-logo{max-height:40px;}
+
+/* Telegram Close owns the first 76px; keep feed tools below it. */
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__left,
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__right{top:max(76px,var(--vx-top,0px))}

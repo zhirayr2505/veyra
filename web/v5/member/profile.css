@@ -352,9 +352,10 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  display:flex;gap:10px;align-items:center;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid{
- grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid button{
+ position:relative;display:block;width:100%;padding:0;border:0;overflow:hidden;
  border-radius:18px;aspect-ratio:174/224;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid img{object-fit:cover}
@@ -1280,7 +1281,7 @@ body>.vx-member-native-header .vx-member-more{display:none}
  to{background-position:-120% 0}
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid .photo-box{
- position:relative;z-index:1;
+ position:relative;z-index:1;display:block;width:100%;height:100%;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid .photo-box img{
  animation:vxProfilePhotoFade .18s ease-out both;
