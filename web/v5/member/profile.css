@@ -1319,3 +1319,12 @@ body>.vx-member-native-header .vx-member-more{display:none}
 
 
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{clip-path:inset(0px 0px 36px 0px)}
+
+/* Short landscape keeps compact tabs fully above the native bottom nav;
+   use the same compact-height variable and the same 98px avatar. */
+@media (orientation:landscape) and (max-height:500px){
+ .veyra-v2 .vx-master-profile{--vx-profile-compact-height:220px}
+ .veyra-v2 .vx-master-profile .vx-profile-primary-actions{left:132px;right:12px;gap:5px}
+ .veyra-v2 .vx-master-profile .vx-profile-action{height:42px;min-height:42px;font-size:11px}
+ .veyra-v2 .vx-master-profile .vx-profile-goal{top:54px;min-height:24px}
+}

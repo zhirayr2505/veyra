@@ -962,12 +962,15 @@ test('VEYRA member profile transforms its whole hero into a sticky compact heade
  expect(distance).toBeGreaterThan(230);
  await root.evaluate((el,distance)=>{el.scrollTop=distance*.5},distance);
  await expect.poll(()=>motion.getAttribute('data-state')).toBe('transition');
- const mid=await photo.boundingBox();
- expect(mid.height).toBeLessThan(opened.height-80);
- expect(mid.height).toBeGreaterThan(82);
+ // Hero shrinks inside an inset-round mask; host boundingBox stays constant.
+ const mid=await photo.evaluate(el=>getComputedStyle(el).clipPath);
+ expect(mid).toContain('inset(');
+ expect(mid).toContain('round');
+ expect(mid).not.toBe('inset(0px 0px 0px 0px round 0px)');
  await root.evaluate((el,distance)=>{el.scrollTop=distance+10},distance);
  await expect.poll(()=>motion.getAttribute('data-state')).toBe('compact');
- const compact=await photo.boundingBox();
+ // The measured ring is the visible compact circle, not its mask host.
+ const compact=await photo.locator('.vx-profile-photo-morph-rim').boundingBox();
  expect(compact.height).toBeGreaterThan(92);
  expect(compact.height).toBeLessThan(101);
  expect(Math.abs(compact.width-compact.height)).toBeLessThan(4);
@@ -1120,7 +1123,9 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  expect(Math.abs(middle.width-opened.width)).toBeLessThan(4);
  expect(Math.abs(middle.height-opened.height)).toBeLessThan(4);
  expect(await photo.evaluate(el=>getComputedStyle(el).clipPath)).toContain('round');
- const compact=await setProgress(1);
+ await setProgress(1);
+ // Stage 2.2 paints the 98px ring INSIDE a constant canvas with clip-path.
+ const compact=await photo.locator('.vx-profile-photo-morph-rim').boundingBox();
  expect(Math.abs(compact.width-98)).toBeLessThan(3);
  expect(Math.abs(compact.height-98)).toBeLessThan(3);
  expect(Math.abs(compact.x-opened.x-16)).toBeLessThan(3);
@@ -2330,6 +2335,17 @@ test('STAGE2.2 contact sheets: eleven forward/reverse frames, photo 3, mobile an
   for(const [state,y] of [['expanded',0],['compact',current]]){
    await scroller.evaluate((el,top)=>el.scrollTop=top,y);await page.waitForTimeout(40);
    await page.screenshot({path:info.outputPath('stage2-2-'+width+'x'+height+'-'+state+'.png')});
+   if(height<500&&state==='compact'){
+    const geometry=await page.evaluate(()=>{
+     const rail=document.querySelector('.vx-profile-tab-rail').getBoundingClientRect();
+     const nav=document.querySelector('.bottom-nav').getBoundingClientRect();
+     const actions=document.querySelector('.vx-profile-primary-actions').getBoundingClientRect();
+     return {railTop:rail.top,railBottom:rail.bottom,navTop:nav.top,actionsBottom:actions.bottom};
+    });
+    expect(geometry.railTop,'Landscape tabs visible').toBeGreaterThanOrEqual(0);
+    expect(geometry.railBottom,'Landscape rail clears bottom nav').toBeLessThanOrEqual(geometry.navTop+1);
+    expect(geometry.actionsBottom,'Landscape actions clear tab rail').toBeLessThanOrEqual(geometry.railTop+1);
+   }
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  }

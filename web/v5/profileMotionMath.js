@@ -55,6 +55,10 @@ export function profileFrame(progress,width,height,compactHeight=292){
  const heroX=circle?photoX-(w/2-maskDiameter/2)*heroScale:0;
  const heroY=circle?photoY-(maskCenterY-maskDiameter/2)*heroScale:coverY;
  const sheetY=mix(h-30,109,smooth(clamp(p/.78)));
+ // Landscape header must leave room for tabs above the bottom navigation.
+ const shortLandscape=compactHeight<260;
+ const dockNameY=shortLandscape?86:116;
+ const dockActionY=shortLandscape?172:228;
  const railY=mix(h+218,compactHeight,p);
  const panelClipBottom=Math.max(0,284-Math.max(0,railY-sheetY));
  return {
@@ -66,9 +70,9 @@ export function profileFrame(progress,width,height,compactHeight=292){
   sheetY,panelClipBottom,
   // Move the identity across the invisible middle, then reveal from the right.
   nameX:220*segment(p,.29,.70)-110*segment(p,.70,.96),
-  nameY:mix(h+9,116,smooth(p)),
+  nameY:mix(h+9,dockNameY,smooth(p)),
   nameOpacity:1-segment(p,.17,.29)+segment(p,.70,.96),
-  actionY:mix(h+123,228,smooth(clamp(p/.88))),
+  actionY:mix(h+123,dockActionY,smooth(clamp(p/.88))),
   moreY:mix(h+8,113,smooth(p)),
   photoExtrasOpacity:1-segment(p,.20,.33),
   mainPhotoOpacity:segment(p,.12,.50),
