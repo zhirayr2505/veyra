@@ -30,3 +30,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__right{
 body>.vx-member-native-header.vx-top-zone{z-index:2200}
 body:has(.vx-profile-gallery)>.vx-member-native-header.vx-top-zone,
 body:has(.overlay)>.vx-member-native-header.vx-top-zone{visibility:hidden;pointer-events:none}
+
+/* The profile TopZone is portalled directly under body, outside .veyra-v2.
+   Its parent deliberately has pointer-events:none; opt its center/logo back in
+   so the existing five-tap diagnostic gesture works without an extra button. */
+body>.vx-member-native-header.vx-top-zone .vx-top-zone__center,
+body>.vx-member-native-header.vx-top-zone .vx-member-floating-logo{pointer-events:auto}
