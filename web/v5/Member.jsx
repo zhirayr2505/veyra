@@ -166,7 +166,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   if(data?.photos?.length)setIdx(current=>Math.min(current,data.photos.length-1));
   else if(data)setIdx(0);
  },[data?.photos?.length]);
- const openGallery=index=>{if(!data?.photos?.length)return;if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
+ const openGallery=index=>{if(!data?.photos?.length)return;feedback();if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
  useEffect(()=>{
   onGalleryStateChange?.(gallery);
   return()=>{if(gallery)onGalleryStateChange?.(false)};

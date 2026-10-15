@@ -19,6 +19,19 @@ export const HeroPhotoTrack=React.memo(function HeroPhotoTrack({photos,index,onI
  },[index]);
  useEffect(()=>()=>cancelAnimationFrame(finishTimer.current),[]);
  useEffect(()=>{
+  const motion=motionRef.current;if(!motion||typeof MutationObserver==='undefined')return;
+  const interrupt=()=>{
+   if(motion.dataset.state==='expanded')return;
+   if(gesture.current||finishTimer.current){
+    gesture.current=null;cancelAnimationFrame(finishTimer.current);
+    finishTimer.current=0;offset(0,false);onDragProgress?.(0);
+   }
+  };
+  const observer=new MutationObserver(interrupt);
+  observer.observe(motion,{attributes:true,attributeFilter:['data-state']});
+  return()=>observer.disconnect();
+ },[motionRef,onDragProgress]);
+ useEffect(()=>{
   const current=photos[index];if(!current)return;
   let cancelled=false;
   photoUrl(current,{width:960}).then(async()=>{
@@ -59,6 +72,9 @@ export const HeroPhotoTrack=React.memo(function HeroPhotoTrack({photos,index,onI
  const onUp=e=>{
   const g=gesture.current;
   if(!g||g.pointerId!==e.pointerId)return;
+  if(!expanded()){
+   gesture.current=null;offset(0,false);onDragProgress?.(0);return;
+  }
   gesture.current=null;
   if(g.axis!=='x')return;
   ignoreClickUntil.current=performance.now()+420;

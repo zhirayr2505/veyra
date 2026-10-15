@@ -1,0 +1,64 @@
+/* Stage 2.2: gallery lives in one stylesheet, independent of profile motion. */
+.vx-profile-gallery{z-index:350}
+/* Gallery-only touch domain; no additional global scroll blocker. */
+.vx-profile-gallery.vx-gallery-premium{position:fixed;inset:0;width:100%;height:100dvh;max-height:none;display:block;background:#090617f7;color:#fff;border:0;border-radius:0;padding:0;margin:0;overscroll-behavior:contain}
+.vx-gallery-premium .vx-gallery-stage{position:absolute;inset:calc(env(safe-area-inset-top) + 48px) 8px calc(env(safe-area-inset-bottom) + 70px);display:grid;place-items:center;overflow:hidden;touch-action:none;user-select:none}
+.vx-gallery-premium .vx-gallery-plane{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform-origin:center;will-change:transform}
+.vx-gallery-premium .vx-gallery-plane .photo-box{width:100%;height:100%;position:relative;background:transparent}
+.vx-gallery-premium .vx-gallery-plane .photo-box img.photo-sharp{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:1;max-height:100%;max-width:100%}
+.vx-gallery-premium .vx-gallery-plane .photo-blur{display:none}
+.vx-gallery-premium .vx-gallery-close{position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 10px);z-index:10;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#ffffff26;color:white;border:1px solid #ffffff66;backdrop-filter:blur(14px)}
+.vx-gallery-premium .vx-gallery-footer{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 19px);left:18px;right:18px;display:flex;align-items:center;justify-content:space-between;z-index:4;gap:12px}
+.vx-gallery-premium .vx-profile-gallery-bars{flex:1;max-width:78%;position:static}
+.vx-gallery-premium .vx-profile-gallery-counter{position:static;display:block;color:#ffffffd9}
+.vx-gallery-premium .vx-profile-gallery-prev,.vx-gallery-premium .vx-profile-gallery-next{position:absolute;top:50%;z-index:4;display:grid;place-items:center;width:40px;height:44px;color:white;border:0;background:#180b3844;border-radius:24px}
+.vx-gallery-premium .vx-profile-gallery-prev{left:4px}
+.vx-gallery-premium .vx-profile-gallery-next{right:4px}
+.vx-gallery-premium .vx-gallery-prefetch{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;opacity:0}
+@media(prefers-reduced-motion:reduce){.vx-gallery-premium .vx-gallery-plane{transition:none}}
+
+/* Gallery: large accessible controls, one counter and one-time swipe hint. */
+.vx-profile-gallery{
+ overscroll-behavior:contain;
+ padding-top:max(18px,env(safe-area-inset-top,0px));
+ padding-bottom:max(18px,env(safe-area-inset-bottom,0px));
+}
+.vx-profile-gallery .gallery-close{
+ top:calc(15px + env(safe-area-inset-top,0px));
+ right:max(13px,env(safe-area-inset-right,0px));
+ width:48px!important;height:48px!important;min-width:44px;min-height:44px;
+ display:grid;place-items:center;
+ border-radius:50%;
+ background:#1a1328b8;color:white;
+ border:1px solid #ffffff77;
+}
+.vx-profile-gallery :is(.vx-profile-gallery-prev,.vx-profile-gallery-next){
+ position:absolute;top:50%;z-index:355;translate:0 -50%;
+ min-width:48px;min-height:48px;width:48px;height:48px;
+ display:grid;place-items:center;border:1px solid #ffffff55;
+ border-radius:50%;background:#1912258c;color:white;
+ backdrop-filter:blur(7px);
+}
+.vx-profile-gallery .vx-profile-gallery-prev{left:max(12px,env(safe-area-inset-left,0px))}
+.vx-profile-gallery .vx-profile-gallery-next{right:max(12px,env(safe-area-inset-right,0px))}
+.vx-profile-gallery .vx-profile-gallery-counter{
+ position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));
+ translate:-50% 0;z-index:357;
+ padding:6px 12px;border-radius:999px;
+ background:#190e2b9c;color:white;font-size:13px;font-weight:820;
+}
+.vx-profile-gallery .vx-profile-gallery-hint{
+ position:absolute;left:50%;bottom:calc(72px + env(safe-area-inset-bottom,0px));
+ translate:-50% 0;z-index:356;white-space:nowrap;
+ padding:8px 12px;border-radius:999px;
+ background:#fffef2de;color:#48275b;
+ font-size:12px;font-weight:730;
+ animation:vxProfileHintAppear .2s ease-out both;
+}
+@keyframes vxProfileHintAppear{from{opacity:0}to{opacity:1}}
+
+@media(pointer:coarse){
+ .vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-prev,
+ .vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-next{display:none}
+}
+@media(prefers-reduced-motion:reduce){.vx-profile-gallery .vx-profile-gallery-hint{animation:none}}

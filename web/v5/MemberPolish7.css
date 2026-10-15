@@ -253,52 +253,12 @@
  animation:vxProfilePhotoFade .18s ease-out both;
 }
 @keyframes vxProfilePhotoFade{from{opacity:0}to{opacity:1}}
-/* Gallery: large accessible controls, one counter and one-time swipe hint. */
-.vx-profile-gallery{
- overscroll-behavior:contain;
- padding-top:max(18px,env(safe-area-inset-top,0px));
- padding-bottom:max(18px,env(safe-area-inset-bottom,0px));
-}
-.vx-profile-gallery .gallery-close{
- top:calc(15px + env(safe-area-inset-top,0px));
- right:max(13px,env(safe-area-inset-right,0px));
- width:48px!important;height:48px!important;min-width:44px;min-height:44px;
- display:grid;place-items:center;
- border-radius:50%;
- background:#1a1328b8;color:white;
- border:1px solid #ffffff77;
-}
-.vx-profile-gallery :is(.vx-profile-gallery-prev,.vx-profile-gallery-next){
- position:absolute;top:50%;z-index:355;translate:0 -50%;
- min-width:48px;min-height:48px;width:48px;height:48px;
- display:grid;place-items:center;border:1px solid #ffffff55;
- border-radius:50%;background:#1912258c;color:white;
- backdrop-filter:blur(7px);
-}
-.vx-profile-gallery .vx-profile-gallery-prev{left:max(12px,env(safe-area-inset-left,0px))}
-.vx-profile-gallery .vx-profile-gallery-next{right:max(12px,env(safe-area-inset-right,0px))}
-.vx-profile-gallery .vx-profile-gallery-counter{
- position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));
- translate:-50% 0;z-index:357;
- padding:6px 12px;border-radius:999px;
- background:#190e2b9c;color:white;font-size:13px;font-weight:820;
-}
-.vx-profile-gallery .vx-profile-gallery-hint{
- position:absolute;left:50%;bottom:calc(72px + env(safe-area-inset-bottom,0px));
- translate:-50% 0;z-index:356;white-space:nowrap;
- padding:8px 12px;border-radius:999px;
- background:#fffef2de;color:#48275b;
- font-size:12px;font-weight:730;
- animation:vxProfileHintAppear .2s ease-out both;
-}
-@keyframes vxProfileHintAppear{from{opacity:0}to{opacity:1}}
 /* Accessible controls in fixed/profile layers. Do not change rail geometry. */
 .veyra-v2 .vx-master-profile .vx-profile-card-more{
  min-width:44px!important;min-height:44px!important;
  width:44px!important;height:44px!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid button:focus-visible,
-.vx-profile-gallery button:focus-visible,
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button:focus-visible{
  outline:2px solid #8d39dd;outline-offset:2px;
 }
