@@ -97,7 +97,7 @@ export function Empty({title,body,action,art="default"}){return <section classNa
 export function Spinner(){return <span className="spinner" role="status" aria-label="Загрузка"/>;}
 export function Header({back,side}){return <header className="top-header">{back?<button className="quiet back" aria-label="Назад" onClick={back}><Icon name="back"/></button>:<span className="header-spacer"/>}<Logo/>{side||<span className="header-spacer"/>}</header>}
 export function Tabs({items,value,onChange}){return <div className="tabs" role="tablist">{items.map(([k,label])=><button role="tab" aria-selected={value===k} className={value===k?'chosen':''} key={k} onClick={()=>onChange(k)}>{label}</button>)}</div>}
-export function Sheet({title,onClose,children}){
+export function Sheet({title,onClose,children,className="",header=null}){
  const panel=useRef(null),closeRef=useRef(onClose);
  useEffect(()=>{closeRef.current=onClose},[onClose]);
  useEffect(()=>{
@@ -117,8 +117,8 @@ export function Sheet({title,onClose,children}){
   return()=>{document.removeEventListener('keydown',key);document.body.style.overflow=oldBody;document.documentElement.style.overflow=oldHtml;if(previous?.isConnected)previous.focus?.({preventScroll:true})}
  },[]);
  return <div className="overlay" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
-  <section ref={panel} className="sheet" role="dialog" aria-modal="true" aria-label={title}>
-   <div className="sheet-head"><h2>{title}</h2><button type="button" className="quiet" onClick={onClose} aria-label="Закрыть"><Icon name="close"/></button></div>{children}
+  <section ref={panel} className={'sheet'+(className?' '+className:'')} role="dialog" aria-modal="true" aria-label={title}>
+   {header||<div className="sheet-head"><h2>{title}</h2><button type="button" className="quiet" onClick={onClose} aria-label="Закрыть"><Icon name="close"/></button></div>}{children}
   </section>
  </div>;
 }

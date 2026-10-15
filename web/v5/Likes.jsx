@@ -1,3 +1,4 @@
+import {TopZone} from './TopZone.jsx';
 import React,{useEffect,useState} from 'react';
 import {get,post} from './api.js';
 import {Header,Photo,Button,Tabs,Icon,Empty,Spinner} from './UI.jsx';
@@ -72,11 +73,11 @@ export function Likes({onProfile,onChat,onMatch,onPremium,refreshTick=0,active=t
  const rows=onlineFirst?[...matches].sort((a,b)=>Number(b.profile.online===true)-Number(a.profile.online===true)||new Date(b.created_at)-new Date(a.created_at)):matches;
  const count=Number(incoming?.count)||0;
  return <div className="page likes-v2">
-  <Header side={<div className="likes-head-controls">
+  <TopZone title="Симпатии" right={<div className="likes-head-controls">
    <button type="button" className="likes-head-button premium" onClick={onPremium} aria-label="VEYRA Premium"><Icon name="crown" tone="pink" size={21}/></button>
    <button type="button" className={'likes-head-button '+(onlineFirst?'chosen':'')} onClick={()=>{haptic();setOnlineFirst(x=>!x)}} aria-label={onlineFirst?'Показать новые мэтчи сначала':'Показать сначала онлайн'} aria-pressed={onlineFirst}><Icon name="filters" tone={onlineFirst?'pink':'dark'} size={20}/></button>
   </div>}/>
-  <div className="likes-hero"><h1>Симпатии</h1><p>{tab==='matches'?'Взаимные симпатии — начни общение':'Люди, которым ты понравился'}</p></div>
+  <div className="likes-hero"><p>{tab==='matches'?'Взаимные симпатии — начни общение':'Люди, которым ты понравился'}</p></div>
   <Tabs items={[['matches','Мэтчи'],['incoming','Входящие']]} value={tab} onChange={next=>{haptic();setTab(next)}}/>
   <div className="likes-content" role="tabpanel" aria-label={tab==='matches'?'Мэтчи':'Входящие'}>
   {error&&<div className="likes-inline-error" role="alert">{error}<button onClick={()=>setRetry(x=>x+1)}>Повторить</button></div>}

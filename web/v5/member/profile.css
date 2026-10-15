@@ -1317,43 +1317,4 @@ body>.vx-member-native-header .vx-member-more{display:none}
 }
 
 
-/* Consolidated: MemberStickyPortal.css */
-/* Telegram-safe brand header. Rendered directly under document.body, outside
-   the scroll container. Profile media and its labels now morph independently
-   as ONE photo with MemberPhotoMorph — no duplicate white floating popup. */
-body>.vx-member-native-header{
- position:fixed;top:calc(18px + env(safe-area-inset-top,0px));
- left:50%;right:auto;transform:translateX(-50%);
- width:min(100%,640px);min-height:45px;
- box-sizing:border-box;display:flex;align-items:center;justify-content:center;
- margin:0;padding:0;z-index:90;pointer-events:none;
- isolation:isolate;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
-}
-html.veyra-telegram-fullscreen body>.vx-member-native-header{
- top:max(42px,calc(var(--veyra-telegram-status-top,0px) + 13px));
-}
-body>.vx-member-native-header>.vx-member-floating-logo{
- display:block;position:relative;
- width:clamp(105px,31vw,131px);height:42px;max-height:42px;
- object-fit:contain;object-position:center;
- transform:none;
- pointer-events:none;z-index:2;
- filter:drop-shadow(0 2px 8px #9d6abc26);
-}
-body>.vx-member-native-header>.vx-member-more,
-body>.vx-member-native-header>.vx-member-fallback-back{
- position:absolute;display:grid;place-items:center;
- box-sizing:border-box;width:41px;height:41px;
- border:1px solid #e5d7f7;border-radius:50%;
- background:#fffdff;color:#772bd5;
- box-shadow:0 5px 18px #48276c33;
- pointer-events:auto;z-index:4;
-}
-body>.vx-member-native-header>.vx-member-fallback-back{
- left:14px;top:1px;
-}
-body>.vx-member-native-header>.vx-member-more{
- right:14px;left:auto;top:54px;
-}
-
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{clip-path:inset(0px 0px 36px 0px)}

@@ -1,3 +1,4 @@
+import {TopZone} from './TopZone.jsx';
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {get,post,photoUrl} from './api.js';
 import {Button,Icon,InterestIcon,Logo,Photo,Spinner,InlineAlert} from './UI.jsx';
@@ -268,9 +269,9 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
   scrollTimeout.current=requestAnimationFrame(()=>window.scrollTo({top:scroll.current[next]||0,behavior:'instant'}));
  };
  if(directory)return <section className="vx-hub v2-directory" aria-label="Поиск людей VEYRA">
-  <header className="vx-head"><Logo width={138} className="vx-logo"/><div className="vx-head-actions">
+  <TopZone title="Поиск" right={<div className="vx-head-actions">
    <button type="button" className="veys-header-button" onClick={onWallet} aria-label="Открыть VEYS кошелёк"><img src="/veyra-approved/09_veys/veys-diamond.svg" alt="" width="20" height="20"/>{new Intl.NumberFormat('ru-RU').format(veysBalance)}</button>
-   <button type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={22}/></button></div></header>
+   <button type="button" onClick={onFilters} aria-label="Фильтры"><Icon name="filters" tone="pink" size={22}/></button></div>}/>
   <h1 className="v2-directory-title">Поиск людей</h1><p className="v2-directory-subtitle">Знакомься с теми, кто тебе интересен</p>
   <div className="v2-directory-switch" role="tablist" aria-label="Подборки людей">
    {TABS.slice(1).reverse().map(([key,label])=><button key={key} type="button" role="tab" aria-selected={directoryTab===key}
@@ -281,20 +282,15 @@ export function DiscoveryHub({directory=false,freezeFeed=false,filters,profile,o
    refreshTick={refreshTick+reactionRefresh}/>
  </section>;
  return <section ref={hubRef} className={"vx-hub vx-dating-stage02"+(freezeFeed&&tab==="feed"?" vx-feed-locked":"")+(tab==='for_you'?" vx-for-you-active":"")} aria-label="Раздел знакомств VEYRA">
-  <header className="vx-head">
-   <button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
+  <TopZone logo left={<button className="vx-crown" type="button" onClick={onPremium} aria-label="VEYRA Premium">
     <img className="vx-premium-crown" src="/veyra-approved/01_icons/active/veyra-premium-crown.svg" width="31" height="31" alt="" aria-hidden="true"/>
-   </button>
-   <Logo width={145} className="vx-logo"/>
-   
-   <div className="vx-head-actions">
+   </button>} right={<div className="vx-head-actions">
     <button type="button" className="veys-header-button" aria-label="Открыть VEYS кошелёк" onClick={onWallet}>
      <img alt="" aria-hidden="true" width="21" height="21" src="/veyra-approved/09_veys/veys-diamond.svg"/>
      <span className="vx-feed-balance-number">{new Intl.NumberFormat('ru-RU').format(veysBalance)}</span><span className="vx-feed-balance-plus" aria-hidden="true">+</span>
     </button>
     <button type="button" aria-label="Фильтры" onClick={onFilters}><Icon name="filters" tone="pink" size={23}/></button>
-   </div>
-  </header>
+   </div>}/>
   <div className={'vx-tabs vx-liquid-tabs'+(liquidFlow?' is-flowing':'')} role="tablist" aria-label="Способы знакомств"
    style={{'--vx-liquid-offset':(TABS.findIndex(([key])=>key===tab)*100)+'%'}}>
    <span className="vx-liquid-indicator" aria-hidden="true"/>

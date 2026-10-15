@@ -1,0 +1,13 @@
+/* Single safe-area header: center protected from Telegram native controls. */
+.vx-top-zone{position:sticky;top:0;z-index:90;width:100%;height:calc(var(--vx-top,0px) + 44px);box-sizing:border-box;padding-top:var(--vx-top,0px);display:flex;align-items:center;justify-content:center;background:transparent;isolation:isolate}
+.vx-top-zone--floating{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(100%,640px);pointer-events:none}
+.vx-top-zone__center{position:absolute;left:112px;right:112px;top:var(--vx-top,0px);height:44px;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none}
+.vx-top-zone__center h1{font-size:17px;line-height:1.2;font-weight:850;margin:0;max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;color:var(--vx-color-ink,#302043)}
+.vx-top-zone__center .vx-member-floating-logo,.vx-top-zone__center .vx-logo{width:min(100%,131px);max-height:40px;object-fit:contain}
+.vx-top-zone__left,.vx-top-zone__right{position:absolute;top:var(--vx-top,0px);height:44px;display:flex;align-items:center;gap:7px;z-index:2;pointer-events:auto}
+.vx-top-zone__left{left:12px;justify-content:flex-start;max-width:100px}
+.vx-top-zone__right{right:12px;justify-content:flex-end;max-width:150px}
+.vx-top-zone .vx-member-fallback-back{display:grid;place-items:center;width:42px;height:42px;min-height:42px;border-radius:50%;background:var(--vx-color-surface,#fff);border:1px solid var(--vx-color-outline,#e5d7f7);color:var(--vx-color-accent,#772bd5)}
+.vx-top-zone__right .vx-head-actions,.vx-top-zone__right .likes-head-controls{display:flex;align-items:center;gap:6px}
+.vx-top-zone__right button{flex:none;touch-action:manipulation}
+.vx-top-zone--editor{position:sticky;z-index:4;background:var(--vx-color-surface,#fff)}

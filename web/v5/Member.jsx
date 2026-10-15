@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
+import {TopZone} from './TopZone.jsx';
 import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound,UserRound} from 'lucide-react';
 import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
@@ -202,10 +203,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const fullName=(data.name||'Профиль')+(data.age?', '+data.age:'');
  const photosNext=step=>setIdx(n=>(n+step+photos.length)%photos.length);
  return <div className={'member page member-feed-profile vx-master-profile'+(isPreview?' vx-profile-read-only':'')+(isOwn?' vx-own-member own-profile':'')+(loading?' vx-profile-hydrating':'')} aria-busy={loading}>
-  {!isPreview&&createPortal(<header className="vx-member-floating-header vx-member-native-header" data-logo-tone={logoTone||"pending"} aria-label="Навигация профиля VEYRA">
-   {!(window.Telegram?.WebApp?.initData&&window.Telegram?.WebApp?.BackButton)&&<button type="button" className="vx-member-fallback-back" onClick={onBack} aria-label="Закрыть профиль"><Icon name="back" tone="pink" size={21}/></button>}
-   <Logo width={131} tone={logoTone||"dark"} ready={logoTone!=null} className="vx-member-floating-logo"/>
-  </header>,document.body)}
+  {!isPreview&&createPortal(<TopZone floating className="vx-member-native-header" onBack={onBack} center={<Logo width={131} tone={logoTone||'dark'} ready={logoTone!=null} className="vx-member-floating-logo"/>}/>,document.body)}
 
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
