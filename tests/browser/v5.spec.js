@@ -1690,7 +1690,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  expectedShape=expectedShape==='circle'?(p>=.32?'circle':'cover'):(p>=.34?'circle':'cover');
+  expectedShape=p>=.38?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
   // A 180ms WAAPI morph interpolates inset dimensions; radius is never switched abruptly.
   expect(v.clip).toMatch(/^inset/);
@@ -1765,27 +1765,27 @@ for(const disableTimeline of [false,true]){
    const a=forward[i],b=backwards[backwards.length-1-i];
    const at=Math.min(distance,i*4)/distance;
    expect(a.duplicate).toBe(0);
-   expect(a.shape).toBe(at<.34?'cover':'circle');
-   // Hysteresis intentionally keeps the shape circular in reverse until p < .32.
-   if(at<.32||at>=.34)expect(a.shape).toBe(b.shape);
+   expect(a.shape).toBe(at<.38?'cover':'circle');
+   // Mask is tied to exactly the same progress in both directions.
+   expect(a.shape).toBe(b.shape);
    expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
    expect(Math.abs(a.rect.top-b.rect.top)).toBeLessThan(2);
    expect(Math.abs(a.scale-b.scale)).toBeLessThan(.02);
-   // Time-based morph always uses the same interpolable inset() keyframe shape.
+   // The single scroll-synced morph always uses the same inset() mask.
    expect(a.clip).toMatch(/^inset/);
    expect(b.clip).toMatch(/^inset/);
-   if(at>=.34){
+   if(at>=.38){
     expect(a.circle.d).toBeLessThanOrEqual(a.viewportWidth*.62+1);
     expect(a.circle.d).toBeGreaterThanOrEqual(97);
    }
    expect(Number(a.ring)).toBeGreaterThanOrEqual(0);
    expect(Number(a.ring)).toBeLessThanOrEqual(1);
   }
-  const atCircle=forward.find((_,i)=>Math.min(distance,i*4)/distance>=.34);
-  const beforeCircle=forward.filter((_,i)=>Math.min(distance,i*4)/distance<.34).at(-1);
+  const atCircle=forward.find((_,i)=>Math.min(distance,i*4)/distance>=.38);
+  const beforeCircle=forward.filter((_,i)=>Math.min(distance,i*4)/distance<.38).at(-1);
   expect(Math.abs(atCircle.rect.left-beforeCircle.rect.left)).toBeLessThan(2);
   expect(Math.abs(atCircle.rect.top-beforeCircle.rect.top)).toBeLessThan(3);
-  await collect(distance*.34);
+  await collect(distance*.38);
   await page.screenshot({path:testInfo.outputPath(disableTimeline?'stage2-fallback-first-circle.png':'stage2-native-first-circle.png')});
  });
 }
@@ -2157,4 +2157,49 @@ test('STAGE2_1 blurred original photo and morph endpoints, compositor telemetry 
  await testInfo.attach('stage2-1-cpu4x.json',{body:JSON.stringify(metrics,null,2),contentType:'application/json'});
  expect(metrics.memberRendersDuringScroll).toBe(0);
  expect(metrics.longTasks).toBe(0);
+});
+
+test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
+ test.use({hasTouch:true});
+ for(const width of [360,390]){
+  test('hotfix snap endpoints, short tab and goal badge '+width+'px',async({page})=>{
+   await page.setViewportSize({width,height:width===360?740:844});
+   await telegram(page,10);await page.goto('/');
+   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+   const scroll=page.locator('.vx-profile-scroller');
+   await expect(scroll).toBeVisible();
+   const distance=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+   for(const p of [.2,.4,.6,.8]){
+    await scroll.evaluate((el,y)=>{el.scrollTop=y;el.dispatchEvent(new Event('scrollend'))},distance*p);
+    await expect.poll(()=>scroll.evaluate((el,d)=>Math.min(Math.abs(el.scrollTop),Math.abs(el.scrollTop-d))),{timeout:6000}).toBeLessThan(1.5);
+   }
+   await scroll.evaluate((el,d)=>el.scrollTop=d,distance);
+   await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Подарки'}).click();
+   await expect(page.getByText('Подарков пока нет').first()).toBeVisible();
+   const y=await scroll.evaluate(el=>el.scrollTop);
+   expect(y).toBeLessThanOrEqual(distance+2);
+   const badge=await page.locator('.vx-profile-goal').evaluate(el=>{const a=el.getBoundingClientRect();return {h:a.height,w:a.width,text:el.textContent,scroll:el.scrollHeight}});
+   expect(badge.h).toBeGreaterThan(20);expect(badge.w).toBeGreaterThan(80);
+  });
+  test('hotfix gallery pinch and zoom reset '+width+'px',async({page})=>{
+   await page.setViewportSize({width,height:width===360?740:844});
+   await telegram(page,10);await page.goto('/');
+   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+   await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Фото'}).click();
+   await page.locator('.vx-profile-photos-grid button').first().click();
+   const stage=page.locator('.vx-gallery-stage');
+   await expect(stage).toBeVisible();
+   await stage.evaluate(el=>{
+    const emit=(type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',clientX:x,clientY:y}));
+    emit('pointerdown',1,110,280);emit('pointerdown',2,210,280);
+    emit('pointermove',1,70,280);emit('pointermove',2,250,280);
+    emit('pointerup',1,70,280);emit('pointerup',2,250,280);
+   });
+   await expect(stage).toHaveAttribute('data-zoomed','true');
+   await page.getByRole('dialog',{name:/Галерея/}).getByRole('button',{name:'Следующее фото'}).click();
+   await expect.poll(()=>stage.getAttribute('data-zoomed')).toBe('false');
+   await page.evaluate(()=>document.dispatchEvent(new Event('veyra:close-profile-gallery')));
+   await expect(page.locator('.vx-profile-gallery')).toHaveCount(0);
+  });
+ }
 });

@@ -11,7 +11,7 @@ test('ScrollTimeline keyframes stay ordered through the collapse and hold compac
   for(let i=1;i<frames.length;i++)assert.ok(frames[i].offset>frames[i-1].offset,name+' duplicate '+i);
   assert.deepEqual(Object.keys(frames[0]).sort(),Object.keys(frames.at(-1)).sort());
  }
- assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto'].sort());
+ assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto','rim','online'].sort());
  assert.equal(tracks.actions.at(-1).transform,tracks.actions.at(-2).transform);
 });
 test('hero uses uniform scale, not an independent scaleX/scaleY or compensation layer',()=>{
@@ -26,11 +26,22 @@ test('hero uses uniform scale, not an independent scaleX/scaleY or compensation 
 });
 test('no extra image, shade, blur or orphaned ring track',()=>{
  const tracks=buildProfileScrollKeyframes(390,447,373,2000,292);
- for(const k of ['image','shade','blur','ring','rim','online','onlineDot'])assert.ok(!(k in tracks),'duplicate track '+k);
+ for(const k of ['image','shade','blur','ring','onlineDot'])assert.ok(!(k in tracks),'duplicate track '+k);
  assert.equal(tracks.grabber[0].opacity,1);
  assert.equal(tracks.grabber.at(-1).opacity,0);
  assert.equal(tracks.backdropPhoto[0].opacity,0);
  assert.equal(tracks.backdropPhoto.at(-1).opacity,1);
- for(const frames of [tracks.hero,tracks.panel,tracks.lip,tracks.identity,tracks.actions,tracks.more,tracks.backdropPhoto])for(const f of frames)assert.ok(Object.keys(f).every(k=>['offset','transform','opacity'].includes(k)));
+ for(const frames of [tracks.hero,tracks.panel,tracks.lip,tracks.identity,tracks.actions,tracks.more,tracks.backdropPhoto])for(const f of frames)assert.ok(Object.keys(f).every(k=>['offset','transform','opacity','clipPath'].includes(k)));
 
+});
+
+test('one hero track owns scroll progress and the interpolated mask',()=>{
+ const tracks=buildProfileScrollKeyframes(390,447,373,2000,292);
+ const hero=tracks.hero;
+ assert.ok(hero.every(f=>f.clipPath.startsWith('inset(')));
+ assert.equal(hero[0].clipPath,'inset(0.00px 0.00px 0.00px 0.00px round 0.00px)');
+ assert.ok(hero.at(-1).clipPath.includes('round '));
+ assert.equal(tracks.rim[0].opacity,0);
+ assert.equal(tracks.rim.at(-1).opacity,1);
+ assert.equal(tracks.online.at(-1).opacity,1);
 });

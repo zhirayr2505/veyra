@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {profileFrame,profileMaskDiameter,profileCircleGeometry,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT,PROFILE_VISIBLE_TOP_INSET,PROFILE_CIRCLE_WIDTH_FRACTION,PROFILE_AVATAR_DIAMETER} from '../web/v5/profileMotionMath.js';
+import {profileFrame,profileMaskDiameter,profileCircleGeometry,profileMorphInset,PROFILE_MORPH_START,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT,PROFILE_VISIBLE_TOP_INSET,PROFILE_CIRCLE_WIDTH_FRACTION,PROFILE_AVATAR_DIAMETER} from '../web/v5/profileMotionMath.js';
 const W=390,H=447,D=profileMaskDiameter(W,H);
 const frame=p=>profileFrame(p,W,H,292);
 const close=(a,b,eps=.1)=>Math.abs(a-b)<=eps;
@@ -42,7 +42,7 @@ test('uniformly scaled photo is reversible and docks at 98px in the approved loc
  assert.equal(last.nameX,110);assert.equal(last.nameY,116);assert.equal(last.actionY,222);
 });
 test('the circular mask remains centered on the transformed photo as it moves',()=>{
- for(let i=340;i<=1000;i++){
+ for(let i=380;i<=1000;i++){
   const f=frame(i/1000);
   const photoCenterX=f.heroX+W/2*f.heroScale;
   const photoCenterY=f.heroY+f.maskCenterY*f.heroScale;
@@ -58,11 +58,9 @@ test('no discontinuous transform at the mask boundary; no wide circle',()=>{
  assert.ok(b.width<=W*PROFILE_CIRCLE_WIDTH_FRACTION);
  assert.ok(b.width<=profileCircleGeometry(W,H).visibleHeight);
 });
-test('identity is temporarily hidden during travel; action/sheet never overlap tabs',()=>{
+test('identity remains legible throughout travel; actions and sheet avoid tab rail',()=>{
  assert.equal(frame(0).nameOpacity,1);
- for(const p of [.30,.43,.69])assert.equal(frame(p).nameOpacity,0);
- assert.ok(frame(.75).nameOpacity>0&&frame(.75).nameOpacity<1);
- assert.ok(frame(.94).nameOpacity>.9);
+ for(const p of [.30,.43,.69,.75,.94])assert.ok(frame(p).nameOpacity>=.39&&frame(p).nameOpacity<=1);
  assert.equal(frame(1).nameOpacity,1);
  assert.equal(frame(.61).nameX,0);
  assert.ok(frame(.80).nameX>0&&frame(.80).nameX<110);
@@ -83,4 +81,22 @@ test('short viewport has the same visible-region-center and maximum width bounds
   assert.ok(close(f.y+f.height/2,(g.visibleTop+g.visibleBottom)/2,1e-6));
   assert.ok(close(f.heroY,profileFrame(PROFILE_CIRCLE_AT-1e-9,w,h).heroY,1e-3));
  }
+});
+
+test('morph mask is monotonic, symmetric and perfectly circular at .38 without a timer',()=>{
+ const g=profileCircleGeometry(W,H),p=.30,finish=.38;
+ const frameAt=t=>profileMorphInset(t,W,H,g.diameter,g.maskCenterY);
+ assert.equal(frameAt(p),'inset(0.00px 0.00px 0.00px 0.00px round 0.00px)');
+ const end=frameAt(finish);
+ assert.ok(end.includes('round '+(g.diameter/2).toFixed(2)+'px'));
+ const numbers=s=>[...s.matchAll(/-?\\d+(?:\\.\\d+)?/g)].map(x=>Number(x[0]));
+ let previous=numbers(frameAt(p));
+ for(let i=1;i<=80;i++){
+  const now=numbers(frameAt(p+(finish-p)*i/80));
+  assert.ok(now[0]>=previous[0]-.02,'top inset');
+  assert.ok(now[1]>=previous[1]-.02,'side inset');
+  assert.ok(now[4]>=previous[4]-.02,'radius');
+  previous=now;
+ }
+ assert.equal(profileMorphInset(.345,W,H,g.diameter,g.maskCenterY),profileMorphInset(.345,W,H,g.diameter,g.maskCenterY));
 });
