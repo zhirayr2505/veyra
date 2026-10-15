@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {CatalogueIcon} from './OnboardingOptions.jsx';
 import './InterestReveal.css';
@@ -8,7 +8,28 @@ import './InterestReveal.css';
 export function InterestReveal({items=[],preview=false,maxVisible=4,feed=false}){
  const [open,setOpen]=useState(false);
  const [dragY,setDragY]=useState(0);
- const start=useRef(null),closeRef=useRef(null),triggerRef=useRef(null);
+ const start=useRef(null),closeRef=useRef(null),triggerRef=useRef(null),rowRef=useRef(null);
+ const [visible,setVisible]=useState(maxVisible);
+ const widthItems=items.join('|');
+ useLayoutEffect(()=>{
+  if(!feed&&!preview){setVisible(maxVisible);return}
+  const el=rowRef.current;if(!el)return;
+  const ctx=document.createElement('canvas').getContext('2d');
+  const measure=()=>{
+   const width=el.getBoundingClientRect().width;if(width<50)return;
+   if(ctx)ctx.font='700 11px Nunito, Arial, sans-serif';
+   const tw=val=>ctx?ctx.measureText(val).width:val.length*7;
+   let used=0,count=0;
+   for(let i=0;i<items.length;i++){
+    const chip=Math.ceil(tw(items[i])+14+5+20+4),rest=items.length-i-1;
+    const reserve=rest?Math.ceil(tw('+'+rest+' ещё')+25)+5:0;
+    if(used+chip+(count?5:0)+reserve>width)break;
+    used+=chip+(count?5:0);count++;
+   }
+   setVisible(old=>old===count?old:count);
+  };
+  const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;ro?.observe(el);measure();return()=>ro?.disconnect();
+ },[widthItems,feed,preview,maxVisible]);
  useEffect(()=>{
   if(!open)return;
   const key=e=>{if(e.key==='Escape')setOpen(false)};
@@ -34,12 +55,12 @@ export function InterestReveal({items=[],preview=false,maxVisible=4,feed=false})
   else setDragY(0);
  };
  return <>
-  <div className={'veyra-interest-inline '+(preview?'preview-card-chips':'')+(feed?' vx-feed-interest-row':'')} aria-label="Интересы">
-   {items.slice(0,maxVisible).map(label=><span key={label} className="veyra-interest-inline-chip"><CatalogueIcon value={label} size={14}/><span className="vx-interest-chip-label">{label}</span></span>)}
-   {items.length>maxVisible&&<button ref={triggerRef} type="button" className="veyra-interest-more"
+  <div ref={rowRef} className={'veyra-interest-inline '+(preview?'preview-card-chips':'')+(feed?' vx-feed-interest-row':'')} aria-label="Интересы">
+   {items.slice(0,(feed||preview)?visible:maxVisible).map(label=><span key={label} className="veyra-interest-inline-chip"><CatalogueIcon value={label} size={14}/><span className="vx-interest-chip-label">{label}</span></span>)}
+   {items.length>((feed||preview)?visible:maxVisible)&&<button ref={triggerRef} type="button" className="veyra-interest-more"
     onClick={e=>{e.stopPropagation();setDragY(0);setOpen(true)}}
-    aria-label={'Показать все интересы, ещё '+(items.length-maxVisible)} aria-haspopup="dialog">
-    +{items.length-maxVisible}{feed?'':' ещё'}
+    aria-label={'Показать все интересы, ещё '+(items.length-((feed||preview)?visible:maxVisible))} aria-haspopup="dialog">
+    +{items.length-((feed||preview)?visible:maxVisible)}{feed?'':' ещё'}
    </button>}
   </div>
   {open&&createPortal(
