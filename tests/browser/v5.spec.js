@@ -1882,7 +1882,10 @@ test.describe('Stage 2 Android-like touch context',()=>{
  };
  const diagnostic=[];
  for(const origin of origins){
+  // The previous wheel may still be settling. Verify each gesture starts
+  // below the completed collapse threshold, not 0-3px from the top.
   await scroller.evaluate((el,d)=>{el.scrollTop=d+25},distance);
+  await expect.poll(()=>scroller.evaluate(el=>el.scrollTop),{timeout:1800}).toBeGreaterThan(distance+15);
   await page.waitForTimeout(80);
   const hierarchy=await page.evaluate(({x,y})=>document.elementsFromPoint(x,y).slice(0,8).map(el=>{
    const css=getComputedStyle(el),r=el.getBoundingClientRect();
@@ -1911,7 +1914,9 @@ test.describe('Stage 2 Android-like touch context',()=>{
   await page.waitForTimeout(70);
   await page.mouse.move(origin.x,origin.y);
   await page.mouse.wheel(0,-160);
-  await page.waitForTimeout(90);
+  // Finish the 140ms quiet period and <=260ms snap before next origin.
+  // Otherwise a delayed previous wheel snap races the next CDP touch.
+  await page.waitForTimeout(460);
   const wheelAfter=await scroller.evaluate(el=>el.scrollTop);
   const trace=await page.evaluate(()=>{
    const el=document.querySelector('.vx-profile-scroller');
