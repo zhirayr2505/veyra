@@ -11,11 +11,14 @@ test('profile preview uses real, fully seeded read-only Member and keeps registr
  assert.match(member,/!isPreview&&createPortal/);
  assert.match(preview,/onSubmit\?<>/);
 });
-test('profile preview stage retains scroll and native-looking disabled actions',()=>{
+test('profile preview stage retains scrolling and navigable edit/photo actions',()=>{
  const css=read('web/v5/ProfilePreview.css');
  assert.match(css,/\.vx-preview-member-stage/);
  const member=read('web/v5/Member.jsx');
- assert.match(member,/disabled=\{isPreview\}/);
+ assert.match(member,/onPreviewAction\?\.\('photos'\)/);
+ assert.match(member,/onPreviewAction\?\.\('edit'\)/);
+ assert.doesNotMatch(member,/disabled=\{isPreview\}/);
+ assert.match(read('web/v5/ProfilePreview.jsx'),/onPreviewAction=\{onJump\}/);
  assert.match(css,/\.vx-preview-member-stage/);
  assert.match(css,/\.vx-profile-scroller\{position:absolute/);
 });

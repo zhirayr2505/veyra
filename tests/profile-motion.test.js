@@ -60,7 +60,12 @@ test('no discontinuous transform at the mask boundary; no wide circle',()=>{
 });
 test('identity is temporarily hidden during travel; action/sheet never overlap tabs',()=>{
  assert.equal(frame(0).nameOpacity,1);
- for(const p of [.30,.43,.75,.94])assert.equal(frame(p).nameOpacity,0);
+ for(const p of [.30,.43,.69])assert.equal(frame(p).nameOpacity,0);
+ assert.ok(frame(.75).nameOpacity>0&&frame(.75).nameOpacity<1);
+ assert.ok(frame(.94).nameOpacity>.9);
+ assert.equal(frame(1).nameOpacity,1);
+ assert.equal(frame(.61).nameX,0);
+ assert.ok(frame(.80).nameX>0&&frame(.80).nameX<110);
  assert.equal(frame(1).nameOpacity,1);
  for(let i=0;i<=1000;i++){
   const p=i/1000,f=frame(p),railTop=H+218-p*(H+218-292);

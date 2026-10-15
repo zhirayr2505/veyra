@@ -12,7 +12,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
  const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[],backdropPhoto:[]};
  const append=(offset,f)=>{
   tracks.hero.push({offset,transform:profileTranslate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(7)+')'});
-  tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30)),clipPath:'inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)'});
+  tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
   tracks.lip.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
   tracks.identity.push({offset,transform:profileTranslate(f.nameX,f.nameY-(height+9)),opacity:f.nameOpacity});
   tracks.actions.push({offset,transform:profileTranslate(0,f.actionY-(height+123))});
