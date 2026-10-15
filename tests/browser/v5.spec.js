@@ -1685,12 +1685,17 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
     transform:style.transform,heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight};
   });
  };
+ let expectedShape='cover';
  for(const p of [0,.15,.3,.33,.339,.34,.36,.46,.7,1,.7,.46,.36,.34,.339,0]){
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  if(p<.34){expect(v.phase).toBe('cover');expect(v.clip).toMatch(/inset/);expect(Number(v.ring)).toBe(0)}
-  else{expect(v.phase).toBe('circle');expect(v.clip).toMatch(/circle/);expect(Number(v.ring)).toBe(1)}
+  expectedShape=expectedShape==='circle'?(p>=.32?'circle':'cover'):(p>=.34?'circle':'cover');
+  expect(v.phase).toBe(expectedShape);
+  // A 180ms WAAPI morph interpolates inset dimensions; radius is never switched abruptly.
+  expect(v.clip).toMatch(/^inset/);
+  expect(Number(v.ring)).toBeGreaterThanOrEqual(0);
+  expect(Number(v.ring)).toBeLessThanOrEqual(1);
  }
  expect(samples[0].transform).toBe(samples.at(-1).transform);
  await page.screenshot({path:testInfo.outputPath('stage2-profile-expanded.png')});
@@ -1761,19 +1766,20 @@ for(const disableTimeline of [false,true]){
    const at=Math.min(distance,i*4)/distance;
    expect(a.duplicate).toBe(0);
    expect(a.shape).toBe(at<.34?'cover':'circle');
-   expect(a.shape).toBe(b.shape);
+   // Hysteresis intentionally keeps the shape circular in reverse until p < .32.
+   if(at<.32||at>=.34)expect(a.shape).toBe(b.shape);
    expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
    expect(Math.abs(a.rect.top-b.rect.top)).toBeLessThan(2);
    expect(Math.abs(a.scale-b.scale)).toBeLessThan(.02);
+   // Time-based morph always uses the same interpolable inset() keyframe shape.
+   expect(a.clip).toMatch(/^inset/);
+   expect(b.clip).toMatch(/^inset/);
    if(at>=.34){
-    expect(a.clip).toMatch(/^circle/);
     expect(a.circle.d).toBeLessThanOrEqual(a.viewportWidth*.62+1);
     expect(a.circle.d).toBeGreaterThanOrEqual(97);
-    expect(Number(a.ring)).toBe(1);
-   }else{
-    expect(a.clip).toMatch(/^inset/);
-    expect(Number(a.ring)).toBe(0);
    }
+   expect(Number(a.ring)).toBeGreaterThanOrEqual(0);
+   expect(Number(a.ring)).toBeLessThanOrEqual(1);
   }
   const atCircle=forward.find((_,i)=>Math.min(distance,i*4)/distance>=.34);
   const beforeCircle=forward.filter((_,i)=>Math.min(distance,i*4)/distance<.34).at(-1);
@@ -1853,7 +1859,7 @@ test.describe('Stage 2 Android-like touch context',()=>{
   // Headless CDP synthesizeScrollGesture does not scroll even on a minimal
   // known-good overflow:clip fixture; dispatchTouchEvent DOES exercise pan-y.
   // Record during motion as release snapping may change the final offset.
-  await drag(origin.x,origin.y,0,200);
+  await drag(origin.x,origin.y,0,initial.scrollTop<=1?-200:200);
   const after=await scroller.evaluate(el=>el.scrollTop);
   const touchTrace=await page.evaluate(()=>window.__stage2ScrollTrace.slice());
   await scroller.evaluate((el,y)=>{el.scrollTop=y},initial.scrollTop);
