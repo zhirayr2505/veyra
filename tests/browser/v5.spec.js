@@ -2092,7 +2092,10 @@ test('STAGE2_1 own profile action buttons open real tabs, edit and settings',asy
  await expect(actions.locator('button')).toHaveCount(3);
  await expect(own.locator('.vx-profile-card-more')).toHaveCount(0);
  await actions.getByRole('button',{name:'Мои фото'}).click();
- await expect(own.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await expect(page.locator('.veyra-editor-unified')).toBeVisible();
+ await expect(page.locator('.upload-grid .upload-thumb').first()).toBeVisible();
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  await actions.getByRole('button',{name:'Изменить'}).click();
  await expect(own).toHaveCount(0);
  await page.goto('/');
