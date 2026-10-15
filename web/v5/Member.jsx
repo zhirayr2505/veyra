@@ -59,7 +59,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState(()=>viewState?.tab??'about');
  const [logoTone,setLogoTone]=useState(null);
- const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryHintSeen=useRef(false);
+ const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryHintSeen=useRef(null);
  const profileKey=String(isPreview?'preview':ownMe?.user?.id||id||'own');
  const previousKey=useRef(profileKey),restorePending=useRef(true),modeRef=useRef(viewState?.mode||'expanded');
  const stateChangeRef=useRef(onViewStateChange);stateChangeRef.current=onViewStateChange;
@@ -167,7 +167,11 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   if(data?.photos?.length)setIdx(current=>Math.min(current,data.photos.length-1));
   else if(data)setIdx(0);
  },[data?.photos?.length]);
- const openGallery=index=>{if(!data?.photos?.length)return;feedback();if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
+ const openGallery=index=>{if(!data?.photos?.length)return;feedback();if(Number.isInteger(index))setIdx(index);
+  if(galleryHintSeen.current===null){try{galleryHintSeen.current=localStorage.getItem('veyra.gallery.hint.v1')==='seen'}catch{galleryHintSeen.current=false}}
+  setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;
+  try{localStorage.setItem('veyra.gallery.hint.v1','seen')}catch{}
+  setGallery(true)};
  useEffect(()=>{
   onGalleryStateChange?.(gallery);
   return()=>{if(gallery)onGalleryStateChange?.(false)};

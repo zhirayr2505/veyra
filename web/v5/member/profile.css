@@ -267,7 +267,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  margin:0;padding:0 16px;gap:0;box-sizing:border-box;
  border:0;border-bottom:1px solid #e9def6;
  border-radius:0;box-shadow:0 -2px 12px #624a8910;
- background:rgba(250,246,255,.94);
+ background:color-mix(in srgb,var(--vx-color-surface,#faf6ff) 94%,transparent);
  overflow:hidden;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
@@ -310,7 +310,7 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
  width:100%;flex:0 0 100%;min-width:0;box-sizing:border-box;
  overflow:visible;padding:13px 12px calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
- min-height:var(--vx-profile-page-min,0px);
+ min-height:var(--vx-profile-page-min,0px);contain:layout paint;
  background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page[aria-hidden="true"]{
@@ -568,7 +568,7 @@ body>.vx-member-native-header .vx-member-more{display:none}
 }
 /* Light anchored tabs with the same purple track/labels as the reference. */
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail{
- background:#fcf9ff;
+ background:color-mix(in srgb,var(--vx-color-surface,#faf6ff) 94%,transparent);
  padding:0 13px;
  box-shadow:0 2px 5px #6c54880a;
  border-bottom:1px solid #e7dcf3;
@@ -780,7 +780,7 @@ body>.vx-member-native-header .vx-member-more{display:none}
  padding-bottom:calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail{
- background:var(--vx-sheet-bg);
+ background:color-mix(in srgb,var(--vx-color-surface,#faf6ff) 94%,transparent);
  border-bottom-color:#e9def5;
  box-shadow:0 3px 9px #56366b0b;
 }

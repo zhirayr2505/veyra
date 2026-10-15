@@ -251,7 +251,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   const viewportHeight=el.clientHeight;
   if(s.lastCalibrated&&s.width===width&&s.height===height&&s.compactHeight===compactHeight&&s.distance===distance&&s.viewportHeight===viewportHeight)return;
   s.width=width;s.height=height;s.compactHeight=compactHeight;s.viewportHeight=viewportHeight;
-  el.style.setProperty('--vx-profile-page-min',Math.max(0,viewportHeight-compactHeight-52)+'px');
+  el.style.setProperty('--vx-profile-page-min',Math.max(0,viewportHeight-compactHeight-52+distance)+'px');
   const geometry=profileCircleGeometry(s.width,s.height,s.compactHeight);
   const diameter=geometry.diameter;
   hero.style.setProperty('--vx-profile-mask-diameter',diameter.toFixed(3)+'px');
