@@ -45,7 +45,7 @@ export function ProfileEditor({me,refresh,onClose}){
  const save=()=>action(async()=>{if(photos.length<3)throw Error('Нужно минимум 3 фотографии');const data={name:f.name,birth_date:f.birth_date,gender:f.gender,looking_for:f.looking_for,bio:f.bio||'',interests:f.interests||[],smoking:f.smoking||'',leisure:f.leisure||'',goal:f.goal||'relationship',languages:f.languages||[],prompts:(f.prompts||[]).filter(x=>x.answer?.trim()),height_cm:f.height_cm?Number(f.height_cm):null,city:f.city,country:f.country,lat:+f.lat,lon:+f.lon,min_age:+f.min_age,max_age:+f.max_age,radius_km:+f.radius_km,consent:true};
  if(!window.confirm('Обновлённая анкета пройдет повторную модерацию. Продолжить?'))return;
  await put('/profile',data);await post('/profile/submit',{consent:true});await refresh();onClose();});
- return <Sheet title="редактировать анкету" onClose={onClose}><div className="fields veyra-editor-unified">
+ return <Sheet title="Анкета" onClose={onClose}><div className="fields veyra-editor-unified">
  <label>Имя<input value={f.name||''} maxLength={50} onChange={e=>change('name',e.target.value)}/></label>
  <label>Дата рождения<input type="date" value={f.birth_date} onChange={e=>change('birth_date',e.target.value)}/></label>
  <label>О себе<textarea maxLength={1000} value={f.bio||''} onChange={e=>change('bio',e.target.value)}/></label>

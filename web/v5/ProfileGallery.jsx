@@ -128,7 +128,7 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
  return <div className="gallery vx-profile-gallery vx-gallery-premium" role="dialog" aria-modal="true" aria-label={'Галерея '+name}>
   <button type="button" className="gallery-close vx-gallery-close" aria-label="Закрыть галерею" onClick={close}><X size={24}/></button>
   <div ref={stageRef} className="vx-gallery-stage" onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
-   <div ref={planeRef} className="vx-gallery-plane"><Photo id={photos[index]} alt={'Фото '+(index+1)+' · '+name} priority resolution={0} placeholder={placeholders?.[String(photos[index])]}/></div>
+   <div ref={planeRef} className="vx-gallery-plane"><Photo id={photos[index]} alt={'Фото '+(index+1)+' · '+name} priority resolution={960} placeholder={placeholders?.[String(photos[index])]}/></div>
   </div>
   {photos.length>1&&<>
    <button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>change(-1)}><ChevronLeft size={28}/></button>

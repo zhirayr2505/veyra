@@ -56,6 +56,7 @@ export function profileFrame(progress,width,height,compactHeight=292){
   actionY:mix(h+123,222,smooth(clamp(p/.88))),
   moreY:mix(h+8,113,smooth(p)),
   photoExtrasOpacity:1-segment(p,.20,.33),
+  mainPhotoOpacity:segment(p,.12,.50),
   goalX:0,goalY:0,compactHeight
  };
 }

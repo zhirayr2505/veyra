@@ -95,9 +95,10 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.goal)parts.goal.style.transform=translate(f.goalX,f.goalY);
    if(parts.bars)parts.bars.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
-   if(parts.backdropPhoto){const t=clamp((p-.30)/.55);parts.backdropPhoto.style.opacity=(t*t*(3-2*t)).toFixed(3)}
-   if(parts.rim)parts.rim.style.opacity=clamp((p-.30)/.08).toFixed(3);
-   if(parts.online)parts.online.style.opacity=clamp((p-.30)/.08).toFixed(3);
+   if(parts.mainPhoto)parts.mainPhoto.style.opacity=f.mainPhotoOpacity.toFixed(3);
+   if(parts.backdropPhoto){const t=clamp((p-.20)/.35);parts.backdropPhoto.style.opacity=(t*t*(3-2*t)).toFixed(3)}
+   if(parts.rim)parts.rim.style.opacity=clamp((p-.52)/.10).toFixed(3);
+   if(parts.online)parts.online.style.opacity=clamp((p-.52)/.10).toFixed(3);
 
 
     if(parts.grabber){
@@ -261,6 +262,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.refs={
    hero,
    rim:motion.querySelector('.vx-profile-photo-morph-rim'),
+   mainPhoto:motion.querySelector('.vx-profile-main-crossfade'),
    online:motion.querySelector('.vx-profile-online'),
    panel:motion.querySelector('.vx-profile-card-backdrop'),
    lip:motion.querySelector('.vx-profile-sheet-lip'),

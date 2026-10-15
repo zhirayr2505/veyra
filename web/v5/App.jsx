@@ -48,6 +48,12 @@ const nav=[['search','search','поиск'],['encounters','encounters','знак
 export function App(){
  const [initializing,setInitializing]=useState(true),[assetPercent,setAssetPercent]=useState(0),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState(''),[deleted,setDeleted]=useState(false);
  const [galleryOpen,setGalleryOpen]=useState(false);
+ const [profileViews,setProfileViews]=useState({});
+ const rememberProfile=useCallback((id,value)=>setProfileViews(previous=>{
+  const key=String(id),was=previous[key];
+  if(was?.tab===value.tab&&was?.index===value.index&&was?.mode===value.mode)return previous;
+  return {...previous,[key]:value};
+ }),[]);
  const [tab,setTab]=useState('encounters'),[tabDirection,setTabDirection]=useState('left'),[visited,setVisited]=useState(new Set(['encounters'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [feedFilters,setFeedFilters]=useState({mode:'discover',only_online:false,common_interests:false});
@@ -104,7 +110,7 @@ export function App(){
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onMatch={matchFound} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
  {tab==='profile'&&!member&&!conversation&&!overlay&&<div className="view-tab vx-own-profile-host">
-   <Member ownMe={me} viewer={me.profile} onGalleryStateChange={setGalleryOpen} onBack={()=>navigate('encounters')}
+   <Member ownMe={me} viewer={me.profile} viewState={profileViews[String(me.user.id)]} onViewStateChange={value=>rememberProfile(me.user.id,value)} onGalleryStateChange={setGalleryOpen} onBack={()=>navigate('encounters')}
     onEdit={()=>setOverlay({type:'edit'})}
     onSettings={()=>setOverlay({type:'settings'})}
     onCollection={()=>setOverlay({type:'collection'})}
@@ -116,7 +122,7 @@ export function App(){
    />
   </div>}
  </div>
- {member&&<div className="subscreen"><Member key={member.id} id={member.id} onGalleryStateChange={setGalleryOpen} viewer={me.profile} initialData={member.initialData} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
+ {member&&<div className="subscreen"><Member key={member.id} id={member.id} viewState={profileViews[String(member.id)]} onViewStateChange={value=>rememberProfile(member.id,value)} onGalleryStateChange={setGalleryOpen} viewer={me.profile} initialData={member.initialData} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
  {match&&<MatchCelebration me={me} match={match}

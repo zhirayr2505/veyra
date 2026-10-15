@@ -103,6 +103,14 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  clip-path:inset(0px 0px 0px 0px round 0px);border-radius:0;transition:none;
  --vx-profile-mask-diameter:180px;--vx-profile-mask-radius:90px;--vx-profile-mask-center-y:160px;
 }
+/* Main-photo crossfade stays within the very same composited hero mask. */
+.veyra-v2 .vx-master-profile .vx-profile-main-crossfade{
+ position:absolute;inset:0;z-index:4;opacity:0;pointer-events:none;
+}
+.veyra-v2 .vx-master-profile .vx-profile-main-crossfade .photo-box,
+.veyra-v2 .vx-master-profile .vx-profile-main-crossfade .photo-sharp{
+ width:100%;height:100%;object-fit:cover;
+}
 .veyra-v2 .vx-master-profile .vx-profile-photo-morph-rim{
  position:absolute;left:50%;top:var(--vx-profile-mask-center-y);
  width:var(--vx-profile-mask-diameter);height:var(--vx-profile-mask-diameter);

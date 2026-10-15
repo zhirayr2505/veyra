@@ -10,7 +10,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
  const geometry=profileCircleGeometry(width,height,compactHeight);
- const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[],backdropPhoto:[],rim:[],online:[]};
+ const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[],backdropPhoto:[],rim:[],online:[],mainPhoto:[]};
  const append=(offset,f)=>{
   tracks.hero.push({offset,transform:profileTranslate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(7)+')',clipPath:profileMorphInset(f.progress,width,height,geometry.diameter,geometry.maskCenterY)});
   tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
@@ -21,9 +21,10 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.goal.push({offset,transform:profileTranslate(f.goalX,f.goalY)});
   tracks.bars.push({offset,opacity:f.photoExtrasOpacity});
   tracks.nav.push({offset,opacity:f.photoExtrasOpacity});
-  tracks.backdropPhoto.push({offset,opacity:fade(f.progress,.30,.85)});
-  tracks.rim.push({offset,opacity:fade(f.progress,.30,.38)});
-  tracks.online.push({offset,opacity:fade(f.progress,.30,.38)});
+  tracks.backdropPhoto.push({offset,opacity:fade(f.progress,.20,.55)});
+  tracks.rim.push({offset,opacity:fade(f.progress,.52,.62)});
+  tracks.mainPhoto.push({offset,opacity:f.mainPhotoOpacity});
+  tracks.online.push({offset,opacity:fade(f.progress,.52,.62)});
   tracks.grabber.push({offset,opacity:1-fade(f.progress,.03,.24),transform:profileTranslate(0,f.sheetY-(height-30))});
  };
  for(const p of unique)append(rounded(p*limit),profileFrame(p,width,height,compactHeight));
