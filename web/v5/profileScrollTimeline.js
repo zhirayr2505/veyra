@@ -9,7 +9,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
  const points=[0,PROFILE_CIRCLE_AT-.002,PROFILE_CIRCLE_AT,PROFILE_CIRCLE_AT+.012,.365,.39,PROFILE_CENTER_AT,.78,.85,.9,.94,1];
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
- const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[]};
+ const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[],backdropPhoto:[]};
  const append=(offset,f)=>{
   tracks.hero.push({offset,transform:profileTranslate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(7)+')'});
   tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30)),clipPath:'inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)'});
@@ -20,6 +20,7 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.goal.push({offset,transform:profileTranslate(f.goalX,f.goalY)});
   tracks.bars.push({offset,opacity:f.photoExtrasOpacity});
   tracks.nav.push({offset,opacity:f.photoExtrasOpacity});
+  tracks.backdropPhoto.push({offset,opacity:fade(f.progress,.30,.85)});
   tracks.grabber.push({offset,opacity:1-fade(f.progress,.03,.24),transform:profileTranslate(0,f.sheetY-(height-30))});
  };
  for(const p of unique)append(rounded(p*limit),profileFrame(p,width,height,compactHeight));
