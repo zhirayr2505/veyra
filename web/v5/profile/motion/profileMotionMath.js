@@ -141,12 +141,16 @@ export function profileFrame(
     ? 19
     : p < 0.84
       ? mix(19, sideX, segment(p, 0.72, 0.84))
-      : mix(sideX, 129, segment(p, 0.84, 1));
+      : mix(sideX, 129, segment(p, 0.84, 0.92));
   const nameY = p < PROFILE_CIRCLE_AT
     ? baseNameY
-    : p < 0.84
+    : p < 0.80
       ? Math.max(baseNameY, underPhotoY)
-      : mix(underPhotoY, dockNameY, segment(p, 0.84, 0.96));
+      : mix(underPhotoY, dockNameY, segment(p, 0.80, 0.88));
+  // Route the rising identity to the avatar's right before the text crosses its vertical bounds.
+  const nameLeftSafe = p >= PROFILE_CIRCLE_AT && nameY < underPhotoY - 12
+    ? Math.max(nameLeft, photoX + photoW + 10)
+    : nameLeft;
   const railY = mix(h + 218, compactHeight, p);
   const panelHeight = profilePanelHeight(h);
   const panelClipBottom = Math.max(
@@ -173,11 +177,11 @@ export function profileFrame(
     panelHeight,
     panelClipBottom,
     // Move the identity across the invisible middle, then reveal from the right.
-    nameX: nameLeft - 19,
+    nameX: nameLeftSafe - 19,
     nameY,
     nameOpacity: 1,
     // Temporarily hide buttons instead of hiding the name during the morph.
-    actionOpacity: 1 - segment(p, 0.38, 0.52) + segment(p, 0.84, 0.96),
+    actionOpacity: 1 - segment(p, 0.08, 0.19) + segment(p, 0.94, 1),
     actionY: mix(h + 123, dockActionY, smooth(clamp(p / 0.88))),
     moreY: mix(h + 8, 113, smooth(p)),
     photoExtrasOpacity: 1 - segment(p, 0.2, 0.33),

@@ -981,3 +981,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  .vx-member-popup-menu{animation:none!important}
 }
 @keyframes vxMemberMenuIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Invisible mid-morph buttons cannot intercept scrolling, taps or content. */
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="transition"] .vx-profile-primary-actions{pointer-events:none}
