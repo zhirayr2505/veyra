@@ -1181,7 +1181,7 @@ test('VEYRA Motion 3 panel remains opaque and debug HUD captures live profile tr
  await expect(hud).toContainText('JS анимации p95');
  await expect(hud).toContainText('Forced layout внутри LoAF');
  const root=page.locator('.vx-profile-scroller');
- const lip=page.locator('.vx-profile-sheet-lip');
+ const panel=page.locator('.vx-profile-card-backdrop');
  const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  for(const p of [.16,.24,.39,.65,.91,1]){
@@ -1195,7 +1195,7 @@ test('VEYRA Motion 3 panel remains opaque and debug HUD captures live profile tr
    ]);
    return rail.y-(actions.y+actions.height);
   },{timeout:3500}).toBeGreaterThanOrEqual(7);
-  await expect(lip).toHaveCSS('opacity','1');
+  await expect(panel).toHaveCSS('opacity','1');
   await expect(page.locator('.vx-profile-compact-backdrop')).toHaveCSS('opacity','1');
  }
  await expect.poll(()=>hud.textContent()).toContain('Профиль');
@@ -1239,7 +1239,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  const blur=page.locator('.vx-profile-blurred-header');
  const ring=page.locator('.vx-profile-photo-morph-rim');
  const grip=page.locator('.vx-profile-sheet-grabber');
- const lip=page.locator('.vx-profile-sheet-lip');
+ const panel=page.locator('.vx-profile-card-backdrop');
  const actions=page.locator('.vx-profile-primary-actions');
  const primary=actions.locator('.vx-profile-action.primary');
  await expect(blur).toHaveCount(0);
@@ -1252,7 +1252,7 @@ test('VEYRA approved profile reference: portrait-derived blur, opaque sheet and 
  expect(visual.height).toBeGreaterThan(49);
  expect(parseFloat(visual.radius)).toBeGreaterThan(20);
  const z=await page.evaluate(()=>({
-  sheet:getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex,
+  sheet:getComputedStyle(document.querySelector('.vx-profile-card-backdrop')).zIndex,
   photo:getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex,
   identity:getComputedStyle(document.querySelector('.vx-profile-identity')).zIndex
  }));
@@ -1323,13 +1323,12 @@ test('VEYRA final visual: halo only when compact, early circle, goal below city,
  const halo=()=>page.evaluate(()=>{const header=document.querySelector('body > .vx-member-native-header');return header?getComputedStyle(header,'::before').content:'unknown'});
  // TopZone deliberately removes the old opaque pseudo-halo over portrait.
  await expect.poll(halo).toBe('none');
- const lip=page.locator('.vx-profile-sheet-lip');
  const layers=await page.evaluate(()=>({
-  lip:Number(getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).zIndex),
+  panel:Number(getComputedStyle(document.querySelector('.vx-profile-card-backdrop')).zIndex),
   hero:Number(getComputedStyle(document.querySelector('.vx-profile-hero-photo')).zIndex),
-  radius:getComputedStyle(document.querySelector('.vx-profile-sheet-lip')).borderTopLeftRadius
+  radius:getComputedStyle(document.querySelector('.vx-profile-card-backdrop')).borderTopLeftRadius
  }));
- expect(layers.lip).toBeGreaterThan(layers.hero);
+ expect(layers.panel).toBeGreaterThan(layers.hero);
  expect(parseFloat(layers.radius)).toBeGreaterThanOrEqual(30);
  const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-
   parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
