@@ -1132,11 +1132,20 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  expect(Math.abs(early.width-opened.width)).toBeLessThan(2);
  expect(Math.abs(early.x-opened.x)).toBeLessThan(2);
  expect(early.y).toBeLessThan(opened.y);
- // At p=.46 the photo shape is a rounded rectangle, not a 190px circle.
+ // At p=.46 the unified photo mask is already circular (threshold=.35).
+ // The original canvas may uniformly shrink; it must not stretch axes.
  const middle=await setProgress(.46);
- expect(Math.abs(middle.width-opened.width)).toBeLessThan(4);
- expect(Math.abs(middle.height-opened.height)).toBeLessThan(4);
- expect(await photo.evaluate(el=>getComputedStyle(el).clipPath)).toContain('round');
+ expect(middle.width).toBeLessThanOrEqual(opened.width+2);
+ expect(middle.width).toBeGreaterThan(opened.width*.75);
+ const masked=await photo.evaluate(el=>{
+  const cs=getComputedStyle(el),m=new DOMMatrixReadOnly(cs.transform);
+  const d=parseFloat(cs.getPropertyValue('--vx-profile-mask-diameter'));
+  return {clip:cs.clipPath,maskedDiameter:d*m.a,uniform:Math.abs(m.a-m.d)};
+ });
+ expect(masked.clip).toContain('round');
+ expect(masked.maskedDiameter).toBeLessThanOrEqual(390*.62+2);
+ expect(masked.maskedDiameter).toBeGreaterThan(98);
+ expect(masked.uniform).toBeLessThan(.001);
  await setProgress(1);
  // Stage 2.2 paints the 98px ring INSIDE a constant canvas with clip-path.
  const compact=await photo.locator('.vx-profile-photo-morph-rim').boundingBox();

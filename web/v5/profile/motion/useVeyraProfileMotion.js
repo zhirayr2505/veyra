@@ -160,8 +160,8 @@ export function useVeyraProfileMotion({
         if (
           s.gesture &&
           !s.haptic &&
-          previous >= 0 &&
-          previous < PROFILE_CIRCLE_AT &&
+          s.axis === "y" &&
+          s.startScroll / s.distance < PROFILE_CIRCLE_AT &&
           p >= PROFILE_CIRCLE_AT
         ) {
           s.haptic = true;
