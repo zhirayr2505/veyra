@@ -161,7 +161,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
-     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[idx]&&<Photo key={String(photos[idx])} id={photos[idx]} resolution={256} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>}</div>
+     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[idx]&&<Photo id={photos[idx]} resolution={256} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>}</div>
 
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>

@@ -188,7 +188,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   s.touching=true;s.velocity=0;s.lastAt=0;s.axis=null;
   s.elastic=0;s.bottomElastic=0;s.startScrollY=scrollRef.current?.scrollTop??0;
   const startEl=scrollRef.current;
-  s.startAtBottom=!!startEl&&s.startScrollY>=startEl.scrollHeight-startEl.clientHeight-1;
+  s.maxScrollAtTouchStart=startEl?startEl.scrollHeight-startEl.clientHeight:0;
+  s.startAtBottom=!!startEl&&s.startScrollY>=s.maxScrollAtTouchStart-1;
   writeElastic(startEl,0,s.width,false);writeBottomElastic(startEl,0,false);
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
@@ -208,7 +209,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    s.elastic=pull;
    writeElastic(el,pull,s.width,false);
   }
-  const canBottom=s.axis==='y'&&s.startAtBottom&&el.scrollTop>=el.scrollHeight-el.clientHeight-1&&dy<0;
+  const canBottom=s.axis==='y'&&s.startAtBottom&&el.scrollTop>=s.maxScrollAtTouchStart-1&&dy<0;
   const bottom=canBottom?Math.min(48,elasticPullDistance(-dy)*.5):0;
   if(Math.abs(bottom-s.bottomElastic)>.08){s.bottomElastic=bottom;writeBottomElastic(el,bottom,false)}
  },[scrollRef]);
@@ -293,7 +294,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   const onScrollEnd=()=>{
    if(s.snapping||s.touching)return;
    const y=el?.scrollTop||0;
-   if(y>1&&y<s.distance-1){s.released=true;s.releaseAt=performance.now()-700;snap()}
+   if(s.released&&y>1&&y<s.distance-1){s.releaseAt=performance.now()-700;snap()}
    else{s.released=false;cancelAnimationFrame(s.snapRaf)}
   };
   el?.addEventListener('scroll',onScroll,{passive:true});
