@@ -33,10 +33,12 @@ const failures=[];
 for(const spec of specs)for(const test of spec.tests||[]){
  if(test.projectName!=='v5')continue;
  total++;
- if(test.status!=='expected')failures.push({title:spec.title,status:test.status});
+ if(test.status!=='expected')failures.push({title:spec.title,status:test.status,details:(test.results||[]).map(r=>({status:r.status,error:r.error?.message||'',errors:(r.errors||[]).map(e=>e.message||'').slice(0,2)}))});
 }
 const unexpected=failures.filter(f=>!known.some(x=>f.title.includes(x)));
 const duplicates=failures.filter(f=>known.filter(x=>f.title.includes(x)).length!==1);
+// Error details are CI-only text; preserve the existing baseline gate semantics.
+for(const f of unexpected)console.log(JSON.stringify({event:'stage2_hotfix_browser_failure',title:f.title,status:f.status,details:f.details.map(x=>({status:x.status,error:String(x.error).slice(0,1300),errors:x.errors.map(e=>String(e).slice(0,1300))}))}));
 console.log(JSON.stringify({event:'stage0_chromium_baseline_comparison',main_baseline_run:38561917887,total,passed:total-failures.length,known_baseline_failures:failures.length-unexpected.length,new_regressions:unexpected.length,known_failure_titles:failures.filter(f=>!unexpected.includes(f)).map(f=>f.title),new_failure_titles:unexpected.map(f=>f.title)}));
 if(total<50||unexpected.length||duplicates.length||!report.suites?.length){
  console.error('STAGE0_CHROMIUM_REGRESSION_GATE_FAILED');process.exitCode=1;
