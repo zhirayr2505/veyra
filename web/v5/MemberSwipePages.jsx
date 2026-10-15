@@ -23,7 +23,17 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
   if(!viewport)return;
   const panel=Array.from(viewport.querySelectorAll('.vx-profile-swipe-page')).find(x=>x.getAttribute('aria-label')===tabs.find(([key])=>key===active)?.[1]);
   if(!panel)return;
-  const measure=()=>{if(viewport.isConnected)viewport.style.height=Math.ceil(panel.getBoundingClientRect().height)+'px'};
+  const measure=()=>{
+   if(!viewport.isConnected)return;
+   const nextHeight=Math.ceil(panel.getBoundingClientRect().height);
+   if(Math.abs(viewport.offsetHeight-nextHeight)>.5)viewport.style.height=nextHeight+'px';
+   const scroller=viewport.closest('.vx-profile-scroller'),spacer=scroller?.querySelector('.vx-profile-open-spacer');
+   if(scroller&&spacer){
+    const compact=parseFloat(getComputedStyle(scroller).getPropertyValue('--vx-profile-compact-height'))||292;
+    const end=Math.max(0,spacer.offsetHeight-compact);
+    if(scroller.scrollTop>end+.5)scroller.scrollTop=end;
+   }
+  };
   const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
   ro?.observe(panel);measure();
   return()=>{ro?.disconnect()};

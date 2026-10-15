@@ -183,7 +183,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
-     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[idx]&&<CompactBackdropPhoto id={photos[idx]}/>}</div>
+     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[0]&&<CompactBackdropPhoto id={photos[0]}/>}</div>
 
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
@@ -205,7 +205,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
      {isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
-      <button type="button" className="vx-profile-action" onClick={isPreview?()=>onPreviewAction?.('photos'):()=>openTab('photos')}><ImagePlus size={19}/><span>Мои фото</span></button>
+      <button type="button" className="vx-profile-action" onClick={isPreview?()=>onPreviewAction?.('photos'):onEdit}><ImagePlus size={19}/><span>Мои фото</span></button>
       <button type="button" className="vx-profile-action primary" onClick={isPreview?()=>onPreviewAction?.('edit'):onEdit}><Pencil size={19}/><span>Изменить</span></button>
       {!isPreview&&<button type="button" className="vx-profile-action" onClick={onSettings}><Settings2 size={19}/><span>Настройки</span></button>}
      </div>:<div className="vx-profile-primary-actions" aria-label="Действия с человеком">
