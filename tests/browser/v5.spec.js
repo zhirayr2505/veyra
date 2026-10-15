@@ -2212,3 +2212,38 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
   });
  }
 });
+
+test.describe('Stage 2 hotfix identical own/other motion architecture',()=>{
+ for(const width of [360,390]){
+  test('own and other use one hero pipeline and four tabs at '+width,async({page})=>{
+   await page.setViewportSize({width,height:width===360?740:844});
+   await telegram(page,10);await page.goto('/');
+   const capture=async(root)=>{
+    const motion=root.locator('.vx-profile-motion'),hero=root.locator('.vx-profile-hero-photo'),scroller=root.locator('.vx-profile-scroller');
+    await expect(motion).toHaveCount(1);
+    await expect(hero).toHaveCount(1);
+    await expect(root.locator('.vx-profile-tab-rail [role=tab]')).toHaveCount(4);
+    await expect(root.locator('.vx-profile-compact-backdrop .photo-box')).toHaveCount(1);
+    const d=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+    await scroller.evaluate((el,n)=>el.scrollTop=n,d);
+    await expect(motion).toHaveAttribute('data-state','compact');
+    const shape=await hero.evaluate(el=>({clip:getComputedStyle(el).clipPath,transform:getComputedStyle(el).transform}));
+    expect(shape.clip).toMatch(/^inset/);
+    await scroller.evaluate(el=>el.scrollTop=0);
+    await expect(motion).toHaveAttribute('data-state','expanded');
+    return {tabs:await root.locator('.vx-profile-tab-rail [role=tab]').count(),shape:shape.clip.split(' round ')[0].startsWith('inset(')};
+   };
+   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+   const own=page.locator('.vx-own-member');
+   await expect(own.locator('.vx-own-profile-actions button')).toHaveCount(3);
+   const a=await capture(own);
+   await page.goto('/');
+   await page.locator('.feed-photo .hero-name').first().click();
+   const other=page.locator('.member-feed-profile:not(.vx-own-member)');
+   await expect(other.locator('.vx-own-profile-actions')).toHaveCount(0);
+   await expect(other.locator('.vx-profile-primary-actions button').first()).toBeVisible();
+   const b=await capture(other);
+   expect(a).toEqual(b);
+  });
+ }
+});
