@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound,UserRound} from 'lucide-react';
 import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from './UI.jsx';
 import {CountryFlag} from './CountryFlag.jsx';
-import {get,post} from './api.js';
+import {get,post,cachedPhotoAny} from './api.js';
 import {openInvoice,GiftCollection} from './Extras.jsx';
 import {ProfileHighlights,INTEREST_GROUPS,goalTitle} from './OnboardingOptions.jsx';
 import './MemberFeed.css';
@@ -23,6 +23,28 @@ const ICONS_BY_GROUP={'Музыка':Music2,'Активность':Dumbbell,'К�
 const clamp=(n,min=0,max=1)=>Math.min(max,Math.max(min,n));
 function MemberInterest({label,common=false}){return <InterestChip label={label} tone={interestTone(label,INTEREST_GROUPS)} common={common} icon={<VeyraPackIcon name={interestGlyph(label)} size={19}/>}/>;}
 const feedback=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* No haptic outside Telegram. */}};
+
+// The hero has already fetched the image. Reuse its cached blob for the
+// static blurred compact background; never trigger a second /photos request.
+// The DOM node stays stable so ScrollTimeline keeps animating its opacity.
+const CompactBackdropPhoto=React.memo(function CompactBackdropPhoto({id}){
+ const imageRef=useRef(null);
+ useEffect(()=>{
+  if(!id)return;
+  const image=imageRef.current;
+  const hero=image?.closest('.vx-profile-sticky')?.querySelector('.vx-profile-hero-photo');
+  const sync=()=>{
+   const cached=cachedPhotoAny(id);
+   if(imageRef.current&&cached&&imageRef.current.getAttribute('src')!==cached)imageRef.current.src=cached;
+  };
+  hero?.addEventListener('load',sync,true);
+  sync();
+  return()=>hero?.removeEventListener('load',sync,true);
+ },[id]);
+ return <div className="photo-box photo-progressive">
+  <img key={String(id)} ref={imageRef} className="photo-sharp" src={cachedPhotoAny(id)||undefined} alt="" draggable="false" decoding="async"/>
+ </div>;
+});
 
 export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onPreviewAction,onCollection,onRanking,onCourtship,onAdmin,initialData=null,previewData=null,readOnly=false}){
  if(typeof window!=='undefined'&&window.__VEYRA_PROFILE_TEST__)window.__veyraMemberRenderCount=(window.__veyraMemberRenderCount||0)+1;
@@ -161,7 +183,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
-     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[idx]&&<Photo id={photos[idx]} resolution={256} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>}</div>
+     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[idx]&&<CompactBackdropPhoto id={photos[idx]}/>}</div>
 
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
