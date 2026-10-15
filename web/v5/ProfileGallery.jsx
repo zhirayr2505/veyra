@@ -10,7 +10,12 @@ const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
 
 /** Owns all gallery-only gestures. Does not modify Member scroll/hero transforms. */
 export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholders={},showHint=false}){
- const stageRef=useRef(null),planeRef=useRef(null);
+ const stageRef=useRef(null),planeRef=useRef(null),closeButtonRef=useRef(null);
+ useEffect(()=>{
+  const previouslyFocused=document.activeElement;
+  closeButtonRef.current?.focus({preventScroll:true});
+  return()=>{if(previouslyFocused?.isConnected)previouslyFocused.focus?.({preventScroll:true})};
+ },[]);
  const state=useRef({pointers:new Map(),scale:1,x:0,y:0,from:null,pinch:null,lastTap:null});
  const onCloseRef=useRef(onClose);onCloseRef.current=onClose;
  const onIndexRef=useRef(onIndex);onIndexRef.current=onIndex;
@@ -154,7 +159,7 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   apply(true);
  };
  return <div className="gallery vx-profile-gallery vx-gallery-premium" role="dialog" aria-modal="true" aria-label={'Галерея '+name}>
-  <button type="button" className="gallery-close vx-gallery-close" aria-label="Закрыть галерею" onClick={close}><X size={24}/></button>
+  <button ref={closeButtonRef} type="button" className="gallery-close vx-gallery-close" aria-label="Закрыть галерею" onClick={close}><X size={24}/></button>
   <div ref={stageRef} className="vx-gallery-stage" onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
    <div ref={planeRef} className="vx-gallery-plane"><div className="vx-gallery-preview-640"><Photo id={photos[index]} alt="" priority resolution={640} placeholder={placeholders?.[String(photos[index])]}/></div><div className="vx-gallery-hires-960"><Photo id={photos[index]} alt={'Фото '+(index+1)+' · '+name} priority resolution={960} placeholder={placeholders?.[String(photos[index])]}/></div></div>
   </div>

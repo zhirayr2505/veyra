@@ -2222,7 +2222,7 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    const badge=await page.locator('.vx-profile-goal').evaluate(el=>{const a=el.getBoundingClientRect();return {h:a.height,w:a.width,text:el.textContent,scroll:el.scrollHeight}});
    expect(badge.h).toBeGreaterThan(20);expect(badge.w).toBeGreaterThan(80);
   });
-  test('hotfix gallery pinch and zoom reset '+width+'px',async({page})=>{
+  test('hotfix gallery pinch and zoom reset '+width+'px',async({page},info)=>{
    await page.setViewportSize({width,height:width===360?740:844});
    await telegram(page,10);await page.goto('/');
    await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
@@ -2230,6 +2230,8 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    await page.locator('.vx-profile-photos-grid button').first().click();
    const stage=page.locator('.vx-gallery-stage');
    await expect(stage).toBeVisible();
+   await expect(page.locator('.gallery-close')).toBeFocused();
+   await page.screenshot({path:info.outputPath('stage2-2-gallery-open-'+width+'.png')});
    await stage.evaluate(el=>{
     const emit=(type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',clientX:x,clientY:y}));
     emit('pointerdown',1,110,280);emit('pointerdown',2,210,280);
@@ -2249,6 +2251,7 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    await expect(stage).toHaveAttribute('data-zoomed','false');
    await doubleTap();
    await expect(stage).toHaveAttribute('data-zoomed','true');
+   await page.screenshot({path:info.outputPath('stage2-2-gallery-zoom-'+width+'.png')});
    const location=await page.locator('.vx-gallery-top-segments').evaluate(el=>{
     const a=el.getBoundingClientRect(),b=el.closest('.vx-profile-gallery').getBoundingClientRect();
     return {y:a.top-b.top,half:b.height/2};
