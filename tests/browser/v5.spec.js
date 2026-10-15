@@ -2070,3 +2070,80 @@ test('Stage 2 compositor telemetry under Chromium CPU throttling 4x',async({page
  expect(Number.isFinite(stats.p95FrameMs)).toBe(true);
  expect(errors).toEqual([]);
 });
+
+test('STAGE2_1 own profile action buttons open real tabs, edit and settings',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const own=page.locator('.vx-own-member');
+ await expect(own).toBeVisible();
+ const actions=own.locator('.vx-own-profile-actions');
+ await expect(actions.locator('button')).toHaveCount(3);
+ await expect(own.locator('.vx-profile-card-more')).toHaveCount(0);
+ await actions.getByRole('button',{name:'Мои фото'}).click();
+ await expect(own.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await actions.getByRole('button',{name:'Изменить'}).click();
+ await expect(own).toHaveCount(0);
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ await expect(own).toBeVisible();
+ await own.locator('.vx-own-profile-actions').getByRole('button',{name:'Настройки'}).click();
+ await expect(own).toHaveCount(0);
+});
+
+test('STAGE2_1 blurred original photo and morph endpoints, compositor telemetry at CPU 4x',async({page},testInfo)=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.addInitScript(()=>{window.__VEYRA_PROFILE_TEST__=true;});
+ await telegram(page,10,false,true);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const root=page.locator('.vx-profile-scroller');
+ const hero=page.locator('.vx-profile-hero-photo');
+ await expect(hero).toBeVisible();
+ await expect(page.locator('.vx-profile-compact-backdrop .photo-box')).toHaveCount(1);
+ await page.screenshot({path:testInfo.outputPath('stage2-1-expanded.png')});
+ const distance=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ await root.evaluate((el,d)=>el.scrollTop=d*.4,distance);
+ for(let i=0;i<4;i++){await page.waitForTimeout(43);await page.screenshot({path:testInfo.outputPath('stage2-1-morph-'+i+'.png')});}
+ await expect.poll(()=>hero.evaluate(el=>getComputedStyle(el).clipPath.includes('round'))).toBe(true);
+ await root.evaluate((el,d)=>el.scrollTop=d,distance);
+ await page.waitForTimeout(230);
+ await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
+ await expect.poll(()=>page.locator('.vx-profile-compact-backdrop .photo-box').evaluate(el=>Number(getComputedStyle(el).opacity))).toBeGreaterThan(.95);
+ await page.screenshot({path:testInfo.outputPath('stage2-1-compact.png')});
+ await root.evaluate(el=>el.scrollTop=0);
+ await page.waitForTimeout(230);
+ const cdp=await page.context().newCDPSession(page);
+ await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+ const metrics=await page.evaluate(async d=>{
+  const root=document.querySelector('.vx-profile-scroller');
+  root.scrollTop=0;
+  const renders=window.__veyraMemberRenderCount||0;
+  const long=[],shifts=[];
+  const obs=new PerformanceObserver(list=>{for(const x of list.getEntries())long.push(x.duration)});
+  const lay=new PerformanceObserver(list=>{for(const x of list.getEntries())if(!x.hadRecentInput)shifts.push(x.value)});
+  try{obs.observe({type:'longtask',buffered:false})}catch{}
+  try{lay.observe({type:'layout-shift',buffered:false})}catch{}
+  const frames=[],n=95;
+  await new Promise(resolve=>{
+   let prev=0,i=0;
+   const step=ts=>{
+    if(prev)frames.push(ts-prev);
+    prev=ts;root.scrollTop=d*(Math.min(1,i/n));i++;
+    if(i<=n)requestAnimationFrame(step);else resolve();
+   };
+   requestAnimationFrame(step);
+  });
+  obs.disconnect();lay.disconnect();
+  frames.sort((a,b)=>a-b);
+  const pt=p=>frames[Math.min(frames.length-1,Math.floor(p*(frames.length-1)))]||0;
+  return {device:'Chromium mobile 390x844 CPU 4x',samples:frames.length,p50:pt(.5),p95:pt(.95),
+   above8_3:frames.filter(x=>x>8.3).length,above16_7:frames.filter(x=>x>16.7).length,
+   longTasks:long.filter(x=>x>50).length,layoutShifts:shifts.length,
+   layoutShiftScore:shifts.reduce((n,v)=>n+v,0),memberRendersDuringScroll:(window.__veyraMemberRenderCount||0)-renders,
+   scrollY:root.scrollTop};
+ },distance);
+ await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});
+ await testInfo.attach('stage2-1-cpu4x.json',{body:JSON.stringify(metrics,null,2),contentType:'application/json'});
+ expect(metrics.memberRendersDuringScroll).toBe(0);
+ expect(metrics.longTasks).toBe(0);
+});
