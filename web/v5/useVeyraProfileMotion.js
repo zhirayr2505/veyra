@@ -295,8 +295,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   const onScrollEnd=()=>{
    if(s.snapping||s.touching)return;
    const y=el?.scrollTop??0;
-   if(y>.5&&y<s.distance-.5){s.released=true;queueSnap()}
-   else{s.released=false;cancelAnimationFrame(s.snapRaf)}
+   if(s.released&&y>.5&&y<s.distance-.5){queueSnap()}
+   else if(y<=.5||y>=s.distance-.5){s.released=false;cancelAnimationFrame(s.snapRaf)}
   };
   el?.addEventListener('scroll',onScroll,{passive:true});
   el?.addEventListener('touchmove',onTouchMove,{passive:true});

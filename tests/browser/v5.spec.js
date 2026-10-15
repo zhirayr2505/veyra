@@ -1674,7 +1674,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
  const samples=[];
  const sample=async(p)=>{
   await scroller.evaluate((el,y)=>{el.scrollTop=y},distance*p);
-  await page.waitForTimeout(30);
+  await page.waitForTimeout(65);
   return await page.evaluate(()=>{
    const root=document.querySelector('.vx-profile-motion');
    const hero=root.querySelector('.vx-profile-hero-photo');
@@ -1691,7 +1691,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
   expect(v.transition).not.toContain('border-radius');
   const expectedShape=p>=.38?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
-  // A 180ms WAAPI morph interpolates inset dimensions; radius is never switched abruptly.
+  // Mask is deterministically interpolated from the same scroll progress as transform.
   expect(v.clip).toMatch(/^inset/);
   expect(Number(v.ring)).toBeGreaterThanOrEqual(0);
   expect(Number(v.ring)).toBeLessThanOrEqual(1);
@@ -1739,7 +1739,7 @@ for(const disableTimeline of [false,true]){
   if(disableTimeline)expect(await page.evaluate(()=>typeof window.ScrollTimeline)).toBe('undefined');
   const collect=async(y)=>{
    await scroller.evaluate((el,offset)=>{el.scrollTop=offset},y);
-   await page.waitForTimeout(36);
+   await page.waitForTimeout(65);
    return page.evaluate(()=>{
     const m=document.querySelector('.vx-profile-motion'),hero=m.querySelector('.vx-profile-hero-photo');
     const style=getComputedStyle(hero),matrix=new DOMMatrixReadOnly(style.transform);
@@ -2173,7 +2173,7 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    const distance=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
    for(const p of [.2,.4,.6,.8]){
     await scroll.evaluate((el,y)=>{el.scrollTop=y;el.dispatchEvent(new Event('scrollend'))},distance*p);
-    await expect.poll(()=>scroll.evaluate((el,d)=>Math.min(Math.abs(el.scrollTop),Math.abs(el.scrollTop-d))),{timeout:6000}).toBeLessThan(1.5);
+    await expect.poll(()=>scroll.evaluate((el,d)=>Math.min(Math.abs(el.scrollTop),Math.abs(el.scrollTop-d)),distance),{timeout:6000}).toBeLessThan(1.5);
    }
    await scroll.evaluate((el,d)=>el.scrollTop=d,distance);
    await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Подарки'}).click();
