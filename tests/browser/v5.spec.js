@@ -1040,14 +1040,28 @@ test('VEYRA master pack: full-bleed hero, vector buttons, opaque tabs and gestur
  expect(Math.abs(sizes[0].width-sizes[1].width)).toBeLessThan(2);
  await expect(actions.locator('.vx-pack-icon')).toHaveCount(3);
  const railPaint=await rail.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,blur:getComputedStyle(el).backdropFilter}));
-  // Stage 2.2 specifies a 94%-opaque rail surface without backdrop-filter.
-  expect(railPaint.bg).toContain('0.94');expect(railPaint.blur).toBe('none');
+  // One opaque rail; no backdrop-filter or translucent gap over the photo.
+  expect(railPaint.bg).toMatch(/^rgb\(\d+, \d+, \d+\)$/);expect(railPaint.blur).toBe('none');
  expect(await actions.locator('button.primary').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
  const d=await root.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
- await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.7;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
+ await root.evaluate((el,d)=>{
+  const finger=y=>new Touch({identifier:7,target:el,clientX:165,clientY:y});
+  const a=finger(480),b=finger(400);
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[a],changedTouches:[a]}));
+  el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:[b],changedTouches:[b]}));
+  el.scrollTop=d*.7;
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[b]}));
+ },d);
  await expect.poll(()=>root.evaluate(el=>el.scrollTop),{timeout:4500}).toBeGreaterThan(d-2);
  await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','compact');
- await root.evaluate((el,d)=>{el.dispatchEvent(new Event('touchstart',{bubbles:true}));el.scrollTop=d*.2;el.dispatchEvent(new Event('touchend',{bubbles:true}))},d);
+ await root.evaluate((el,d)=>{
+  const finger=y=>new Touch({identifier:8,target:el,clientX:165,clientY:y});
+  const a=finger(400),b=finger(480);
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[a],changedTouches:[a]}));
+  el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:[b],changedTouches:[b]}));
+  el.scrollTop=d*.2;
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[b]}));
+ },d);
  await expect.poll(()=>root.evaluate(el=>el.scrollTop),{timeout:4500}).toBeLessThan(2);
  await expect(page.locator('.vx-profile-motion')).toHaveAttribute('data-state','expanded');
  await rail.getByRole('tab',{name:'Фото'}).click();
@@ -1712,7 +1726,7 @@ test('Stage 2 portrait uses the same undimmed image, discrete mask, attached rin
   const v=await sample(p);samples.push({p,...v});
   expect(v.shade).toBe(0);
   expect(v.transition).not.toContain('border-radius');
-  const expectedShape=p>=.60?'circle':'cover';
+  const expectedShape=p>=.35?'circle':'cover';
   expect(v.phase).toBe(expectedShape);
   // Mask is deterministically interpolated from the same scroll progress as transform.
   expect(v.clip).toMatch(/^inset/);
@@ -1787,7 +1801,7 @@ for(const disableTimeline of [false,true]){
    const a=forward[i],b=backwards[backwards.length-1-i];
    const at=Math.min(distance,i*4)/distance;
    expect(a.duplicate).toBe(0);
-   expect(a.shape).toBe(at<.60?'cover':'circle');
+   expect(a.shape).toBe(at<.35?'cover':'circle');
    // Mask is tied to exactly the same progress in both directions.
    expect(a.shape).toBe(b.shape);
    expect(Math.abs(a.rect.left-b.rect.left)).toBeLessThan(2);
@@ -2035,24 +2049,30 @@ test('Stage 2 survives twenty collapse, photo gallery and swipe-tab cycles',asyn
  expect(errors).toEqual([]);
 });
 
-test('Stage 2 Telegram haptic fires only at the end of a deliberate settle',async({page})=>{
+test('Stage 2 haptic fires only on deliberate vertical crossing of round-avatar threshold',async({page})=>{
  await telegram(page,10);await page.goto('/');
  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
  const scroller=page.locator('.vx-profile-scroller');
  const d=await scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
  await page.evaluate(()=>{window.__stage2Haptics=[];window.Telegram.WebApp.HapticFeedback={impactOccurred:type=>window.__stage2Haptics.push(type)}});
  await scroller.evaluate((el,d)=>el.scrollTop=d*.4,d);
- await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeGreaterThan(d-1);
+ await page.waitForTimeout(120);
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual([]);
  await scroller.evaluate(el=>el.scrollTop=0);
  await expect.poll(()=>scroller.evaluate(el=>el.scrollTop)).toBeLessThan(1);
  await scroller.evaluate((el,d)=>{
-  const finger=new Touch({identifier:3,target:el,clientX:160,clientY:480});
-  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[finger],changedTouches:[finger]}));
-  el.scrollTop=d*.3;
-  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[finger]}));
+  const finger=y=>new Touch({identifier:3,target:el,clientX:160,clientY:y});
+  const a=finger(480),b=finger(400);
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[a],changedTouches:[a]}));
+  el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:[b],changedTouches:[b]}));
+  el.scrollTop=d*.4;
  },d);
- await expect.poll(()=>scroller.evaluate(el=>el.scrollTop),{timeout:3000}).toBeGreaterThan(d-1);
+ await expect.poll(()=>page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
+ await scroller.evaluate(el=>{
+  const b=new Touch({identifier:3,target:el,clientX:160,clientY:400});
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[b]}));
+ });
+ await page.waitForTimeout(420);
  expect(await page.evaluate(()=>window.__stage2Haptics)).toEqual(['light']);
 });
 
@@ -2211,8 +2231,11 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
     await scroll.evaluate((el,y)=>{
      const point=new Touch({identifier:1,target:el,clientX:170,clientY:480});
      el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[point],targetTouches:[point],changedTouches:[point]}));
+     const heading=el.scrollTop;
+     const moving=new Touch({identifier:1,target:el,clientX:170,clientY:y>heading?400:560});
+     el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:[moving],targetTouches:[moving],changedTouches:[moving]}));
      el.scrollTop=y;
-     el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],targetTouches:[],changedTouches:[point]}));
+     el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],targetTouches:[],changedTouches:[moving]}));
      el.dispatchEvent(new Event('scrollend'));
     },distance*p);
     await expect.poll(()=>scroll.evaluate((el,d)=>Math.min(Math.abs(el.scrollTop),Math.abs(el.scrollTop-d)),distance),{timeout:6000}).toBeLessThan(1.5);
@@ -2400,7 +2423,7 @@ test('STAGE2.2 contact sheets: eleven forward/reverse frames, photo 3, mobile an
 test.describe('STAGE2.2 direction release on touch',()=>{
  test.use({hasTouch:true});
  test('32 real CDP touch releases always reach one of two rests',async({page})=>{
-  test.setTimeout(150000);
+  test.setTimeout(180000);
   await telegram(page,10);await page.setViewportSize({width:390,height:844});await page.goto('/');
   await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
   const scroll=page.locator('.vx-profile-scroller'),cdp=await page.context().newCDPSession(page);
@@ -2413,7 +2436,8 @@ test.describe('STAGE2.2 direction release on touch',()=>{
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y:y0}]});
    for(let j=1;j<=5;j++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+(i%4)*2*j/5,y:y0+(downward?-1:1)*amount*j/5}]});
    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-   await page.waitForTimeout(500);
+   // Allow real Chromium inertia + quiet-time fallback and the eased settle to finish.
+   await page.waitForTimeout(1100);
    const actual=await scroll.evaluate(el=>el.scrollTop);
    // Raw scrollTop above d means content scrolling after the compact header.
     // Check the bounded header progress, which has only two rest positions.
