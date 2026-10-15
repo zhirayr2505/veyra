@@ -1,4 +1,4 @@
-import {profileFrame,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
+import {profileFrame,profileCircleGeometry,profileMorphInset,PROFILE_MORPH_START,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT} from './profileMotionMath.js';
 // ScrollTimeline uses one uniform portrait transform. The JS boundary switch
 // owns the discrete clip-path; no radius interpolation runs on the compositor.
 const rounded=n=>Math.round(n*1e5)/1e5;
@@ -6,12 +6,13 @@ const fade=(p,a,b)=>{const t=Math.max(0,Math.min(1,(p-a)/(b-a)));return t*t*(3-2
 export const profileTranslate=(x,y)=>'translate3d('+x.toFixed(3)+'px,'+y.toFixed(3)+'px,0)';
 export function buildProfileScrollKeyframes(width,height,distance,maxScroll,compactHeight=292){
  const full=Math.max(1,maxScroll),limit=Math.min(1,Math.max(1,distance)/full);
- const points=[0,PROFILE_CIRCLE_AT-.002,PROFILE_CIRCLE_AT,PROFILE_CIRCLE_AT+.012,.365,.39,PROFILE_CENTER_AT,.78,.85,.9,.94,1];
+ const points=[0,PROFILE_MORPH_START,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT,.78,.85,.9,.94,1];
  for(let i=0;i<=40;i++)points.push(i/40);
  const unique=[...new Set(points)].sort((a,b)=>a-b);
- const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[],backdropPhoto:[]};
+ const geometry=profileCircleGeometry(width,height,compactHeight);
+ const tracks={hero:[],panel:[],lip:[],identity:[],actions:[],more:[],goal:[],bars:[],nav:[],grabber:[],backdropPhoto:[],rim:[],online:[]};
  const append=(offset,f)=>{
-  tracks.hero.push({offset,transform:profileTranslate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(7)+')'});
+  tracks.hero.push({offset,transform:profileTranslate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(7)+')',clipPath:profileMorphInset(f.progress,width,height,geometry.diameter,geometry.maskCenterY)});
   tracks.panel.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
   tracks.lip.push({offset,transform:profileTranslate(0,f.sheetY-(height-30))});
   tracks.identity.push({offset,transform:profileTranslate(f.nameX,f.nameY-(height+9)),opacity:f.nameOpacity});
@@ -21,6 +22,8 @@ export function buildProfileScrollKeyframes(width,height,distance,maxScroll,comp
   tracks.bars.push({offset,opacity:f.photoExtrasOpacity});
   tracks.nav.push({offset,opacity:f.photoExtrasOpacity});
   tracks.backdropPhoto.push({offset,opacity:fade(f.progress,.30,.85)});
+  tracks.rim.push({offset,opacity:fade(f.progress,.30,.38)});
+  tracks.online.push({offset,opacity:fade(f.progress,.30,.38)});
   tracks.grabber.push({offset,opacity:1-fade(f.progress,.03,.24),transform:profileTranslate(0,f.sheetY-(height-30))});
  };
  for(const p of unique)append(rounded(p*limit),profileFrame(p,width,height,compactHeight));
