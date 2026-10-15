@@ -6,14 +6,14 @@
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="true"] .vx-profile-sheet-lip{
  z-index:11!important;
  border-radius:35px 35px 0 0;
- background:#fffcff;
+ background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="false"] .vx-profile-sheet-lip{
  z-index:6!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  border-radius:35px 35px 0 0;
- background:#fffcff;
+ background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-sheet-grabber{
  /* Above the expanded name, not over the DEMO badge. */
@@ -36,7 +36,7 @@
 }
 .veyra-v2 .vx-master-profile .vx-profile-goal svg{flex:0 0 14px}
 .veyra-v2 .vx-master-profile .vx-profile-goal-text{
- overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
+ display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;padding-bottom:1px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row .vx-demo-member-label{
  background:#eee0ff;
@@ -114,9 +114,10 @@
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
  padding-top:17px!important;
+ padding-bottom:calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail{
- background:#fdfaff!important;
+ background:var(--vx-sheet-bg)!important;
  border-bottom-color:#e9def5;
  box-shadow:0 3px 9px #56366b0b;
 }
@@ -127,6 +128,7 @@
  --vx-elastic-pull:0px;
  --vx-elastic-scale:1;
  --vx-elastic-x:0px;
+ --vx-elastic-bottom:0px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  translate:var(--vx-elastic-x) 0;
@@ -138,16 +140,17 @@
  .vx-profile-sheet-grabber,
  .vx-profile-identity,
  .vx-profile-primary-actions,
- .vx-profile-card-more,
- .vx-profile-tab-rail,
- .vx-profile-swipe-viewport
+ .vx-profile-card-more
 ){
  translate:0 var(--vx-elastic-pull);
+}
+.veyra-v2 .vx-master-profile :is(.vx-profile-tab-rail,.vx-profile-swipe-viewport){
+ translate:0 calc(var(--vx-elastic-pull) + var(--vx-elastic-bottom));
 }
 .veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release .vx-profile-hero-photo{
  transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1);
 }
-.veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release :is(
+.veyra-v2 .vx-master-profile .vx-profile-scroller:is(.vx-elastic-release,.vx-bottom-elastic-release) :is(
  .vx-profile-card-backdrop,
  .vx-profile-sheet-lip,
  .vx-profile-sheet-grabber,

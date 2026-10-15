@@ -14,7 +14,7 @@
    center/avatar boundary: that was responsible for horizontal image slices. */
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  z-index:5;
- background:linear-gradient(155deg,#fffcff 0%,#fbf8ff 65%,#f7f1ff 100%);
+ background:var(--vx-sheet-bg);
  border-radius:34px 34px 0 0;
  box-shadow:0 -3px 11px #57437612;
  border-top:1px solid #ffffffd9;
@@ -24,7 +24,7 @@
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="avatar"] .vx-profile-sheet-lip{
  z-index:6;
  border-radius:34px 34px 0 0;
- background:#fffcff;
+ background:var(--vx-sheet-bg);
  border-top-color:#ffffffdf;
 }
 /* Subtle grip on the expanded card, hidden during the morph by ScrollTimeline. */
@@ -105,7 +105,7 @@
  left:12px!important;
  right:12px!important;
  gap:7px!important;
- grid-template-columns:104fr 138fr 104fr!important;
+ grid-template-columns:104fr 138fr 104fr;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action{
  height:51px!important;
@@ -115,7 +115,7 @@
  border:1.25px solid #e4d6fb!important;
  background:linear-gradient(160deg,#fffdff 0%,#f9f5ff 100%)!important;
  color:#7544d2!important;
- font-size:clamp(10.5px,3.25vw,13.5px)!important;
+ font-size:clamp(10px,2.9vw,12px)!important;
  font-weight:850!important;
  box-shadow:0 3px 9px #6e48a00e!important;
  letter-spacing:-.12px;
@@ -178,10 +178,10 @@
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport,
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track,
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
- background:#faf7ff!important;
+ background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
- padding:11px 12px calc(112px + env(safe-area-inset-bottom));
+ padding:11px 12px calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
 }
 .veyra-v2 .vx-master-profile .vx-profile-section-body{
  gap:11px;

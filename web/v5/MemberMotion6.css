@@ -12,14 +12,14 @@
  z-index:5!important;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
- height:284px!important;clip-path:inset(0 0 36px 0);
+ background:var(--vx-sheet-bg);
 }
 /* One safe zone between the 98px avatar and the three-dots menu; the whole
    name/badge/goal block is invisible during the intermediate travel. */
 .veyra-v2 .vx-master-profile .vx-profile-identity{
  left:19px!important;right:auto!important;
  width:calc(100% - 194px)!important;
- min-width:0!important;overflow:hidden!important;
+ min-width:0!important;overflow:visible;
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row{
  display:flex;align-items:center;justify-content:flex-start;
