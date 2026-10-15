@@ -47,6 +47,7 @@ const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
 export function App(){
  const [initializing,setInitializing]=useState(true),[assetPercent,setAssetPercent]=useState(0),[startRegistration,setStartRegistration]=useState(false),[me,setMe]=useState(null),[error,setError]=useState(''),[deleted,setDeleted]=useState(false);
+ const [galleryOpen,setGalleryOpen]=useState(false);
  const [tab,setTab]=useState('encounters'),[tabDirection,setTabDirection]=useState('left'),[visited,setVisited]=useState(new Set(['encounters'])),[overlay,setOverlay]=useState(null),[member,setMember]=useState(null),[conversation,setConversation]=useState(null),[match,setMatch]=useState(null),[refreshTick,setRefreshTick]=useState(0),[feedTick,setFeedTick]=useState(0);
  const [returnChat,setReturnChat]=useState(null);
  const [feedFilters,setFeedFilters]=useState({mode:'discover',only_online:false,common_interests:false});
@@ -65,11 +66,11 @@ export function App(){
   setBearer(j.token);const m=await get('/me');await brandReady;if(alive){setMe(m);setError('')}
  }catch(e){if(alive)setError(e.message)}finally{if(alive)setInitializing(false)}})();return()=>{alive=false;releaseFullscreen()}},[]);
  useEffect(()=>{const back=tg?.BackButton;if(!back?.onClick)return;
-  const active=!!(match||overlay||member||conversation);
+  const active=!!(galleryOpen||match||overlay||member||conversation);
   if(!active){back.hide?.();return;}
-  const goBack=()=>{if(match){setMatch(null);return;}if(overlay){setOverlay(current=>current?.type==='veys'?(current.returnTo||null):null);return;}if(member){setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}return;}if(conversation)setConversation(null)};
+  const goBack=()=>{if(galleryOpen){document.dispatchEvent(new Event('veyra:close-profile-gallery'));return;}if(match){setMatch(null);return;}if(overlay){setOverlay(current=>current?.type==='veys'?(current.returnTo||null):null);return;}if(member){setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}return;}if(conversation)setConversation(null)};
   back.show?.();back.onClick(goBack);return()=>{back.offClick?.(goBack);back.hide?.()};
- },[match,overlay,member,conversation,returnChat]);
+ },[galleryOpen,match,overlay,member,conversation,returnChat]);
  const logout=()=>{setBearer('');clearPhotoCache();setMe(null);setError('');setDeleted(true);try{Object.keys(localStorage).filter(k=>k.startsWith('veyra.registration.')).forEach(k=>localStorage.removeItem(k))}catch{}};
  const navigate=next=>{setError('');setMember(null);setConversation(null);setReturnChat(null);setOverlay(null);setTabDirection(nav.findIndex(x=>x[0]===next)>=nav.findIndex(x=>x[0]===tab)?'left':'right');setTab(next);setVisited(s=>new Set([...s,next]));window.scrollTo(0,0)};
  const openMember=(id,matchId=null,initialData=null)=>{if(!id)return;setError('');setReturnChat(conversation);setConversation(null);setOverlay(null);setMember({id,matchId,initialData});window.scrollTo(0,0)};
@@ -103,7 +104,7 @@ export function App(){
  {visited.has('likes')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='likes'}><Likes active={tab==='likes'&&!conversation&&!member} onProfile={openMember} onChat={openChat} onMatch={matchFound} onPremium={()=>setOverlay({type:'premium'})} refreshTick={refreshTick}/></div>}
  {visited.has('chats')&&<div className="view-tab" data-enter={tabDirection} hidden={tab!=='chats'}><Chats active={tab==='chats'&&!conversation&&!member} onOpen={openChat} onProfile={openMember} refreshTick={refreshTick}/></div>}
  {tab==='profile'&&!member&&!conversation&&!overlay&&<div className="view-tab vx-own-profile-host">
-   <Member ownMe={me} viewer={me.profile} onBack={()=>navigate('encounters')}
+   <Member ownMe={me} viewer={me.profile} onGalleryStateChange={setGalleryOpen} onBack={()=>navigate('encounters')}
     onEdit={()=>setOverlay({type:'edit'})}
     onSettings={()=>setOverlay({type:'settings'})}
     onCollection={()=>setOverlay({type:'collection'})}
@@ -115,7 +116,7 @@ export function App(){
    />
   </div>}
  </div>
- {member&&<div className="subscreen"><Member key={member.id} id={member.id} viewer={me.profile} initialData={member.initialData} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
+ {member&&<div className="subscreen"><Member key={member.id} id={member.id} onGalleryStateChange={setGalleryOpen} viewer={me.profile} initialData={member.initialData} initialMatch={member.matchId} onBack={()=>{setMember(null);if(returnChat){setConversation(returnChat);setReturnChat(null)}}} onChat={openChat} onMatch={matchFound} onGift={gift} onPremium={()=>setOverlay({type:'premium'})} onWallet={()=>setOverlay({type:'veys'})} onPaid={refresh}/></div>}
  {conversation&&<div className="subscreen"><Conversation matchId={conversation.id} partner={conversation.partner} onBack={()=>setConversation(null)} onProfile={openMember} onGift={gift} myId={me.user.id}/></div>}
  {!conversation&&!member&&!overlay&&<nav className="bottom-nav" aria-label="Навигация VEYRA">{nav.map(([k,icon,label])=><button key={k} aria-current={tab===k?'page':undefined} className={tab===k?'active':''} onClick={()=>navigate(k)}><span className="nav-icon-plate"><Icon name={icon+(tab===k?'_filled':'')} tone={tab===k?'pink':'dark'} size={24}/></span><span className="nav-label">{label}</span></button>)}</nav>}
  {match&&<MatchCelebration me={me} match={match}

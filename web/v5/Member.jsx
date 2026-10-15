@@ -14,6 +14,7 @@ import {interestTone,sharedInterestSet,normalizeInterest} from './profilePolishL
 import {MemberSwipePages} from './MemberSwipePages.jsx';
 import {PhotoSegments} from './PhotoSegments.jsx';
 import {HeroPhotoTrack} from './HeroPhotoTrack.jsx';
+import {ProfileGallery} from './ProfileGallery.jsx';
 import {normalizeProfileSeed,mergeProfileSeed} from './profileSeed.js';
 import {Pencil,Settings2,Wallet,ShieldCheck,Crown,Medal,ImagePlus,MessageCircleHeart} from 'lucide-react';
 
@@ -46,7 +47,7 @@ const CompactBackdropPhoto=React.memo(function CompactBackdropPhoto({id}){
  </div>;
 });
 
-export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onPreviewAction,onCollection,onRanking,onCourtship,onAdmin,initialData=null,previewData=null,readOnly=false}){
+export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onPreviewAction,onCollection,onRanking,onCourtship,onAdmin,onGalleryStateChange,initialData=null,previewData=null,readOnly=false}){
  if(typeof window!=='undefined'&&window.__VEYRA_PROFILE_TEST__)window.__veyraMemberRenderCount=(window.__veyraMemberRenderCount||0)+1;
  const isPreview=readOnly&&!!previewData;
  const isOwn=!!ownMe||isPreview;
@@ -65,14 +66,14 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});
  },[ownMe,isPreview,previewData]);
  const [data,setData]=useState(()=>ownSeed||seed),[loading,setLoading]=useState(()=>!ownSeed),[error,setError]=useState(''),[retry,setRetry]=useState(0);
- const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[galleryHint,setGalleryHint]=useState(false),[more,setMore]=useState(false);
+ const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[more,setMore]=useState(false);
  const [reactionPulse,setReactionPulse]=useState('');
  const [courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false);
  const [reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false);
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState('about');
  const [logoTone,setLogoTone]=useState(null);
- const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryTouch=useRef(null),galleryHintSeen=useRef(false);
+ const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null);
  const swipeApiRef=useRef(null),tabRailRef=useRef(null);
  const moveTabIndicator=useCallback(position=>{
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
@@ -137,13 +138,11 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   return()=>{observer.disconnect();root.removeEventListener('load',sample,true)};
  },[data,idx]);
 
- const openGallery=index=>{if(!data?.photos?.length)return;if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
+ const openGallery=index=>{if(!data?.photos?.length)return;if(Number.isInteger(index))setIdx(index);setGallery(true)};
  useEffect(()=>{
-  if(!gallery)return;
-  const onKey=e=>{const length=data?.photos?.length||0;if(e.key==='Escape')setGallery(false);if(e.key==='ArrowLeft'&&length>1)setIdx(i=>(i-1+length)%length);if(e.key==='ArrowRight'&&length>1)setIdx(i=>(i+1)%length)};
-  document.addEventListener('keydown',onKey);
-  return()=>document.removeEventListener('keydown',onKey);
- },[gallery,data]);
+  onGalleryStateChange?.(gallery);
+  return()=>{if(gallery)onGalleryStateChange?.(false)};
+ },[gallery,onGalleryStateChange]);
  const openTab=next=>{
   const index=tabs.findIndex(([key])=>key===next);
   if(index<0)return;
@@ -248,15 +247,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    </MemberSwipePages>
   </div>
 
-  {gallery&&createPortal(<div className="gallery vx-profile-gallery" role="dialog" aria-modal="true" aria-label={"Галерея "+data.name} onTouchStart={e=>{galleryTouch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}}} onTouchEnd={e=>{const start=galleryTouch.current;if(!start)return;const dx=e.changedTouches[0].clientX-start.x,dy=e.changedTouches[0].clientY-start.y;if(dy>90&&Math.abs(dy)>Math.abs(dx))setGallery(false);else if(Math.abs(dx)>40)photosNext(dx<0?1:-1);galleryTouch.current=null}}>
-   <button type="button" className="gallery-close" aria-label="Закрыть" onClick={()=>setGallery(false)}><Icon name="close" tone="white" size={21}/></button>
-   {photos.length>1&&<button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>photosNext(-1)}><ChevronLeft size={28}/></button>}
-   <Photo id={photos[idx]} alt={data.name} priority resolution={960} placeholder={data.photo_placeholders?.[String(photos[idx])]}/>
-   {photos.length>1&&<button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>photosNext(1)}><ChevronRight size={28}/></button>}
-   <PhotoSegments count={photos.length} index={idx} className="vx-profile-gallery-bars"/>
-   <small className="vx-profile-gallery-counter" aria-live="polite">{idx+1}/{photos.length}</small>
-   {galleryHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
-  </div>,document.body)}
+  {gallery&&createPortal(<ProfileGallery photos={photos} index={idx} onIndex={setIdx} onClose={()=>setGallery(false)} name={data.name} placeholders={data.photo_placeholders}/>,document.body)}
 
   {!isOwn&&reportOpen&&<Sheet title="Пожаловаться" onClose={()=>setReportOpen(false)}><div className="fields"><label>Причина<select value={reportReason} onChange={e=>setReportReason(e.target.value)}><option value="fake">Фейковая анкета</option><option value="spam">Спам или реклама</option><option value="harassment">Оскорбления или домогательства</option><option value="underage">Пользователь младше 18 лет</option><option value="explicit">Неподходящие фотографии</option><option value="other">Другая причина</option></select></label><label>Подробности (необязательно)<textarea maxLength={2000} value={reportDetails} onChange={e=>setReportDetails(e.target.value)} placeholder="Что произошло?"/></label></div><InlineAlert>{error}</InlineAlert><Button className="full" disabled={reportBusy} onClick={report}>отправить жалобу</Button></Sheet>}
   {!isOwn&&more&&createPortal(<div className="vx-member-menu-backdrop" role="presentation" onClick={()=>setMore(false)}><section className="vx-member-popup-menu" role="menu" aria-label="Действия с анкетой" onClick={e=>e.stopPropagation()}><strong>Действия с анкетой</strong><button className="menu-item" role="menuitem" onClick={share}><Icon name="share" tone="pink" size={20}/> Поделиться</button><button className="menu-item" role="menuitem" onClick={()=>{setMore(false);setReportOpen(true)}}><Icon name="info" tone="pink" size={20}/> Пожаловаться</button><button className="menu-item danger" role="menuitem" onClick={()=>{setMore(false);block()}}><Icon name="block" tone="pink" size={20}/> Заблокировать</button><button className="vx-member-menu-close" onClick={()=>setMore(false)}>Закрыть</button></section></div>,document.body)}

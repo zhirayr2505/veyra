@@ -116,9 +116,9 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   const from=s.from;s.from=null;
   if(!from){apply(true);return}
   const dx=e.clientX-from.x,dy=e.clientY-from.y;
-  if(s.scale>1.01){apply(true);return}
-  if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.2){change(dx<0?1:-1);return}
-  if(dy>125&&Math.abs(dy)>Math.abs(dx)*1.3){close();return}
+  if(s.scale>1.01&&Math.abs(dx)>15){apply(true);return}
+  if(s.scale<=1.01&&Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.2){change(dx<0?1:-1);return}
+  if(s.scale<=1.01&&dy>125&&Math.abs(dy)>Math.abs(dx)*1.3){close();return}
   const last=s.lastTap,now=performance.now();
   if(Math.abs(dx)<15&&Math.abs(dy)<15&&last&&now-last.at<290&&distance(last,{x:e.clientX,y:e.clientY})<45){
    s.scale=s.scale>1.01?1:2.5;s.x=0;s.y=0;s.lastTap=null;apply(true);
