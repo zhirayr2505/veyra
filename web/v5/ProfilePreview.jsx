@@ -1,10 +1,9 @@
 import React,{useRef,useState,useEffect,useLayoutEffect,useMemo} from 'react';
-import {Member} from './Member.jsx';
+import {Member} from './profile/Member.jsx';
 import {photoUrl,cachedPhotoAny} from './api.js';
 import {Icon,Button} from './UI.jsx';
 import {FeedCardVisual} from './FeedCardVisual.jsx';
 import {OnboardingHeader} from './OnboardingHeader.jsx';
-import './MemberFeed.css';
 import './ProfilePreview.css';
 const ageOf=b=>{const date=new Date(b),now=new Date();return Number.isNaN(+date)?'':now.getFullYear()-date.getFullYear()-(now.getMonth()<date.getMonth()||(now.getMonth()===date.getMonth()&&now.getDate()<date.getDate())?1:0)};
 export function ProfilePreview({profile={},photos=[],onBack,onEdit,onJump,onSubmit,submitting=false,error='',submitted=false}){

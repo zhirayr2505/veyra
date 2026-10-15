@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeProfileSeed,mergeProfileSeed} from '../web/v5/profileSeed.js';
+import {normalizeProfileSeed,mergeProfileSeed} from '../web/v5/profile/model/profileSeed.js';
 
 test('card data renders immediately, with all known portrait ids',()=>{
  const card={id:'23',name:'Анна',age:27,photos:[{id:'p1'},'p2'],interests:['Книги']};

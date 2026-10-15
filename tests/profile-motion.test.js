@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {profileFrame,profileMaskDiameter,profileCircleGeometry,profileMorphInset,PROFILE_MORPH_START,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT,PROFILE_VISIBLE_TOP_INSET,PROFILE_CIRCLE_WIDTH_FRACTION,PROFILE_AVATAR_DIAMETER} from '../web/v5/profileMotionMath.js';
+import {profileFrame,profileMaskDiameter,profileCircleGeometry,profileMorphInset,PROFILE_MORPH_START,PROFILE_CIRCLE_AT,PROFILE_CENTER_AT,PROFILE_VISIBLE_TOP_INSET,PROFILE_CIRCLE_WIDTH_FRACTION,PROFILE_AVATAR_DIAMETER} from '../web/v5/profile/motion/profileMotionMath.js';
 const W=390,H=447,D=profileMaskDiameter(W,H);
 const frame=p=>profileFrame(p,W,H,292);
 const close=(a,b,eps=.1)=>Math.abs(a-b)<=eps;
@@ -58,18 +58,19 @@ test('no discontinuous transform at the mask boundary; no wide circle',()=>{
  assert.ok(b.width<=W*PROFILE_CIRCLE_WIDTH_FRACTION);
  assert.ok(b.width<=profileCircleGeometry(W,H).visibleHeight);
 });
-test('identity fades out before circle and returns smoothly near dock',()=>{
- assert.equal(frame(0).nameOpacity,1);
- for(const p of [.30,.43,.69])assert.equal(frame(p).nameOpacity,0);
- for(const p of [.75,.94])assert.ok(frame(p).nameOpacity>0&&frame(p).nameOpacity<1);
- assert.equal(frame(1).nameOpacity,1);
- assert.ok(frame(.61).nameX>=0);
- assert.ok(frame(.80).nameX>110);
- assert.equal(frame(1).nameOpacity,1);
+test('identity remains readable through the morph while actions yield space',()=>{
+ for(let i=0;i<=100;i++){const f=frame(i/100);assert.equal(f.nameOpacity,1);assert.ok(f.actionOpacity>=0&&f.actionOpacity<=1)}
+ assert.ok(frame(.61).nameY>=frame(.61).y+frame(.61).width+12);
+ assert.ok(frame(.50).nameY>=frame(.50).y+frame(.50).width+12);
+ assert.ok(frame(.80).nameY>=frame(.80).y+frame(.80).width+12);
+ assert.ok(frame(.80).nameX>0);
+ assert.equal(frame(1).nameX,110);
+ assert.equal(frame(1).nameY,116);
+ assert.equal(frame(1).actionOpacity,1);
  for(let i=0;i<=1000;i++){
   const p=i/1000,f=frame(p),railTop=H+218-p*(H+218-292);
   assert.ok(f.actionY+51<=railTop-7,'action/rail '+p);
-  assert.ok(f.sheetY+284-f.panelClipBottom<=railTop+.001,'panel/rail '+p);
+  assert.ok(Math.abs(f.sheetY+f.panelHeight-f.panelClipBottom-railTop-1)<.001,'panel/rail '+p);
  }
 });
 
@@ -84,7 +85,7 @@ test('short viewport has the same visible-region-center and maximum width bounds
  }
 });
 
-test('morph mask is monotonic, symmetric and circular at .60 without a timer',()=>{
+test('morph mask is monotonic, symmetric and circular at the configured threshold without a timer',()=>{
  const g=profileCircleGeometry(W,H),p=PROFILE_MORPH_START,finish=PROFILE_CIRCLE_AT;
  const frameAt=t=>profileMorphInset(t,W,H,g.diameter,g.maskCenterY);
  assert.equal(frameAt(p),'inset(0.00px 0.00px 0.00px 0.00px round 0.00px)');

@@ -1,7 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {analyzeFrameIntervals,formatPerformanceSummary} from './performanceMetrics.js';
-import {enableProfileProbe,getProfileProbeSnapshot} from './profilePerfProbe.js';
+import {enableProfileProbe,getProfileProbeSnapshot} from './profile/motion/profilePerfProbe.js';
 import './PerformanceMonitor.css';
 
 const EMPTY=analyzeFrameIntervals([]);

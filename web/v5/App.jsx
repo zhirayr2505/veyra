@@ -9,7 +9,7 @@ import {CompletionScreen} from './CompletionScene.jsx';
 import {DeletionPending} from './AccountDeletion.jsx';
 import {DiscoveryHub} from './DiscoveryHub.jsx';
 import {FeedFilters} from './FeedFilters.jsx';
-import {Member} from './Member.jsx';
+import {Member} from './profile/Member.jsx';
 import {MatchCelebration} from './MatchCelebration.jsx';
 import {Likes} from './Likes.jsx';
 import {Chats,Conversation} from './Chats.jsx';
@@ -35,7 +35,7 @@ import './VeyraPolishFinal.css'; // Static feed and responsive member morph — 
 import './FeedPremium2026.css'; // Approved feed reference, liquid tabs, interest drawer & CTA geometry
 import './ForYouApproved2026.css'; // Approved light lavender For You design
 import './TelegramSwipeGuard.css'; // Native overscroll fallback without blocking touch scroll
-import './member/profile.css';
+import './profile/styles/profile.css';
 import './tokens.css'; // Unified brand palette, seven chip tones and shared component metrics
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];

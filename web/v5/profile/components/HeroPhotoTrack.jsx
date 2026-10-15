@@ -1,7 +1,7 @@
 import React,{useEffect,useLayoutEffect,useRef} from 'react';
-import {Photo} from './UI.jsx';
-import {photoUrl} from './api.js';
-import {swipeAxis,swipeStep,swipeBound} from './photoSwipeMath.js';
+import {Photo} from '../../UI.jsx';
+import {photoUrl} from '../../api.js';
+import {swipeAxis,swipeStep,swipeBound} from '../../photoSwipeMath.js';
 import './HeroPhotoTrack.css';
 
 const BASE='translate3d(-33.333333%,0,0)';

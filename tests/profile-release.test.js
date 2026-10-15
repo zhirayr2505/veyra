@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {profileReleaseDirection,releaseTarget} from '../web/v5/profileMotionMath.js';
+import {profileReleaseDirection,releaseTarget} from '../web/v5/profile/motion/profileMotionMath.js';
 
 test('direction rather than midpoint determines rest after a drag',()=>{
  const down=profileReleaseDirection({samples:[{at:0,finger:550},{at:100,finger:510}],startY:0,y:90,at:100});

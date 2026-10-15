@@ -1,8 +1,8 @@
 import React,{useCallback,useEffect,useRef} from 'react';
 import {ChevronLeft,ChevronRight,X} from 'lucide-react';
-import {Photo} from './UI.jsx';
-import {PhotoSegments} from './PhotoSegments.jsx';
-import './member/gallery.css';
+import {Photo} from '../../UI.jsx';
+import {PhotoSegments} from '../../PhotoSegments.jsx';
+import '../styles/gallery.css';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
