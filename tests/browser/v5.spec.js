@@ -1910,7 +1910,7 @@ test.describe('Stage 2 Android-like touch context',()=>{
  await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'О себе'}).click();
  const action=page.locator('.vx-own-member .vx-profile-action').first();
  await action.click();
- await expect(page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await expect(page.locator('.veyra-editor-unified')).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('stage2-12-origin-gestures.png')});
  await cdp.detach();
 });
