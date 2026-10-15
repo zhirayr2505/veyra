@@ -2231,6 +2231,14 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    const stage=page.locator('.vx-gallery-stage');
    await expect(stage).toBeVisible();
    await expect(page.locator('.gallery-close')).toBeFocused();
+   // Wait for the approved 220ms entrance to finish before visual inspection:
+   // otherwise screenshot() captures an intentionally translucent in-between.
+   await page.waitForTimeout(260);
+   const galleryPaint=await page.locator('.vx-profile-gallery').evaluate(el=>({
+    bg:getComputedStyle(el).backgroundColor,opacity:Number(getComputedStyle(el).opacity)
+   }));
+   expect(galleryPaint.bg).toBe('rgb(9, 6, 23)');
+   expect(galleryPaint.opacity).toBeGreaterThan(.999);
    await page.screenshot({path:info.outputPath('stage2-2-gallery-open-'+width+'.png')});
    await stage.evaluate(el=>{
     const emit=(type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',clientX:x,clientY:y}));
@@ -2251,12 +2259,21 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    await expect(stage).toHaveAttribute('data-zoomed','false');
    await doubleTap();
    await expect(stage).toHaveAttribute('data-zoomed','true');
+   await page.waitForTimeout(250);
    await page.screenshot({path:info.outputPath('stage2-2-gallery-zoom-'+width+'.png')});
    const location=await page.locator('.vx-gallery-top-segments').evaluate(el=>{
     const a=el.getBoundingClientRect(),b=el.closest('.vx-profile-gallery').getBoundingClientRect();
     return {y:a.top-b.top,half:b.height/2};
    });
-   expect(location.y).toBeLessThan(location.half);
+   expect(location.y).toBeGreaterThanOrEqual(0);
+   expect(location.y,'Gallery segments belong in the upper safe zone').toBeLessThan(110);
+   const indicator=await page.locator('.vx-gallery-top-segments').evaluate(el=>{
+    const a=el.getBoundingClientRect(),b=el.closest('.vx-profile-gallery').getBoundingClientRect();
+    return {left:a.left-b.left,right:a.right-b.left,width:a.width,galleryWidth:b.width};
+   });
+   expect(indicator.left).toBeGreaterThan(40);
+   expect(indicator.right).toBeLessThan(indicator.galleryWidth-40);
+   expect(indicator.width).toBeGreaterThan(120);
    // Touch devices intentionally hide desktop arrows; keyboard remains accessible.
    await page.keyboard.press('ArrowRight');
    await expect.poll(()=>stage.getAttribute('data-zoomed')).toBe('false');
