@@ -1,4 +1,4 @@
-import React,{useCallback,useEffect,useRef} from 'react';
+import React,{useCallback,useEffect,useLayoutEffect,useRef} from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 
 // Embla locks horizontal intent after ~10px; the browser owns vertical pan-y.
@@ -14,6 +14,20 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
    return !event.target?.closest?.('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
   }
  });
+ const viewportElement=useRef(null);
+ const attachViewport=useCallback(node=>{viewportElement.current=node;viewportRef(node)},[viewportRef]);
+ // Embla keeps all panels mounted. Its natural track height is the tallest tab;
+ // only the selected panel should define document scroll height.
+ useLayoutEffect(()=>{
+  const viewport=viewportElement.current;
+  if(!viewport)return;
+  const panel=Array.from(viewport.querySelectorAll('.vx-profile-swipe-page')).find(x=>x.getAttribute('aria-label')===tabs.find(([key])=>key===active)?.[1]);
+  if(!panel)return;
+  const measure=()=>{if(viewport.isConnected)viewport.style.height=Math.ceil(panel.getBoundingClientRect().height)+'px'};
+  const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
+  ro?.observe(panel);measure();
+  return()=>{ro?.disconnect()};
+ },[active]);
  const selected=useRef(active);
  selected.current=active;
  const keys=tabs.map(([key])=>key).join('|');
@@ -48,7 +62,7 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
   const index=tabs.findIndex(([key])=>key===active);
   if(index>=0&&index!==embla.selectedScrollSnap())embla.scrollTo(index);
  },[embla,active,keys]);
- return <div ref={viewportRef} className="vx-profile-swipe-viewport" aria-label="Разделы анкеты">
+ return <div ref={attachViewport} className="vx-profile-swipe-viewport" aria-label="Разделы анкеты">
   <div className="vx-profile-swipe-track">
    {tabs.map(([key,label])=><section key={key} className="vx-profile-swipe-page"
       role="tabpanel" id={'vx-profile-panel-'+key}
