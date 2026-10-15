@@ -62,3 +62,14 @@
  .vx-profile-gallery.vx-gallery-premium .vx-profile-gallery-next{display:none}
 }
 @media(prefers-reduced-motion:reduce){.vx-profile-gallery .vx-profile-gallery-hint{animation:none}}
+
+/* Progressive gallery: reuse the grid's 640px decoded image until 960 is ready. */
+.vx-gallery-plane .vx-gallery-preview-640,.vx-gallery-plane .vx-gallery-hires-960{position:absolute;inset:0;width:100%;height:100%}
+.vx-gallery-plane .vx-gallery-hires-960{z-index:2}
+.vx-gallery-plane .vx-gallery-hires-960 .photo-box:not(:has(.photo-revealed)){opacity:0}
+.vx-gallery-plane .vx-gallery-preview-640 .photo-box,.vx-gallery-plane .vx-gallery-hires-960 .photo-box{height:100%;width:100%}
+.vx-gallery-premium{animation:vxGalleryEntrance 220ms ease-out both}
+@keyframes vxGalleryEntrance{from{opacity:0}to{opacity:1}}
+.vx-gallery-premium .vx-gallery-plane{animation:vxGalleryPhotoEntrance 220ms cubic-bezier(.2,.8,.2,1) both}
+@keyframes vxGalleryPhotoEntrance{from{scale:.96}to{scale:1}}
+@media(prefers-reduced-motion:reduce){.vx-gallery-premium,.vx-gallery-premium .vx-gallery-plane{animation:none}}

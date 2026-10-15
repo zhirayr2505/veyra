@@ -18,16 +18,17 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
  const photosRef=useRef(photos);photosRef.current=photos;
 
  const limits=useCallback(scale=>{
-  const stage=stageRef.current,photo=planeRef.current?.querySelector('img.photo-sharp');
+  const stage=stageRef.current,photo=planeRef.current?.querySelector('.vx-gallery-hires-960 img.photo-sharp');
   if(!stage)return {x:0,y:0};
   const width=stage.clientWidth,height=stage.clientHeight,ratio=photo?.naturalWidth&&photo?.naturalHeight?photo.naturalWidth/photo.naturalHeight:width/height;
   const visibleW=Math.min(width,height*ratio),visibleH=Math.min(height,width/ratio);
   return {x:Math.max(0,(visibleW*scale-width)/2),y:Math.max(0,(visibleH*scale-height)/2)};
  },[]);
- const apply=useCallback((animate=false)=>{
+ const apply=useCallback((animate=false,elastic=false)=>{
   const s=state.current,plane=planeRef.current;if(!plane)return;
   const bounds=limits(s.scale);
-  s.x=clamp(s.x,-bounds.x,bounds.x);s.y=clamp(s.y,-bounds.y,bounds.y);
+  const rubber=(v,max)=>elastic&&Math.abs(v)>max?Math.sign(v)*(max+(Math.abs(v)-max)*.3):clamp(v,-max,max);
+  s.x=rubber(s.x,bounds.x);s.y=rubber(s.y,bounds.y);
   plane.style.transition=animate?'transform 220ms cubic-bezier(.2,.8,.2,1)':'none';
   plane.style.transform='translate3d('+s.x.toFixed(2)+'px,'+s.y.toFixed(2)+'px,0) scale('+s.scale.toFixed(4)+')';
   stageRef.current?.setAttribute('data-zoomed',s.scale>1.01?'true':'false');
@@ -69,7 +70,7 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   try{e.currentTarget.setPointerCapture(e.pointerId)}catch{}
   s.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(s.pointers.size===1){
-   s.from={x:e.clientX,y:e.clientY,baseX:s.x,baseY:s.y,at:performance.now()};
+   s.from={x:e.clientX,y:e.clientY,baseX:s.x,baseY:s.y,at:performance.now(),lastX:e.clientX,lastY:e.clientY,lastAt:performance.now(),vx:0,vy:0,axis:null};
    s.pinch=null;
   }else if(s.pointers.size===2){
    const [a,b]=[...s.pointers.values()],mid=midpoint(a,b);
@@ -84,20 +85,31 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   if(s.pointers.size>=2&&s.pinch){
    const [a,b]=[...s.pointers.values()],mid=midpoint(a,b),r=stageRef.current?.getBoundingClientRect();
    if(!r)return;
-   const nextScale=clamp(s.pinch.scale*distance(a,b)/s.pinch.dist,1,4);
+   const raw=s.pinch.scale*distance(a,b)/s.pinch.dist;
+   const nextScale=raw<1?1-(1-raw)*.2:raw>4?4+(raw-4)*.2:raw;
    const originX=s.pinch.mid.x-(r.left+r.width/2),originY=s.pinch.mid.y-(r.top+r.height/2);
    const ratio=nextScale/s.pinch.scale;
    s.x=s.pinch.x+(mid.x-s.pinch.mid.x)+(originX-s.pinch.x)*(1-ratio);
    s.y=s.pinch.y+(mid.y-s.pinch.mid.y)+(originY-s.pinch.y)*(1-ratio);
-   s.scale=nextScale;apply();return;
+   s.scale=nextScale;apply(false,true);return;
   }
   if(s.pointers.size!==1||!s.from)return;
+  const dt=performance.now()-s.from.lastAt;
+  if(dt>0){s.from.vx=(e.clientX-s.from.lastX)/dt;s.from.vy=(e.clientY-s.from.lastY)/dt}
+  s.from.lastX=e.clientX;s.from.lastY=e.clientY;s.from.lastAt=performance.now();
   if(s.scale>1.01){
    s.x=s.from.baseX+e.clientX-s.from.x;
    s.y=s.from.baseY+e.clientY-s.from.y;
-   apply();
+   apply(false,true);
   }else{
-   const dx=e.clientX-s.from.x;
+   const dx=e.clientX-s.from.x,dy=e.clientY-s.from.y;
+   if(!s.from.axis&&Math.max(Math.abs(dx),Math.abs(dy))>12)s.from.axis=Math.abs(dy)>Math.abs(dx)*1.2?'y':'x';
+   if(s.from.axis==='y'&&dy>0){
+    if(planeRef.current){planeRef.current.style.transition='none';planeRef.current.style.transform='translate3d(0,'+dy.toFixed(2)+'px,0) scale('+Math.max(.86,1-dy/1800).toFixed(3)+')'}
+    const gallery=stageRef.current?.closest('.vx-profile-gallery');
+    if(gallery)gallery.style.backgroundColor='rgba(9,6,23,'+Math.max(.32,.97-dy/580).toFixed(3)+')';
+    return;
+   }
    const plane=planeRef.current;
    if(plane){plane.style.transition='none';plane.style.transform='translate3d('+(dx*.55).toFixed(2)+'px,0px,0) scale(1)'}
   }
@@ -113,23 +125,30 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
    s.pinch=null;return;
   }
   stageRef.current?.removeAttribute('data-dragging');
-  if(isPinching){s.pinch=null;s.from=null;apply(true);return}
+  if(isPinching){s.pinch=null;s.from=null;s.scale=clamp(s.scale,1,4);apply(true);return}
   const from=s.from;s.from=null;
   if(!from){apply(true);return}
   const dx=e.clientX-from.x,dy=e.clientY-from.y;
-  if(s.scale>1.01&&Math.abs(dx)>15){apply(true);return}
-  if(s.scale<=1.01&&Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.2){change(dx<0?1:-1);return}
+  if(s.scale>1.01){s.x+=clamp(from.vx*100,-95,95);s.y+=clamp(from.vy*100,-95,95);apply(true);return}
+  const gallery=stageRef.current?.closest('.vx-profile-gallery');
+  if(gallery)gallery.style.backgroundColor='';
+  const dt=Math.max(1,performance.now()-from.at);
+  if(s.scale<=1.01&&(Math.abs(dx)>65||(Math.abs(dx)>28&&Math.abs(dx)/dt>.5))&&Math.abs(dx)>Math.abs(dy)*1.2){change(dx<0?1:-1);return}
   if(s.scale<=1.01&&dy>125&&Math.abs(dy)>Math.abs(dx)*1.3){close();return}
   const last=s.lastTap,now=performance.now();
   if(Math.abs(dx)<15&&Math.abs(dy)<15&&last&&now-last.at<290&&distance(last,{x:e.clientX,y:e.clientY})<45){
-   s.scale=s.scale>1.01?1:2.5;s.x=0;s.y=0;s.lastTap=null;apply(true);
+   const rect=stageRef.current?.getBoundingClientRect();
+   s.scale=s.scale>1.01?1:2.5;
+   s.x=rect&&s.scale>1?-(e.clientX-rect.left-rect.width/2)*(s.scale-1):0;
+   s.y=rect&&s.scale>1?-(e.clientY-rect.top-rect.height/2)*(s.scale-1):0;
+   s.lastTap=null;apply(true);
   }else s.lastTap={at:now,x:e.clientX,y:e.clientY};
   apply(true);
  };
  return <div className="gallery vx-profile-gallery vx-gallery-premium" role="dialog" aria-modal="true" aria-label={'Галерея '+name}>
   <button type="button" className="gallery-close vx-gallery-close" aria-label="Закрыть галерею" onClick={close}><X size={24}/></button>
   <div ref={stageRef} className="vx-gallery-stage" onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
-   <div ref={planeRef} className="vx-gallery-plane"><Photo id={photos[index]} alt={'Фото '+(index+1)+' · '+name} priority resolution={960} placeholder={placeholders?.[String(photos[index])]}/></div>
+   <div ref={planeRef} className="vx-gallery-plane"><div className="vx-gallery-preview-640"><Photo id={photos[index]} alt="" priority resolution={640} placeholder={placeholders?.[String(photos[index])]}/></div><div className="vx-gallery-hires-960"><Photo id={photos[index]} alt={'Фото '+(index+1)+' · '+name} priority resolution={960} placeholder={placeholders?.[String(photos[index])]}/></div></div>
   </div>
   {photos.length>1&&<>
    <button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>change(-1)}><ChevronLeft size={28}/></button>
