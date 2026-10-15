@@ -2237,6 +2237,23 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
     emit('pointerup',1,70,280);emit('pointerup',2,250,280);
    });
    await expect(stage).toHaveAttribute('data-zoomed','true');
+   // A second double-tap must zoom OUT from 2.5x, not be eaten by the pan branch.
+   const doubleTap=()=>stage.evaluate(el=>{
+    for(let n=0;n<2;n++){
+     const data={bubbles:true,cancelable:true,pointerId:40+n,pointerType:'touch',clientX:165,clientY:345};
+     el.dispatchEvent(new PointerEvent('pointerdown',data));
+     el.dispatchEvent(new PointerEvent('pointerup',data));
+    }
+   });
+   await doubleTap();
+   await expect(stage).toHaveAttribute('data-zoomed','false');
+   await doubleTap();
+   await expect(stage).toHaveAttribute('data-zoomed','true');
+   const location=await page.locator('.vx-gallery-top-segments').evaluate(el=>{
+    const a=el.getBoundingClientRect(),b=el.closest('.vx-profile-gallery').getBoundingClientRect();
+    return {y:a.top-b.top,half:b.height/2};
+   });
+   expect(location.y).toBeLessThan(location.half);
    // Touch devices intentionally hide desktop arrows; keyboard remains accessible.
    await page.keyboard.press('ArrowRight');
    await expect.poll(()=>stage.getAttribute('data-zoomed')).toBe('false');

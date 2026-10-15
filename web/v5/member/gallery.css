@@ -26,7 +26,7 @@
 .vx-profile-gallery .gallery-close{
  top:calc(15px + env(safe-area-inset-top,0px));
  right:max(13px,env(safe-area-inset-right,0px));
- width:48px!important;height:48px!important;min-width:44px;min-height:44px;
+ width:48px;height:48px;min-width:44px;min-height:44px;
  display:grid;place-items:center;
  border-radius:50%;
  background:#1a1328b8;color:white;
@@ -76,3 +76,10 @@
 .vx-gallery-premium .vx-gallery-plane{animation:vxGalleryPhotoEntrance 220ms cubic-bezier(.2,.8,.2,1) both}
 @keyframes vxGalleryPhotoEntrance{from{scale:.96}to{scale:1}}
 @media(prefers-reduced-motion:reduce){.vx-gallery-premium,.vx-gallery-premium .vx-gallery-plane{animation:none}}
+
+/* Shared gallery progress at the upper edge with room for the close control. */
+.vx-gallery-premium .vx-profile-gallery-bars.vx-gallery-top-segments{
+ position:absolute;top:calc(var(--vx-top,env(safe-area-inset-top,0px)) + 16px);
+ left:64px;right:76px;max-width:none;z-index:9;pointer-events:none;
+}
+.vx-gallery-premium .vx-gallery-footer{justify-content:center}

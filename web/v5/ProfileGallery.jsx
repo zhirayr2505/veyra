@@ -130,20 +130,27 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
   const from=s.from;s.from=null;
   if(!from){apply(true);return}
   const dx=e.clientX-from.x,dy=e.clientY-from.y;
-  if(s.scale>1.01){s.x+=clamp(from.vx*100,-95,95);s.y+=clamp(from.vy*100,-95,95);apply(true);return}
-  const gallery=stageRef.current?.closest('.vx-profile-gallery');
-  if(gallery)gallery.style.backgroundColor='';
-  const dt=Math.max(1,performance.now()-from.at);
-  if(s.scale<=1.01&&(Math.abs(dx)>65||(Math.abs(dx)>28&&Math.abs(dx)/dt>.5))&&Math.abs(dx)>Math.abs(dy)*1.2){change(dx<0?1:-1);return}
-  if(s.scale<=1.01&&dy>125&&Math.abs(dy)>Math.abs(dx)*1.3){close();return}
-  const last=s.lastTap,now=performance.now();
-  if(Math.abs(dx)<15&&Math.abs(dy)<15&&last&&now-last.at<290&&distance(last,{x:e.clientX,y:e.clientY})<45){
+  // Detect the second tap before the pan branch; both 1->2.5 and 2.5->1
+  // must work with the same focal point and without changing the photo index.
+  const now=performance.now(),last=s.lastTap;
+  const isTap=Math.abs(dx)<15&&Math.abs(dy)<15;
+  if(isTap&&last&&now-last.at<290&&distance(last,{x:e.clientX,y:e.clientY})<45){
    const rect=stageRef.current?.getBoundingClientRect();
    s.scale=s.scale>1.01?1:2.5;
    s.x=rect&&s.scale>1?-(e.clientX-rect.left-rect.width/2)*(s.scale-1):0;
    s.y=rect&&s.scale>1?-(e.clientY-rect.top-rect.height/2)*(s.scale-1):0;
-   s.lastTap=null;apply(true);
-  }else s.lastTap={at:now,x:e.clientX,y:e.clientY};
+   s.lastTap=null;apply(true);return;
+  }
+  s.lastTap=isTap?{at:now,x:e.clientX,y:e.clientY}:null;
+  if(s.scale>1.01){
+   if(!isTap){s.x+=clamp(from.vx*100,-95,95);s.y+=clamp(from.vy*100,-95,95)}
+   apply(true);return;
+  }
+  const gallery=stageRef.current?.closest('.vx-profile-gallery');
+  if(gallery)gallery.style.backgroundColor='';
+  const dt=Math.max(1,now-from.at);
+  if((Math.abs(dx)>65||(Math.abs(dx)>28&&Math.abs(dx)/dt>.5))&&Math.abs(dx)>Math.abs(dy)*1.2){change(dx<0?1:-1);return}
+  if(dy>125&&Math.abs(dy)>Math.abs(dx)*1.3){close();return}
   apply(true);
  };
  return <div className="gallery vx-profile-gallery vx-gallery-premium" role="dialog" aria-modal="true" aria-label={'Галерея '+name}>
@@ -155,7 +162,8 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
    <button type="button" className="vx-profile-gallery-prev" aria-label="Предыдущее фото" onClick={()=>change(-1)}><ChevronLeft size={28}/></button>
    <button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>change(1)}><ChevronRight size={28}/></button>
   </>}
-  <div className="vx-gallery-footer"><PhotoSegments count={photos.length} index={index} className="vx-profile-gallery-bars"/><small className="vx-profile-gallery-counter" aria-live="polite">{index+1}/{photos.length}</small></div>
+  <PhotoSegments count={photos.length} index={index} className="vx-profile-gallery-bars vx-gallery-top-segments"/>
+  <div className="vx-gallery-footer"><small className="vx-profile-gallery-counter" aria-live="polite">{index+1}/{photos.length}</small></div>
   {showHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
   <div className="vx-gallery-prefetch" aria-hidden="true">
    {photos.length>1&&[photos[(index+1)%photos.length],photos[(index-1+photos.length)%photos.length]].filter((v,i,a)=>a.indexOf(v)===i).map(id=><Photo key={id} id={id} resolution={960} priority alt="" />)}
