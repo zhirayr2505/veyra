@@ -1138,7 +1138,7 @@ test('VEYRA Telegram staged morph holds full-width cover, creates circle and doc
  // Chromium canonicalizes inset(0px 0px 0px 0px round 0px) as inset(0px).
  // Both mean a fully exposed, unsqueezed cover, unlike a transitional mask.
  await expect.poll(()=>photo.evaluate(el=>getComputedStyle(el).clipPath),
-  {timeout:3500}).toMatch(/^inset\\(0px(?: 0px)*(?: round 0px)?\\)$/);
+  {timeout:3500}).toMatch(/^inset\(0px(?: 0px)*(?: round 0px)?\)$/);
  await expect.poll(async()=>Math.abs((await photo.boundingBox()).x-opened.x),
   {timeout:3500}).toBeLessThan(2);
 });
