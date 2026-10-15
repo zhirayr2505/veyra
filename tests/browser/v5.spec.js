@@ -1903,12 +1903,31 @@ test.describe('Stage 2 Android-like touch context',()=>{
   await rail.getByRole('tab',{name:fromPhotos?'Фото':'О себе'}).click();
   // Allow the selected Embla page to finish its button-triggered slide before initiating another drag.
   await page.waitForTimeout(450);
-  const gestureStart=await page.evaluate(({x,y})=>{
-   const element=document.elementFromPoint(x,y),rail=document.querySelector('.vx-profile-tab-rail'),viewport=document.querySelector('.vx-profile-swipe-viewport'),scroll=document.querySelector('.vx-profile-scroller'),page=element?.closest('.vx-profile-swipe-page');
+  // Horizontal Embla intent starts INSIDE the selected tab's real visible
+  // viewport. The 12-point vertical hit grid above still probes the entire
+  // lower panel. y=390 can be in the hero/scroller ABOVE the rail (observed
+  // in CI: rail top=506, viewport top=558), where Embla must not intercept.
+  const gestureStart=await page.evaluate(({x})=>{
+   const rail=document.querySelector('.vx-profile-tab-rail');
+   const viewport=document.querySelector('.vx-profile-swipe-viewport');
+   const scroll=document.querySelector('.vx-profile-scroller');
+   const vr=viewport.getBoundingClientRect(),sr=scroll.getBoundingClientRect();
+   const bottom=Math.min(vr.bottom,sr.bottom)-14;
+   const candidates=[40,72,104,136,168].map(d=>Math.round(Math.min(vr.top+d,bottom)));
    const info=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {name:typeof el.className==='string'?el.className:el.tagName,rect:{x:r.x,y:r.y,w:r.width,h:r.height},pointer:getComputedStyle(el).pointerEvents,touch:getComputedStyle(el).touchAction}};
-   return {hit:info(element),page:info(page),rail:info(rail),viewport:info(viewport),scrollY:scroll?.scrollTop,maxScroll:(scroll?.scrollHeight||0)-(scroll?.clientHeight||0),selected:[...rail.querySelectorAll('[role=tab]')].find(x=>x.getAttribute('aria-selected')==='true')?.textContent};
+   for(const y of candidates){
+    if(y<=vr.top+8||y>=bottom+3)continue;
+    const hit=document.elementFromPoint(x,y),inPage=hit?.closest('.vx-profile-swipe-page');
+    if(!hit?.closest('.vx-profile-swipe-viewport')||!inPage)continue;
+    const interactive=hit.closest('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
+    if(interactive&&!hit.closest('.vx-profile-photos-grid'))continue;
+    return {x,y,hit:info(hit),page:info(inPage),rail:info(rail),viewport:info(viewport),scrollY:scroll.scrollTop};
+   }
+   return {x,y:null,viewport:info(viewport),rail:info(rail),scrollY:scroll.scrollTop,
+    sample:candidates.map(y=>({y,hit:info(document.elementFromPoint(x,y))}))};
   },origin);
-  await drag(origin.x,origin.y,fromPhotos?135:-135,0);
+  expect(gestureStart.y,'No non-interactive visible Embla swipe target: '+JSON.stringify(gestureStart)).not.toBeNull();
+  await drag(gestureStart.x,gestureStart.y,fromPhotos?135:-135,0);
   const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
   await expect(desired,'Embla swipe from '+origin.x+','+origin.y+' initial='+JSON.stringify(gestureStart)).toHaveAttribute('aria-selected','true',{timeout:2500});
  }
