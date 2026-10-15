@@ -251,8 +251,13 @@ test('Stage 1 eight-step onboarding: editable draft, six photos and actual Membe
  await expect(page.locator('.vx-profile-primary-actions')).toHaveCount(1);
   await expect(page.locator('.vx-preview-member-stage .vx-profile-primary-actions button')).toHaveCount(2);
   for(const action of await page.locator('.vx-preview-member-stage .vx-profile-primary-actions button').all())await expect(action).toBeEnabled();
- await page.getByRole('button',{name:'редактировать'}).click();
+ await page.screenshot({path:'test-results/stage2-1-registration-preview.png'});
+ await page.locator('.vx-preview-member-stage .vx-own-profile-actions').getByRole('button',{name:'Мои фото'}).click();
  await expect(page.locator('.photo-slot[data-photo-id]')).toHaveCount(6);
+ await page.getByRole('button',{name:'Предпросмотр анкеты'}).click();
+ await expect(page.locator('.mode-detail .vx-preview-member-stage .vx-profile-read-only')).toBeVisible();
+ await page.locator('.vx-preview-member-stage .vx-own-profile-actions').getByRole('button',{name:'Изменить'}).click();
+ await expect(page.getByRole('heading',{name:'Как вас зовут?'})).toBeVisible();
 });
 test('New server account reset ignores stale cached registration steps',async({page})=>{
  await telegram(page,23);
