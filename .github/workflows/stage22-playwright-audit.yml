@@ -26,12 +26,16 @@ jobs:
       - name: Execute requested legacy config and preserve its actual outcome
         shell: bash
         run: |
-          mkdir -p test-results/stage22-legacy
+          # Playwright clears its outputDir at startup; write stdout OUTSIDE
+          # test-results first and copy evidence back after tests finish.
           set +e
-          npx playwright test --config=tests/${{ matrix.config }}.playwright.config.js --reporter=json > test-results/stage22-legacy/${{ matrix.config }}.json
+          npx playwright test --config=tests/${{ matrix.config }}.playwright.config.js --reporter=json > "$RUNNER_TEMP/${{ matrix.config }}.json" 2> "$RUNNER_TEMP/${{ matrix.config }}.stderr"
           outcome=$?
+          mkdir -p test-results/stage22-legacy
+          cp "$RUNNER_TEMP/${{ matrix.config }}.json" "test-results/stage22-legacy/${{ matrix.config }}.json"
+          cp "$RUNNER_TEMP/${{ matrix.config }}.stderr" "test-results/stage22-legacy/${{ matrix.config }}.stderr"
           echo "${{ matrix.config }} exit code: ${outcome}"
-          echo "${outcome}" > test-results/stage22-legacy/${{ matrix.config }}.exit
+          echo "${outcome}" > "test-results/stage22-legacy/${{ matrix.config }}.exit"
           # These configs target older V4 screens; record failures separately.
           # They do not supersede the strict Stage 2.2 V5 release gate.
           exit 0
