@@ -26,7 +26,7 @@ function writeBottomElastic(el,pull,settling=false){
 export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
  const state=useRef({
   frame:0,snapRaf:0,settleRaf:0,settleElement:null,prevScrollBehavior:null,observed:null,
-  distance:1,width:1,height:1,lastProgress:-1,
+  distance:1,width:1,height:1,lastProgress:-1,maxScroll:1,pageMin:null,
   touching:false,released:false,snapping:false,axis:null,
   startX:0,startY:0,lastY:0,lastAt:0,lastScrollAt:0,
   releaseAt:0,velocity:0,releaseVelocity:0,
@@ -69,7 +69,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
     // animations attached to a nested WebView scroll source. Treat a stale
     // timeline as unsupported and use the exact same profileFrame fallback.
     const timed=s.nativeAnimation.animations?.[0]?.effect?.getComputedTiming()?.progress;
-    const expected=scrollY/Math.max(1,scroller.scrollHeight-scroller.clientHeight);
+    const expected=scrollY/Math.max(1,s.maxScroll);
     if(p>.03&&(typeof timed!=='number'||Math.abs(timed-expected)>.08)){
      s.nativeAnimation.cancel();s.nativeAnimation=null;s.engine='JS fallback';
     }
@@ -220,13 +220,14 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(dt>0&&dt<150)s.gestureVelocity=s.gestureVelocity*.4+((s.touchLastY-finger)/dt)*.6;
   }
   s.touchLastY=finger;s.touchLastAt=timestamp;
-  const canPull=s.axis==='y'&&s.startScrollY<=1&&el.scrollTop<=1&&dy>0;
+  const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  const canPull=!reduce&&s.axis==='y'&&s.startScrollY<=1&&el.scrollTop<=1&&dy>0;
   const pull=canPull?elasticPullDistance(dy):0;
   if(Math.abs(pull-s.elastic)>.08){
    s.elastic=pull;
    writeElastic(el,pull,s.width,false);
   }
-  const canBottom=s.axis==='y'&&s.startAtBottom&&el.scrollTop>=s.maxScrollAtTouchStart-1&&dy<0;
+  const canBottom=!reduce&&s.axis==='y'&&s.startAtBottom&&el.scrollTop>=s.maxScrollAtTouchStart-1&&dy<0;
   const bottom=canBottom?Math.min(48,elasticPullDistance(-dy)*.5):0;
   if(Math.abs(bottom-s.bottomElastic)>.08){s.bottomElastic=bottom;writeBottomElastic(el,bottom,false)}
  },[scrollRef]);
@@ -259,9 +260,13 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   const compactHeight=parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height'))||292;
   const distance=Math.max(1,stage.offsetHeight-compactHeight);
   const viewportHeight=el.clientHeight;
-  if(s.lastCalibrated&&s.width===width&&s.height===height&&s.compactHeight===compactHeight&&s.distance===distance&&s.viewportHeight===viewportHeight)return;
-  s.width=width;s.height=height;s.compactHeight=compactHeight;s.viewportHeight=viewportHeight;
-  el.style.setProperty('--vx-profile-page-min',Math.max(0,viewportHeight-compactHeight-52+distance)+'px');
+  const pageMin=Math.max(0,viewportHeight-compactHeight-52+distance);
+  if(s.pageMin!==pageMin){el.style.setProperty('--vx-profile-page-min',pageMin+'px');s.pageMin=pageMin}
+  // ScrollTimeline frames depend on total scroll range, which changes after
+  // Embla measures the active panel. Rebuild when that range changes.
+  const maxScroll=Math.max(1,el.scrollHeight-el.clientHeight);
+  if(s.lastCalibrated&&s.width===width&&s.height===height&&s.compactHeight===compactHeight&&s.distance===distance&&s.viewportHeight===viewportHeight&&s.maxScroll===maxScroll)return;
+  s.width=width;s.height=height;s.compactHeight=compactHeight;s.viewportHeight=viewportHeight;s.maxScroll=maxScroll;
   const geometry=profileCircleGeometry(s.width,s.height,s.compactHeight);
   const diameter=geometry.diameter;
   hero.style.setProperty('--vx-profile-mask-diameter',diameter.toFixed(3)+'px');
@@ -310,6 +315,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   if(el)s.resizeObserver?.observe(el);
   const hero=s.refs?.hero;
   if(hero)s.resizeObserver?.observe(hero);
+  const viewport=el?.querySelector('.vx-profile-swipe-viewport');
+  if(viewport)s.resizeObserver?.observe(viewport);
   const onScrollEnd=()=>{
    if(s.snapping||s.touching)return;
    const y=el?.scrollTop??0;
