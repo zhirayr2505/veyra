@@ -66,14 +66,14 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
    age:p.age||(year?new Date().getFullYear()-Number(year):null),online:false});
  },[ownMe,isPreview,previewData]);
  const [data,setData]=useState(()=>ownSeed||seed),[loading,setLoading]=useState(()=>!ownSeed),[error,setError]=useState(''),[retry,setRetry]=useState(0);
- const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[more,setMore]=useState(false);
+ const [idx,setIdx]=useState(0),[gallery,setGallery]=useState(false),[galleryHint,setGalleryHint]=useState(false),[more,setMore]=useState(false);
  const [reactionPulse,setReactionPulse]=useState('');
  const [courtship,setCourtship]=useState(null),[courtBusy,setCourtBusy]=useState(false);
  const [reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false);
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState('about');
  const [logoTone,setLogoTone]=useState(null);
- const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null);
+ const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryHintSeen=useRef(false);
  const swipeApiRef=useRef(null),tabRailRef=useRef(null);
  const moveTabIndicator=useCallback(position=>{
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
@@ -138,7 +138,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   return()=>{observer.disconnect();root.removeEventListener('load',sample,true)};
  },[data,idx]);
 
- const openGallery=index=>{if(!data?.photos?.length)return;if(Number.isInteger(index))setIdx(index);setGallery(true)};
+ const openGallery=index=>{if(!data?.photos?.length)return;if(Number.isInteger(index))setIdx(index);setGalleryHint(!galleryHintSeen.current);galleryHintSeen.current=true;setGallery(true)};
  useEffect(()=>{
   onGalleryStateChange?.(gallery);
   return()=>{if(gallery)onGalleryStateChange?.(false)};
@@ -236,18 +236,19 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <ProfileHighlights profile={data} viewer={viewer} showGoal={false} showCommon={false}/>
     </>}
     {key==='photos'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Фотографии</h2>{isOwn&&!isPreview&&<button className="vx-own-pencil" type="button" aria-label="Изменить фотографии" onClick={onEdit}><Pencil size={17}/></button>}<span>{photos.length}</span></div>{photos.length?<div className="vx-profile-photos-grid">{photos.map((p,i)=><button type="button" key={p} onClick={()=>openGallery(i)} aria-label={'Открыть фото '+(i+1)}><Photo id={p} alt={'Фото '+(i+1)+' · '+data.name} resolution={640} placeholder={data.photo_placeholders?.[String(p)]}/></button>)}</div>:<Empty art="profile" title="Фотографий пока нет" body="Пока здесь нет снимков."/>}</section></>}
-    {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{!isPreview&&tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}{isPreview&&<p className="vx-profile-secondary">Коллекция подарков появится после публикации анкеты.</p>}</section></>}
+    {key==='gifts'&&<><section className="vx-profile-surface"><div className="vx-profile-section-heading"><h2>Подарки</h2><Gift size={19}/></div>{!isPreview&&tab==='gifts'&&<GiftCollection ownerId={isOwn?'me':id}/>}{isPreview&&<Empty art="gift" title="Подарков пока нет" body="После публикации здесь появится коллекция полученных подарков."/>}</section></>}
     {key==='common'&&!isOwn&&<>
      <section className="vx-profile-surface"><h2>Что вас объединяет</h2>{common.length||sameGoal?<><p className="vx-profile-secondary">Уже есть повод начать разговор.</p>{common.length>0&&<div className="vx-member-interests-grid">{common.map(label=><MemberInterest label={label} common key={label}/>)}</div>}{sameGoal&&<div className="vx-profile-goal-detail"><VeyraPackIcon name="heart" size={18}/>У вас совпадают цели знакомства</div>}</>:<p className="vx-profile-secondary">Пока общих интересов не нашлось. Узнайте друг друга в общении.</p>}</section>
      {(courtship?.suitors||[]).length>0&&<section className="vx-profile-surface"><h2>Ухажёры</h2><p>{courtship.suitors.map(x=>x.sender_name).join(' · ')}</p></section>}
     </>}
-    {key==='common'&&isOwn&&!isPreview&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe?.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}</section>}
+    {key==='common'&&isOwn&&isPreview&&<section className="vx-profile-surface"><Empty art="profile" title="Пока нет дополнительных сведений" body="После публикации здесь появятся возможности VEYRA."/></section>}
+     {key==='common'&&isOwn&&!isPreview&&<section className="vx-profile-surface vx-own-tools" aria-label="Мои возможности"><h2>Мой VEYRA</h2><div className="own-shortcuts"><button onClick={onPremium}><Crown size={25}/><b>Premium</b></button><button onClick={onCollection}><VeyraPackIcon name="gift" size={25}/><b>подарки</b></button><button onClick={onRanking}><Medal size={25}/><b>рейтинг</b></button><button onClick={onSettings}><Settings2 size={25}/><b>настройки</b></button></div><button type="button" className="vx-own-tool-row" onClick={onWallet}><Wallet size={23}/> Мой кошелёк VEYS <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onCourtship}><MessageCircleHeart size={23}/> Предложения ухаживания <span>→</span></button><button type="button" className="vx-own-tool-row" onClick={onEdit}><Pencil size={23}/> Редактировать анкету <span>→</span></button>{ownMe?.user?.admin_role&&<button type="button" className="vx-own-tool-row" onClick={onAdmin}><ShieldCheck size={23}/> Панель модератора <span>→</span></button>}</section>}
     {key===tab&&<InlineAlert>{error}</InlineAlert>}{key===tab&&error&&!isPreview&&<button type="button" className="vx-profile-retry" onClick={()=>setRetry(n=>n+1)}>Повторить загрузку</button>}
     </div>}
    </MemberSwipePages>
   </div>
 
-  {gallery&&createPortal(<ProfileGallery photos={photos} index={idx} onIndex={setIdx} onClose={()=>setGallery(false)} name={data.name} placeholders={data.photo_placeholders}/>,document.body)}
+  {gallery&&createPortal(<ProfileGallery photos={photos} index={idx} onIndex={setIdx} onClose={()=>setGallery(false)} name={data.name} placeholders={data.photo_placeholders} showHint={galleryHint}/>,document.body)}
 
   {!isOwn&&reportOpen&&<Sheet title="Пожаловаться" onClose={()=>setReportOpen(false)}><div className="fields"><label>Причина<select value={reportReason} onChange={e=>setReportReason(e.target.value)}><option value="fake">Фейковая анкета</option><option value="spam">Спам или реклама</option><option value="harassment">Оскорбления или домогательства</option><option value="underage">Пользователь младше 18 лет</option><option value="explicit">Неподходящие фотографии</option><option value="other">Другая причина</option></select></label><label>Подробности (необязательно)<textarea maxLength={2000} value={reportDetails} onChange={e=>setReportDetails(e.target.value)} placeholder="Что произошло?"/></label></div><InlineAlert>{error}</InlineAlert><Button className="full" disabled={reportBusy} onClick={report}>отправить жалобу</Button></Sheet>}
   {!isOwn&&more&&createPortal(<div className="vx-member-menu-backdrop" role="presentation" onClick={()=>setMore(false)}><section className="vx-member-popup-menu" role="menu" aria-label="Действия с анкетой" onClick={e=>e.stopPropagation()}><strong>Действия с анкетой</strong><button className="menu-item" role="menuitem" onClick={share}><Icon name="share" tone="pink" size={20}/> Поделиться</button><button className="menu-item" role="menuitem" onClick={()=>{setMore(false);setReportOpen(true)}}><Icon name="info" tone="pink" size={20}/> Пожаловаться</button><button className="menu-item danger" role="menuitem" onClick={()=>{setMore(false);block()}}><Icon name="block" tone="pink" size={20}/> Заблокировать</button><button className="vx-member-menu-close" onClick={()=>setMore(false)}>Закрыть</button></section></div>,document.body)}

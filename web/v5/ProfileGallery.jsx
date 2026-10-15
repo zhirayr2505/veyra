@@ -8,7 +8,7 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
 
 /** Owns all gallery-only gestures. Does not modify Member scroll/hero transforms. */
-export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholders={}}){
+export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholders={},showHint=false}){
  const stageRef=useRef(null),planeRef=useRef(null);
  const state=useRef({pointers:new Map(),scale:1,x:0,y:0,from:null,pinch:null,lastTap:null});
  const onCloseRef=useRef(onClose);onCloseRef.current=onClose;
@@ -135,6 +135,7 @@ export function ProfileGallery({photos,index,onIndex,onClose,name='',placeholder
    <button type="button" className="vx-profile-gallery-next" aria-label="Следующее фото" onClick={()=>change(1)}><ChevronRight size={28}/></button>
   </>}
   <div className="vx-gallery-footer"><PhotoSegments count={photos.length} index={index} className="vx-profile-gallery-bars"/><small className="vx-profile-gallery-counter" aria-live="polite">{index+1}/{photos.length}</small></div>
+  {showHint&&<span className="vx-profile-gallery-hint" aria-hidden="true">↓ Свайп вниз — закрыть фото</span>}
   <div className="vx-gallery-prefetch" aria-hidden="true">
    {photos.length>1&&[photos[(index+1)%photos.length],photos[(index-1+photos.length)%photos.length]].filter((v,i,a)=>a.indexOf(v)===i).map(id=><Photo key={id} id={id} resolution={640} priority alt="" />)}
   </div>

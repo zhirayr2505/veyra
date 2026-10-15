@@ -184,6 +184,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
   writeElastic(startEl,0,s.width,false);writeBottomElastic(startEl,0,false);
   s.startX=e.touches?.[0]?.clientX??0;
   s.startY=e.touches?.[0]?.clientY??0;
+   s.touchLastY=s.startY;s.touchLastAt=performance.now();
   // Cancelling our settle rAF leaves scrollTop exactly under the taking-over finger.
  },[stop,scrollRef]);
  const onTouchMove=useCallback(e=>{
