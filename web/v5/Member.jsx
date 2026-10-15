@@ -219,7 +219,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
-      {<div className="vx-profile-main-crossfade" data-main-photo-id={String(photos[0]||"")} aria-hidden="true"><Photo id={photos[0]} priority resolution={960} alt=""/></div>}
+      {<div className="vx-profile-main-crossfade" data-main-photo-id={String(photos[0]||"")} aria-hidden="true"><Photo id={photos[0]} priority resolution={256} alt=""/></div>}
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
 
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
@@ -237,7 +237,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      {isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
       <button type="button" className="vx-profile-action" onClick={isPreview?()=>onPreviewAction?.('photos'):editProfile}><ImagePlus size={19}/><span>Мои фото</span></button>
       <button type="button" className="vx-profile-action primary" onClick={isPreview?()=>onPreviewAction?.('edit'):editProfile}><Pencil size={19}/><span>Изменить</span></button>
-      {!isPreview&&<button type="button" className="vx-profile-action" onClick={onSettings}><Settings2 size={19}/><span>Настройки</span></button>}
+      <button type="button" className="vx-profile-action" onClick={isPreview?()=>onPreviewAction?.('settings'):onSettings}><Settings2 size={19}/><span>Настройки</span></button>
      </div>:<div className="vx-profile-primary-actions" aria-label="Действия с человеком">
       <button type="button" className="vx-profile-action" onClick={()=>onGift(data)} aria-label="Подарить подарок"><VeyraPackIcon name="gift" size={21}/><span>Подарок</span></button>
       <button type="button" className={"vx-profile-action primary"+(reactionPulse==='like'?" vx-reaction-burst":"")} onAnimationEnd={()=>setReactionPulse('')} onClick={()=>match?(feedback(),onChat(match)):like()} aria-label={match?'Написать сообщение':'Поставить лайк'}><VeyraPackIcon name={match?'chat':'heart'} size={21} filled={!match}/><span>{match?'Написать':'Нравится'}</span></button>

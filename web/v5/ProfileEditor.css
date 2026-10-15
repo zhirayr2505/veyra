@@ -4,7 +4,7 @@
 .veyra-editor-unified .vx-interest-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;color:var(--vx-color-ink,#2f203e);font-size:15px;font-weight:800}
 .veyra-editor-unified .vx-interest-counter{flex:none;display:grid;place-items:center;min-width:58px;height:32px;border-radius:99px;background:var(--vx-color-raised,#efe4ff);color:var(--vx-color-accent,#6f39c9);font-size:13px;border:1px solid var(--vx-color-outline,#ded2ed)}
 .veyra-editor-unified .vx-interest-search{display:flex;align-items:center;position:relative;gap:10px;min-height:48px;padding:0 12px;color:var(--vx-color-accent,#7440bd);border:1px solid var(--vx-color-outline,#ded2ed);background:var(--vx-color-surface,#fff);border-radius:16px}
-.veyra-editor-unified .vx-interest-search>svg{flex:none;width:20px;height:20px}
+.veyra-editor-unified .vx-interest-search>.kit-icon{flex:none;width:20px;height:20px}
 .veyra-editor-unified .vx-interest-search input{flex:1;min-width:0;min-height:46px;border:0;background:transparent;outline:none;box-shadow:none;padding:0;font-size:14px;color:var(--vx-color-ink,#2f203e)}
 .veyra-editor-unified .vx-interest-category-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;max-width:100%;padding:3px 1px 8px;touch-action:pan-x}
 .veyra-editor-unified .vx-interest-category-tabs button,.veyra-editor-unified .vx-selected-more{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;min-height:36px;padding:7px 12px;border:1px solid var(--vx-color-outline,#ded2ed);border-radius:13px;background:var(--vx-color-raised,#f8f4ff);color:var(--vx-color-ink,#49375b);font-size:12px;font-weight:750;box-shadow:none;appearance:none}

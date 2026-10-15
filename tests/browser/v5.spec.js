@@ -2289,7 +2289,15 @@ test('STAGE2.2 contact sheets: eleven forward/reverse frames, photo 3, mobile an
  for(let i=10;i>=0;i--)await shoot('up-'+i,i/10);
  // The preview must stay on the selected third slide after collapse and expand.
  const hero=page.locator('.vx-hero-swipe-track');
- for(let n=0;n<2;n++)await hero.click({position:{x:Math.floor(390*.85),y:110}});
+ for(let n=0;n<2;n++){
+  // This filmstrip intentionally sets the committed slide without introducing
+  // a second physical gesture into the exact per-progress capture.
+  await hero.evaluate(el=>{
+   const r=el.getBoundingClientRect();
+   el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:r.left+r.width*.9,clientY:r.top+Math.min(100,r.height/2)}));
+  });
+  await page.waitForTimeout(40);
+ }
  await expect(page.locator('.vx-hero-swipe-slide:nth-child(2)')).not.toHaveAttribute('data-photo-id',metrics[0].main);
  for(let i=0;i<=10;i++)await shoot('photo3-down-'+i,i/10);
  for(let i=10;i>=0;i--)await shoot('photo3-up-'+i,i/10);
