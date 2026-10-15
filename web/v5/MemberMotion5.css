@@ -94,15 +94,9 @@
  -webkit-user-drag:none;
 }
 
-/* Centre CTA is the visual anchor, moving ~1.5 px over 6 seconds.
-   Side actions are quieter, consistent with the premium reference. */
+/* Static CTA: continuous floating transforms caused unreliable taps on real profile and registration preview. */
 .veyra-v2 .vx-master-profile .vx-profile-action.primary{
- animation:vx-cta-float 6s ease-in-out infinite;
  box-shadow:0 6px 17px #822fd83d,0 2px 6px #6336af1f!important;
-}
-@keyframes vx-cta-float{
- 0%,100%{transform:translate3d(0,0,0)}
- 50%{transform:translate3d(0,-1.6px,0)}
 }
 .veyra-v2 .vx-master-profile .vx-profile-action:not(.primary){
  border:1px solid #d6bfee!important;
@@ -112,12 +106,6 @@
 }
 .veyra-v2 .vx-master-profile .vx-profile-action:not(.primary):active{
  background:#ede2ff!important;
-}
-.veyra-v2 .vx-master-profile .vx-profile-action.primary:active{
- animation-play-state:paused;
-}
-@media(prefers-reduced-motion:reduce){
- .veyra-v2 .vx-master-profile .vx-profile-action.primary{animation:none!important}
 }
 @media(max-width:360px){
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{gap:3px!important;font-size:10.5px!important}
