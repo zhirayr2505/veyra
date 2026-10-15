@@ -17,8 +17,8 @@ test('ScrollTimeline keyframes stay ordered through the collapse and hold compac
 test('hero uses uniform scale, not an independent scaleX/scaleY or compensation layer',()=>{
  const width=390,height=447,distance=373,total=1200;
  const tracks=buildProfileScrollKeyframes(width,height,distance,total,292);
- const f=profileFrame(.38,width,height,292);
- const at=tracks.hero.find(v=>Math.abs(v.offset-.38*distance/total)<.00002);
+ const f=profileFrame(.60,width,height,292);
+ const at=tracks.hero.find(v=>Math.abs(v.offset-.60*distance/total)<.00002);
  assert.ok(at);
  assert.equal(at.transform,`translate3d(${f.heroX.toFixed(3)}px,${f.heroY.toFixed(3)}px,0) scale(${f.heroScale.toFixed(7)})`);
  assert.equal(tracks.hero[0].transform,'translate3d(0.000px,0.000px,0) scale(1.0000000)');

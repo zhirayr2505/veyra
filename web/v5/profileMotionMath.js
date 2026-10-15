@@ -18,9 +18,9 @@ export function profileReleaseDirection({samples=[],startY=0,y=0,at=0}){
 export const releaseTarget=(direction,y,d,startY)=>direction>0?d:direction<0?0:startY>=d-.5?d:startY<=.5?0:y>=d/2?d:0;
 export const smooth=(t)=>{const x=clamp(t);return x*x*(3-2*x)};
 export const segment=(p,a,b)=>smooth((p-a)/(b-a));
-export const PROFILE_MORPH_START=.30;
-export const PROFILE_CIRCLE_AT=.38;
-export const PROFILE_CENTER_AT=.46;
+export const PROFILE_MORPH_START=.18;
+export const PROFILE_CIRCLE_AT=.60;
+export const PROFILE_CENTER_AT=.70;
 export const PROFILE_VISIBLE_TOP_INSET=64; // bottom edge of profile's native logo/header
 export const PROFILE_CIRCLE_WIDTH_FRACTION=.62; // absolute upper bound at morph
 export const PROFILE_AVATAR_DIAMETER=98;
@@ -64,9 +64,10 @@ export function profileFrame(progress,width,height,compactHeight=292){
   visibleTop:circleGeometry.visibleTop,visibleBottom:circleGeometry.visibleBottom,
   visibleHeight:circleGeometry.visibleHeight,
   sheetY,panelClipBottom,
-  nameX:110*segment(p,.62,.96),
+  // Move the identity across the invisible middle, then reveal from the right.
+  nameX:220*segment(p,.29,.70)-110*segment(p,.70,.96),
   nameY:mix(h+9,116,smooth(p)),
-  nameOpacity:1-.6*segment(p,.24,.34)+.6*segment(p,.34,.5),
+  nameOpacity:1-segment(p,.17,.29)+segment(p,.70,.96),
   actionY:mix(h+123,222,smooth(clamp(p/.88))),
   moreY:mix(h+8,113,smooth(p)),
   photoExtrasOpacity:1-segment(p,.20,.33),

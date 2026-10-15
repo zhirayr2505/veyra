@@ -91,8 +91,8 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    if(parts.nav)parts.nav.style.opacity=f.photoExtrasOpacity.toFixed(3);
    if(parts.mainPhoto)parts.mainPhoto.style.opacity=f.mainPhotoOpacity.toFixed(3);
    if(parts.backdropPhoto){const t=clamp((p-.20)/.35);parts.backdropPhoto.style.opacity=(t*t*(3-2*t)).toFixed(3)}
-   if(parts.rim)parts.rim.style.opacity=clamp((p-.52)/.10).toFixed(3);
-   if(parts.online)parts.online.style.opacity=clamp((p-.52)/.10).toFixed(3);
+   if(parts.rim)parts.rim.style.opacity=clamp((p-.60)/.05).toFixed(3);
+   if(parts.online)parts.online.style.opacity=clamp((p-.60)/.05).toFixed(3);
 
 
     if(parts.grabber){
