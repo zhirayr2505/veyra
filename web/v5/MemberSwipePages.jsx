@@ -9,9 +9,10 @@ export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,
   axis:'x',loop:false,align:'start',containScroll:false,
   dragFree:false,duration:22,dragThreshold:10,
   watchDrag:(_api,event)=>{
-   // The photo grid is interactive but horizontal drags must reach Embla.
-   if(event.target?.closest?.('.vx-profile-photos-grid'))return true;
-   return !event.target?.closest?.('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
+   // Allow a swipe to begin on a profile-section edit button. Embla only
+   // takes over after 10px horizontal intent; a tap still activates editing.
+   // Text-entry widgets, links and the gallery are separate gesture domains.
+   return !event.target?.closest?.('a,input,textarea,select,[contenteditable],.photo-gallery-mini');
   }
  });
  const viewportElement=useRef(null);

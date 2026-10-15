@@ -23,4 +23,4 @@
 
 /* Telegram Close owns the first 76px; keep feed tools below it. */
 html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__left,
-html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__right{top:max(76px,var(--vx-top,0px))}
+html.veyra-telegram-fullscreen .veyra-v2 .vx-dating-stage02 .vx-top-zone__right{top:max(81px,var(--vx-top,0px))}

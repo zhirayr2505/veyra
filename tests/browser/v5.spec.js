@@ -1921,14 +1921,16 @@ test.describe('Stage 2 Android-like touch context',()=>{
     if(y<=vr.top+8||y>=bottom+3)continue;
     const hit=document.elementFromPoint(x,y),inPage=hit?.closest('.vx-profile-swipe-page');
     if(!hit?.closest('.vx-profile-swipe-viewport')||!inPage)continue;
-    const interactive=hit.closest('button,a,input,textarea,select,[role="button"],.photo-gallery-mini');
-    if(interactive&&!hit.closest('.vx-profile-photos-grid'))continue;
+    // A section pencil is a valid Embla drag origin once horizontal intent
+    // crosses its threshold. Only form controls/links must block dragging.
+    const dragBlocked=hit.closest('a,input,textarea,select,[contenteditable],.photo-gallery-mini');
+    if(dragBlocked)continue;
     return {x,y,hit:info(hit),page:info(inPage),rail:info(rail),viewport:info(viewport),scrollY:scroll.scrollTop};
    }
    return {x,y:null,viewport:info(viewport),rail:info(rail),scrollY:scroll.scrollTop,
     sample:candidates.map(y=>({y,hit:info(document.elementFromPoint(x,y))}))};
   },origin);
-  expect(gestureStart.y,'No non-interactive visible Embla swipe target: '+JSON.stringify(gestureStart)).not.toBeNull();
+  expect(gestureStart.y,'No Embla-eligible visible swipe target: '+JSON.stringify(gestureStart)).not.toBeNull();
   await drag(gestureStart.x,gestureStart.y,fromPhotos?135:-135,0);
   const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
   await expect(desired,'Embla swipe from '+origin.x+','+origin.y+' initial='+JSON.stringify(gestureStart)).toHaveAttribute('aria-selected','true',{timeout:2500});
