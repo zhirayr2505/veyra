@@ -1903,9 +1903,14 @@ test.describe('Stage 2 Android-like touch context',()=>{
   await rail.getByRole('tab',{name:fromPhotos?'Фото':'О себе'}).click();
   // Allow the selected Embla page to finish its button-triggered slide before initiating another drag.
   await page.waitForTimeout(450);
+  const gestureStart=await page.evaluate(({x,y})=>{
+   const element=document.elementFromPoint(x,y),rail=document.querySelector('.vx-profile-tab-rail'),viewport=document.querySelector('.vx-profile-swipe-viewport'),scroll=document.querySelector('.vx-profile-scroller'),page=element?.closest('.vx-profile-swipe-page');
+   const info=el=>{if(!el)return null;const r=el.getBoundingClientRect();return {name:typeof el.className==='string'?el.className:el.tagName,rect:{x:r.x,y:r.y,w:r.width,h:r.height},pointer:getComputedStyle(el).pointerEvents,touch:getComputedStyle(el).touchAction}};
+   return {hit:info(element),page:info(page),rail:info(rail),viewport:info(viewport),scrollY:scroll?.scrollTop,maxScroll:(scroll?.scrollHeight||0)-(scroll?.clientHeight||0),selected:[...rail.querySelectorAll('[role=tab]')].find(x=>x.getAttribute('aria-selected')==='true')?.textContent};
+  },origin);
   await drag(origin.x,origin.y,fromPhotos?135:-135,0);
   const desired=rail.getByRole('tab',{name:fromPhotos?'О себе':'Фото'});
-  await expect(desired,'Embla swipe from '+origin.x+','+origin.y).toHaveAttribute('aria-selected','true',{timeout:2500});
+  await expect(desired,'Embla swipe from '+origin.x+','+origin.y+' initial='+JSON.stringify(gestureStart)).toHaveAttribute('aria-selected','true',{timeout:2500});
  }
  // The action wrapper is transparent, but its real 50px buttons still receive taps.
  await page.locator('.vx-profile-tab-rail').getByRole('tab',{name:'О себе'}).click();
