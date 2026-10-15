@@ -7,7 +7,7 @@ import {get,post,photoUrl} from './api.js';
 import {openInvoice,GiftCollection} from './Extras.jsx';
 import {ProfileHighlights,INTEREST_GROUPS,goalTitle} from './OnboardingOptions.jsx';
 import './MemberFeed.css';
-import './MemberTelegramProfile.css';
+
 import {VeyraPackIcon,interestGlyph} from './VeyraPackIcons.jsx';
 import {useVeyraProfileMotion} from './useVeyraProfileMotion.js';
 import {interestTone,sharedInterestSet,normalizeInterest} from './profilePolishLogic.js';

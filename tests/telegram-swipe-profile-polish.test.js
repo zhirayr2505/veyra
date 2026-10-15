@@ -81,7 +81,7 @@ test('Telegram 7.6 or buggy clients keep native scrolling without throwing',()=>
 test('css overscroll guard and original native scroll behavior remain intact',()=>{
  const swipe=readFileSync(new URL('../web/v5/TelegramSwipeGuard.css',import.meta.url),'utf8');
  const viewport=readFileSync(new URL('../web/v5/telegramViewport.js',import.meta.url),'utf8');
- const motion=readFileSync(new URL('../web/v5/MemberMotionV2.css',import.meta.url),'utf8');
+ const motion=readFileSync(new URL('../web/v5/member/profile.css',import.meta.url),'utf8');
  assert.match(swipe,/html,body\s*\{\s*overscroll-behavior-y:none/);
  for(const className of ['message-stream','vx-profile-scroller','discover','likes-gallery','veyra-interests-sheet'])
   assert.ok(swipe.includes(className),'missing overscroll containment: '+className);
@@ -101,7 +101,7 @@ test('interest palette is semantic, not based on nth-child and common detection 
  assert.equal(interestTone('Неизвестный интерес',groups),'violet');
  assert.equal(normalizeInterest(' СпОрТ '),'спорт');
  assert.deepEqual([...sharedInterestSet(['Спорт','Кино','Кофе'],['спорт','КОФЕ'])],['спорт','кофе']);
- const css=readFileSync(new URL('../web/v5/MemberPolish7.css',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../web/v5/member/profile.css',import.meta.url),'utf8');
  const tokens=readFileSync(new URL("../web/v5/tokens.css",import.meta.url),"utf8");
  assert.match(tokens,/data-tone="sky"/); // Central palette shared by all screens
  assert.match(css,/data-common="true"/);

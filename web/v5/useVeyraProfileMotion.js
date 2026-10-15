@@ -78,7 +78,7 @@ export function useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready}){
    const translate=(x,y)=>'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0)';
    parts.hero.style.transform=translate(f.heroX,f.heroY)+' scale('+f.heroScale.toFixed(6)+')';
     parts.hero.style.clipPath=profileMorphInset(p,s.width,s.height,s.diameter,s.maskCenterY);
-   if(parts.panel)parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));
+   if(parts.panel){parts.panel.style.transform=translate(0,f.sheetY-(s.height-30));parts.panel.style.clipPath='inset(0px 0px '+f.panelClipBottom.toFixed(3)+'px 0px)'}
    if(parts.lip)parts.lip.style.transform=translate(0,f.sheetY-(s.height-30));
    if(parts.identity){
     parts.identity.style.transform=translate(f.nameX,f.nameY-(s.height+9));

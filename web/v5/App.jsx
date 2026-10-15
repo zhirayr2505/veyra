@@ -32,16 +32,10 @@ import './OnboardingV9.css'; // Final eight-step visual overrides
 import './DatingStage02.css'; // Three approved dating screens; registration remains unchanged
 import './VeyraDesignPolish.css'; // Match, floating feed actions, responsive profile refinement
 import './VeyraPolishFinal.css'; // Static feed and responsive member morph — final overrides
-import './MemberStickyPortal.css'; // Telegram Android viewport header rendered outside scrolling app
-import './MemberMotionV2.css'; // Single authoritative profile layout and composited motion
-import './MemberReferencePolish.css'; // Approved exact-look profile surfaces and portrait-derived header
-import './MemberFinish.css'; // Opaque sheet, contextual photo backdrop, elastic feel and premium content
-import './MemberMotion5.css'; // Motion 5 brand, flags, attached avatar border, actions, accessible icon tabs
-import './MemberMotion6.css'; // Direct circle + spring/haptic, safe text and adaptive wordmark
 import './FeedPremium2026.css'; // Approved feed reference, liquid tabs, interest drawer & CTA geometry
 import './ForYouApproved2026.css'; // Approved light lavender For You design
 import './TelegramSwipeGuard.css'; // Native overscroll fallback without blocking touch scroll
-import './MemberPolish7.css'; // Profile visual-only polish: preserves existing scroll motion
+import './member/profile.css';
 import './tokens.css'; // Unified brand palette, seven chip tones and shared component metrics
 const tg=window.Telegram?.WebApp;
 const nav=[['search','search','поиск'],['encounters','encounters','знакомства'],['likes','heart','симпатии'],['chats','chat','чаты'],['profile','user','профиль']];
