@@ -6,8 +6,8 @@ import './HeroPhotoTrack.css';
 
 const BASE='translate3d(-33.333333%,0,0)';
 const spring='transform .29s cubic-bezier(.2,.8,.2,1)';
-export function HeroPhotoTrack({photos,index,onIndex,onGallery,name,placeholders,motionRef,onDragProgress}){
- const viewport=useRef(null),track=useRef(null),gesture=useRef(null),finishTimer=useRef(null),ignoreClickUntil=useRef(0);
+export const HeroPhotoTrack=React.memo(function HeroPhotoTrack({photos,index,onIndex,onGallery,name,placeholders,motionRef,onDragProgress}){
+ const viewport=useRef(null),track=useRef(null),gesture=useRef(null),finishTimer=useRef(0),ignoreClickUntil=useRef(0);
  const count=photos.length;
  const offset=(px,animated=false)=>{
   if(!track.current)return;
@@ -17,7 +17,7 @@ export function HeroPhotoTrack({photos,index,onIndex,onGallery,name,placeholders
  useLayoutEffect(()=>{
   offset(0);onDragProgress?.(0);
  },[index]);
- useEffect(()=>()=>clearTimeout(finishTimer.current),[]);
+ useEffect(()=>()=>cancelAnimationFrame(finishTimer.current),[]);
  useEffect(()=>{
   const current=photos[index];if(!current)return;
   let cancelled=false;
@@ -38,7 +38,7 @@ export function HeroPhotoTrack({photos,index,onIndex,onGallery,name,placeholders
  const expanded=()=>motionRef.current?.dataset.state==='expanded';
  const onDown=e=>{
   if(count<2||!expanded()||e.pointerType==='mouse')return;
-  clearTimeout(finishTimer.current);
+  cancelAnimationFrame(finishTimer.current);
   gesture.current={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastAt:performance.now(),velocity:0,dx:0,axis:null,width:viewport.current?.clientWidth||1};
  };
  const onMove=e=>{
@@ -65,11 +65,13 @@ export function HeroPhotoTrack({photos,index,onIndex,onGallery,name,placeholders
   const physical=swipeStep(g.dx,g.width,g.velocity);
   if(!physical){offset(0,true);onDragProgress?.(0);return}
   offset(physical*g.width,true);
-  finishTimer.current=setTimeout(()=>{
-   if(!count)return;
-   // A left swipe (negative physical step) moves to the next photo.
-   onIndex((index-physical+count)%count);
-  },290);
+  let started=0;
+   const finish=ts=>{
+    if(!started)started=ts;
+    if(ts-started<290){finishTimer.current=requestAnimationFrame(finish);return}
+    if(count)onIndex((index-physical+count)%count);
+   };
+   finishTimer.current=requestAnimationFrame(finish);
  };
  const onCancel=()=>{gesture.current=null;offset(0,true);onDragProgress?.(0)};
  const onTap=e=>{
@@ -89,4 +91,4 @@ export function HeroPhotoTrack({photos,index,onIndex,onGallery,name,placeholders
    </div>)}
   </div>
  </div>;
-}
+});

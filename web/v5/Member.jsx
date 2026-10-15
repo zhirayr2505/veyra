@@ -24,7 +24,8 @@ const clamp=(n,min=0,max=1)=>Math.min(max,Math.max(min,n));
 function MemberInterest({label,common=false}){return <InterestChip label={label} tone={interestTone(label,INTEREST_GROUPS)} common={common} icon={<VeyraPackIcon name={interestGlyph(label)} size={19}/>}/>;}
 const feedback=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* No haptic outside Telegram. */}};
 
-export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onCollection,onRanking,onCourtship,onAdmin,initialData=null,previewData=null,readOnly=false}){
+export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPaid,initialMatch,viewer,ownMe=null,onEdit,onSettings,onPreviewAction,onCollection,onRanking,onCourtship,onAdmin,initialData=null,previewData=null,readOnly=false}){
+ if(typeof window!=='undefined'&&window.__VEYRA_PROFILE_TEST__)window.__veyraMemberRenderCount=(window.__veyraMemberRenderCount||0)+1;
  const isPreview=readOnly&&!!previewData;
  const isOwn=!!ownMe||isPreview;
  const tabs=isOwn?[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Ещё']]:TABS;
@@ -60,6 +61,14 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   indicator?.style.setProperty('--veyra-swipe-drag',Math.min(1,Math.max(0,amount)).toFixed(3));
  },[]);
  const {onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
+ useLayoutEffect(()=>{
+  if(isPreview||!scrollRef.current)return;
+  const el=scrollRef.current,nav=document.querySelector('.bottom-nav');
+  const measure=()=>el.style.setProperty('--vx-profile-bottom-clear',Math.ceil((nav?.getBoundingClientRect().height||80)+16)+'px');
+  const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
+  if(nav)ro?.observe(nav);
+  measure();return()=>{ro?.disconnect();el.style.removeProperty('--vx-profile-bottom-clear')};
+ },[isPreview]);
 
  useEffect(()=>{
   let active=true;
@@ -152,7 +161,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
-     <div className="vx-profile-compact-backdrop" aria-hidden="true"/>
+     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[idx]&&<Photo key={String(photos[idx])} id={photos[idx]} resolution={256} placeholder={data.photo_placeholders?.[String(photos[idx])]} alt=""/>}</div>
 
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
@@ -174,18 +183,16 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
       {data.goal&&<span className="vx-profile-goal"><Heart size={13}/><span className="vx-profile-goal-text">{goalTitle(data.goal)}</span></span>}
      </section>
      {isOwn?<div className="vx-profile-primary-actions vx-own-profile-actions" aria-label="Управление моим профилем">
-      <button type="button" className="vx-profile-action" onClick={isPreview?undefined:()=>openTab('photos')} disabled={isPreview}><ImagePlus size={20}/><span>Мои фото</span></button>
-      <button type="button" className="vx-profile-action primary" onClick={isPreview?undefined:onEdit} disabled={isPreview}><Pencil size={20}/><span>Изменить</span></button>
-      <button type="button" className="vx-profile-action" onClick={isPreview?undefined:onSettings} disabled={isPreview}><Settings2 size={20}/><span>Настройки</span></button>
+      <button type="button" className="vx-profile-action" onClick={isPreview?()=>onPreviewAction?.('photos'):()=>openTab('photos')}><ImagePlus size={19}/><span>Мои фото</span></button>
+      <button type="button" className="vx-profile-action primary" onClick={isPreview?()=>onPreviewAction?.('edit'):onEdit}><Pencil size={19}/><span>Изменить</span></button>
+      {!isPreview&&<button type="button" className="vx-profile-action" onClick={onSettings}><Settings2 size={19}/><span>Настройки</span></button>}
      </div>:<div className="vx-profile-primary-actions" aria-label="Действия с человеком">
       <button type="button" className="vx-profile-action" onClick={()=>onGift(data)} aria-label="Подарить подарок"><VeyraPackIcon name="gift" size={21}/><span>Подарок</span></button>
       <button type="button" className={"vx-profile-action primary"+(reactionPulse==='like'?" vx-reaction-burst":"")} onAnimationEnd={()=>setReactionPulse('')} onClick={()=>match?(feedback(),onChat(match)):like()} aria-label={match?'Написать сообщение':'Поставить лайк'}><VeyraPackIcon name={match?'chat':'heart'} size={21} filled={!match}/><span>{match?'Написать':'Нравится'}</span></button>
       {match?<button type="button" className="vx-profile-action vx-profile-courtship" data-status={courtStatus} onClick={requestCourtship} disabled={courtDisabled} aria-label={courtLabel}><VeyraPackIcon name="courtship" size={21}/><span>{courtLabel}</span></button>
        :<button type="button" className={"vx-profile-action vx-profile-super"+(reactionPulse==='super'?' vx-reaction-burst':'')} onAnimationEnd={()=>setReactionPulse('')} onClick={()=>like('super')} aria-label="Суперлайк"><VeyraPackIcon name="star" size={21} filled/><span>Суперлайк</span></button>}
       </div>}
-      {isOwn
-       ? <button type="button" className="vx-profile-card-more" aria-label="Настройки" onClick={isPreview?undefined:onSettings} disabled={isPreview}><Settings2 size={21}/></button>
-       : <button type="button" className="vx-profile-card-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={20}/></button>}
+      {!isOwn&&<button type="button" className="vx-profile-card-more" aria-label="Действия с анкетой" aria-expanded={more} onClick={()=>setMore(v=>!v)}><Icon name="more" tone="pink" size={20}/></button>}
      </div>
     </div>
     <div className="vx-profile-open-spacer" ref={stageRef} aria-hidden="true"/>

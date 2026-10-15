@@ -4,7 +4,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 // Embla locks horizontal intent after ~10px; the browser owns vertical pan-y.
 // Keep all four panels mounted. Embla owns the track transform and preserves
 // finger-following motion; no React renders are required during a drag.
-export function MemberSwipePages({tabs,active,onChange,onProgress,carouselApiRef,children}){
+export const MemberSwipePages=React.memo(function MemberSwipePages({tabs,active,onChange,onProgress,carouselApiRef,children}){
  const [viewportRef,embla]=useEmblaCarousel({
   axis:'x',loop:false,align:'start',containScroll:false,
   dragFree:false,duration:22,dragThreshold:10,
@@ -57,4 +57,4 @@ export function MemberSwipePages({tabs,active,onChange,onProgress,carouselApiRef
     </section>)}
   </div>
  </div>;
-}
+});
