@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {enableProfileProbe,profileProbeEnabled,recordProfileCalibration,recordProfileFrame,getProfileProbeSnapshot} from '../web/v5/profilePerfProbe.js';
+import {enableProfileProbe,profileProbeEnabled,recordProfileCalibration,recordProfileFrame,getProfileProbeSnapshot} from '../web/v5/profile/motion/profilePerfProbe.js';
 
 test('profiling is completely disabled by default and after hide',()=>{
  enableProfileProbe(false);

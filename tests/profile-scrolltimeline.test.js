@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildProfileScrollKeyframes} from '../web/v5/profileScrollTimeline.js';
-import {profileFrame} from '../web/v5/profileMotionMath.js';
+import {buildProfileScrollKeyframes} from '../web/v5/profile/motion/profileScrollTimeline.js';
+import {profileFrame} from '../web/v5/profile/motion/profileMotionMath.js';
 test('ScrollTimeline keyframes stay ordered through the collapse and hold compact',()=>{
  const tracks=buildProfileScrollKeyframes(390,447,373,2000,292);
  for(const [name,frames] of Object.entries(tracks)){
@@ -11,10 +11,10 @@ test('ScrollTimeline keyframes stay ordered through the collapse and hold compac
   for(let i=1;i<frames.length;i++)assert.ok(frames[i].offset>frames[i-1].offset,name+' duplicate '+i);
   assert.deepEqual(Object.keys(frames[0]).sort(),Object.keys(frames.at(-1)).sort());
  }
- assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','lip','identity','actions','more','goal','bars','nav','grabber','backdropPhoto','rim','online','mainPhoto'].sort());
+ assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','photoContent','identity','actions','more','goal','bars','grabber','backdropPhoto','rim','online','mainPhoto'].sort());
  assert.equal(tracks.actions.at(-1).transform,tracks.actions.at(-2).transform);
 });
-test('hero uses uniform scale, not an independent scaleX/scaleY or compensation layer',()=>{
+test('hero uses uniform scale, not an independent scaleX/scaleY and the inner image is fitted uniformly',()=>{
  const width=390,height=447,distance=373,total=1200;
  const tracks=buildProfileScrollKeyframes(width,height,distance,total,292);
  const f=profileFrame(.60,width,height,292);
@@ -31,7 +31,7 @@ test('no extra image, shade, blur or orphaned ring track',()=>{
  assert.equal(tracks.grabber.at(-1).opacity,0);
  assert.equal(tracks.backdropPhoto[0].opacity,0);
  assert.equal(tracks.backdropPhoto.at(-1).opacity,1);
- for(const frames of [tracks.hero,tracks.panel,tracks.lip,tracks.identity,tracks.actions,tracks.more,tracks.backdropPhoto])for(const f of frames)assert.ok(Object.keys(f).every(k=>['offset','transform','opacity','clipPath'].includes(k)));
+ for(const frames of [tracks.hero,tracks.panel,tracks.photoContent,tracks.identity,tracks.actions,tracks.more,tracks.backdropPhoto])for(const f of frames)assert.ok(Object.keys(f).every(k=>['offset','transform','opacity','clipPath'].includes(k)));
 
 });
 

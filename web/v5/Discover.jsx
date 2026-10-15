@@ -5,7 +5,7 @@ import {InterestReveal} from './InterestReveal.jsx';
 import {FeedCardVisual} from './FeedCardVisual.jsx';
 import {Button,Icon,InlineAlert,Spinner,InterestIcon,InterestChip,Logo} from './UI.jsx';
 import {INTEREST_GROUPS} from './OnboardingOptions.jsx';
-import {interestTone} from './profilePolishLogic.js';
+import {interestTone} from './shared/interests/interestLogic.js';
 import './Discover.css';
 
 const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));

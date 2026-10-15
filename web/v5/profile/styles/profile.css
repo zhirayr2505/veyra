@@ -1,4 +1,6 @@
-/* VEYRA Stage 2.2: one authoritative profile cascade. */
+/* Profile styles: motion geometry lives in profileMotionMath.js. */
+.member-feed-profile{position:relative;max-width:600px;min-height:100dvh;padding:0 0 115px;background:linear-gradient(#fff8f7,#fffdfa)}
+@media(prefers-reduced-motion:reduce){.member-feed-profile *{scroll-behavior:auto}}
 :root{
  --vx-top:calc(max(env(safe-area-inset-top,0px),var(--tg-safe-area-inset-top,0px)) + var(--tg-content-safe-area-inset-top,0px));
  --vx-profile-compact-height:292px;
@@ -9,28 +11,20 @@
  position:fixed;inset:0;width:100%;max-width:none;min-height:0;margin:0;padding:0;
  overflow:hidden;overscroll-behavior:contain;
 }
-/* Consolidated: MemberMotionV2.css */
-/* VEYRA Motion 2.0
-   One animation authority: useVeyraProfileMotion.js writes transforms on direct
-   elements only. The retired master/smooth/premium morph CSS must NOT load.
-   Keep this file last, after all global design styles.
- */
 .veyra-v2 .vx-master-profile{
- 
  --vx-deep:#6420d9;--vx-ink:#302043;--vx-sheet-bg:var(--vx-color-surface,#faf6ff);
  background:#faf6ff;color:var(--vx-ink);
  font-family:Nunito,'Arial Rounded MT Bold',Inter,system-ui,sans-serif;
 }
 .veyra-v2 .vx-master-profile .vx-profile-scroller{
  --vx-profile-hero-height:clamp(355px,53dvh,600px);
- 
  position:absolute;inset:0;top:0;
  bottom:0;left:0;right:0;
  max-width:640px;width:100%;margin:0 auto;padding:0;
  overflow-y:auto;overflow-x:hidden;scroll-behavior:auto;
  overscroll-behavior-y:contain;overflow-anchor:none;
  -webkit-overflow-scrolling:touch;touch-action:pan-y;
- scrollbar-width:none;background:var(--vx-sheet-bg);
+ scrollbar-width:none;
  scroll-padding-top:calc(var(--vx-profile-compact-height) + 52px);
 }
 .veyra-v2 .vx-master-profile .vx-profile-scroller::-webkit-scrollbar{display:none}
@@ -46,7 +40,6 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  position:absolute;top:0;left:0;width:100%;height:0;
  overflow:visible;pointer-events:none;isolation:isolate;
 }
-/* Disable pseudo-element animations inherited from the old screen. */
 .veyra-v2 .vx-master-profile .vx-profile-sticky::before,
 .veyra-v2 .vx-master-profile .vx-profile-sticky::after{
  content:none;display:none;
@@ -63,59 +56,42 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-box img.photo-sharp{
  width:100%;height:100%;object-fit:cover;filter:blur(24px);
- 
 }
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-blur,
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-unavailable{display:none}
-@keyframes vxCompactPhotoEnter{from{opacity:0}to{opacity:1}}
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  position:absolute;left:0;right:0;
  top:calc(var(--vx-profile-hero-height) - 30px);
- height:284px;z-index:5;pointer-events:none;
- border-radius:32px 32px 0 0;
- background:var(--vx-sheet-bg);
- box-shadow:0 -2px 7px #5b399011;
- border-top:1px solid #ffffffbf;
+ height:var(--vx-profile-panel-height,284px);pointer-events:none;
  transform:translate3d(0,0,0);
  will-change:transform;
 }
-/* Opaque sheet: do not alpha-fade over the cover photo. During the
-   central/avatar phase it moves behind the image, without a translucent seam. */
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="center"] .vx-profile-sheet-lip,
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="avatar"] .vx-profile-sheet-lip{
- z-index:8;
-}
-/* The sheet rises OVER the full photo before the photo starts to shrink. */
-.veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
- position:absolute;z-index:13;pointer-events:none;
- top:calc(var(--vx-profile-hero-height) - 30px);
- left:0;right:0;height:76px;
- border-radius:32px 32px 0 0;
- background:var(--vx-sheet-bg);
- border-top:1px solid #ffffffc7;
- transform:translate3d(0,0,0);
- opacity:1;will-change:transform;
-}
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
- position:absolute;top:0;left:0;z-index:9;
+ position:absolute;top:0;left:0;
  width:100%;height:var(--vx-profile-hero-height);
  min-height:0;min-width:0;max-width:none;
- border:0;border-radius:0;box-sizing:border-box;
+ border:0;box-sizing:border-box;
  margin:0;padding:0;
  transform-origin:0 0;transform:translate3d(0,0,0);
  overflow:hidden;contain:paint;
- background:#e7def2;box-shadow:0 2px 6px #55407712;
+ background:#e7def2;
  will-change:transform;
  pointer-events:auto;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo::after{content:none;display:none}
-/* Stage 2: one original-color portrait; discrete mask + uniform scaling.
-   The white ring and online indicator are attached to that same canvas. */
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  clip-path:inset(0px 0px 0px 0px round 0px);border-radius:0;transition:none;
  --vx-profile-mask-diameter:180px;--vx-profile-mask-radius:90px;--vx-profile-mask-center-y:160px;
 }
-/* Main-photo crossfade stays within the very same composited hero mask. */
+.veyra-v2 .vx-master-profile .vx-profile-photo-content{
+ position:absolute;inset:0;transform-origin:0 0;will-change:transform;
+}
+.veyra-v2 .vx-master-profile .vx-profile-main-crossfade .photo-sharp{object-position:50% 36%}
+.veyra-v2 .vx-master-profile .vx-profile-section-heading{
+ display:flex;align-items:center;gap:10px;margin-bottom:12px;
+}
+.veyra-v2 .vx-master-profile .vx-profile-section-heading h2{margin:0;flex:1;min-width:0}
+.veyra-v2 .vx-master-profile .vx-profile-section-heading>span{font-size:13px;color:var(--vx-color-muted)}
 .veyra-v2 .vx-master-profile .vx-profile-main-crossfade{
  position:absolute;inset:0;z-index:4;opacity:0;pointer-events:none;
 }
@@ -159,66 +135,39 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  width:min(68%,260px);transform:translateX(-50%);
  z-index:3;opacity:1;pointer-events:none;
 }
-.veyra-v2 .vx-master-profile .vx-profile-photo-nav{
- inset:20% 0 14%;z-index:3;opacity:1;
- pointer-events:none;
-}
-.veyra-v2 .vx-master-profile .vx-profile-photo-nav button{
- pointer-events:auto;
-}
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars,
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-nav{
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="compact"] .vx-profile-photo-bars{
  visibility:hidden;pointer-events:none;
 }
-.veyra-v2 .vx-master-profile .vx-profile-demo-badge{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-identity{
- position:absolute;left:19px;right:54px;
- top:calc(var(--vx-profile-hero-height) + 9px);
- z-index:14;display:block;overflow:visible;
- width:auto;height:93px;min-height:0;
+ position:absolute;
+ top:calc(var(--vx-profile-hero-height) + 9px);display:block;height:93px;min-height:0;
  margin:0;padding:0;text-align:left;
- pointer-events:none;
  transform:translate3d(0,0,0);
  will-change:transform,opacity;
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row{
  position:absolute;top:0;left:0;
- display:flex;align-items:center;justify-content:flex-start;
- gap:7px;max-width:100%;
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row h1{
- font-size:clamp(21px,5.9vw,27px);
- font-weight:900;line-height:1.2;letter-spacing:-.45px;
- max-width:clamp(142px,49vw,248px);
  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
- margin:0;color:#2b1c3b;
-}
-.veyra-v2 .vx-master-profile .vx-profile-name-row .vx-demo-member-label{
- border:0;border-radius:99px;background:#e9d9ff;
- color:#7951be;padding:4px 8px;font-size:10px;
+ margin:0;
 }
 .veyra-v2 .vx-master-profile .vx-profile-location{
  position:absolute;top:38px;left:0;
  display:flex;gap:6px;align-items:center;justify-content:flex-start;
- line-height:1.25;font-size:12px;color:#82718f;
+ line-height:1.25;
  white-space:nowrap;
 }
 .veyra-v2 .vx-master-profile .vx-profile-goal{
- position:absolute;top:38px;left:120px;
- display:flex;gap:5px;align-items:center;width:max-content;
- max-width:min(56vw,220px);min-height:24px;
- color:#7a45c0;background:#ebddfe;border:0;
- padding:4px 9px;font-weight:740;font-size:11px;
- line-height:1.3;border-radius:999px;white-space:normal;
+ position:absolute;
+ display:flex;width:max-content;
  text-overflow:ellipsis;
  transform:translate3d(0,0,0);
 }
 .veyra-v2 .vx-master-profile .vx-profile-primary-actions{
- position:absolute;z-index:15;
+ position:absolute;
  top:calc(var(--vx-profile-hero-height) + 123px);
- left:12px;right:12px;
- display:grid;grid-template-columns:104fr 138fr 104fr;
- gap:7px;width:auto;max-width:none;margin:0;
+ display:grid;width:auto;max-width:none;margin:0;
  will-change:transform;
  pointer-events:none;
 }
@@ -226,31 +175,19 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 .veyra-v2 .vx-master-profile .vx-profile-action{
  pointer-events:auto;position:relative;display:flex;flex-direction:row;
  align-items:center;justify-content:center;gap:5px;
- height:50px;min-height:50px;
  width:100%;min-width:0;overflow:hidden;
- border-radius:99px;border:1px solid #decaf5;
- padding:0 5px;
- color:#753dc6;background:#fbf8ff;
- font-size:clamp(10px,3vw,13px);font-weight:830;
- box-shadow:0 2px 5px #482d6509;
  transition:filter .12s linear;
 }
-.veyra-v2 .vx-master-profile .vx-profile-action.primary{
- color:white;border-color:transparent;
- background:linear-gradient(115deg,#ae60fc,#7628e5);
- box-shadow:0 3px 8px #7835dd23;
+.veyra-v2 .vx-master-profile .vx-profile-action.primary{border-color:transparent;
 }
-.veyra-v2 .vx-master-profile .vx-profile-action:active{filter:brightness(.96)}
 .veyra-v2 .vx-master-profile .vx-profile-action span{
  white-space:nowrap;color:inherit;
 }
-.veyra-v2 .vx-master-profile .vx-profile-action .vx-pack-icon{
- width:20px;height:20px;flex:none;
+.veyra-v2 .vx-master-profile .vx-profile-action .vx-pack-icon{flex:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-more{
  position:absolute;right:14px;z-index:19;
- top:calc(var(--vx-profile-hero-height) + 8px);
- height:38px;width:38px;display:grid;place-items:center;
+ top:calc(var(--vx-profile-hero-height) + 8px);display:grid;place-items:center;
  border:1px solid #e4d6f6;border-radius:50%;
  color:#6e32bd;background:#f1e9ff;box-shadow:0 3px 8px #4d347514;
  transform:translate3d(0,0,0);will-change:transform;
@@ -264,37 +201,27 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  position:sticky;top:var(--vx-profile-compact-height);
  z-index:80;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
  width:100%;height:52px;min-height:52px;
- margin:0;padding:0 16px;gap:0;box-sizing:border-box;
- border:0;border-bottom:1px solid #e9def6;
- border-radius:0;box-shadow:0 -2px 12px #624a8910;
- background:color-mix(in srgb,var(--vx-color-surface,#faf6ff) 94%,transparent);
+ margin:0;gap:0;box-sizing:border-box;
+ border:0;
+ border-radius:0;
  overflow:hidden;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
  position:relative;z-index:2;
- height:52px;min-height:52px;padding:5px 0;
+ height:52px;min-height:52px;
  border:0;border-radius:0;background:transparent;
- color:#867598;font-size:clamp(11px,3.5vw,14px);
- font-family:inherit;font-weight:690;
-}
-.veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active{
- color:#502482;font-weight:850;
+ font-family:inherit;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button::after{
  display:none;content:none;
 }
 .veyra-v2 .vx-master-profile .vx-tab-underline{
- position:absolute;left:16px;bottom:0;z-index:3;
- width:calc((100% - 32px)/4);height:3px;
- background:linear-gradient(90deg,#ae64fc,#7127e3);
- border-radius:3px;pointer-events:none;
+ position:absolute;z-index:3;pointer-events:none;
  transform:translate3d(0,0,0);will-change:transform;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
  position:relative;z-index:2;overflow:clip;width:100%;
  background:var(--vx-sheet-bg);touch-action:pan-y pinch-zoom;
- /* Embla has overflow:hidden: contain on Y blocks native scroll chaining.
-    Keep X boundary contained while allowing Y to reach .vx-profile-scroller. */
  overscroll-behavior-x:contain;
  overscroll-behavior-y:auto;
 }
@@ -302,14 +229,13 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  display:flex;flex-wrap:nowrap;align-items:flex-start;width:100%;min-width:0;
  transition:none;will-change:transform;
 }
-/* Avoid any translucent paint / flashes above the tab content. */
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport,
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track{
  background:var(--vx-sheet-bg);
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
  width:100%;flex:0 0 100%;min-width:0;box-sizing:border-box;
- overflow:visible;padding:13px 12px calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
+ overflow:visible;
  min-height:var(--vx-profile-page-min,0px);contain:layout paint;
  background:var(--vx-sheet-bg);
 }
@@ -317,57 +243,32 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
  pointer-events:none;user-select:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-section-body{
- display:flex;flex-direction:column;gap:12px;
+ display:flex;flex-direction:column;
  animation:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-surface{
- background:white;border:0;
- padding:15px 14px;border-radius:20px;
- box-shadow:0 2px 8px #563d7509;
  overflow:visible;
 }
-.veyra-v2 .vx-master-profile .vx-profile-surface h2{
- font-size:18px;color:#302043;font-weight:900;line-height:1.3;
- margin:0 0 10px;
+.veyra-v2 .vx-master-profile .vx-profile-surface h2{line-height:1.3;
 }
-.veyra-v2 .vx-master-profile .vx-profile-surface p{
- color:#554764;font-size:14px;line-height:1.5;margin:0;
+.veyra-v2 .vx-master-profile .vx-profile-surface p{margin:0;
 }
-.veyra-v2 .vx-master-profile .vx-member-interests-grid{
- display:flex;gap:7px;flex-wrap:wrap;
-}
-.veyra-v2 .vx-master-profile .vx-member-interest{
- display:inline-flex;align-items:center;gap:6px;
- color:#7447b5;background:#eee4fc;border:0;
- padding:7px 11px;border-radius:99px;font-size:12px;font-weight:730;
-}
-.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n+2){
- background:#e7eeff;color:#4b66b0;
-}
-.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n){
- background:#fcebe8;color:#bd6c52;
+.veyra-v2 .vx-master-profile .vx-member-interests-grid{flex-wrap:wrap;
 }
 .veyra-v2 .vx-master-profile .vx-profile-goal-detail{
- border-radius:15px;padding:12px;background:#eee5fd;color:#553877;
  display:flex;gap:10px;align-items:center;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid{
- display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid button{
- position:relative;display:block;width:100%;padding:0;border:0;overflow:hidden;
- border-radius:18px;aspect-ratio:174/224;
+ position:relative;display:block;width:100%;padding:0;border:0;overflow:hidden;aspect-ratio:174/224;
 }
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid img{object-fit:cover}
-/* The generic .view-tab entrance animation persists transform:translateX(0)
-   through fill-mode:both. It becomes the containing block of fixed Member and
-   collapses the owning host to its 85px padding. Only the profile host opts out;
-   all other tab transition animations remain unchanged. */
 .veyra-v2 .view-tab.vx-own-profile-host{
  animation:none;
  transform:none;
 }
-/* Own profile keeps persistent Android bottom navigation and editing tools. */
 .veyra-v2 .vx-master-profile.vx-own-member{
  bottom:calc(75px + env(safe-area-inset-bottom,0px));
  z-index:20;
@@ -403,22 +304,13 @@ body>.vx-member-native-header .vx-member-more{display:none}
 @media(max-width:359px){
  .veyra-v2 .vx-master-profile .vx-profile-scroller{
   --vx-profile-hero-height:clamp(322px,51dvh,510px);
-  
  }
  .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{height:var(--vx-profile-compact-height)}
- .veyra-v2 .vx-master-profile .vx-profile-name-row h1{font-size:22px}
  .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
 }
 @media(prefers-reduced-motion:reduce){
  .veyra-v2 .vx-master-profile .vx-profile-swipe-track{scroll-behavior:auto}
 }
-
-
-
-/* Consolidated: MemberReferencePolish.css */
-/* VEYRA reference profile polish — approved expanded + compact screenshots.
-   Pure visual refinement; existing scroll timeline geometry, snapping and
-   Telegram system navigation remain the only motion/navigation authorities. */
 .veyra-v2 .vx-master-profile{
  --vx-reference-sheet:#faf7ff;
  --vx-reference-ink:#1f1734;
@@ -428,98 +320,28 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-scroller{
  background:linear-gradient(180deg,#fcfaff 0%,#faf6ff 55%,#f8f3ff 100%);
 }
-/* ONE opaque moving sheet. Never switch sheet/photo stacking on the
-   center/avatar boundary: that was responsible for horizontal image slices. */
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
- z-index:5;
- background:var(--vx-sheet-bg);
- border-radius:34px 34px 0 0;
- box-shadow:0 -3px 11px #57437612;
  border-top:1px solid #ffffffd9;
 }
-.veyra-v2 .vx-master-profile .vx-profile-sheet-lip,
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="center"] .vx-profile-sheet-lip,
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="avatar"] .vx-profile-sheet-lip{
- z-index:6;
- border-radius:34px 34px 0 0;
- background:var(--vx-sheet-bg);
- border-top-color:#ffffffdf;
-}
-/* Subtle grip on the expanded card, hidden during the morph by ScrollTimeline. */
 .veyra-v2 .vx-master-profile .vx-profile-sheet-grabber{
  position:absolute;
- top:calc(var(--vx-profile-hero-height) + 7px);
  left:calc(50% - 26px);
  z-index:12;
- width:52px;
- height:5px;
- border-radius:99px;
  opacity:1;
  pointer-events:none;
- background:#d7cde4;
  transform:translate3d(0,0,0);
 }
-/* Photo always wins over the moving sheet, so it cannot be cut by a
-   semi-transparent horizontal overlay during the three-stage morph. */
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  z-index:9;
  box-shadow:0 3px 8px #513b701c;
 }
 .veyra-v2 .vx-master-profile .vx-profile-identity{
- z-index:7;
  pointer-events:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-name-row{
  gap:8px;
 }
-.veyra-v2 .vx-master-profile .vx-profile-name-row h1{
- color:var(--vx-reference-ink);
- font-size:clamp(24px,6.3vw,29px);
- font-weight:900;
- letter-spacing:-.7px;
- line-height:1.15;
-}
-.veyra-v2 .vx-master-profile .vx-profile-name-row .vx-demo-member-label{
- padding:5px 10px;
- min-height:24px;
- box-sizing:border-box;
- display:inline-flex;
- align-items:center;
- justify-content:center;
- border-radius:99px;
- background:#ebddff;
- color:#7543ba;
- font-size:11px;
- font-weight:750;
-}
-.veyra-v2 .vx-master-profile .vx-profile-location{
- color:#806f98;
- font-size:12.5px;
- font-weight:650;
-}
-.veyra-v2 .vx-master-profile .vx-profile-goal{
- border-radius:999px;
- color:#6e3ab6;
- background:#eee1ff;
- font-weight:760;
- font-size:clamp(9.8px,2.7vw,11px);
- gap:4px;
- padding:5px 7px;
- max-width:min(36vw,145px);
- box-shadow:none;
-}
-.veyra-v2 .vx-master-profile .vx-profile-goal svg{
- flex:0 0 13px;
-}
-.veyra-v2 .vx-master-profile .vx-profile-goal-text{
- min-width:0;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap;
-}
-/* Pill buttons: exact hierarchy of approved profile screenshots. */
 .veyra-v2 .vx-master-profile .vx-profile-primary-actions{
- z-index:15;
  left:12px;
  right:12px;
  gap:7px;
@@ -540,14 +362,10 @@ body>.vx-member-native-header .vx-member-more{display:none}
 }
 .veyra-v2 .vx-master-profile .vx-profile-action.primary{
  color:#fff;
- border:1px solid #a857f2;
- background:linear-gradient(135deg,#c46afa 0%,#9b48f1 41%,#6f27e9 100%);
- box-shadow:0 6px 13px #8337da44, inset 0 1.5px 0 #ffffff60;
  text-shadow:0 1px 2px #6526b13c;
  position:relative;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action.primary::before{
- content:"";
  position:absolute;
  pointer-events:none;
  inset:2px 16px auto;
@@ -567,17 +385,12 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-action:active{
  filter:brightness(.985);
 }
-/* Light anchored tabs with the same purple track/labels as the reference. */
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail{
- background:color-mix(in srgb,var(--vx-color-surface,#faf6ff) 94%,transparent);
  padding:0 13px;
- box-shadow:0 2px 5px #6c54880a;
- border-bottom:1px solid #e7dcf3;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
  color:#8c7da5;
  font-weight:680;
- font-size:clamp(12px,3.55vw,14px);
  letter-spacing:-.25px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active{
@@ -592,7 +405,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  background:linear-gradient(90deg,#aa5aff,#7134e3);
  border-radius:99px;
 }
-/* Same visual system in all four tabs; no content reflow during the morph. */
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport,
 .veyra-v2 .vx-master-profile .vx-profile-swipe-track,
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
@@ -612,9 +424,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  padding:16px 14px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-surface h2{
- color:var(--vx-reference-ink);
- font-size:18px;
- font-weight:900;
  letter-spacing:-.35px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-surface p{
@@ -622,31 +431,12 @@ body>.vx-member-native-header .vx-member-more{display:none}
  font-size:14px;
  line-height:1.55;
 }
-.veyra-v2 .vx-master-profile .vx-member-interest{
- border-radius:99px;
- padding:8px 12px;
- font-weight:720;
- font-size:12.5px;
-}
-.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n+1){
- color:#7046bb;
- background:#efe6ff;
-}
-.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n+2){
- color:#4d70b9;
- background:#e7edff;
-}
-.veyra-v2 .vx-master-profile .vx-member-interest:nth-child(3n){
- color:#b76d53;
- background:#fceee9;
-}
 .veyra-v2 .vx-master-profile .vx-profile-goal-detail{
  background:linear-gradient(110deg,#f4eeff,#f1efff 70%,#f7f4ff);
  color:#4d2d75;
  border-radius:16px;
  padding:13px 12px;
 }
-/* Narrow devices should preserve available room for the name and relationship. */
 @media(max-width:359px){
  .veyra-v2 .vx-master-profile .vx-profile-name-row h1{
   font-size:21px;
@@ -659,61 +449,19 @@ body>.vx-member-native-header .vx-member-more{display:none}
   font-size:10px;
  }
 }
-
-
-/* Consolidated: MemberFinish.css */
-/* VEYRA Profile Finish: additive to Motion 4 and approved premium reference.
-   Native Telegram buttons and the ScrollTimeline keyframe transforms untouched. */
-
-/* The opaque white lip covers the last 30px of the opened photograph;
-   no z-index flips while the photograph is compacting into the avatar. */
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="true"] .vx-profile-sheet-lip{
- z-index:11;
- border-radius:35px 35px 0 0;
- background:var(--vx-sheet-bg);
-}
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="false"] .vx-profile-sheet-lip{
- z-index:6;
-}
-.veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
- border-radius:35px 35px 0 0;
- background:var(--vx-sheet-bg);
-}
 .veyra-v2 .vx-master-profile .vx-profile-sheet-grabber{
- /* Above the expanded name, not over the DEMO badge. */
  top:calc(var(--vx-profile-hero-height) - 18px);
- background:#d6cce4;
 }
-/* Dating goal gets its own line beneath the city in both endpoints. */
 .veyra-v2 .vx-master-profile .vx-profile-goal{
- top:61px;
- left:0;
- max-width:min(72vw,270px);
- padding:5px 10px;
- font-size:clamp(10px,3vw,12px);
  gap:6px;
- min-height:27px;
- border-radius:999px;
- background:linear-gradient(120deg,#e9dbff,#f2e9ff);
- color:#6939b7;
- box-shadow:inset 0 1px 0 #ffffffb5;
 }
 .veyra-v2 .vx-master-profile .vx-profile-goal svg{flex:0 0 14px}
 .veyra-v2 .vx-master-profile .vx-profile-goal-text{
  display:block;overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:break-word;min-width:0;padding-bottom:1px;line-height:1.3;
 }
-.veyra-v2 .vx-master-profile .vx-profile-name-row .vx-demo-member-label{
- background:#eee0ff;
- color:#7547b7;
- box-shadow:none;
- border:0;
-}
-/* Brand gradient remains still during scrolling. Remove the persistent white
-   highlight stripe and replace with a very faint, infrequent sliding glint. */
 .veyra-v2 .vx-master-profile .vx-profile-action.primary{
  overflow:hidden;
  isolation:isolate;
- box-shadow:0 5px 15px #7132dc49,0 0 17px #b85afd19;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action.primary::before{
  content:none;
@@ -731,18 +479,13 @@ body>.vx-member-native-header .vx-member-more{display:none}
  0%,4%{transform:translate3d(0,0,0) skewX(-21deg)}
  12%,100%{transform:translate3d(490%,0,0) skewX(-21deg)}
 }
-/* Explicitly separate title and secondary value — no jammed label/value. */
 .veyra-v2 .vx-master-profile .vx-profile-goal-surface{
  padding:18px 16px 16px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-goal-surface .vx-profile-goal-detail{
- padding:15px;
- min-height:82px;
  display:flex;
  align-items:center;
  gap:13px;
- border-radius:20px;
- background:linear-gradient(125deg,#f2eaff,#f8f4ff 58%,#eae7ff);
  border:1px solid #ebe0fb;
  box-shadow:inset 0 1px 0 #ffffffeb;
 }
@@ -777,22 +520,16 @@ body>.vx-member-native-header .vx-member-more{display:none}
  box-shadow:0 4px 14px #6e4b8c0d,0 1px 0 #ffffff80 inset;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-page{
- padding-top:17px;
  padding-bottom:calc(var(--vx-profile-bottom-clear,96px) + env(safe-area-inset-bottom));
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail{
- background:color-mix(in srgb,var(--vx-color-surface,#faf6ff) 94%,transparent);
+ background:var(--vx-sheet-bg);
  border-bottom-color:#e9def5;
- box-shadow:0 3px 9px #56366b0b;
 }
-/* Elastic overpull is additive: individual translate/scale compose with
-   WAAPI transform, so the approved scroll-driven morph isn't replaced.
-   No JavaScript writes to scrollTop and no spring on normal profile scrolling. */
 .veyra-v2 .vx-master-profile .vx-profile-scroller{
  --vx-elastic-pull:0px;
  --vx-elastic-scale:1;
  --vx-elastic-x:0px;
- --vx-elastic-bottom:0px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-hero-photo{
  translate:var(--vx-elastic-x) 0;
@@ -800,7 +537,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
 }
 .veyra-v2 .vx-master-profile :is(
  .vx-profile-card-backdrop,
- .vx-profile-sheet-lip,
  .vx-profile-sheet-grabber,
  .vx-profile-identity,
  .vx-profile-primary-actions,
@@ -809,14 +545,10 @@ body>.vx-member-native-header .vx-member-more{display:none}
  translate:0 var(--vx-elastic-pull);
 }
 .veyra-v2 .vx-master-profile :is(.vx-profile-tab-rail,.vx-profile-swipe-viewport){
- translate:0 calc(var(--vx-elastic-pull) + var(--vx-elastic-bottom));
+ translate:0 var(--vx-elastic-pull);
 }
-.veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release .vx-profile-hero-photo{
- transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1);
-}
-.veyra-v2 .vx-master-profile .vx-profile-scroller:is(.vx-elastic-release,.vx-bottom-elastic-release) :is(
+.veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release :is(
  .vx-profile-card-backdrop,
- .vx-profile-sheet-lip,
  .vx-profile-sheet-grabber,
  .vx-profile-identity,
  .vx-profile-primary-actions,
@@ -827,34 +559,20 @@ body>.vx-member-native-header .vx-member-more{display:none}
  transition:translate .34s cubic-bezier(.18,.85,.25,1);
 }
 @media(prefers-reduced-motion:reduce){
- .veyra-v2 .vx-master-profile .vx-profile-hero-photo{transition:none}
  .veyra-v2 .vx-master-profile .vx-profile-action.primary::after{animation:none}
  .veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release *{transition:none}
 }
-
-
-/* Consolidated: MemberMotion5.css */
-/* VEYRA Motion 5: exact visual finish with preserved compositor scroll motion.
-   Imported LAST. No changes to Telegram native controls or menu placement. */
-
 .veyra-v2 .vx-master-profile :is(
- .vx-profile-card-backdrop,.vx-profile-sheet-lip,
+ .vx-profile-card-backdrop,
  .vx-profile-sheet-grabber,.vx-profile-photo-morph-rim,
  .vx-profile-compact-backdrop
 ){pointer-events:none}
-
-/* Above the opaque curved sheet, the name must ALWAYS be visible. */
 .veyra-v2 .vx-master-profile .vx-profile-identity{
  z-index:14;
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  z-index:5;border-radius:36px 36px 0 0;
 }
-.veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
- border-radius:36px 36px 0 0;
-}
-
-/* Clean circular flag derived from the country code. No external tracking URL. */
 .veyra-v2 .vx-master-profile .vx-profile-location .veyra-country-flag-round{
  display:inline-flex;align-items:center;justify-content:center;
  width:22px;height:22px;min-width:22px;min-height:22px;
@@ -870,24 +588,15 @@ body>.vx-member-native-header .vx-member-more{display:none}
  transform:scale(1.18);
  flex:none;
 }
-
-/* Relationship badge beneath city: refined micro-border and restrained sheen. */
 .veyra-v2 .vx-master-profile .vx-profile-goal{
- top:61px;left:0;max-width:min(72vw,270px);
+ top:61px;left:0;
  min-height:29px;padding:6px 12px;
  line-height:1.3;overflow:visible;white-space:normal;align-items:center;
  border:1px solid #dfc8f6;
  border-radius:12px;
- color:#6936a7;
- background:linear-gradient(137deg,#f5ecff 0%,#e9d9ff 56%,#f9f3ff 100%);
- box-shadow:0 2px 8px #7754a014,inset 0 1px 0 #ffffffd9;
- font-size:clamp(11px,2.9vw,12px);
- font-weight:750;letter-spacing:.03px;
+ box-shadow:0 2px 8px #7754a014,inset 0 1px 0 #ffffffd9;letter-spacing:.03px;
 }
 .veyra-v2 .vx-master-profile .vx-profile-goal svg{color:#8949d8}
-
-/* Four compact, tappable labelled icons. The active underline keeps
-   tracking the Embla carousel continuously using its existing transform. */
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{
  display:flex;align-items:center;justify-content:center;
  flex-direction:row;gap:5px;
@@ -899,17 +608,13 @@ body>.vx-member-native-header .vx-member-more{display:none}
  display:inline-block;flex:none;opacity:.78;
  width:15px;height:15px;
 }
-.veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active .vx-tab-icon{
- opacity:1;color:#823eda;
+.veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active .vx-tab-icon{color:#823eda;
 }
-/* No premature hiding behind a phantom padding band. The tab bar itself
-   owns the clipping edge exactly at its lower, purple-underlined border. */
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail{
  border-bottom:1px solid #e7daf5;
  box-shadow:none;
 }
 .veyra-v2 .vx-master-profile .vx-profile-swipe-viewport{
- /* Clipping is owned by MemberMotionV2: overflow:clip (not a scroll container). */
  clip-path:none;
  margin:0;
 }
@@ -929,16 +634,8 @@ body>.vx-member-native-header .vx-member-more{display:none}
  user-select:none;
  -webkit-user-drag:none;
 }
-
-/* Static CTA: continuous floating transforms caused unreliable taps on real profile and registration preview. */
-.veyra-v2 .vx-master-profile .vx-profile-action.primary{
- box-shadow:0 6px 17px #822fd83d,0 2px 6px #6336af1f;
-}
 .veyra-v2 .vx-master-profile .vx-profile-action:not(.primary){
- border:1px solid #d6bfee;
  color:#7241c6;
- background:linear-gradient(155deg,#fff 0%,#f8f2ff 90%);
- box-shadow:0 3px 10px #7449a315,inset 0 1px 0 white;
 }
 .veyra-v2 .vx-master-profile .vx-profile-action:not(.primary):active{
  background:#ede2ff;
@@ -947,9 +644,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button{gap:3px;font-size:10.5px}
  .veyra-v2 .vx-master-profile .vx-profile-tab-rail button .vx-tab-icon{width:13px;height:13px}
 }
-
-
-/* Eager profile entry: never a white spinner while details are fetched. */
 .vx-profile-entry-fallback{
  position:relative;min-height:100dvh;overflow:hidden;
  background:linear-gradient(180deg,#e6d5f3 0%,#f8f3ff 53%,#faf7ff 100%);
@@ -978,16 +672,9 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .vx-profile-loading-lines>span:first-child{width:93%}
 .vx-profile-loading-lines>span:nth-child(2){width:79%}
 .vx-profile-loading-lines>span:nth-child(3){width:58%}
-
-
-/* Consolidated: MemberMotion6.css */
-/* VEYRA Motion 6 — last cascade layer: direct circle, clean name crossfade,
-   clipped sheet, adaptive logo silhouette. Legacy motion stays untouched. */
 .veyra-v2 .vx-master-profile .vx-profile-scroller.vx-elastic-release .vx-profile-hero-photo{
  transition:scale .34s cubic-bezier(.18,.85,.25,1),translate .34s cubic-bezier(.18,.85,.25,1);
 }
-/* The sheet covers the last ~30% of the full portrait BEFORE the circle.
-   At the conversion threshold it goes under the now circular photograph. */
 .veyra-v2 .vx-master-profile .vx-profile-motion[data-sheet-overlap="true"] .vx-profile-card-backdrop{
  z-index:11;
 }
@@ -997,8 +684,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  background:var(--vx-sheet-bg);
 }
-/* One safe zone between the 98px avatar and the three-dots menu; the whole
-   name/badge/goal block is invisible during the intermediate travel. */
 .veyra-v2 .vx-master-profile .vx-profile-identity{
  left:19px;right:auto;
  width:calc(100% - 194px);
@@ -1011,7 +696,7 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-name-row h1{
  min-width:0;max-width:100%;flex:0 1 auto;
 }
-.veyra-v2 .vx-master-profile .vx-profile-name-row :is(.vx-demo-member-label,svg){
+.veyra-v2 .vx-master-profile .vx-profile-name-row svg{
  flex:0 0 auto;
 }
 .veyra-v2 .vx-master-profile .vx-profile-location{
@@ -1029,19 +714,12 @@ body>.vx-member-native-header .vx-member-more{display:none}
 @media(prefers-reduced-motion:reduce){
  .veyra-v2 .vx-master-profile .vx-profile-hero-photo{transition:none}
 }
-
-
-/* Consolidated: MemberPolish7.css */
-/* VEYRA profile — visual-only pass, Oct 14, 2026.
-   DO NOT change collapse vars, scrollTimeline keyframes, sheet transforms,
-   sticky geometry, 60fps transform loop, or elastic release mechanics. */
 .veyra-v2 .vx-master-profile{
  --vx-profile-space-1:8px;--vx-profile-space-2:12px;
  --vx-profile-space-3:16px;--vx-profile-space-4:24px;
  --vx-profile-on-white:#43354f;
  --vx-profile-muted:#6d5d7c;
 }
-/* Tighter information hierarchy; preserve the profile's existing position. */
 .veyra-v2 .vx-master-profile .vx-profile-name-row h1{
  font-size:clamp(23px,6.7vw,28px);
  font-weight:900;letter-spacing:-.75px;
@@ -1056,37 +734,15 @@ body>.vx-member-native-header .vx-member-more{display:none}
  background:#eee2fe;border-color:#e2cef8;
  font-weight:730;
 }
-/* One quiet DEMO label on the photo; never inline with the name.
-   When the hero starts turning into a small avatar, fade the label away. */
-.veyra-v2 .vx-master-profile .vx-profile-demo-badge{
- display:inline-flex;align-items:center;justify-content:center;
- position:absolute;right:16px;top:123px;z-index:4;
- min-height:20px;padding:3px 7px;
- border-radius:999px;border:1px solid #ffffff9e;
- background:#36204e83;color:#fff;
- font-size:9px;font-weight:720;letter-spacing:.6px;
- opacity:0;transition:opacity .17s ease-out;
- pointer-events:none;
- box-shadow:0 1px 4px #1b10253a;
-}
-.veyra-v2 .vx-master-profile .vx-profile-motion[data-motion-phase="sheet"] .vx-profile-demo-badge{
- opacity:.86;
-}
 .veyra-v2 .vx-master-profile .vx-profile-sheet-grabber{
  width:54px;height:6px;
  border-radius:999px;
  background:#b5a9c6;
  box-shadow:inset 0 1px 2px #7967846a,0 1px 0 #fff8;
- /* Opacity remains controlled by the existing scroll animation. */
 }
 .veyra-v2 .vx-master-profile .vx-profile-card-backdrop{
  box-shadow:0 -3px 10px #4b326b18;
 }
-.veyra-v2 .vx-master-profile .vx-profile-sheet-lip{
- box-shadow:0 -2px 7px #4b326b13;
-}
-/* Buttons — hierarchy is already correct; polish border/press feedback only.
-   The wrapper is driven by profile motion; never animate that transform. */
 .veyra-v2 .vx-master-profile .vx-profile-action:not(.primary){
  border:1px solid #decaf0;
  background:linear-gradient(150deg,#fffefd,#f8f1ff);
@@ -1135,8 +791,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-courtship:disabled .vx-pack-icon{
  opacity:.75;
 }
-/* Existing Embla underline stays authoritative. Two equal-weight text layers
-   only crossfade opacity; width, font metrics and line-height never shift. */
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button,
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active{
  min-height:44px;
@@ -1168,7 +822,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  transition:color .17s ease-out,opacity .17s ease-out;
 }
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button.active .vx-tab-icon{opacity:1}
-/* Matching content cards: an actual 20px radius and 16px padding throughout. */
 .veyra-v2 .vx-master-profile .vx-profile-section-body>.vx-profile-surface,
 .veyra-v2 .vx-master-profile .vx-profile-section-body>.vx-profile-about,
 .veyra-v2 .vx-master-profile .vx-profile-section-body>.vx-profile-goal-surface{
@@ -1182,11 +835,10 @@ body>.vx-member-native-header .vx-member-more{display:none}
  font-size:17px;font-weight:870;
  color:#30213c;margin:0 0 12px;
 }
-.veyra-v2 .vx-master-profile .vx-profile-surface p:not(.vx-profile-demo-disclaimer){
+.veyra-v2 .vx-master-profile .vx-profile-surface p{
  color:#4c3d59;
  line-height:1.5;font-size:14px;
 }
-/* Semantic category colors: not nth-child ordering. Consistent 44px chips. */
 .veyra-v2 .vx-master-profile .vx-member-interests-grid{
  display:grid;
  grid-template-columns:repeat(2,minmax(0,1fr));
@@ -1194,7 +846,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  align-items:stretch;
 }
 .veyra-v2 .vx-master-profile .vx-member-interest{
- --vx-chip-bg:#f1eaff;--vx-chip-fg:#663bb0;--vx-chip-border:#e0cef8;
  height:44px;min-height:44px;max-height:44px;
  width:100%;min-width:0;box-sizing:border-box;
  display:flex;align-items:center;justify-content:flex-start;
@@ -1206,8 +857,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  font-size:clamp(11px,2.9vw,12px);
  font-weight:760;
 }
-/* Override legacy nth-child colors with semantic token colors at a higher
-   specificity. Otherwise unrelated neighboring interests would recolor chips. */
 .veyra-v2 .vx-master-profile .vx-member-interest[data-tone]{
  background:var(--vx-chip-bg);
  color:var(--vx-chip-fg);
@@ -1229,7 +878,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  padding:4px 5px;border-radius:99px;flex:0 0 auto;
  background:#8e48d6;color:white;
 }
-/* Richer goal block; no changes to its position in scroll phases. */
 .veyra-v2 .vx-master-profile .vx-profile-goal-surface .vx-profile-goal-detail{
  border-radius:20px;min-height:86px;
  padding:12px;margin:0;
@@ -1247,18 +895,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-goal-surface .vx-profile-goal-copy strong{
  color:#563178;font-weight:880;
 }
-/* The disclaimer belongs at the END, subdued, not in a loud introductory box. */
-.veyra-v2 .vx-master-profile p.vx-profile-demo-disclaimer{
- display:block;
- background:transparent;
- border:0;box-shadow:none;
- padding:0 3px;margin:3px 1px 0;
- color:#71657d;
- font-size:11px;line-height:1.45;
- font-weight:550;
-}
-/* Progressive photo loads. Skeleton stays behind the Photo component;
-   the actual <img> fades over 180ms without altering list layout. */
 .veyra-v2 .vx-master-profile .vx-profile-photos-grid{
  gap:8px;
 }
@@ -1287,7 +923,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  animation:vxProfilePhotoFade .18s ease-out both;
 }
 @keyframes vxProfilePhotoFade{from{opacity:0}to{opacity:1}}
-/* Accessible controls in fixed/profile layers. Do not change rail geometry. */
 .veyra-v2 .vx-master-profile .vx-profile-card-more{
  min-width:44px;min-height:44px;
  width:44px;height:44px;
@@ -1296,9 +931,7 @@ body>.vx-member-native-header .vx-member-more{display:none}
 .veyra-v2 .vx-master-profile .vx-profile-tab-rail button:focus-visible{
  outline:2px solid #8d39dd;outline-offset:2px;
 }
-/* Multi-modal accessibility, no forced body scroll lock beyond existing sheets. */
-.veyra-v2 .vx-master-profile .vx-own-section-heading :is(button,.vx-own-pencil),
-.veyra-v2 .vx-master-profile .vx-profile-section-heading :is(button,.vx-own-pencil){
+.veyra-v2 .vx-master-profile .vx-own-section-heading :is(button,.vx-own-pencil),.veyra-v2 .vx-master-profile .vx-profile-section-heading :is(button,.vx-own-pencil){
  min-width:44px;min-height:44px;display:grid;place-items:center;
 }
 @media(max-width:359px){
@@ -1314,17 +947,40 @@ body>.vx-member-native-header .vx-member-more{display:none}
   animation:none;
  }
  .veyra-v2 .vx-master-profile .vx-tab-label-stack>span{transition:none}
- .veyra-v2 .vx-master-profile .vx-profile-demo-badge{transition:none}
 }
-
-
-.veyra-v2 .vx-master-profile .vx-profile-card-backdrop{clip-path:inset(0px 0px 36px 0px)}
-
-/* Short landscape keeps compact tabs fully above the native bottom nav;
-   use the same compact-height variable and the same 98px avatar. */
 @media (orientation:landscape) and (max-height:500px){
  .veyra-v2 .vx-master-profile{--vx-profile-compact-height:220px}
  .veyra-v2 .vx-master-profile .vx-profile-primary-actions{left:132px;right:12px;gap:5px}
  .veyra-v2 .vx-master-profile .vx-profile-action{height:42px;min-height:42px;font-size:11px}
  .veyra-v2 .vx-master-profile .vx-profile-goal{top:54px;min-height:24px}
 }
+/* Profile popup styles live beside the profile that renders them. */
+.vx-member-menu-backdrop{
+ position:fixed;inset:0;z-index:1000;background:transparent;
+}
+.vx-member-popup-menu{
+ position:fixed;top:clamp(113px,15vh,155px);right:clamp(12px,4vw,27px);
+ z-index:1001;width:min(275px,calc(100vw - 26px));padding:15px 11px 11px;
+ border-radius:23px;border:1px solid #eee0ff;background:#fffbff;
+ box-shadow:0 15px 50px #3017494f;
+ animation:vxMemberMenuIn .2s ease-out both;
+}
+.vx-member-popup-menu>strong{display:block;padding:5px 12px 12px;font-size:14px;color:#301845}
+.vx-member-popup-menu .menu-item{
+ display:flex;width:100%;min-height:46px;align-items:center;gap:11px;
+ color:#553579;font-size:14px;font-weight:700;border:0;
+ border-radius:12px;background:transparent;padding:10px 12px;text-align:left;
+}
+.vx-member-popup-menu .menu-item:active{background:#f0e6ff}
+.vx-member-popup-menu .menu-item.danger{color:#bd4675}
+.vx-member-popup-menu .vx-member-menu-close{
+ width:100%;margin-top:6px;padding:11px;border:1px solid #e0d0f6;
+ border-radius:14px;background:#f7f0ff;color:#7b42bd;font-weight:750;
+}
+@media(prefers-reduced-motion:reduce){
+ .vx-member-popup-menu{animation:none!important}
+}
+@keyframes vxMemberMenuIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Invisible mid-morph buttons cannot intercept scrolling, taps or content. */
+.veyra-v2 .vx-master-profile .vx-profile-motion[data-state="transition"] .vx-profile-primary-actions{pointer-events:none}

@@ -1,7 +1,7 @@
 import React,{useMemo,useState} from 'react';
 import {Music2,Dumbbell,Clapperboard,Plane,UtensilsCrossed,Heart,Film,Bike,Palette,Coffee,PawPrint,Cpu,BookOpen,MapPin,Sparkles,ChevronDown} from 'lucide-react';
 import {Icon,InterestIcon,Choice,InterestChip} from './UI.jsx';
-import {interestTone} from './profilePolishLogic.js';
+import {interestTone} from './shared/interests/interestLogic.js';
 import {haptic} from './haptics.js';
 import './OnboardingOptions.css';
 

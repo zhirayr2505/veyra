@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {elasticPullDistance,elasticPhotoScale} from '../web/v5/profileElasticMath.js';
+import {elasticPullDistance,elasticPhotoScale} from '../web/v5/profile/motion/profileElasticMath.js';
 
 test('elastic overpull is resistant and bounded, with <3.2% photo growth',()=>{
  assert.equal(elasticPullDistance(0),0);

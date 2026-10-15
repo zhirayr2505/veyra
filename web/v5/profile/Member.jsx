@@ -1,28 +1,25 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {TopZone} from './TopZone.jsx';
-import {MapPin,Plane,Palette,BookOpen,Music2,Coffee,Clapperboard,Dumbbell,Camera,PawPrint,Gamepad2,UtensilsCrossed,Heart,Footprints,Sparkles,ChevronLeft,ChevronRight,Images,Gift,UsersRound,UserRound} from 'lucide-react';
-import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from './UI.jsx';
-import {CountryFlag} from './CountryFlag.jsx';
-import {get,post,photoUrl} from './api.js';
-import {openInvoice,GiftCollection} from './Extras.jsx';
-import {ProfileHighlights,INTEREST_GROUPS,goalTitle} from './OnboardingOptions.jsx';
-import './MemberFeed.css';
+import {TopZone} from '../TopZone.jsx';
+import {Heart,Images,Gift,UsersRound,UserRound} from 'lucide-react';
+import {Logo,Icon,DetailIcon,Photo,Button,InterestChip,Sheet,Empty,InlineAlert} from '../UI.jsx';
+import {CountryFlag} from '../CountryFlag.jsx';
+import {get,post,photoUrl} from '../api.js';
+import {openInvoice,GiftCollection} from '../Extras.jsx';
+import {ProfileHighlights,INTEREST_GROUPS,goalTitle} from '../OnboardingOptions.jsx';
 
-import {VeyraPackIcon,interestGlyph} from './VeyraPackIcons.jsx';
-import {useVeyraProfileMotion} from './useVeyraProfileMotion.js';
-import {interestTone,sharedInterestSet,normalizeInterest} from './profilePolishLogic.js';
-import {MemberSwipePages} from './MemberSwipePages.jsx';
-import {PhotoSegments} from './PhotoSegments.jsx';
-import {HeroPhotoTrack} from './HeroPhotoTrack.jsx';
-import {ProfileGallery} from './ProfileGallery.jsx';
-import {normalizeProfileSeed,mergeProfileSeed} from './profileSeed.js';
+import {VeyraPackIcon,interestGlyph} from '../VeyraPackIcons.jsx';
+import {useVeyraProfileMotion} from './motion/useVeyraProfileMotion.js';
+import {interestTone,sharedInterestSet,normalizeInterest} from '../shared/interests/interestLogic.js';
+import {MemberSwipePages} from './components/MemberSwipePages.jsx';
+import {PhotoSegments} from '../PhotoSegments.jsx';
+import {HeroPhotoTrack} from './components/HeroPhotoTrack.jsx';
+import {ProfileGallery} from './components/ProfileGallery.jsx';
+import {normalizeProfileSeed,mergeProfileSeed} from './model/profileSeed.js';
 import {Pencil,Settings2,Wallet,ShieldCheck,Crown,Medal,ImagePlus,MessageCircleHeart} from 'lucide-react';
 
 const TABS=[['about','О себе'],['photos','Фото'],['gifts','Подарки'],['common','Общее']];
 const TAB_ICONS={about:UserRound,photos:Images,gifts:Gift,common:UsersRound};
-const ICONS_BY_GROUP={'Музыка':Music2,'Активность':Dumbbell,'Культура':Clapperboard,'Путешествия':Plane,'Вкус и стиль':Coffee,'Образ жизни':Heart,'Кино и развлечения':Clapperboard,'Спорт и движение':Dumbbell,'Искусство и творчество':Palette,'Еда и напитки':UtensilsCrossed,'Природа и питомцы':PawPrint,'Технологии и игры':Gamepad2,'Саморазвитие':BookOpen,'Город и встречи':Footprints};
-const clamp=(n,min=0,max=1)=>Math.min(max,Math.max(min,n));
 function MemberInterest({label,common=false}){return <InterestChip label={label} tone={interestTone(label,INTEREST_GROUPS)} common={common} icon={<VeyraPackIcon name={interestGlyph(label)} size={19}/>}/>;}
 const feedback=()=>{try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light')}catch{/* No haptic outside Telegram. */}};
 
@@ -205,7 +202,6 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const shared=sharedInterestSet(data.interests||[],viewer?.interests||[]),common=(data.interests||[]).filter(i=>shared.has(normalizeInterest(i)));
  const sameGoal=!!(viewer?.goal&&viewer.goal!=='unsure'&&data.goal===viewer.goal);
  const fullName=(data.name||'Профиль')+(data.age?', '+data.age:'');
- const photosNext=step=>setIdx(n=>(n+step+photos.length)%photos.length);
  return <div className={'member page member-feed-profile vx-master-profile'+(isPreview?' vx-profile-read-only':'')+(isOwn?' vx-own-member own-profile':'')+(loading?' vx-profile-hydrating':'')} aria-busy={loading}>
   {!isPreview&&createPortal(<TopZone floating className="vx-member-native-header" onBack={onBack} center={<Logo width={131} tone={logoTone||'dark'} ready={logoTone!=null} className="vx-member-floating-logo"/>}/>,document.body)}
 
@@ -215,17 +211,18 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
      <div className="vx-profile-compact-backdrop" data-main-photo-id={String(photos[0]||"")} aria-hidden="true">{photos[0]&&<CompactBackdropPhoto id={photos[0]}/>}</div>
 
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
-     <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
+      <div className="vx-profile-photo-content">
       <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
-      {<div className="vx-profile-main-crossfade" data-main-photo-id={String(photos[0]||"")} aria-hidden="true"><Photo id={photos[0]} priority resolution={256} alt=""/></div>}
+      <div className="vx-profile-main-crossfade" data-main-photo-id={String(photos[0]||"")} aria-hidden="true"><Photo id={photos[0]} priority resolution={960} alt=""/></div>
+      </div>
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
 
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>
       
       {data.online&&<span className="vx-profile-online" aria-label="В сети" title="В сети"/>}
-      <button type="button" className="vx-profile-avatar-hit" aria-label="Открыть фотографию профиля" onClick={()=>openGallery(idx)} disabled={!photos.length}/>
+      <button type="button" className="vx-profile-avatar-hit" aria-label="Открыть фотографию профиля" onClick={()=>openGallery(0)} disabled={!photos.length}/>
      </div>
 
 

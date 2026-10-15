@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {PROFILE_CIRCLE_AT,profileFrame} from '../web/v5/profile/motion/profileMotionMath.js';
+import {buildProfileScrollKeyframes} from '../web/v5/profile/motion/profileScrollTimeline.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const luminosity=hex=>{
@@ -34,19 +36,18 @@ test('all seven interest chips meet 4.5:1 normal-text contrast',()=>{
  }
 });
 
-test('Stage 2 profile motion preserves the common 38% fully circular mask and uniform scaling',()=>{
- const math=read('web/v5/profileMotionMath.js');
- assert.match(math,/PROFILE_CIRCLE_AT=\.60/);
- assert.match(math,/heroScale/);
- assert.match(math,/maskDiameter/);
- assert.doesNotMatch(math,/scaleX|scaleY/);
+test('profile reaches a fitted circle by 35% of collapse with uniform scale',()=>{
+ assert.equal(PROFILE_CIRCLE_AT,.35);
+ const frame=profileFrame(PROFILE_CIRCLE_AT,390,447);
+ assert.equal(frame.width,frame.height);
+ assert.ok(frame.heroScale>0);
 });
 
 test('performance-sensitive 6.4 compositing retains scroll timeline and motion phase constants',()=>{
- const scroll=read('web/v5/profileScrollTimeline.js');
+ const scroll=read('web/v5/profile/motion/profileScrollTimeline.js');
  const steps=read('web/v5/RegistrationTransitions.css');
  assert.match(scroll,/new win.ScrollTimeline/);
- assert.match(scroll,/tracks.hero.push/);
+ assert.ok(buildProfileScrollKeyframes(390,447,373,1200).hero.every(frame=>frame.clipPath));
  assert.match(scroll,/PROFILE_CIRCLE_AT/);
  assert.doesNotMatch(scroll,/tracks.blur.push/);
  assert.doesNotMatch(scroll,/tracks.image.push/);

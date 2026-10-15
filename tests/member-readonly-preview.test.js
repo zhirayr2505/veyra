@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('profile preview uses real, fully seeded read-only Member and keeps registration actions',()=>{
  const preview=read('web/v5/ProfilePreview.jsx');
- const member=read('web/v5/Member.jsx');
+ const member=read('web/v5/profile/Member.jsx');
  assert.match(preview,/<Member id="registration-preview" readOnly previewData=\{readOnlyData\}/);
  assert.match(member,/if\(isPreview\)/);
  assert.match(member,/if\(ownSeed\)return/);
@@ -14,7 +14,7 @@ test('profile preview uses real, fully seeded read-only Member and keeps registr
 test('profile preview stage retains scrolling and navigable edit/photo actions',()=>{
  const css=read('web/v5/ProfilePreview.css');
  assert.match(css,/\.vx-preview-member-stage/);
- const member=read('web/v5/Member.jsx');
+ const member=read('web/v5/profile/Member.jsx');
  assert.match(member,/onPreviewAction\?\.\('photos'\)/);
  assert.match(member,/onPreviewAction\?\.\('edit'\)/);
  assert.doesNotMatch(member,/disabled=\{isPreview\}/);

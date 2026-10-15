@@ -113,7 +113,7 @@ test('owner login never seeds demo, endpoints are absent, legacy synthetic ident
 });
 
 test('production UI contains no demo mode, badges, or owner seed trigger',async()=>{
- for(const path of ['web/v5/App.jsx','web/v5/DiscoveryHub.jsx','web/v5/Discover.jsx','web/v5/Member.jsx']){
+ for(const path of ['web/v5/App.jsx','web/v5/DiscoveryHub.jsx','web/v5/Discover.jsx','web/v5/profile/Member.jsx']){
   const body=await readFile(new URL('../'+path,import.meta.url),'utf8');
   assert.doesNotMatch(body,/DemoStrip|demoMode|demoStatus|seed-test-profiles|vx-demo|test_profile|ДЕМО|Тестовые анкеты VEYRA/i,path);
  }
