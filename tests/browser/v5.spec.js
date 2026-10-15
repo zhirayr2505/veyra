@@ -2172,7 +2172,13 @@ test.describe('STAGE2 hotfix touch profiles 360/390',()=>{
    await expect(scroll).toBeVisible();
    const distance=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
    for(const p of [.2,.4,.6,.8]){
-    await scroll.evaluate((el,y)=>{el.scrollTop=y;el.dispatchEvent(new Event('scrollend'))},distance*p);
+    await scroll.evaluate((el,y)=>{
+     const point=new Touch({identifier:1,target:el,clientX:170,clientY:480});
+     el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[point],targetTouches:[point],changedTouches:[point]}));
+     el.scrollTop=y;
+     el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],targetTouches:[],changedTouches:[point]}));
+     el.dispatchEvent(new Event('scrollend'));
+    },distance*p);
     await expect.poll(()=>scroll.evaluate((el,d)=>Math.min(Math.abs(el.scrollTop),Math.abs(el.scrollTop-d)),distance),{timeout:6000}).toBeLessThan(1.5);
    }
    await scroll.evaluate((el,d)=>el.scrollTop=d,distance);
