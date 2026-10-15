@@ -102,7 +102,7 @@ export const HeroPhotoTrack=React.memo(function HeroPhotoTrack({photos,index,onI
  const slides=count?[photos[(index+count-1)%count],photos[index],photos[(index+1)%count]]:[];
  return <div className="vx-hero-image-compensation" ref={viewport}>
   <div className="vx-hero-swipe-track" ref={track} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onCancel} onClick={onTap}>
-   {slides.map((id,position)=><div className="vx-hero-swipe-slide" key={position+'-'+id}>
+   {slides.map((id,position)=><div className="vx-hero-swipe-slide" data-photo-id={String(id)} key={position+'-'+id}>
     <Photo id={id} alt={position===1?name:''} priority={position===1} resolution={960} placeholder={placeholders?.[String(id)]}/>
    </div>)}
   </div>

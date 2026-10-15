@@ -212,14 +212,14 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
-     <div className="vx-profile-compact-backdrop" aria-hidden="true">{photos[0]&&<CompactBackdropPhoto id={photos[0]}/>}</div>
+     <div className="vx-profile-compact-backdrop" data-main-photo-id={String(photos[0]||"")} aria-hidden="true">{photos[0]&&<CompactBackdropPhoto id={photos[0]}/>}</div>
 
      <div className="vx-profile-card-backdrop" aria-hidden="true"/>
      <div className="vx-profile-sheet-lip" aria-hidden="true"/>
      <div className="vx-profile-sheet-grabber" aria-hidden="true"/>
      <div className="vx-profile-hero-photo">
       <HeroPhotoTrack photos={photos} index={idx} onIndex={setIdx} onGallery={()=>openGallery()} name={data.name} placeholders={data.photo_placeholders} motionRef={motionRef} onDragProgress={onPhotoDragProgress}/>
-      {<div className="vx-profile-main-crossfade" aria-hidden="true"><Photo id={photos[0]} priority resolution={960} alt=""/></div>}
+      {<div className="vx-profile-main-crossfade" data-main-photo-id={String(photos[0]||"")} aria-hidden="true"><Photo id={photos[0]} priority resolution={960} alt=""/></div>}
       <div className="vx-profile-photo-morph-rim" aria-hidden="true"/>
 
       <PhotoSegments count={photos.length} index={idx} className="vx-profile-photo-bars"/>

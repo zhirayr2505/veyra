@@ -2258,3 +2258,104 @@ test.describe('Stage 2 hotfix identical own/other motion architecture',()=>{
   });
  }
 });
+
+// Stage 2.2 visual evidence is captured from a signed, synthetic local browser-server
+// session. This test never touches live database records or payment providers.
+test('STAGE2.2 contact sheets: eleven forward/reverse frames, photo 3, mobile and landscape',async({page},info)=>{
+ test.setTimeout(180000);
+ await telegram(page,10);
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const scroller=page.locator('.vx-own-member .vx-profile-scroller');
+ await expect(scroller).toBeVisible();
+ const getDistance=()=>scroller.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+ const d=await getDistance();
+ const shots=[],metrics=[];
+ const shoot=async(tag,p)=>{
+  await scroller.evaluate((el,y)=>el.scrollTop=y,d*p);
+  await page.waitForTimeout(25);
+  const evidence=await page.evaluate(()=>{
+   const q=s=>document.querySelector(s),rect=e=>{const r=e?.getBoundingClientRect();return r?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}:null};
+   const scroll=q('.vx-profile-scroller'),rail=q('.vx-profile-tab-rail'),hero=q('.vx-profile-hero-photo'),badge=q('.vx-profile-goal'),actions=q('.vx-profile-primary-actions');
+   const r=rect(rail);const hits=r?[10,26,48].map(n=>document.elementsFromPoint(window.innerWidth/2,r.bottom+n).slice(0,4).map(el=>typeof el.className==='string'?el.className:el.tagName)):[];
+   return {y:scroll.scrollTop,top:rect(scroll),rail:r,hero:rect(hero),badge:rect(badge),actions:rect(actions),hits,shape:hero?.style.clipPath,main:q('.vx-profile-main-crossfade')?.dataset.mainPhotoId,backdrop:q('.vx-profile-compact-backdrop')?.dataset.mainPhotoId,active:q('.vx-hero-swipe-slide:nth-child(2)')?.dataset.photoId};
+  });
+  metrics.push({tag,p,...evidence});
+  const snap=await page.screenshot({path:info.outputPath('stage2-2-'+tag+'.png'),animations:'disabled'});
+  shots.push(await sharp(snap).resize({width:126}).jpeg({quality:36}).toBuffer());
+ };
+ for(let i=0;i<=10;i++)await shoot('down-'+i,i/10);
+ for(let i=10;i>=0;i--)await shoot('up-'+i,i/10);
+ // The preview must stay on the selected third slide after collapse and expand.
+ const hero=page.locator('.vx-hero-swipe-track');
+ for(let n=0;n<2;n++)await hero.click({position:{x:Math.floor(390*.85),y:110}});
+ await expect(page.locator('.vx-hero-swipe-slide:nth-child(2)')).not.toHaveAttribute('data-photo-id',metrics[0].main);
+ for(let i=0;i<=10;i++)await shoot('photo3-down-'+i,i/10);
+ for(let i=10;i>=0;i--)await shoot('photo3-up-'+i,i/10);
+ const cross=metrics.filter(x=>x.tag==='photo3-down-3');
+ expect(cross[0]?.main).toBe(cross[0]?.backdrop);
+ expect(cross[0]?.active).not.toBe(cross[0]?.main);
+ const compact=metrics.find(x=>x.tag==='photo3-down-10');
+ expect(Math.abs(compact.rail.top-compact.top.top-292)).toBeLessThan(2);
+ expect(compact.badge.bottom).toBeLessThanOrEqual(compact.actions.top+1);
+ const imageWidth=126,imageHeight=Math.round(844*126/390);
+ const columns=11,rows=4;
+ const sheet=await sharp({create:{width:columns*imageWidth,height:rows*imageHeight,channels:3,background:'#efeff2'}})
+   .composite(shots.map((input,i)=>({input,left:(i%columns)*imageWidth,top:Math.floor(i/columns)*imageHeight}))).jpeg({quality:41}).toBuffer();
+ await info.attach('STAGE2_2_contact_sheet_390.jpg',{body:sheet,contentType:'image/jpeg'});
+ await info.attach('STAGE2_2_geometry.json',{body:JSON.stringify(metrics,null,2),contentType:'application/json'});
+ console.log('STAGE2_2_CONTACT_SHEET_JPEG_BASE64:'+sheet.toString('base64'));
+ for(const [width,height] of [[360,740],[412,915],[740,360]]){
+  await page.setViewportSize({width,height});const current=await getDistance();
+  for(const [state,y] of [['expanded',0],['compact',current]]){
+   await scroller.evaluate((el,top)=>el.scrollTop=top,y);await page.waitForTimeout(40);
+   await page.screenshot({path:info.outputPath('stage2-2-'+width+'x'+height+'-'+state+'.png')});
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ }
+});
+
+test.describe('STAGE2.2 direction release on touch',()=>{
+ test.use({hasTouch:true});
+ test('32 real CDP touch releases always reach one of two rests',async({page})=>{
+  test.setTimeout(150000);
+  await telegram(page,10);await page.setViewportSize({width:390,height:844});await page.goto('/');
+  await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+  const scroll=page.locator('.vx-profile-scroller'),cdp=await page.context().newCDPSession(page);
+  const d=await scroll.evaluate(el=>el.querySelector('.vx-profile-open-spacer').offsetHeight-parseFloat(getComputedStyle(el).getPropertyValue('--vx-profile-compact-height')));
+  const outcomes=[];
+  for(let i=0;i<32;i++){
+   const downward=i%2===0,initial=downward?0:d;
+   await scroll.evaluate((el,y)=>el.scrollTop=y,initial);
+   const x=140+(i%3)*13,y0=470,amount=30+(i%7)*12;
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y:y0}]});
+   for(let j=1;j<=5;j++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+(i%4)*2*j/5,y:y0+(downward?-1:1)*amount*j/5}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   await page.waitForTimeout(500);
+   const actual=await scroll.evaluate(el=>el.scrollTop);
+   const ok=Math.min(Math.abs(actual),Math.abs(actual-d))<=1;
+   outcomes.push({i,downward,amount,actual,ok});
+  }
+  await cdp.detach();
+  expect(outcomes.filter(x=>!x.ok),JSON.stringify(outcomes.filter(x=>!x.ok))).toHaveLength(0);
+ });
+});
+
+test('STAGE2.2 editor round-trip preserves selected photo and Embla tab',async({page})=>{
+ await telegram(page,10);await page.goto('/');
+ await page.locator('.bottom-nav').getByRole('button',{name:'профиль'}).click();
+ const rail=page.locator('.vx-profile-tab-rail');
+ await rail.getByRole('tab',{name:'Фото'}).click();
+ await expect(rail.getByRole('tab',{name:'Фото'})).toHaveAttribute('aria-selected','true');
+ await page.locator('.vx-profile-photos-grid button').nth(2).click();
+ await page.keyboard.press('ArrowRight');
+ await page.getByRole('dialog',{name:/Галерея/}).getByRole('button',{name:'Закрыть'}).click();
+ const selected=await page.locator('.vx-hero-swipe-slide:nth-child(2)').getAttribute('data-photo-id');
+ await rail.getByRole('tab',{name:'О себе'}).click();
+ await page.locator('.vx-profile-action.primary').first().click();
+ await expect(page.getByRole('dialog',{name:'Анкета'})).toBeVisible();
+ await page.getByRole('dialog',{name:'Анкета'}).getByRole('button',{name:'Назад'}).click();
+ await expect(rail.getByRole('tab',{name:'О себе'})).toHaveAttribute('aria-selected','true');
+ expect(await page.locator('.vx-hero-swipe-slide:nth-child(2)').getAttribute('data-photo-id')).toBe(selected);
+});
