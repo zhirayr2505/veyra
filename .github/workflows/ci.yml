@@ -36,7 +36,7 @@ jobs:
       - run: node scripts/stage0-browser-baseline.js test-results/v5-results.json
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.ref == 'refs/heads/rebuild/veyra-v5-clean-slate'
       - name: Stage 2.2 strict profile browser gate
-        if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'feat/stage2-2')
+        if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'feat/stage2-2') || startsWith(github.head_ref, 'fix/profile-'))
         run: node scripts/stage2-2-browser-gate.js test-results/v5-results.json
       - uses: actions/upload-artifact@v4
         if: always()
