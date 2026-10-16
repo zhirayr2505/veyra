@@ -15,5 +15,14 @@
  .vx-liquid-logo .vx-liquid-logo-refraction{position:absolute;inset:0;background:linear-gradient(175deg,#ffffff8e 0%,transparent 23%,#7045b82b 57%,#ffffff47 88%,#110e351e);mix-blend-mode:soft-light}
  .vx-liquid-logo .vx-liquid-logo-sheen{position:absolute;inset:3% 6% 72%;border-radius:50%;background:linear-gradient(180deg,#ffffffa8,#ffffff00);opacity:.68}
 }
+/* tone="adaptive" (profile): --vx-logo-luma (0 dark photo … 1 bright photo) is written live by
+   profileLogoLuma.js, so the rim and tint follow the real background during swipes and scroll. */
+.vx-liquid-logo[data-tone="adaptive"]{--vx-logo-luma:.5}
+.vx-liquid-logo .vx-liquid-logo-ink{display:none}
+@supports ((mask-image:url('/veyra-design/veyra-wordmark-purple.svg')) or (-webkit-mask-image:url('/veyra-design/veyra-wordmark-purple.svg'))){
+ .vx-liquid-logo[data-tone="adaptive"] .vx-liquid-logo-rim-light{opacity:calc(1 - var(--vx-logo-luma))}
+ .vx-liquid-logo[data-tone="adaptive"] .vx-liquid-logo-rim-dark{opacity:var(--vx-logo-luma)}
+ .vx-liquid-logo[data-tone="adaptive"] .vx-liquid-logo-ink{display:block;position:absolute;inset:0;background:linear-gradient(112deg,#5a2bb8,#7b3fe3 55%,#3f6fe4);opacity:calc(var(--vx-logo-luma) * .55);mix-blend-mode:multiply}
+}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.vx-liquid-logo .vx-liquid-logo-letter-mask{background:linear-gradient(115deg,#e45db4,#a35bef 48%,#4eb9f4)}}
 @media(prefers-reduced-motion:reduce){.vx-liquid-logo *{animation:none!important;transition:none!important}}

@@ -47,6 +47,13 @@ export function profileStyles(
       transform: profileTranslate(0, f.sheetY - (height - 30)),
       clipPath: `inset(0px 0px ${f.panelClipBottom.toFixed(3)}px 0px)`,
     },
+    // Blurred main photo behind the shrinking hero. It must be fully visible
+    // BEFORE the hero starts to shrink (PROFILE_MORPH_START), otherwise the
+    // pale page background shows through around the photo.
+    backdrop: {
+      clipPath: `inset(0px 0px ${f.backdropClipBottom.toFixed(3)}px 0px)`,
+    },
+    backdropPhoto: { opacity: segment(p, 0.02, 0.14) },
     identity: {
       transform: profileTranslate(f.nameX, f.nameY - (height + 9)),
       opacity: f.nameOpacity,
@@ -58,7 +65,6 @@ export function profileStyles(
     more: { transform: profileTranslate(0, f.moreY - (height + 8)) },
     goal: { transform: profileTranslate(f.goalX, f.goalY) },
     bars: { opacity: f.photoExtrasOpacity },
-    backdropPhoto: { opacity: segment(p, 0.2, 0.55) },
     rim: { opacity: ring },
     online: { opacity: ring },
     mainPhoto: { opacity: f.mainPhotoOpacity },
@@ -69,6 +75,12 @@ export function profileStyles(
   };
 }
 
+/**
+ * `range` = true: the animation is bound to a fixed pixel range [0, distance]
+ * of the scroller, so its progress does NOT depend on the total scroll height
+ * (switching between a short and a tall tab cannot move the header).
+ * `range` = false (older engines): offsets are scaled by distance / maxScroll.
+ */
 export function buildProfileScrollKeyframes(
   width,
   height,
@@ -76,8 +88,11 @@ export function buildProfileScrollKeyframes(
   maxScroll,
   compactHeight = 292,
   safeTop = 64,
+  range = false,
 ) {
-  const limit = Math.min(1, Math.max(1, distance) / Math.max(1, maxScroll));
+  const limit = range
+    ? 1
+    : Math.min(1, Math.max(1, distance) / Math.max(1, maxScroll));
   const points = new Set([
     0,
     0.03,
@@ -117,32 +132,85 @@ export function supportsProfileTimeline(win = window) {
     !win.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
   );
 }
+export function supportsProfileScrollRange(win = window) {
+  return (
+    typeof win.Animation === "function" &&
+    "rangeStart" in win.Animation.prototype &&
+    "rangeEnd" in win.Animation.prototype
+  );
+}
+const px = (win, value) =>
+  win.CSS?.px ? win.CSS.px(value) : `${Math.max(0, value)}px`;
+
+/**
+ * Creates the compositor-driven animations ONCE. Later geometry changes are
+ * applied in place with update(); animations are never cancelled and rebuilt
+ * while the user interacts (a rebuild shows one frame of the unstyled,
+ * fully expanded hero).
+ */
 export function createProfileScrollAnimations(el, parts, geometry) {
   const win = el.ownerDocument.defaultView;
   if (!supportsProfileTimeline(win)) return null;
-  const animations = [];
-  try {
-    const timeline = new win.ScrollTimeline({ source: el, axis: "block" });
-    const frames = buildProfileScrollKeyframes(
-      geometry.width,
-      geometry.height,
-      geometry.distance,
+  let range = supportsProfileScrollRange(win);
+  const build = (g) =>
+    buildProfileScrollKeyframes(
+      g.width,
+      g.height,
+      g.distance,
       el.scrollHeight - el.clientHeight,
-      geometry.compactHeight,
-      geometry.safeTop,
+      g.compactHeight,
+      g.safeTop,
+      range,
     );
-    for (const [name, keyframes] of Object.entries(frames))
-      if (parts[name])
-        animations.push(
-          parts[name].animate(keyframes, { timeline, fill: "both" }),
-        );
-    if (!animations.length) return null;
-    return {
-      animations,
-      cancel: () => animations.forEach((animation) => animation.cancel()),
-    };
+  const created = [];
+  const create = () => {
+    const animations = new Map();
+    const timeline = new win.ScrollTimeline({ source: el, axis: "block" });
+    for (const [name, keyframes] of Object.entries(build(geometry)))
+      if (parts[name]) {
+        const animation = parts[name].animate(keyframes, {
+          timeline,
+          fill: "both",
+        });
+        created.push(animation);
+        if (range) {
+          animation.rangeStart = px(win, 0);
+          animation.rangeEnd = px(win, geometry.distance);
+        }
+        animations.set(name, animation);
+      }
+    return animations;
+  };
+  let animations;
+  try {
+    animations = create();
   } catch {
-    animations.forEach((animation) => animation.cancel());
-    return null;
+    // Engines that expose the range properties but reject pixel values.
+    created.forEach((animation) => animation.cancel());
+    created.length = 0;
+    try {
+      range = false;
+      animations = create();
+    } catch {
+      created.forEach((animation) => animation.cancel());
+      return null;
+    }
   }
+  if (!animations.size) return null;
+  return {
+    range,
+    animations: [...animations.values()],
+    update(g) {
+      try {
+        const frames = build(g);
+        for (const [name, animation] of animations) {
+          animation.effect.setKeyframes(frames[name]);
+          if (range) animation.rangeEnd = px(win, g.distance);
+        }
+      } catch {
+        /* keep the previous keyframes rather than flashing the base style */
+      }
+    },
+    cancel: () => animations.forEach((animation) => animation.cancel()),
+  };
 }

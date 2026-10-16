@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  releaseTarget, profileFrame, profileContentFrame, segment,
+  profileReleaseTarget, profileFrame, profileContentFrame, segment,
   PROFILE_CIRCLE_AT, PROFILE_MORPH_START, PROFILE_AVATAR_DIAMETER,
 } from '../web/v5/profile/motion/profileMotionMath.js';
 import {profileStyles, buildProfileScrollKeyframes} from '../web/v5/profile/motion/profileScrollTimeline.js';
@@ -9,14 +9,14 @@ import {profileStyles, buildProfileScrollKeyframes} from '../web/v5/profile/moti
 test('release preserves content position in either direction, including taps', () => {
   const distance = 373;
   for (const y of [0, distance, distance + 20, distance + 200, 1800]) {
-    for (const direction of [-1, 0, 1]) {
+    for (const velocity of [-2, -0.3, 0, 0.3, 2]) {
       for (const start of [0, distance, y - 50, y + 50]) {
-        assert.equal(releaseTarget(direction, y, distance, start), y);
+        assert.equal(profileReleaseTarget({ y, startScroll: start, distance, velocity }), y);
       }
     }
   }
-  assert.equal(releaseTarget(1, 100, distance, 0), distance);
-  assert.equal(releaseTarget(-1, 100, distance, distance), 0);
+  assert.equal(profileReleaseTarget({ y: 200, startScroll: 0, distance, velocity: 0.3 }), distance);
+  assert.equal(profileReleaseTarget({ y: distance - 200, startScroll: distance, distance, velocity: -0.3 }), 0);
 });
 
 test('fitted image covers the mask and reduces to avatar size, without stretching', () => {
