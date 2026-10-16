@@ -139,8 +139,9 @@ export function supportsProfileScrollRange(win = window) {
     "rangeEnd" in win.Animation.prototype
   );
 }
-const px = (win, value) =>
-  win.CSS?.px ? win.CSS.px(value) : `${Math.max(0, value)}px`;
+// CSS.px() is misinterpreted as an animation-range offset in some Chromium
+// builds (e.g. 300px completes after ~16px). CSS string lengths work correctly.
+const px = (_win, value) => `${Math.max(0, value)}px`;
 
 /**
  * Creates the compositor-driven animations ONCE. Later geometry changes are
