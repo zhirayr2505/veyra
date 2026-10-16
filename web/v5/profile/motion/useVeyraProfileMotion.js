@@ -207,6 +207,30 @@ export function useVeyraProfileMotion({
       void el.scrollTop;
       el.style.overflowY = overflow;
     };
+    // A barrier gesture can end at the compact rest while native inertia
+    // starts AFTER touchend. Guard the rest for a few frames; otherwise the
+    // browser can leave the header halfway open without a pending release.
+    const holdRest = (target) => {
+      clearTimeout(s.lockTimer);
+      s.lock = false;
+      stopMomentum();
+      s.snapping = true;
+      let remaining = 24;
+      const hold = () => {
+        if (!s.snapping || s.touching) return;
+        if (Math.abs(el.scrollTop - target) > 0.5) {
+          stopMomentum();
+          el.scrollTop = target;
+          paint();
+        }
+        if (--remaining > 0) s.settleRaf = requestAnimationFrame(hold);
+        else {
+          s.snapping = false;
+          s.settleRaf = 0;
+        }
+      };
+      s.settleRaf = requestAnimationFrame(hold);
+    };
     const settleTo = (target) => {
       s.lock = false;
       clearTimeout(s.lockTimer);
@@ -228,26 +252,7 @@ export function useVeyraProfileMotion({
         el.scrollTop = from + delta * (1 - (1 - t) ** 3);
         paint();
         if (t < 1) s.settleRaf = requestAnimationFrame(step);
-        else {
-          // A fling that started after the finger lifted may still push for a
-          // few frames: hold the rest position until it is gone.
-          let tail = 24,
-            still = 0;
-          const hold = () => {
-            if (s.touching) return;
-            if (Math.abs(el.scrollTop - target) > 0.5) {
-              still = 0;
-              stopMomentum();
-              el.scrollTop = target;
-            } else still++;
-            if (--tail > 0 && still < 8) s.settleRaf = requestAnimationFrame(hold);
-            else {
-              s.snapping = false;
-              s.settleRaf = 0;
-            }
-          };
-          s.settleRaf = requestAnimationFrame(hold);
-        }
+        else holdRest(target);
       };
       s.settleRaf = requestAnimationFrame(step);
     };
@@ -260,7 +265,14 @@ export function useVeyraProfileMotion({
       s.pending = false;
       const y = el.scrollTop;
       // Content, taps and horizontal swipes must never snap back to the header.
-      if (y <= 0.5 || y >= s.distance - 0.5) return;
+      if (y <= 0.5) return;
+      if (y >= s.distance - 0.5) {
+        if (
+          Math.abs(y - s.distance) <= 1.5 &&
+          (s.lock || Math.abs(s.startScroll - s.distance) <= 1.5)
+        ) holdRest(s.distance);
+        return;
+      }
       stopMomentum();
       settleTo(
         profileReleaseTarget({
