@@ -215,15 +215,17 @@ export function useVeyraProfileMotion({
       s.lock = false;
       stopMomentum();
       s.snapping = true;
-      let remaining = 24;
-      const hold = () => {
+      // Hold by elapsed time, not frame count: 24 frames were insufficient
+      // for long inertial tails in Chromium (2-3 px drift after 1100 ms).
+      const guardUntil = performance.now() + 1400;
+      const hold = (now) => {
         if (!s.snapping || s.touching) return;
         if (Math.abs(el.scrollTop - target) > 0.5) {
           stopMomentum();
           el.scrollTop = target;
           paint();
         }
-        if (--remaining > 0) s.settleRaf = requestAnimationFrame(hold);
+        if (now < guardUntil) s.settleRaf = requestAnimationFrame(hold);
         else {
           s.snapping = false;
           s.settleRaf = 0;
