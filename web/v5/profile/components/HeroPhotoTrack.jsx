@@ -67,7 +67,7 @@ export const HeroPhotoTrack=React.memo(function HeroPhotoTrack({photos,index,onI
   const now=performance.now(),dt=now-g.lastAt;
   if(dt>0&&dt<100)g.velocity=(e.clientX-g.lastX)/dt;
   g.lastAt=now;g.lastX=e.clientX;g.dx=swipeBound(dx,g.width);
-  offset(g.dx);onDragProgress?.(Math.min(1,Math.abs(g.dx)/g.width));
+  offset(g.dx);onDragProgress?.(Math.min(1,Math.abs(g.dx)/g.width),g.dx);
  };
  const onUp=e=>{
   const g=gesture.current;
@@ -80,7 +80,7 @@ export const HeroPhotoTrack=React.memo(function HeroPhotoTrack({photos,index,onI
   ignoreClickUntil.current=performance.now()+420;
   const physical=swipeStep(g.dx,g.width,g.velocity);
   if(!physical){offset(0,true);onDragProgress?.(0);return}
-  offset(physical*g.width,true);
+  offset(physical*g.width,true);onDragProgress?.(1,physical);
   let started=0;
    const finish=ts=>{
     if(!started)started=ts;

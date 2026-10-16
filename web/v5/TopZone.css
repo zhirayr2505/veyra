@@ -1,6 +1,13 @@
 /* Single safe-area header: center protected from Telegram native controls. */
 .vx-top-zone{position:sticky;top:0;z-index:90;width:100%;height:calc(var(--vx-top,0px) + 44px);box-sizing:border-box;padding-top:var(--vx-top,0px);display:flex;align-items:center;justify-content:center;background:transparent;isolation:isolate}
 .vx-top-zone--floating{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(100%,640px);pointer-events:none}
+:root{
+ /* Telegram header strip: starts below the system status bar, is as tall as Telegram's own buttons. */
+ --vx-tg-top:max(env(safe-area-inset-top,0px),var(--tg-safe-area-inset-top,0px));
+ --vx-tg-bar:max(44px,var(--tg-content-safe-area-inset-top,0px));
+}
+.vx-top-zone--floating{height:calc(var(--vx-tg-top) + var(--vx-tg-bar))}
+.vx-top-zone--floating .vx-top-zone__center,.vx-top-zone--floating .vx-top-zone__left,.vx-top-zone--floating .vx-top-zone__right{top:var(--vx-tg-top);height:var(--vx-tg-bar)}
 .vx-top-zone__center{position:absolute;left:112px;right:112px;top:var(--vx-top,0px);height:44px;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none}
 .vx-top-zone__center h1{font-size:17px;line-height:1.2;font-weight:850;margin:0;max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;color:var(--vx-color-ink,#302043)}
 .vx-top-zone__center .vx-member-floating-logo,.vx-top-zone__center .vx-logo{width:min(100%,131px);max-height:40px;object-fit:contain}

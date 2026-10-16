@@ -11,7 +11,7 @@ test('ScrollTimeline keyframes stay ordered through the collapse and hold compac
   for(let i=1;i<frames.length;i++)assert.ok(frames[i].offset>frames[i-1].offset,name+' duplicate '+i);
   assert.deepEqual(Object.keys(frames[0]).sort(),Object.keys(frames.at(-1)).sort());
  }
- assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','photoContent','identity','actions','more','goal','bars','grabber','backdropPhoto','rim','online','mainPhoto'].sort());
+ assert.deepEqual(Object.keys(tracks).sort(),['hero','panel','photoContent','identity','actions','more','goal','bars','grabber','backdrop','backdropPhoto','rim','online','mainPhoto'].sort());
  assert.equal(tracks.actions.at(-1).transform,tracks.actions.at(-2).transform);
 });
 test('hero uses uniform scale, not an independent scaleX/scaleY and the inner image is fitted uniformly',()=>{
@@ -44,4 +44,25 @@ test('one hero track owns scroll progress and the interpolated mask',()=>{
  assert.equal(tracks.rim[0].opacity,0);
  assert.equal(tracks.rim.at(-1).opacity,1);
  assert.equal(tracks.online.at(-1).opacity,1);
+});
+
+test('compact backdrop photo is fully visible before the hero starts to shrink',()=>{
+ const tracks=buildProfileScrollKeyframes(390,447,373,2000,292);
+ const at=p=>tracks.backdropPhoto.find(f=>Math.abs(f.offset-p*373/2000)<.00002);
+ assert.equal(at(0).opacity,0);
+ assert.ok(at(0.17).opacity>=.99,'backdrop must be opaque at 0.17');
+ assert.equal(tracks.backdropPhoto.at(-1).opacity,1);
+});
+test('compact backdrop is clipped to the sheet and ends at the compact height',()=>{
+ const tracks=buildProfileScrollKeyframes(390,447,373,2000,292);
+ const bottom=f=>parseFloat(f.clipPath.split(' ')[2]);
+ assert.ok(tracks.backdrop.every(f=>f.clipPath.startsWith('inset(0px 0px ')));
+ assert.ok(Math.abs(bottom(tracks.backdrop.at(-1))-(447-292))<.01);
+ for(const f of tracks.backdrop)assert.ok(bottom(f)>=0&&bottom(f)<=447-292+.01);
+});
+test('range mode keeps offsets independent of the total scroll height',()=>{
+ const a=buildProfileScrollKeyframes(390,447,373,900,292,64,true);
+ const b=buildProfileScrollKeyframes(390,447,373,5000,292,64,true);
+ assert.deepEqual(a,b);
+ assert.equal(a.hero.at(-1).offset,1);
 });

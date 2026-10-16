@@ -10,6 +10,7 @@ import {ProfileHighlights,INTEREST_GROUPS,goalTitle} from '../OnboardingOptions.
 
 import {VeyraPackIcon,interestGlyph} from '../VeyraPackIcons.jsx';
 import {useVeyraProfileMotion} from './motion/useVeyraProfileMotion.js';
+import {createProfileLogoLuma,sampleRegionLuma} from './motion/profileLogoLuma.js';
 import {interestTone,sharedInterestSet,normalizeInterest} from '../shared/interests/interestLogic.js';
 import {MemberSwipePages} from './components/MemberSwipePages.jsx';
 import {PhotoSegments} from '../PhotoSegments.jsx';
@@ -55,7 +56,7 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const [reportOpen,setReportOpen]=useState(false),[reportBusy,setReportBusy]=useState(false);
  const [reportReason,setReportReason]=useState('fake'),[reportDetails,setReportDetails]=useState('');
  const [tab,setTab]=useState(()=>viewState?.tab??'about');
- const [logoTone,setLogoTone]=useState(null);
+ const logoLuma=useRef(null);if(!logoLuma.current)logoLuma.current=createProfileLogoLuma();
  const scrollRef=useRef(null),stageRef=useRef(null),motionRef=useRef(null),galleryHintSeen=useRef(null);
  const profileKey=String(isPreview?'preview':ownMe?.user?.id||id||'own');
  const previousKey=useRef(profileKey),restorePending=useRef(true),modeRef=useRef(viewState?.mode||'expanded');
@@ -88,11 +89,17 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
   const underline=tabRailRef.current?.querySelector('.vx-tab-underline');
   if(underline)underline.style.transform='translate3d('+(position*100).toFixed(3)+'%,0,0)';
  },[]);
- const onPhotoDragProgress=useCallback(amount=>{
+ const photosRef=useRef([]),idxRef=useRef(0);photosRef.current=data?.photos||[];idxRef.current=idx;
+ const onPhotoDragProgress=useCallback((amount,dx=0)=>{
   const indicator=motionRef.current?.querySelector('.vx-profile-photo-bars');
-  indicator?.style.setProperty('--veyra-swipe-drag',Math.min(1,Math.max(0,amount)).toFixed(3));
+  const t=Math.min(1,Math.max(0,amount));
+  indicator?.style.setProperty('--veyra-swipe-drag',t.toFixed(3));
+  // A finger moving right reveals the previous photo, moving left the next one.
+  const list=photosRef.current,count=list.length;
+  const neighbour=count>1&&t>0?list[(idxRef.current+(dx>0?-1:1)+count)%count]:null;
+  logoLuma.current.setDrag(t,neighbour);
  },[]);
- const {onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd,onWheel:motionWheel}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data});
+ const {onTouchStart:motionTouchStart,onTouchEnd:motionTouchEnd}=useVeyraProfileMotion({scrollRef,stageRef,motionRef,ready:!!data,onFrame:p=>logoLuma.current.setProgress(p)});
  useLayoutEffect(()=>{
   if(isPreview||!scrollRef.current)return;
   const el=scrollRef.current,nav=document.querySelector('.bottom-nav');
@@ -121,33 +128,34 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  },[id,ownSeed,seed,retry]);
  useEffect(()=>{if(isOwn)return;const root=document.documentElement,body=document.body;const prev=[root.style.overflow,body.style.overflow];root.style.overflow='hidden';body.style.overflow='hidden';return()=>{root.style.overflow=prev[0];body.style.overflow=prev[1]}},[isOwn]);
 
- // Read a tiny canvas sample of the actual portrait, once per photo change.
- // No canvas work is performed during scrolling or the animation loop.
+ // Brightness behind the logo is sampled ONCE per photo. While the photo is
+ // dragged or the header collapses, the logo only blends these cached values.
  useEffect(()=>{
   if(!data)return;
-  const root=motionRef.current;
+  const root=motionRef.current,luma=logoLuma.current;
   if(!root)return;
+  luma.setCurrent(data.photos?.[idx]??null);
   const sample=()=>{
-   const image=root.querySelector('.vx-profile-hero-photo .vx-hero-swipe-slide:nth-child(2) .photo-box img.photo-sharp');
-   if(!image?.complete||image.naturalWidth<4)return;
-   try{
-    const c=document.createElement('canvas');c.width=12;c.height=8;
-    const ctx=c.getContext('2d',{willReadFrequently:true});
-    if(!ctx)return;
-    // Approximate the upper-central header area in both photo states.
-    ctx.drawImage(image,image.naturalWidth*.22,0,image.naturalWidth*.56,image.naturalHeight*.33,0,0,12,8);
-    const bytes=ctx.getImageData(0,0,12,8).data;
-    let sum=0;
-    for(let i=0;i<bytes.length;i+=4)sum+=.2126*bytes[i]+.7152*bytes[i+1]+.0722*bytes[i+2];
-    const brightness=sum/(bytes.length/4);
-    setLogoTone(prev=>prev==null?(brightness<140?'dark':'light'):prev==='dark'?(brightness>150?'light':'dark'):(brightness<130?'dark':'light'));
-   }catch{setLogoTone(prev=>prev??'light')}
+   const scroller=scrollRef.current,hero=root.querySelector('.vx-profile-hero-photo'),logo=document.querySelector('.vx-member-floating-logo');
+   if(!scroller||!hero||!logo)return;
+   const s=scroller.getBoundingClientRect(),l=logo.getBoundingClientRect();
+   const box={width:hero.offsetWidth,height:hero.offsetHeight};
+   const rect={x:l.left-s.left,y:l.top-s.top,width:l.width,height:l.height};
+   for(const slide of root.querySelectorAll('.vx-hero-swipe-slide')){
+    const id=slide.dataset.photoId;
+    if(!id||luma.has(id))continue;
+    luma.setPhotoLuma(id,sampleRegionLuma(slide.querySelector('img.photo-sharp'),box,rect));
+   }
+   const main=root.querySelector('.vx-profile-main-crossfade img.photo-sharp');
+   if(main&&!luma.hasBackdrop())luma.setBackdropLuma(sampleRegionLuma(main,box,rect,[.5,.36],2.4));
   };
+  const resample=()=>{luma.reset();sample()};
   const observer=new MutationObserver(sample);
   observer.observe(root,{childList:true,subtree:true});
   root.addEventListener('load',sample,true);
+  window.addEventListener('resize',resample,{passive:true});
   sample();
-  return()=>{observer.disconnect();root.removeEventListener('load',sample,true)};
+  return()=>{observer.disconnect();root.removeEventListener('load',sample,true);window.removeEventListener('resize',resample)};
  },[data,idx]);
 
  const editProfile=()=>{rememberView();onEdit?.()};
@@ -203,9 +211,9 @@ export function Member({id,onBack,onChat,onMatch,onGift,onPremium,onWallet,onPai
  const sameGoal=!!(viewer?.goal&&viewer.goal!=='unsure'&&data.goal===viewer.goal);
  const fullName=(data.name||'Профиль')+(data.age?', '+data.age:'');
  return <div className={'member page member-feed-profile vx-master-profile'+(isPreview?' vx-profile-read-only':'')+(isOwn?' vx-own-member own-profile':'')+(loading?' vx-profile-hydrating':'')} aria-busy={loading}>
-  {!isPreview&&createPortal(<TopZone floating className="vx-member-native-header" onBack={onBack} center={<Logo width={131} tone={logoTone||'dark'} ready={logoTone!=null} className="vx-member-floating-logo"/>}/>,document.body)}
+  {!isPreview&&createPortal(<TopZone floating className="vx-member-native-header" onBack={onBack} center={<Logo width={131} tone="adaptive" className="vx-member-floating-logo"/>}/>,document.body)}
 
-  <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} onWheel={motionWheel} aria-label={'Профиль '+data.name}>
+  <div className="vx-profile-scroller" ref={scrollRef} onTouchStart={motionTouchStart} onTouchEnd={motionTouchEnd} aria-label={'Профиль '+data.name}>
    <div className="vx-profile-motion" ref={motionRef} data-state="expanded" data-photo-shape="cover" data-motion-phase="sheet" data-sheet-overlap="true">
     <div className="vx-profile-sticky" aria-hidden="false">
      <div className="vx-profile-compact-backdrop" data-main-photo-id={String(photos[0]||"")} aria-hidden="true">{photos[0]&&<CompactBackdropPhoto id={photos[0]}/>}</div>

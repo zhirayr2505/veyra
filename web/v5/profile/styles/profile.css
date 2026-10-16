@@ -46,10 +46,9 @@ html.veyra-telegram-fullscreen .veyra-v2 .vx-master-profile .vx-profile-scroller
 }
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{
  position:absolute;top:0;left:0;right:0;z-index:1;
- height:var(--vx-profile-compact-height);pointer-events:none;overflow:hidden;
+ height:max(var(--vx-profile-hero-height),var(--vx-profile-compact-height));pointer-events:none;overflow:hidden;
  background:linear-gradient(155deg,#e9dcfc,#f6f0ff 80%);contain:layout paint;
- -webkit-mask-image:linear-gradient(180deg,#000 0,#000 60%,transparent 100%);
- mask-image:linear-gradient(180deg,#000 0,#000 60%,transparent 100%);
+ clip-path:inset(0 0 calc(100% - var(--vx-profile-compact-height)) 0);
 }
 .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop .photo-box{
  position:absolute;inset:-14%;width:128%;height:128%;opacity:0;will-change:opacity;
@@ -305,7 +304,6 @@ body>.vx-member-native-header .vx-member-more{display:none}
  .veyra-v2 .vx-master-profile .vx-profile-scroller{
   --vx-profile-hero-height:clamp(322px,51dvh,510px);
  }
- .veyra-v2 .vx-master-profile .vx-profile-compact-backdrop{height:var(--vx-profile-compact-height)}
  .veyra-v2 .vx-master-profile .vx-profile-goal{max-width:48vw}
 }
 @media(prefers-reduced-motion:reduce){

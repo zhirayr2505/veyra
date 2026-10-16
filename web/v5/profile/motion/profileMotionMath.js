@@ -2,42 +2,47 @@
 // Geometry is in pixels in the profile scroll viewport.
 export const clamp = (v, min = 0, max = 1) => Math.max(min, Math.min(max, v));
 export const mix = (a, b, t) => a + (b - a) * t;
-/** Pure release choice: late finger direction wins over the midpoint of the header. */
-export function profileReleaseDirection({
-  samples = [],
-  startY = 0,
-  y = 0,
-  at = 0,
-}) {
+// ---------------------------------------------------------------------------
+// Header release rules. Everything that decides "stay or switch" lives here.
+// ---------------------------------------------------------------------------
+export const PROFILE_COMMIT_RATIO = 0.3; // part of the header distance that must be travelled to switch state
+export const PROFILE_FLICK_VELOCITY = 0.8; // px/ms; a quick flick may switch earlier...
+export const PROFILE_FLICK_MIN_RATIO = 0.05; // ...but never before this part of the distance
+export const PROFILE_CONTENT_GATE = 56; // extra finger travel (px) needed at the top of the tab content before the header opens
+export const PROFILE_WHEEL_GATE = 140; // same gate for mouse wheel / trackpad (summed deltaY)
+/** Finger velocity over the last 120 ms. Positive = content moves up = header collapses. */
+export function profileReleaseVelocity(samples = [], at = 0) {
   const recent = samples.filter((point) => at - point.at <= 120);
-  if (recent.length > 1) {
-    const first = recent[0],
-      last = recent[recent.length - 1];
-    const dt = last.at - first.at;
-    const velocity = dt > 0 ? (first.finger - last.finger) / dt : 0;
-    if (Math.abs(velocity) >= 0.12)
-      return { direction: Math.sign(velocity), velocity };
-  }
-  const displacement = y - startY;
-  if (Math.abs(displacement) >= 6)
-    return { direction: Math.sign(displacement), velocity: 0 };
-  return { direction: 0, velocity: 0 };
+  if (recent.length < 2) return 0;
+  const first = recent[0],
+    last = recent[recent.length - 1],
+    dt = last.at - first.at;
+  return dt > 0 ? (first.finger - last.finger) / dt : 0;
 }
-// Outside the header interval the browser owns the content scroll.
-export const releaseTarget = (direction, y, d, startY) => {
+/**
+ * Rest position (0 expanded / distance compact) after the finger leaves.
+ * The header returns to the state the gesture started from unless the user
+ * travelled COMMIT_RATIO of the distance, or flicked fast enough.
+ * Outside the header interval the browser owns the content scroll.
+ */
+export function profileReleaseTarget({ y, startScroll, distance, velocity = 0 }) {
+  const d = Math.max(1, distance);
   if (y <= 0.5 || y >= d - 0.5) return y;
-  return direction > 0
-    ? d
-    : direction < 0
-      ? 0
-      : startY >= d - 0.5
-        ? d
-        : startY <= 0.5
-          ? 0
-          : y >= d / 2
-            ? d
-            : 0;
-};
+  let origin;
+  if (startScroll <= 0.5) origin = 0;
+  else if (startScroll >= d - 0.5) origin = d;
+  else if (Math.abs(velocity) >= 0.12) origin = velocity > 0 ? 0 : d;
+  else return y < d / 2 ? 0 : d; // interrupted settle without direction: nearest rest
+  const opposite = origin === 0 ? d : 0;
+  const toward = origin === 0 ? velocity : -velocity; // > 0: heading to the opposite state
+  const travelled = origin === 0 ? y : d - y;
+  if (toward >= PROFILE_FLICK_VELOCITY && travelled >= PROFILE_FLICK_MIN_RATIO * d) return opposite;
+  if (toward <= -PROFILE_FLICK_VELOCITY) return origin;
+  // Scrolling lags the finger (touch slop, frame delay): add the distance the
+  // fling would still cover in ~60 ms.
+  const projected = travelled + clamp(toward, 0, 2) * 60;
+  return projected >= PROFILE_COMMIT_RATIO * d ? opposite : origin;
+}
 export const smooth = (t) => {
   const x = clamp(t);
   return x * x * (3 - 2 * x);
@@ -153,6 +158,10 @@ export function profileFrame(
     : nameLeft;
   const railY = mix(h + 218, compactHeight, p);
   const panelHeight = profilePanelHeight(h);
+  // The blurred compact backdrop is as tall as the hero, but is clipped so it
+  // never shows below the rising sheet (no empty strip behind the shrinking photo).
+  const backdropHeight = Math.max(h, compactHeight);
+  const backdropVisible = Math.max(compactHeight, Math.min(backdropHeight, sheetY + 24));
   const panelClipBottom = Math.max(
     0,
     panelHeight - Math.max(0, railY - sheetY + 1),
@@ -176,6 +185,7 @@ export function profileFrame(
     sheetY,
     panelHeight,
     panelClipBottom,
+    backdropClipBottom: backdropHeight - backdropVisible,
     // Move the identity across the invisible middle, then reveal from the right.
     nameX: nameLeftSafe - 19,
     nameY,
